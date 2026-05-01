@@ -14,7 +14,7 @@
   ],
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "provenance": false
   },
   "repository": "github:hookwarden/hookwarden",
   "engines": {

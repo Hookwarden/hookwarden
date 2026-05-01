@@ -14,7 +14,7 @@
   "repository": "github:hookwarden/hookwarden",
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "provenance": false
   },
   "files": [
     "index.cjs",
