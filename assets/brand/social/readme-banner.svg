@@ -14,6 +14,133 @@
 
   <rect width="1280" height="320" fill="#0B0F14"/>
 
+  <defs>
+    <clipPath id="canvas-clip"><rect width="1280" height="320"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#canvas-clip)" class="long-shadow">
+    <use href="#hookwarden-mark" x="200.00" y="160.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="199.00" y="159.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="198.00" y="158.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="197.00" y="157.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="196.00" y="156.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="195.00" y="155.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="194.00" y="154.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="193.00" y="153.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="192.00" y="152.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="191.00" y="151.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="190.00" y="150.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="189.00" y="149.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="188.00" y="148.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="187.00" y="147.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="186.00" y="146.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="185.00" y="145.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="184.00" y="144.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="183.00" y="143.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="182.00" y="142.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="181.00" y="141.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="180.00" y="140.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="179.00" y="139.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="178.00" y="138.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="177.00" y="137.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="176.00" y="136.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="175.00" y="135.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="174.00" y="134.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="173.00" y="133.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="172.00" y="132.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="171.00" y="131.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="170.00" y="130.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="169.00" y="129.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="168.00" y="128.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="167.00" y="127.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="166.00" y="126.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="165.00" y="125.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="164.00" y="124.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="163.00" y="123.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="162.00" y="122.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="161.00" y="121.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="160.00" y="120.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="159.00" y="119.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="158.00" y="118.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="157.00" y="117.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="156.00" y="116.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="155.00" y="115.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="154.00" y="114.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="153.00" y="113.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="152.00" y="112.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="151.00" y="111.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="150.00" y="110.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="149.00" y="109.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="148.00" y="108.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="147.00" y="107.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="146.00" y="106.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="145.00" y="105.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="144.00" y="104.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="143.00" y="103.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="142.00" y="102.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="141.00" y="101.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="140.00" y="100.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="139.00" y="99.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="138.00" y="98.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="137.00" y="97.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="136.00" y="96.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="135.00" y="95.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="134.00" y="94.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="133.00" y="93.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="132.00" y="92.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="131.00" y="91.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="130.00" y="90.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="129.00" y="89.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="128.00" y="88.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="127.00" y="87.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="126.00" y="86.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="125.00" y="85.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="124.00" y="84.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="123.00" y="83.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="122.00" y="82.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="121.00" y="81.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="120.00" y="80.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="119.00" y="79.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="118.00" y="78.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="117.00" y="77.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="116.00" y="76.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="115.00" y="75.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="114.00" y="74.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="113.00" y="73.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="112.00" y="72.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="111.00" y="71.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="110.00" y="70.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="109.00" y="69.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="108.00" y="68.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="107.00" y="67.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="106.00" y="66.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="105.00" y="65.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="104.00" y="64.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="103.00" y="63.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="102.00" y="62.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="101.00" y="61.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="100.00" y="60.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="99.00" y="59.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="98.00" y="58.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="97.00" y="57.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="96.00" y="56.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="95.00" y="55.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="94.00" y="54.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="93.00" y="53.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="92.00" y="52.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="91.00" y="51.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="90.00" y="50.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="89.00" y="49.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="88.00" y="48.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="87.00" y="47.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="86.00" y="46.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="85.00" y="45.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="84.00" y="44.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="83.00" y="43.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="82.00" y="42.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+    <use href="#hookwarden-mark" x="81.00" y="41.00" width="142" height="240" color="#1E293B" opacity="0.025"/>
+  </g>
+
   <use href="#hookwarden-mark" x="80" y="40" width="142" height="240" color="#E5E7EB"/>
 
   <g font-family="Geist" fill="#E5E7EB">
