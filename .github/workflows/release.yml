@@ -30,3 +30,8 @@ jobs:
           version: pnpm changeset version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Token auth is a temporary bootstrap path: npm Trusted Publishers
+          # is unavailable on this account tier. Migrate to per-package OIDC
+          # trusted publishers after first publish; revoke NPM_TOKEN at that point.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
