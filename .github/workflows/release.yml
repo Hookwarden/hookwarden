@@ -36,3 +36,7 @@ jobs:
           # rejects on private repos). After Plan 08 flips repo to public,
           # migrate to per-package OIDC trusted publishers and revoke NPM_TOKEN.
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # setup-node writes a project-level .npmrc that interpolates
+          # ${NODE_AUTH_TOKEN}; without this var the .npmrc resolves to
+          # empty and PUT /registry returns 404 (npm masks no-auth as 404).
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
