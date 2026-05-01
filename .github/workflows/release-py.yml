@@ -1,0 +1,44 @@
+name: Release (PyPI)
+on:
+  push:
+    tags: ['v*.*.*']
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  publish-pypi:
+    runs-on: ubuntu-latest
+    environment: pypi
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [hookwarden, hook-warden, hookwardn, hookwardne, hookwardens, hookwarden-cli]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install build
+        run: pip install --upgrade build
+      - name: Sync version from git tag
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          cd python-packages/${{ matrix.package }}
+          python -c "
+          import re, sys, os
+          version = os.environ['VERSION']
+          path = 'pyproject.toml'
+          src = open(path).read()
+          new = re.sub(r'^version = .*$', f'version = \"{version}\"', src, count=1, flags=re.M)
+          open(path, 'w').write(new)
+          "
+          head -20 pyproject.toml
+        env:
+          VERSION: ${{ github.ref_name }}
+      - name: Build sdist + wheel
+        working-directory: python-packages/${{ matrix.package }}
+        run: python -m build
+      - name: Publish to PyPI (Trusted Publisher OIDC)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python-packages/${{ matrix.package }}/dist
