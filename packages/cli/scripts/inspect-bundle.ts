@@ -9,18 +9,22 @@ import pc from 'picocolors';
 
 type Violation = { file: string; category: string; pattern: string };
 
+// Match three import shapes:
+//   require("lib")           -> 'require\(\s*'
+//   from "lib"               -> 'from\s+'   (covers `import x from "lib"`, `import {a} from "lib"`, `import * as x from "lib"`)
+//   import "lib"             -> 'import\s+' (bare side-effect import — covers `import "lib";`)
 const FORBIDDEN_PATTERNS: Array<{ category: string; pattern: RegExp }> = [
   {
     category: 'network-builtin',
-    pattern: /\b(?:require\(\s*|from\s+)["'](?:node:)?(?:http|https|net|dgram|tls|dns)["']/,
+    pattern: /\b(?:require\(\s*|from\s+|import\s+)["'](?:node:)?(?:http|https|net|dgram|tls|dns)["']/,
   },
   {
     category: 'network-http-client',
-    pattern: /\b(?:require\(\s*|from\s+)["'](?:node-fetch|axios|got|undici|cross-fetch|isomorphic-fetch|ky|wretch|phin|needle|request)["']/,
+    pattern: /\b(?:require\(\s*|from\s+|import\s+)["'](?:node-fetch|axios|got|undici|cross-fetch|isomorphic-fetch|ky|wretch|phin|needle|request)["']/,
   },
   {
     category: 'analytics-sdk',
-    pattern: /\b(?:require\(\s*|from\s+)["'](?:@sentry\/[\w-]+|posthog-[\w-]+|@datadog\/[\w-]+|mixpanel|@amplitude\/[\w-]+|amplitude|@segment\/[\w-]+|analytics-node|heap-node|@logsnag\/[\w-]+|loggly-jslogger|rollbar|honeycomb-beeline|appsignal|bugsnag|@bugsnag\/[\w-]+)["']/,
+    pattern: /\b(?:require\(\s*|from\s+|import\s+)["'](?:@sentry\/[\w-]+|posthog-[\w-]+|@datadog\/[\w-]+|mixpanel|@amplitude\/[\w-]+|amplitude|@segment\/[\w-]+|analytics-node|heap-node|@logsnag\/[\w-]+|loggly-jslogger|rollbar|honeycomb-beeline|appsignal|bugsnag|@bugsnag\/[\w-]+)["']/,
   },
 ];
 
