@@ -12,21 +12,23 @@ assets/brand/
 │   └── hookwarden-mark.svg           ← canonical vector mark (uses currentColor)
 ├── icons/
 │   ├── favicon.ico                   ← multi-res 16/32/48
-│   ├── favicon-16.png                ← navy on transparent
+│   ├── favicon-16.png                ← dark mark on transparent
 │   ├── favicon-32.png
 │   ├── favicon-48.png
-│   ├── apple-touch-icon.png          ← 180×180, white-on-navy, full-bleed
+│   ├── apple-touch-icon.png          ← 180×180, off-white mark on bg, full-bleed
 │   ├── android-chrome-192.png
 │   ├── android-chrome-512.png
 │   └── android-chrome-maskable-512.png
 └── social/
-    ├── og-image.svg / .png           ← 1200×630 Open Graph card
     └── readme-banner.svg / .png      ← 1280×320 README header
 ```
 
-The `packages/web/public/` directory holds copies of the favicons + manifest +
-OG image so the Astro site picks them up at deploy time. Source-of-truth is
-this directory.
+This is the **canonical brand**. The private SaaS repo
+(`AdelinaLipsa/webhook-security`) mirrors only what its surface needs
+(favicons + manifest in `packages/web/public/`, plus its own
+marketing-specific OG image). When the brand here changes, the SaaS
+repo's mirror needs a manual re-sync (commands in its
+`assets/brand/README.md`).
 
 ## The mark
 
@@ -39,26 +41,36 @@ so any consumer can apply any color via CSS:
 
 ```css
 /* anywhere it's inlined */
-.brand { color: #1A2633; }   /* navy */
-.brand-on-dark { color: #FFFFFF; }
+.brand        { color: #E5E7EB; }   /* on dark surface */
+.brand-on-light { color: #0B0F14; } /* on light surface */
 ```
 
 To render a recolored raster from CLI:
 
 ```bash
-sed 's/currentColor/#1A2633/g' marks/hookwarden-mark.svg | rsvg-convert -h 512 - -o mark-navy-512.png
+sed 's/currentColor/#E5E7EB/g' marks/hookwarden-mark.svg | rsvg-convert -h 512 - -o mark-512.png
 ```
 
 ## Colors
 
-| Role             | Hex       | Notes                                          |
-|------------------|-----------|------------------------------------------------|
-| Black (primary)  | `#000000` | Background for full-bleed surfaces             |
-| White (mark)     | `#FFFFFF` | Mark color on dark surfaces                    |
-| Navy (legacy)    | `#1A2633` | Original mark color; kept available, not primary |
+| Role              | Hex       | Notes                                                                 |
+|-------------------|-----------|-----------------------------------------------------------------------|
+| Background        | `#0B0F14` | Dark base for full-bleed surfaces (~Tailwind slate-950, violet tilt)  |
+| Text / mark       | `#E5E7EB` | Primary text + mark color on dark surfaces (Tailwind gray-200)        |
+| Accent            | `#6366F1` | Indigo accent — used sparingly (Tailwind indigo-500)                  |
+| Surface highlight | `#1E293B` | Steel-blue surface tier for cards / hover states (Tailwind slate-800) |
+| Navy (legacy)     | `#1A2633` | Original mark color; preserved for reference, not primary             |
 
-The brand runs on **black + white**. Navy is preserved as a kept-around accent
-but every full-bleed surface (icons, social cards, app manifest) uses black.
+The brand is **technical + distinctive**: a near-black background with a
+faint blue tilt, soft off-white text, and a single indigo accent that
+shows up on dev-tool moments (the `$` prompt glyph in command lines,
+focus rings, key states). Use the accent sparingly — if everything is
+indigo, nothing is.
+
+### Tailwind hint
+
+If you're styling in Tailwind, the closest tokens are
+`bg-slate-950 / text-gray-200 / accent-indigo-500 / surface-slate-800`.
 
 ## Typography
 
@@ -82,7 +94,6 @@ locally after edits, install the fonts so fontconfig can find them:
 brew install --cask font-geist font-geist-mono
 fc-cache -f
 
-rsvg-convert -w 1200 -h 630 assets/brand/social/og-image.svg     -o assets/brand/social/og-image.png
 rsvg-convert -w 1280 -h 320 assets/brand/social/readme-banner.svg -o assets/brand/social/readme-banner.png
 ```
 
@@ -95,7 +106,7 @@ Favicons are derived from `marks/hookwarden-mark.svg`. To regenerate the full
 set after a mark change, run:
 
 ```bash
-BLACK="#000000"; NAVY="#1A2633"; SVG=assets/brand/marks/hookwarden-mark.svg
+BG="#0B0F14"; MARK="#E5E7EB"; SVG=assets/brand/marks/hookwarden-mark.svg
 
 render() {  # size, bg, fill, out
   local pad=$(( $1 * 70 / 100 ))
@@ -107,12 +118,14 @@ render() {  # size, bg, fill, out
   fi
 }
 
-render 16  none    "$NAVY"  assets/brand/icons/favicon-16.png
-render 32  none    "$NAVY"  assets/brand/icons/favicon-32.png
-render 48  none    "$NAVY"  assets/brand/icons/favicon-48.png
-render 180 "$BLACK" white   assets/brand/icons/apple-touch-icon.png
-render 192 "$BLACK" white   assets/brand/icons/android-chrome-192.png
-render 512 "$BLACK" white   assets/brand/icons/android-chrome-512.png
+# Favicons: dark mark on transparent so they read on light browser tabs.
+render 16  none "$BG"   assets/brand/icons/favicon-16.png
+render 32  none "$BG"   assets/brand/icons/favicon-32.png
+render 48  none "$BG"   assets/brand/icons/favicon-48.png
+# Full-bleed: brand bg + soft off-white mark.
+render 180 "$BG" "$MARK" assets/brand/icons/apple-touch-icon.png
+render 192 "$BG" "$MARK" assets/brand/icons/android-chrome-192.png
+render 512 "$BG" "$MARK" assets/brand/icons/android-chrome-512.png
 
 magick assets/brand/icons/favicon-16.png \
        assets/brand/icons/favicon-32.png \
