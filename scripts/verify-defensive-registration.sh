@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-# verify-defensive-registration.sh — 13-identity verification probe
+# verify-defensive-registration.sh — 8-identity verification probe
 #
 # Source: project pattern, novel — implements the gate described in
 # runbooks/registration.md and .planning/phases/01-foundation-defensive-registration/01-RESEARCH.md
 # §"Defensive Registration Sequencing".
 #
-# Returns 0 only if all 13 identities are claimed by the project:
+# Returns 0 only if all 8 identities are claimed by the project:
 #   - 6 npm names (canonical + 5 typos): hookwarden, hook-warden, hookwardn, hookwardne,
 #     hookwardens, hookwarden-cli
+#     (npm's similarity-check policy reserves the 5 typos automatically once `hookwarden`
+#     is published; verification still probes them to detect any policy lapse.)
 #   - 1 npm scope: @hookwarden (claimed via first @hookwarden/* publish — Pitfall #4)
-#   - 6 PyPI names (canonical + 5 typos): same six dist names as npm
+#   - 1 PyPI name: `hookwarden` canonical only. The 5 PyPI typo variants are intentionally
+#     unregistered (long-tail, monitored separately by a weekly cron-probe).
 #   - 1 GitHub org: Hookwarden
 #   - 1 domain: hookwarden.dev
-#
-# Total: 6 + 1 + 6 + 1 + 1 = 15 probes covering 13 identity slots (PEP 503 collapses
-# hook-warden/hook_warden/hook.warden into a single PyPI registration, so one probe
-# proves three names are claimed).
 #
 # Intentionally does NOT use `set -e` — every probe must run regardless of earlier
 # failures so the user sees the full picture in one report.
@@ -54,21 +53,19 @@ else
 fi
 
 echo
-echo "[3/4] PyPI canonical + 5 typos"
-for n in hookwarden hook-warden hookwardn hookwardne hookwardens hookwarden-cli; do
-  resp=$(curl -fsS "https://pypi.org/pypi/$n/json" 2>/dev/null)
-  rc=$?
-  if [[ $rc -ne 0 ]]; then
-    fail "PyPI $n: not yet published (HTTP fetch failed)"
-    continue
-  fi
+echo "[3/4] PyPI canonical only (typos monitored separately)"
+resp=$(curl -fsS "https://pypi.org/pypi/hookwarden/json" 2>/dev/null)
+rc=$?
+if [[ $rc -ne 0 ]]; then
+  fail "PyPI hookwarden: not yet published (HTTP fetch failed)"
+else
   ver=$(printf '%s' "$resp" | python3 -c "import sys,json; print(json.loads(sys.stdin.read())['info']['version'])" 2>/dev/null)
   if [[ -n "$ver" ]]; then
-    pass "PyPI $n at version $ver"
+    pass "PyPI hookwarden at version $ver"
   else
-    fail "PyPI $n response missing version field"
+    fail "PyPI hookwarden response missing version field"
   fi
-done
+fi
 
 echo
 echo "[4/4] GitHub org $GH_ORG + domain $DOMAIN"
@@ -88,9 +85,9 @@ fi
 
 echo
 if [[ $FAIL -gt 0 ]]; then
-  printf "FAILED: %d of 15 probes did not pass.\n" "$FAIL"
+  printf "FAILED: %d of 10 probes did not pass.\n" "$FAIL"
   printf "See runbooks/registration.md for recovery procedures.\n"
   exit 1
 fi
-echo "All 13 identities claimed. Defensive registration gate passes."
+echo "All 8 identities claimed. Defensive registration gate passes."
 exit 0

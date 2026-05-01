@@ -9,10 +9,6 @@ jobs:
   publish-pypi:
     runs-on: ubuntu-latest
     environment: pypi
-    strategy:
-      fail-fast: false
-      matrix:
-        package: [hookwarden, hook-warden, hookwardn, hookwardne, hookwardens, hookwarden-cli]
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -23,9 +19,9 @@ jobs:
       - name: Sync version from git tag
         run: |
           VERSION="${GITHUB_REF#refs/tags/v}"
-          cd python-packages/${{ matrix.package }}
+          cd python-packages/hookwarden
           python -c "
-          import re, sys, os
+          import re, os
           version = os.environ['VERSION']
           path = 'pyproject.toml'
           src = open(path).read()
@@ -36,9 +32,9 @@ jobs:
         env:
           VERSION: ${{ github.ref_name }}
       - name: Build sdist + wheel
-        working-directory: python-packages/${{ matrix.package }}
+        working-directory: python-packages/hookwarden
         run: python -m build
       - name: Publish to PyPI (Trusted Publisher OIDC)
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: python-packages/${{ matrix.package }}/dist
+          packages-dir: python-packages/hookwarden/dist

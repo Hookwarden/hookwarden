@@ -1,25 +1,16 @@
 # hookwarden Defensive Registration Runbook
 
 This runbook implements CONTEXT.md decisions D-13, D-14, and D-15. It is the canonical
-order for claiming the **13 identities** required before any public mention of `hookwarden`.
+order for claiming the **8 identities** required before any public mention of `hookwarden`.
 
-## Inventory (13 identities — all verified free on 2026-05-01)
+## Inventory (8 identities)
 
 | Surface | Identity | Notes |
 |---|---|---|
 | npm | `hookwarden` | Canonical CLI (unscoped, so `npx hookwarden@latest scan` works) |
-| npm | `hook-warden` | Hyphen typo |
-| npm | `hookwardn` | Missing-letter typo |
-| npm | `hookwardne` | Letter-transposition typo |
-| npm | `hookwardens` | Plural typo |
-| npm | `hookwarden-cli` | Suffix-variant typo |
 | npm | `@hookwarden` (scope) | Claimed automatically by the first `@hookwarden/*` publish (Pitfall #4) |
-| PyPI | `hookwarden` | Canonical |
-| PyPI | `hook-warden` | PEP 503 normalisation collapses `hook-warden` / `hook_warden` / `hook.warden` |
-| PyPI | `hookwardn` | Missing-letter typo |
-| PyPI | `hookwardne` | Letter-transposition typo |
-| PyPI | `hookwardens` | Plural typo |
-| PyPI | `hookwarden-cli` | Suffix-variant typo |
+| npm | typo reservations | npm's similarity-check policy reserves `hook-warden`, `hookwardn`, `hookwardne`, `hookwardens`, `hookwarden-cli` automatically once `hookwarden` is published. No active registration required. |
+| PyPI | `hookwarden` | Canonical only — the 5 typo variants (`hook-warden`, `hookwardn`, `hookwardne`, `hookwardens`, `hookwarden-cli`) are intentionally unregistered. PyPI has no similarity check, so squat risk on the typos remains; mitigated by a weekly cron-probe (out of scope for this runbook) rather than active registration. |
 | GitHub | org `hookwarden` (`Hookwarden`) | Created PRIVATE in Plan 01 Task 3 |
 | Domain | `hookwarden.dev` | Project-owned; landing page deployed in Plan 08 |
 
@@ -37,33 +28,29 @@ order for claiming the **13 identities** required before any public mention of `
 > All four sub-steps run BEFORE the first publish. They cannot be parallelised by automation —
 > each is a web-UI registration that the project owner performs by hand.
 
-#### Step 1: PyPI pending Trusted Publishers (6 names)
-
-For **each** dist name (`hookwarden`, `hook-warden`, `hookwardn`, `hookwardne`,
-`hookwardens`, `hookwarden-cli`):
+#### Step 1: PyPI pending Trusted Publisher (1 name: `hookwarden`)
 
 1. Sign in to https://pypi.org as the project owner.
 2. Account → Publishing → Add a new pending publisher.
 3. Configure:
-   - **PyPI Project Name:** `<dist>` (use the exact dist name with hyphens)
+   - **PyPI Project Name:** `hookwarden`
    - **GitHub repository owner:** `Hookwarden`
    - **Repository name:** `hookwarden`
    - **Workflow filename:** `release-py.yml`
    - **Environment name:** `pypi`
 
-**Verification gate:** the PyPI publishing dashboard shows 6 "Pending publishers" entries.
-The PyPI JSON API returns `404` for all 6 dist names (because no actual package has been
-uploaded yet — pending publishers are dormant until first publish):
+**Verification gate:** the PyPI publishing dashboard shows 1 "Pending publisher" entry.
+The PyPI JSON API returns `404` for `hookwarden` (pending publishers are dormant until
+first publish):
 
 ```bash
-for n in hookwarden hook-warden hookwardn hookwardne hookwardens hookwarden-cli; do
-  curl -fsS -o /dev/null -w "%{http_code} $n\n" "https://pypi.org/pypi/$n/json"
-done
-# Expected: six 404 lines
+curl -fsS -o /dev/null -w "%{http_code} hookwarden\n" "https://pypi.org/pypi/hookwarden/json"
+# Expected: 404 hookwarden
 ```
 
-**Race-window mitigation (Pitfall #5):** configure all 6 in a single session. The first
-publish in Phase 1 closes the window in seconds.
+**Race-window mitigation (Pitfall #5):** the canonical name is the only registration; the
+first publish in Phase 1 closes the window in seconds. Typo squats on PyPI are out of
+scope for this runbook (see Inventory note) and are detected by a separate weekly cron-probe.
 
 #### Step 2: GitHub repo + `pypi` Environment
 
@@ -126,7 +113,7 @@ All 4 Phase 0 steps must be complete before this phase runs.
    "hookwarden": patch
    ---
 
-   Initial v0.0.1 release — defensive registration of all 9 OSS npm packages and 6 PyPI packages.
+   Initial v0.0.1 release — defensive registration of 9 OSS npm packages and 1 PyPI package.
    ```
 
    Because Plan 05's `fixed:` group lists all 9 OSS packages, this single `patch` bump on
@@ -146,8 +133,8 @@ All 4 Phase 0 steps must be complete before this phase runs.
      - Tags `v0.0.1` and pushes the tag
      - Publishes 9 packages to npm via OIDC Trusted Publishing (provenance auto-emitted)
 
-4. Tag push (`v0.0.1`) triggers `release-py.yml` — the 6-package matrix:
-   - Each job rewrites `version = "0.0.0"` → `version = "0.0.1"` in `pyproject.toml`
+4. Tag push (`v0.0.1`) triggers `release-py.yml` for the canonical `hookwarden` package:
+   - Rewrites `version = "0.0.0"` → `version = "0.0.1"` in `python-packages/hookwarden/pyproject.toml`
    - Builds sdist + wheel
    - Publishes to PyPI via `pypa/gh-action-pypi-publish@release/v1` (Trusted Publisher OIDC)
 
@@ -171,7 +158,7 @@ All 4 Phase 0 steps must be complete before this phase runs.
 | Symptom | Most likely cause | Recovery |
 |---|---|---|
 | `release.yml` fails at npm publish step with "401 unauthorized" | npm Trusted Publisher misconfigured (wrong repo, wrong workflow filename, or environment mismatch) | Re-check npm dashboard, ensure repo = `Hookwarden/hookwarden`, workflow = `release.yml`. Re-run workflow. |
-| `release-py.yml` matrix job fails for one PyPI name with "user does not have permission" | PyPI pending publisher not configured for that dist name, OR adversary published the name during the configuration window (Pitfall #5) | If config gap: add the pending publisher; re-run job. If adversary squat: that name is permanently lost — escalate to PyPI support, in parallel substitute a different typo and update D-12. |
+| `release-py.yml` job fails with "user does not have permission" | PyPI pending publisher not configured for `hookwarden`, OR adversary published the name during the configuration window (Pitfall #5) | If config gap: add the pending publisher; re-run job. If adversary squat on the canonical name: escalate to PyPI support immediately. |
 | Verifier reports `[FAIL] @hookwarden/engine not yet published` | First publish did not include any `@hookwarden/*` package | Confirm Plan 05 fixed group includes `@hookwarden/engine`; re-run the publish if needed. |
 | Verifier reports `[FAIL] domain hookwarden.dev does not resolve` | DNS not yet configured or propagation delay | `dig +trace hookwarden.dev`; wait up to 1 hour for propagation; re-check registrar DNS panel. |
 | Verifier reports `[FAIL] GH org Hookwarden does not exist or is inaccessible` | `gh` CLI not authenticated, OR org name capitalisation mismatch | `gh auth status`; the script accepts `HOOKWARDEN_GH_ORG=Hookwarden` to override the lower-case default. |
@@ -182,4 +169,4 @@ All 4 Phase 0 steps must be complete before this phase runs.
 - `.planning/phases/01-foundation-defensive-registration/01-RESEARCH.md` §"Defensive Registration Sequencing"
 - `.planning/research/PITFALLS.md` §13 (typosquat day-zero)
 - `.github/workflows/release.yml` (npm OIDC publish)
-- `.github/workflows/release-py.yml` (PyPI matrix publish)
+- `.github/workflows/release-py.yml` (PyPI canonical publish)
