@@ -23,6 +23,9 @@ importers:
       dependency-cruiser:
         specifier: 17.3.10
         version: 17.3.10
+      tinyglobby:
+        specifier: ^0.2.16
+        version: 0.2.16
       tsx:
         specifier: 4.21.0
         version: 4.21.0
