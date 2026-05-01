@@ -1,6 +1,6 @@
 {
   "name": "@hookwarden/github-action",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "GitHub Action wrapper for hookwarden CLI.",
   "license": "Apache-2.0",
   "type": "module",
