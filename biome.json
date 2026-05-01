@@ -10,9 +10,41 @@
     "enabled": true,
     "rules": {
       "recommended": true,
-      "correctness": { "noUnusedImports": "error", "noUnusedVariables": "error" },
-      "style": { "useConst": "error" },
-      "suspicious": { "noExplicitAny": "error" }
+      "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "error",
+          "options": { "maxAllowedComplexity": 15 }
+        },
+        "noStaticOnlyClass": "error",
+        "noUselessTypeConstraint": "error",
+        "noUselessFragments": "error",
+        "useFlatMap": "error"
+      },
+      "correctness": {
+        "noUnreachable": "error",
+        "noUnusedFunctionParameters": "error",
+        "noUnusedImports": "error",
+        "noUnusedPrivateClassMembers": "error",
+        "noUnusedVariables": "error"
+      },
+      "style": {
+        "noNonNullAssertion": "error",
+        "useConst": "error",
+        "useImportType": "error",
+        "useNamingConvention": {
+          "level": "error",
+          "options": { "strictCase": false, "requireAscii": true }
+        },
+        "useSelfClosingElements": "error",
+        "useTemplate": "error"
+      },
+      "suspicious": {
+        "noConsole": {
+          "level": "error",
+          "options": { "allow": ["warn", "error"] }
+        },
+        "noExplicitAny": "error"
+      }
     }
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } }
