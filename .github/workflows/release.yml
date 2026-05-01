@@ -34,4 +34,8 @@ jobs:
           # is unavailable on this account tier. Migrate to per-package OIDC
           # trusted publishers after first publish; revoke NPM_TOKEN at that point.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: "true"
+          # Provenance disabled for v0.0.1 — npm provenance requires the source
+          # repo to be PUBLIC at publish time, but the repo stays PRIVATE through
+          # defensive registration (Plan 08 flips to public). Re-enable after
+          # Plan 08; v0.0.2+ publishes will have provenance attestation.
+          NPM_CONFIG_PROVENANCE: "false"
