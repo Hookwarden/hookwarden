@@ -12,13 +12,16 @@
     </symbol>
   </defs>
 
-  <rect width="1280" height="320" fill="#000000"/>
+  <rect width="1280" height="320" fill="#0B0F14"/>
 
-  <use href="#hookwarden-mark" x="80" y="40" width="142" height="240" color="#FFFFFF"/>
+  <use href="#hookwarden-mark" x="80" y="40" width="142" height="240" color="#E5E7EB"/>
 
-  <g fill="#FFFFFF">
-    <text x="280" y="160" font-family="Geist" font-size="78" font-weight="700" letter-spacing="-3">hookwarden</text>
-    <text x="282" y="212" font-family="Geist" font-size="26" font-weight="400" opacity="0.78">Find every webhook-verification bug in your codebase. In five minutes.</text>
-    <text x="282" y="258" font-family="Geist Mono" font-size="20" font-weight="500" opacity="0.55">$ npx hookwarden scan</text>
+  <g font-family="Geist" fill="#E5E7EB">
+    <text x="280" y="160" font-size="78" font-weight="700" letter-spacing="-3">hookwarden</text>
+    <text x="282" y="212" font-size="26" font-weight="400" opacity="0.75">Find every webhook-verification bug in your codebase. In five minutes.</text>
+  </g>
+
+  <g font-family="Geist Mono" font-size="20" font-weight="500">
+    <text x="282" y="258" xml:space="preserve"><tspan fill="#6366F1">$ </tspan><tspan fill="#E5E7EB" opacity="0.6">npx hookwarden scan</tspan></text>
   </g>
 </svg>
