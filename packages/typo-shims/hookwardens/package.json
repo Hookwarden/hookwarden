@@ -1,0 +1,28 @@
+{
+  "name": "hookwardens",
+  "version": "0.0.0",
+  "description": "Did you mean `hookwarden`? This is a typo-defense package. See https://hookwarden.dev",
+  "main": "./index.cjs",
+  "type": "commonjs",
+  "bin": {
+    "hookwardens": "./bin.cjs"
+  },
+  "dependencies": {
+    "hookwarden": "workspace:*"
+  },
+  "license": "Apache-2.0",
+  "repository": "github:hookwarden/hookwarden",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "files": [
+    "index.cjs",
+    "bin.cjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

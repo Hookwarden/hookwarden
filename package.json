@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.13",
+    "@changesets/cli": "2.31.0",
     "@tsconfig/strictest": "2.0.8",
     "@types/node": "^22",
     "axios": "1.7.9",
