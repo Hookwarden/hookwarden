@@ -1,6 +1,6 @@
 {
   "name": "hookwarden",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Webhook security audit CLI. Find signature-verification bugs in JS/TS and Python codebases.",
   "license": "Apache-2.0",
   "type": "module",
