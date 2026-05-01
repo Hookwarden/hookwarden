@@ -1,0 +1,28 @@
+{
+  "name": "@hookwarden/engine",
+  "version": "0.0.0",
+  "description": "hookwarden audit engine — browser-safe, pure-functional. Performs zero I/O.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": "github:hookwarden/hookwarden",
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

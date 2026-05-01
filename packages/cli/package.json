@@ -1,0 +1,29 @@
+{
+  "name": "hookwarden",
+  "version": "0.0.0",
+  "description": "Webhook security audit CLI. Find signature-verification bugs in JS/TS and Python codebases.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "hookwarden": "./bin/cli.cjs"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": "github:hookwarden/hookwarden",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "@hookwarden/engine": "workspace:*"
+  }
+}

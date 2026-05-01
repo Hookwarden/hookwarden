@@ -1,0 +1,23 @@
+{
+  "name": "@hookwarden/rules",
+  "version": "0.0.0",
+  "description": "hookwarden detection rule pack — versioned YAML rules per provider.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "rules",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": "github:hookwarden/hookwarden",
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
