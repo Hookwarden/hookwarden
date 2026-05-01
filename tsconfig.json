@@ -1,0 +1,9 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/engine" },
+    { "path": "./packages/cli" },
+    { "path": "./packages/github-action" },
+    { "path": "./packages/rules" }
+  ]
+}

@@ -1,0 +1,9 @@
+packages:
+  - 'packages/*'
+  - 'packages/typo-shims/*'
+  - 'apps/*'
+
+# Empty allowlist: pnpm 10 blocks every lifecycle script by default; future
+# additions require explicit allowlist edits (defense in depth even though
+# the default is already deny-all). See D-20.
+onlyBuiltDependencies: []
