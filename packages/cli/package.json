@@ -25,5 +25,9 @@
   },
   "dependencies": {
     "@hookwarden/engine": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/tar": "^6.1.13",
+    "tar": "7.4.3"
   }
 }
