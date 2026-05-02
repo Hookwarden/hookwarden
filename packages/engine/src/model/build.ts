@@ -25,7 +25,7 @@ import type {
   ProjectModel,
 } from "../types/project-model.js";
 import type { RuleSet } from "../types/rule-set.js";
-import { detectCatalogHandlers, type CandidateHandler } from "./catalog.js";
+import { type CandidateHandler, detectCatalogHandlers } from "./catalog.js";
 import { computeEvidence } from "./evidence.js";
 import { extractMiddlewareChain } from "./middleware.js";
 import { computeReachableSymbols } from "./reachability.js";
@@ -42,9 +42,9 @@ export interface BuildProjectModelInput {
 
 export async function buildProjectModel(input: BuildProjectModelInput): Promise<ProjectModel> {
   // 1. Aggregate every file's imports → import_graph (engine-internal cross-file index).
-  const import_graph: ImportEdge[] = [];
+  const importGraph: ImportEdge[] = [];
   for (const file of input.parsedFiles) {
-    for (const edge of file.imports) import_graph.push(edge);
+    for (const edge of file.imports) importGraph.push(edge);
   }
 
   // 2. Detect candidate handlers per file (catalog + bespoke). Skip parse-error files (D-27).
@@ -67,13 +67,13 @@ export async function buildProjectModel(input: BuildProjectModelInput): Promise<
 
   // 4. Aggregate middleware registrations at the project level (engine-internal index — Phase 8
   //    rule authors who need cross-handler middleware ordering can query this).
-  const middleware_registrations: ReadonlyArray<MiddlewareRegistration> = [];
+  const middlewareRegistrations: ReadonlyArray<MiddlewareRegistration> = [];
 
   return {
     parsed_files: input.parsedFiles,
     handlers,
-    middleware_registrations,
-    import_graph,
+    middleware_registrations: middlewareRegistrations,
+    import_graph: importGraph,
   };
 }
 
@@ -94,24 +94,24 @@ async function assembleHandler(
     providerCatalog: input.ruleSet.providers,
     imports: file.imports,
   });
-  const reachable_symbols = computeReachableSymbols({
+  const reachableSymbols = computeReachableSymbols({
     handler_body_node: cand.handler_body_node,
     handler_file: file,
     all_files: input.parsedFiles,
     imports: file.imports,
     maxDepth: input.config.reachability_max_depth,
   });
-  const middleware_chain: ReadonlyArray<ResolvedMiddleware> = extractMiddlewareChain({
+  const middlewareChain: ReadonlyArray<ResolvedMiddleware> = extractMiddlewareChain({
     handler: cand,
     parsedFile: file,
     imports: file.imports,
   });
   // sdk_verify_call evidence overlay (issue #7 fix) — completes D-32's 7th signal.
-  const sdkVerifyEvidence = collectSdkVerifyCallEvidence(cand, reachable_symbols, input.ruleSet);
+  const sdkVerifyEvidence = collectSdkVerifyCallEvidence(cand, reachableSymbols, input.ruleSet);
   const evidence: ReadonlyArray<WebhookEvidence> = [...baseEvidence.evidence, ...sdkVerifyEvidence];
   // Recompute provider attribution since sdk_verify_call evidence may shift the count.
   const provider = recomputeProvider(evidence, baseEvidence.provider);
-  const redacted_snippet = renderHandlerSnippet(file, cand);
+  const redactedSnippet = renderHandlerSnippet(file, cand);
   return {
     id,
     framework: cand.framework as Framework,
@@ -124,16 +124,16 @@ async function assembleHandler(
     provider,
     verification_state: "manual-review", // PITFALLS #3 default; Plan 08 evaluator promotes
     evidence,
-    middleware_chain,
-    reachable_symbols,
+    middleware_chain: middlewareChain,
+    reachable_symbols: reachableSymbols,
     findings_ref: [], // back-populated by Plan 08 evaluator
-    redacted_snippet,
+    redacted_snippet: redactedSnippet,
   };
 }
 
 function collectSdkVerifyCallEvidence(
   cand: CandidateHandler,
-  reachable_symbols: ReadonlyArray<{
+  reachableSymbols: ReadonlyArray<{
     readonly qualified_name: string;
     readonly import_source: string | null;
   }>,
@@ -142,9 +142,8 @@ function collectSdkVerifyCallEvidence(
   const out: WebhookEvidence[] = [];
   for (const [providerName, entry] of Object.entries(ruleSet.providers)) {
     for (const verifyCall of entry.sdk_verify_calls) {
-      const matched = reachable_symbols.some(
-        (s) =>
-          s.qualified_name === verifyCall || s.qualified_name.endsWith(`.${verifyCall}`),
+      const matched = reachableSymbols.some(
+        (s) => s.qualified_name === verifyCall || s.qualified_name.endsWith(`.${verifyCall}`),
       );
       if (matched) {
         out.push({
@@ -159,10 +158,7 @@ function collectSdkVerifyCallEvidence(
   return out;
 }
 
-function recomputeProvider(
-  evidence: ReadonlyArray<WebhookEvidence>,
-  fallback: string,
-): string {
+function recomputeProvider(evidence: ReadonlyArray<WebhookEvidence>, fallback: string): string {
   const counts = new Map<string, number>();
   for (const e of evidence) {
     if (e.provider === "unknown") continue;
@@ -192,10 +188,7 @@ function renderHandlerSnippet(file: ParsedFile, cand: CandidateHandler): string 
       ? extractBabelLiterals(file.raw_ast as Parameters<typeof extractBabelLiterals>[0])
       : extractPythonLiterals(file.raw_ast as Parameters<typeof extractPythonLiterals>[0]);
   const sliceLiterals = allLiterals
-    .filter(
-      (l) =>
-        l.start >= cand.handler_source_start && l.end <= cand.handler_source_end,
-    )
+    .filter((l) => l.start >= cand.handler_source_start && l.end <= cand.handler_source_end)
     .map((l) => ({ ...l, start: l.start - offset, end: l.end - offset }));
   return redactSnippet({ source_text: slice, literals: sliceLiterals });
 }

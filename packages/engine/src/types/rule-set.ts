@@ -34,7 +34,10 @@ export interface DeclarativeMatcher {
 }
 
 // D-28 sandboxed predicate signature. Predicates live in @hookwarden/rules/predicates/* and run pure.
-export type RulePredicate = (handler: WebhookHandler, model: ProjectModel) => Promise<Verdict | null>;
+export type RulePredicate = (
+  handler: WebhookHandler,
+  model: ProjectModel,
+) => Promise<Verdict | null>;
 
 // A single rule definition (already parsed from YAML by the caller per D-03).
 export interface RuleDefinition {

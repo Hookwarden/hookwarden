@@ -1,7 +1,7 @@
 // hookwarden CLI entry. Phase 3 implements the scan subcommand and renderers.
 // Phase 2 keeps this file compiling against the new public engine API (D-35 ScanResult).
 
-import { evaluate, type Config, type RuleSet, type ScanResult } from "@hookwarden/engine";
+import { type Config, evaluate, type RuleSet, type ScanResult } from "@hookwarden/engine";
 
 export async function main(_argv: ReadonlyArray<string>): Promise<number> {
   // Placeholder: empty inputs, deterministic shape, no I/O. Phase 3 wires real file walk + renderers.

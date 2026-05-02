@@ -1,5 +1,7 @@
 // Public type surface for @hookwarden/engine. Anything not exported here is internal.
 // Locked by phase-2 plan 01; later plans wire the runtime against these contracts.
+
+export type { Config } from "./config.ts";
 export type { Finding, FindingId, Severity, SourceLocation, Verdict } from "./finding.ts";
 export type {
   Framework,
@@ -9,7 +11,6 @@ export type {
   WebhookEvidenceKind,
   WebhookHandler,
 } from "./handler.ts";
-export type { ScanMetadata, ScanResult } from "./scan-result.ts";
 export type {
   ImportEdge,
   MiddlewareRegistration,
@@ -26,4 +27,4 @@ export type {
   RulePredicate,
   RuleSet,
 } from "./rule-set.ts";
-export type { Config } from "./config.ts";
+export type { ScanMetadata, ScanResult } from "./scan-result.ts";

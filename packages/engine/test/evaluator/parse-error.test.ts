@@ -16,7 +16,7 @@ describe("buildParseErrorFinding (D-27 + ENGINE-07)", () => {
     expect(finding.handler_id).toBeNull();
     expect(finding.primary_location_line_hash).toMatch(/^[0-9a-f]{64}$/);
     expect(finding.id).toMatch(/^[0-9a-f]{64}$/);
-    expect(finding.metadata["source"]).toBe("babel");
+    expect(finding.metadata.source).toBe("babel");
   });
 
   it("throws when called on a clean file", async () => {

@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
-import { initPythonRuntime, type PythonRuntime } from "../../src/parsers/python-loader.js";
 import { parsePython } from "../../src/parsers/python.js";
 import { extractPythonLiterals } from "../../src/parsers/python-literals.js";
+import { initPythonRuntime, type PythonRuntime } from "../../src/parsers/python-loader.js";
 
 let runtime: PythonRuntime;
 
@@ -23,8 +23,8 @@ beforeAll(async () => {
   runtime = await initPythonRuntime({ wasmBytes: new Uint8Array(wasmBytes) });
 }, 30_000);
 
-async function literalsFor(source_text: string) {
-  const file = await parsePython({ file_path: "x.py", source_text }, runtime);
+async function literalsFor(sourceText: string) {
+  const file = await parsePython({ file_path: "x.py", source_text: sourceText }, runtime);
   return extractPythonLiterals(file.raw_ast as Parameters<typeof extractPythonLiterals>[0]);
 }
 

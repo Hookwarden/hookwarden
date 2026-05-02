@@ -20,7 +20,7 @@ export async function buildParseErrorFinding(file: ParsedFile): Promise<Finding>
     source_text: lineText,
     literals: [{ kind: "string", start: 0, end: lineText.length, value: lineText }],
   });
-  const primary_location_line_hash = await computePrimaryLocationLineHash({
+  const primaryLocationLineHash = await computePrimaryLocationLineHash({
     rule_id: "engine/parse-error",
     file_path: file.file_path,
     node_kind: "ParseError",
@@ -30,7 +30,7 @@ export async function buildParseErrorFinding(file: ParsedFile): Promise<Finding>
     rule_id: "engine/parse-error",
     handler_id: null,
     file_path: file.file_path,
-    primary_location_line_hash,
+    primary_location_line_hash: primaryLocationLineHash,
   });
   return {
     id,
@@ -42,7 +42,7 @@ export async function buildParseErrorFinding(file: ParsedFile): Promise<Finding>
     location: { line, col, end_line: line, end_col: col + 1 },
     snippet,
     handler_id: null,
-    primary_location_line_hash,
+    primary_location_line_hash: primaryLocationLineHash,
     message: file.parse_error.message,
     metadata: { source: file.parse_error.source },
   };

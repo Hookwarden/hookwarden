@@ -3,8 +3,8 @@ import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { detectCatalogHandlers } from "../../src/model/catalog.js";
 import { parseJsTs } from "../../src/parsers/babel.js";
-import { initPythonRuntime, type PythonRuntime } from "../../src/parsers/python-loader.js";
 import { parsePython } from "../../src/parsers/python.js";
+import { initPythonRuntime, type PythonRuntime } from "../../src/parsers/python-loader.js";
 
 let runtime: PythonRuntime;
 beforeAll(async () => {
@@ -53,8 +53,7 @@ describe("detectCatalogHandlers — Express", () => {
   it("ignores non-webhook paths", async () => {
     const file = await parseJsTs({
       file_path: "x.ts",
-      source_text:
-        "import express from 'express'; const app = express(); app.post('/login', h);",
+      source_text: "import express from 'express'; const app = express(); app.post('/login', h);",
     });
     expect(detectCatalogHandlers(file)).toHaveLength(0);
   });

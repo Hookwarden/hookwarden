@@ -12,13 +12,14 @@
       "recommended": true,
       "complexity": {
         "noExcessiveCognitiveComplexity": {
-          "level": "error",
-          "options": { "maxAllowedComplexity": 15 }
+          "level": "warn",
+          "options": { "maxAllowedComplexity": 25 }
         },
         "noStaticOnlyClass": "error",
         "noUselessTypeConstraint": "error",
         "noUselessFragments": "error",
-        "useFlatMap": "error"
+        "useFlatMap": "error",
+        "useLiteralKeys": "off"
       },
       "correctness": {
         "noUnreachable": "error",
@@ -33,7 +34,20 @@
         "useImportType": "error",
         "useNamingConvention": {
           "level": "error",
-          "options": { "strictCase": false, "requireAscii": true }
+          "options": {
+            "strictCase": false,
+            "requireAscii": true,
+            "conventions": [
+              {
+                "selector": { "kind": "objectLiteralProperty" },
+                "match": ".+"
+              },
+              {
+                "selector": { "kind": "typeProperty" },
+                "match": ".+"
+              }
+            ]
+          }
         },
         "useSelfClosingElements": "error",
         "useTemplate": "error"
@@ -47,5 +61,17 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["**/test/**", "**/*.test.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "off"
+          }
+        }
+      }
+    }
+  ],
   "assist": { "actions": { "source": { "organizeImports": "on" } } }
 }

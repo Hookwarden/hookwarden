@@ -20,7 +20,7 @@ describe("computeReachableSymbols (D-34) — direct calls", () => {
     const handlers = detectCatalogHandlers(file);
     expect(handlers).toHaveLength(1);
     const reach = computeReachableSymbols({
-      handler_body_node: handlers[0]!.handler_body_node,
+      handler_body_node: handlers[0]?.handler_body_node,
       handler_file: file,
       all_files: [file],
       imports: file.imports,
@@ -128,8 +128,6 @@ describe("computeReachableSymbols (D-34) — cross-file import expansion", () =>
     expect(r2.map((r) => r.qualified_name)).toContain("b");
     expect(r2.map((r) => r.qualified_name)).not.toContain("c");
     // r4 should reach all of a, b, c, d.
-    expect(r4.map((r) => r.qualified_name)).toEqual(
-      expect.arrayContaining(["a", "b", "c", "d"]),
-    );
+    expect(r4.map((r) => r.qualified_name)).toEqual(expect.arrayContaining(["a", "b", "c", "d"]));
   });
 });

@@ -27,7 +27,7 @@ describe("loadRuleSet (D-03 + ENGINE-08 content hash)", () => {
     expect(rs.rule_pack_version).toBe("0.0.1");
     expect(rs.rules).toHaveLength(1);
     expect(rs.rules[0]?.rule_id).toBe("github/missing-timing-safe-equal");
-    expect(rs.providers["github"]).toBeDefined();
+    expect(rs.providers.github).toBeDefined();
     expect(typeof rs.predicates["github-timing-safe-equal"]).toBe("function");
   });
 
@@ -124,7 +124,7 @@ describe("computeContentHash (ENGINE-08, D-38)", () => {
 
   it("changes when the catalog changes", async () => {
     const a = await computeContentHash(PROVIDER_CATALOG, [VALID_DOC]);
-    const stripeEntry = PROVIDER_CATALOG["stripe"] ?? {
+    const stripeEntry = PROVIDER_CATALOG.stripe ?? {
       signature_header: [],
       sdk_packages: [],
       sdk_verify_calls: [],
@@ -159,7 +159,7 @@ describe("smoke-test rule predicate (github-timing-safe-equal)", () => {
         },
       ],
     } as unknown as PredicateInput;
-    const verdict = await ALL_PREDICATES["github-timing-safe-equal"]!(handler, {} as never);
+    const verdict = await ALL_PREDICATES["github-timing-safe-equal"]?.(handler, {} as never);
     expect(verdict).toBe("verified");
   });
 
@@ -168,7 +168,7 @@ describe("smoke-test rule predicate (github-timing-safe-equal)", () => {
       provider: "github",
       reachable_symbols: [],
     } as unknown as PredicateInput;
-    const verdict = await ALL_PREDICATES["github-timing-safe-equal"]!(handler, {} as never);
+    const verdict = await ALL_PREDICATES["github-timing-safe-equal"]?.(handler, {} as never);
     expect(verdict).toBe("not-verified");
   });
 
@@ -177,7 +177,7 @@ describe("smoke-test rule predicate (github-timing-safe-equal)", () => {
       provider: "stripe",
       reachable_symbols: [],
     } as unknown as PredicateInput;
-    const verdict = await ALL_PREDICATES["github-timing-safe-equal"]!(handler, {} as never);
+    const verdict = await ALL_PREDICATES["github-timing-safe-equal"]?.(handler, {} as never);
     expect(verdict).toBeNull();
   });
 });

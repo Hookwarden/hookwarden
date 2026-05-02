@@ -9,7 +9,7 @@ import type {
   RulePredicate,
   RuleSet,
 } from "@hookwarden/engine";
-import { validateRuleDocument, type ParsedMatcher, type ParsedRuleDocument } from "./schema.js";
+import { type ParsedMatcher, type ParsedRuleDocument, validateRuleDocument } from "./schema.js";
 
 export interface LoadRuleSetInput {
   // Caller (CLI / SaaS worker) reads YAML and parses it; this loader takes the parsed objects.
@@ -112,10 +112,10 @@ async function sha256Hex(input: string): Promise<string> {
 
 export async function computeContentHash(
   providers: ProviderCatalog,
-  rule_documents: ReadonlyArray<ParsedRuleDocument>,
+  ruleDocuments: ReadonlyArray<ParsedRuleDocument>,
 ): Promise<string> {
   // Hash covers providers + rule docs (predicates are code, versioned via Changesets;
   // their version is captured via rule_pack_version). Stable across refactors that don't change data.
-  const payload = canonicalize({ providers, rules: rule_documents });
+  const payload = canonicalize({ providers, rules: ruleDocuments });
   return sha256Hex(payload);
 }

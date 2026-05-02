@@ -142,10 +142,10 @@ function nodeLocation(node: Node): SourceLocation {
 }
 
 function resolveImportSource(
-  qualified_name: string,
+  qualifiedName: string,
   imports: ReadonlyArray<ImportEdge>,
 ): string | null {
-  const root = qualified_name.split(".")[0];
+  const root = qualifiedName.split(".")[0];
   if (!root) return null;
   for (const edge of imports) {
     for (const n of edge.imported_names) {

@@ -3,7 +3,7 @@
 
 import type { File } from "@babel/types";
 import type { LiteralSpan } from "../redaction/structural.js";
-import { walkUntypedAst, type MaybeAstNode } from "./walk.js";
+import { type MaybeAstNode, walkUntypedAst } from "./walk.js";
 
 function pushSpan(
   out: LiteralSpan[],

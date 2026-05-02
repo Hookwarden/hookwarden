@@ -28,14 +28,14 @@ export async function evaluate(
   const findings: Finding[] = [];
 
   // 1. Parse-error findings (D-27 + ENGINE-07) — exactly one per parse-error file, no rules run.
-  let parse_errors_count = 0;
-  let parsed_files_count = 0;
+  let parseErrorsCount = 0;
+  let parsedFilesCount = 0;
   for (const file of model.parsed_files) {
     if (file.parse_error !== null) {
-      parse_errors_count++;
+      parseErrorsCount++;
       findings.push(await buildParseErrorFinding(file));
     } else {
-      parsed_files_count++;
+      parsedFilesCount++;
     }
   }
 
@@ -63,8 +63,8 @@ export async function evaluate(
     rule_pack_version: ruleSet.rule_pack_version,
     rule_pack_content_hash: await computeRulePackContentHash(ruleSet),
     scanned_at: config.scanned_at,
-    parse_errors_count,
-    parsed_files_count,
+    parse_errors_count: parseErrorsCount,
+    parsed_files_count: parsedFilesCount,
     total_files_count: config.total_files_count,
   };
 

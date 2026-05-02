@@ -1,17 +1,17 @@
 // model/ barrel — Plan 06a + 06b combined surface.
-export { buildProjectModel, type BuildProjectModelInput } from "./build.js";
-export { detectCatalogHandlers, type CandidateHandler } from "./catalog.js";
+export { type BuildProjectModelInput, buildProjectModel } from "./build.js";
+export { type CandidateHandler, detectCatalogHandlers } from "./catalog.js";
 export {
-  computeEvidence,
-  locationFromCandidate,
   type ComputeEvidenceInput,
   type ComputeEvidenceOutput,
+  computeEvidence,
+  locationFromCandidate,
 } from "./evidence.js";
 export {
-  extractMiddlewareChain,
   type ExtractMiddlewareInput,
+  extractMiddlewareChain,
 } from "./middleware.js";
 export {
-  computeReachableSymbols,
   type ComputeReachabilityInput,
+  computeReachableSymbols,
 } from "./reachability.js";

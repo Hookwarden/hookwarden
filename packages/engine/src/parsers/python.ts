@@ -4,7 +4,7 @@
 // NOT as silently-skipped files. The all-or-nothing policy is the user-visible signal.
 
 import type { Node, Tree } from "web-tree-sitter";
-import type { ImportEdge, ParseErrorRecord, ParsedFile } from "../types/project-model.js";
+import type { ImportEdge, ParsedFile, ParseErrorRecord } from "../types/project-model.js";
 import type { PythonRuntime } from "./python-loader.js";
 
 export interface ParsePythonInput {
@@ -20,17 +20,17 @@ export async function parsePython(
   // tree-sitter never throws on parse — it always returns a tree (possibly null on OOM).
   // Errors surface as ERROR / MISSING nodes inside the tree.
   const tree = runtime.parser.parse(source_text);
-  let parse_error: ParseErrorRecord | null = null;
+  let parseError: ParseErrorRecord | null = null;
   if (tree === null) {
-    parse_error = {
+    parseError = {
       message: "tree-sitter-python: parser returned null tree",
       location: { line: 1, col: 1 },
       source: "tree-sitter",
     };
   } else {
-    parse_error = findFirstError(tree.rootNode);
+    parseError = findFirstError(tree.rootNode);
   }
-  const cleanTree: Tree | null = parse_error === null ? tree : null;
+  const cleanTree: Tree | null = parseError === null ? tree : null;
   const imports: ReadonlyArray<ImportEdge> =
     cleanTree === null ? [] : extractImports(cleanTree.rootNode, file_path);
   return {
@@ -40,7 +40,7 @@ export async function parsePython(
     source_text,
     raw_ast: cleanTree, // D-27: null on error
     imports,
-    parse_error,
+    parse_error: parseError,
   };
 }
 
@@ -67,7 +67,7 @@ function findFirstError(root: Node): ParseErrorRecord | null {
   return null;
 }
 
-function extractImports(root: Node, from_file: string): ReadonlyArray<ImportEdge> {
+function extractImports(root: Node, fromFile: string): ReadonlyArray<ImportEdge> {
   const out: ImportEdge[] = [];
   // tree-sitter-python distinguishes:
   //   import_statement       → `import a`, `import a as b`, `import a, c`
@@ -79,7 +79,7 @@ function extractImports(root: Node, from_file: string): ReadonlyArray<ImportEdge
         if (child === null) continue;
         if (child.type === "dotted_name") {
           out.push({
-            from_file,
+            from_file: fromFile,
             to_module: child.text,
             imported_names: [{ local: child.text, source: "default" }],
             is_default: true,
@@ -88,7 +88,7 @@ function extractImports(root: Node, from_file: string): ReadonlyArray<ImportEdge
           const name = child.childForFieldName("name")?.text ?? "";
           const alias = child.childForFieldName("alias")?.text ?? name;
           out.push({
-            from_file,
+            from_file: fromFile,
             to_module: name,
             imported_names: [{ local: alias, source: "default" }],
             is_default: true,
@@ -117,7 +117,12 @@ function extractImports(root: Node, from_file: string): ReadonlyArray<ImportEdge
         }
       }
       if (moduleName !== "") {
-        out.push({ from_file, to_module: moduleName, imported_names: names, is_default: false });
+        out.push({
+          from_file: fromFile,
+          to_module: moduleName,
+          imported_names: names,
+          is_default: false,
+        });
       }
     }
   }

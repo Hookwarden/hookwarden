@@ -266,17 +266,17 @@ export async function generate(): Promise<void> {
   const manifest = {
     total_files: FILES.length,
     total_lines: totalLines,
-    files: FILES.map(({ relPath, framework, language, expected_handlers, parse_error_expected }) => ({
-      relPath,
-      framework,
-      language,
-      expected_handlers,
-      parse_error_expected,
-    })),
+    files: FILES.map(
+      ({ relPath, framework, language, expected_handlers, parse_error_expected }) => ({
+        relPath,
+        framework,
+        language,
+        expected_handlers,
+        parse_error_expected,
+      }),
+    ),
   };
   writeFileSync(join(HERE, "manifest.json"), JSON.stringify(manifest, null, 2), "utf8");
-  // eslint-disable-next-line no-console
-  console.log(`generated ${FILES.length} files (~${totalLines} lines) under ${OUT}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

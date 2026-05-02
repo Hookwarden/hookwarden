@@ -98,7 +98,8 @@ describe("engine purity (compiled output grep)", () => {
     // The crypto pattern intentionally matches only string-quoted module references; this test
     // asserts the regex is narrow enough that the WebCrypto API usage in the engine source does
     // not get flagged. If this test fails after the regex is broadened, narrow it again.
-    const cryptoPattern = /["']node:crypto["']|require\(\s*["']crypto["']\s*\)|from\s+["']crypto["']/;
+    const cryptoPattern =
+      /["']node:crypto["']|require\(\s*["']crypto["']\s*\)|from\s+["']crypto["']/;
     expect(cryptoPattern.test("globalThis.crypto.subtle.digest('SHA-256', bytes)")).toBe(false);
     expect(cryptoPattern.test("import { sha256Hex } from './webcrypto.js';")).toBe(false);
     // And it DOES still match real Node-crypto imports.

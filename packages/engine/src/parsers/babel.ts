@@ -3,9 +3,9 @@
 // D-27 all-or-nothing: any parse error short-circuits to a ParseErrorRecord with empty imports.
 // Plugin set is permissive per phase-2 Claude's Discretion; Phase 6 will tighten against the 200+ corpus.
 
-import { parse, type ParserPlugin } from "@babel/parser";
+import { type ParserPlugin, parse } from "@babel/parser";
 import type { File, ImportDeclaration, Node } from "@babel/types";
-import type { ImportEdge, ParseErrorRecord, ParsedFile } from "../types/project-model.js";
+import type { ImportEdge, ParsedFile, ParseErrorRecord } from "../types/project-model.js";
 
 export interface ParseJsTsInput {
   readonly file_path: string; // repo-relative
@@ -31,11 +31,8 @@ const JS_FAMILY: ReadonlyArray<ParserPlugin> = [
 
 const JSX_FAMILY: ReadonlyArray<ParserPlugin> = ["jsx"];
 
-function pluginsFor(
-  hint: ParseJsTsInput["hint"],
-  file_path: string,
-): ReadonlyArray<ParserPlugin> {
-  const ext = (hint ?? file_path.split(".").pop() ?? "").toLowerCase();
+function pluginsFor(hint: ParseJsTsInput["hint"], filePath: string): ReadonlyArray<ParserPlugin> {
+  const ext = (hint ?? filePath.split(".").pop() ?? "").toLowerCase();
   const isTs = ext === "ts" || ext === "tsx";
   const isJsx = ext === "tsx" || ext === "jsx";
   const out: ParserPlugin[] = isTs ? [...TS_FAMILY] : [...JS_FAMILY];
@@ -43,11 +40,8 @@ function pluginsFor(
   return out;
 }
 
-function languageFor(
-  hint: ParseJsTsInput["hint"],
-  file_path: string,
-): "javascript" | "typescript" {
-  const ext = (hint ?? file_path.split(".").pop() ?? "").toLowerCase();
+function languageFor(hint: ParseJsTsInput["hint"], filePath: string): "javascript" | "typescript" {
+  const ext = (hint ?? filePath.split(".").pop() ?? "").toLowerCase();
   return ext === "ts" || ext === "tsx" ? "typescript" : "javascript";
 }
 
@@ -56,7 +50,7 @@ export async function parseJsTs(input: ParseJsTsInput): Promise<ParsedFile> {
   const plugins = pluginsFor(input.hint, file_path);
   const language = languageFor(input.hint, file_path);
   let ast: File | null = null;
-  let parse_error: ParseErrorRecord | null = null;
+  let parseError: ParseErrorRecord | null = null;
   try {
     ast = parse(source_text, {
       sourceType: "module",
@@ -69,18 +63,15 @@ export async function parseJsTs(input: ParseJsTsInput): Promise<ParsedFile> {
     });
   } catch (err) {
     // Babel's SyntaxError carries .loc = { line, column } (1-indexed line, 0-indexed column).
-    const e = err as
-      | { message?: string; loc?: { line?: number; column?: number } }
-      | undefined;
-    parse_error = {
+    const e = err as { message?: string; loc?: { line?: number; column?: number } } | undefined;
+    parseError = {
       message: e?.message ?? "babel parse error",
       location: { line: e?.loc?.line ?? 1, col: (e?.loc?.column ?? 0) + 1 },
       source: "babel",
     };
   }
   // D-27: when parse_error is set, downstream rules MUST NOT inspect raw_ast — return empty imports.
-  const imports: ReadonlyArray<ImportEdge> =
-    ast === null ? [] : extractImports(ast, file_path);
+  const imports: ReadonlyArray<ImportEdge> = ast === null ? [] : extractImports(ast, file_path);
   return {
     file_path,
     language,
@@ -88,16 +79,16 @@ export async function parseJsTs(input: ParseJsTsInput): Promise<ParsedFile> {
     source_text,
     raw_ast: ast,
     imports,
-    parse_error,
+    parse_error: parseError,
   };
 }
 
-function extractImports(ast: File, from_file: string): ReadonlyArray<ImportEdge> {
+function extractImports(ast: File, fromFile: string): ReadonlyArray<ImportEdge> {
   const out: ImportEdge[] = [];
   for (const stmt of ast.program.body) {
     // ES module imports: import { a, b as c } from 'x'; import d from 'x'; import * as ns from 'x';
     if (stmt.type === "ImportDeclaration") {
-      out.push(toImportEdge(stmt, from_file));
+      out.push(toImportEdge(stmt, fromFile));
       continue;
     }
     // CJS interop: const x = require('y'); top-level only.
@@ -110,7 +101,7 @@ function extractImports(ast: File, from_file: string): ReadonlyArray<ImportEdge>
         if (!arg || arg.type !== "StringLiteral") continue;
         const local = decl.id.type === "Identifier" ? decl.id.name : "<destructured>";
         out.push({
-          from_file,
+          from_file: fromFile,
           to_module: arg.value,
           imported_names: [{ local, source: "default" }],
           is_default: true,
@@ -121,13 +112,13 @@ function extractImports(ast: File, from_file: string): ReadonlyArray<ImportEdge>
   return out;
 }
 
-function toImportEdge(node: ImportDeclaration, from_file: string): ImportEdge {
-  const to_module = node.source.value;
+function toImportEdge(node: ImportDeclaration, fromFile: string): ImportEdge {
+  const toModule = node.source.value;
   const names: Array<{ local: string; source: string }> = [];
-  let is_default = false;
+  let isDefault = false;
   for (const spec of node.specifiers) {
     if (spec.type === "ImportDefaultSpecifier") {
-      is_default = true;
+      isDefault = true;
       names.push({ local: spec.local.name, source: "default" });
     } else if (spec.type === "ImportSpecifier") {
       const importedName =
@@ -137,7 +128,7 @@ function toImportEdge(node: ImportDeclaration, from_file: string): ImportEdge {
       names.push({ local: spec.local.name, source: "*" });
     }
   }
-  return { from_file, to_module, imported_names: names, is_default };
+  return { from_file: fromFile, to_module: toModule, imported_names: names, is_default: isDefault };
 }
 
 // Re-export for narrow downstream use (e.g. evaluator dispatching on AST node kind).

@@ -1,33 +1,25 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { performance } from "node:perf_hooks";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   ALL_ADAPTERS,
   buildProjectModel,
+  type Config,
   evaluate,
   initPythonRuntime,
-  parseJsTs,
-  parsePython,
-  type Config,
   type ParsedFile,
   type ProjectModel,
   type ProviderCatalog,
   type PythonRuntime,
+  parseJsTs,
+  parsePython,
   type RulePredicate,
   type RuleSet,
   type WebhookHandler,
 } from "../../src/index.js";
 
-const FIXTURE_ROOT = join(
-  process.cwd(),
-  "..",
-  "..",
-  "e2e",
-  "fixtures",
-  "perf",
-  "generated",
-);
+const FIXTURE_ROOT = join(process.cwd(), "..", "..", "e2e", "fixtures", "perf", "generated");
 
 const TEST_CATALOG: ProviderCatalog = {
   github: {
@@ -114,109 +106,100 @@ beforeAll(async () => {
 }, 60_000);
 
 describe("Phase 2 perf + coverage on the 50K-LOC fixture (ENGINE-06 + ENGINE-09 + ENGINE-07)", () => {
-  it(
-    "scans the full fixture in under 30 seconds and emits internally consistent ScanResult",
-    async () => {
-      const start = performance.now();
-      const allFiles = listFiles(FIXTURE_ROOT);
-      expect(allFiles.length).toBeGreaterThan(280);
+  it("scans the full fixture in under 30 seconds and emits internally consistent ScanResult", async () => {
+    const start = performance.now();
+    const allFiles = listFiles(FIXTURE_ROOT);
+    expect(allFiles.length).toBeGreaterThan(280);
 
-      // 1. Parse every file.
-      const parsedFiles: ParsedFile[] = [];
-      for (const abs of allFiles) {
-        const rel = relative(FIXTURE_ROOT, abs);
-        const text = readFileSync(abs, "utf8");
-        if (
-          abs.endsWith(".ts") ||
-          abs.endsWith(".tsx") ||
-          abs.endsWith(".js") ||
-          abs.endsWith(".jsx")
-        ) {
-          parsedFiles.push(await parseJsTs({ file_path: rel, source_text: text }));
-        } else if (abs.endsWith(".py")) {
-          parsedFiles.push(await parsePython({ file_path: rel, source_text: text }, runtime));
-        }
+    // 1. Parse every file.
+    const parsedFiles: ParsedFile[] = [];
+    for (const abs of allFiles) {
+      const rel = relative(FIXTURE_ROOT, abs);
+      const text = readFileSync(abs, "utf8");
+      if (
+        abs.endsWith(".ts") ||
+        abs.endsWith(".tsx") ||
+        abs.endsWith(".js") ||
+        abs.endsWith(".jsx")
+      ) {
+        parsedFiles.push(await parseJsTs({ file_path: rel, source_text: text }));
+      } else if (abs.endsWith(".py")) {
+        parsedFiles.push(await parsePython({ file_path: rel, source_text: text }, runtime));
       }
+    }
 
-      // 2. Build ProjectModel with bespoke adapters wired in.
-      const config: Config = {
-        reachability_max_depth: 3,
-        scanned_at: "2026-05-02T00:00:00Z",
-        engine_commit_sha: null,
-        total_files_count: parsedFiles.length,
-      };
-      const model = await buildProjectModel({
-        parsedFiles,
-        ruleSet: RULESET,
-        config,
-        bespokeAdapters: ALL_ADAPTERS,
-      });
+    // 2. Build ProjectModel with bespoke adapters wired in.
+    const config: Config = {
+      reachability_max_depth: 3,
+      scanned_at: "2026-05-02T00:00:00Z",
+      engine_commit_sha: null,
+      total_files_count: parsedFiles.length,
+    };
+    const model = await buildProjectModel({
+      parsedFiles,
+      ruleSet: RULESET,
+      config,
+      bespokeAdapters: ALL_ADAPTERS,
+    });
 
-      // 3. Evaluate.
-      const result = await evaluate(model, RULESET, config);
-      const elapsedMs = performance.now() - start;
+    // 3. Evaluate.
+    const result = await evaluate(model, RULESET, config);
+    const elapsedMs = performance.now() - start;
 
-      // ENGINE-06: under 30 seconds.
-      expect(elapsedMs).toBeLessThan(30_000);
+    // ENGINE-06: under 30 seconds.
+    expect(elapsedMs).toBeLessThan(30_000);
 
-      // ENGINE-09: every framework appears in inventory.
-      const frameworksInInventory = new Set(result.inventory.map((h) => h.framework));
-      for (const fw of [
-        "express",
-        "hono",
-        "fastify",
-        "nextjs",
-        "flask",
-        "fastapi",
-        "django",
-      ] as const) {
-        expect(
-          frameworksInInventory.has(fw),
-          `framework ${fw} missing from inventory`,
-        ).toBe(true);
-      }
+    // ENGINE-09: every framework appears in inventory.
+    const frameworksInInventory = new Set(result.inventory.map((h) => h.framework));
+    for (const fw of [
+      "express",
+      "hono",
+      "fastify",
+      "nextjs",
+      "flask",
+      "fastapi",
+      "django",
+    ] as const) {
+      expect(frameworksInInventory.has(fw), `framework ${fw} missing from inventory`).toBe(true);
+    }
 
-      // Issue #8 fix: at least one FastAPI handler must resolve to a /webhooks-prefixed route.
-      // Catches future drift in either the include_router cross-file scan or the fixture
-      // generator's variable naming.
-      const fastapiHandlers = result.inventory.filter((h) => h.framework === "fastapi");
-      expect(fastapiHandlers.length).toBeGreaterThan(0);
-      const fastapiPrefixed = fastapiHandlers.filter((h) =>
-        h.route_pattern.startsWith("/webhooks"),
-      );
-      expect(
-        fastapiPrefixed.length,
-        "no FastAPI handler resolved a /webhooks prefix — include_router cross-file scan likely broken",
-      ).toBeGreaterThan(0);
+    // Issue #8 fix: at least one FastAPI handler must resolve to a /webhooks-prefixed route.
+    // Catches future drift in either the include_router cross-file scan or the fixture
+    // generator's variable naming.
+    const fastapiHandlers = result.inventory.filter((h) => h.framework === "fastapi");
+    expect(fastapiHandlers.length).toBeGreaterThan(0);
+    const fastapiPrefixed = fastapiHandlers.filter((h) => h.route_pattern.startsWith("/webhooks"));
+    expect(
+      fastapiPrefixed.length,
+      "no FastAPI handler resolved a /webhooks prefix — include_router cross-file scan likely broken",
+    ).toBeGreaterThan(0);
 
-      // ENGINE-07: parse-error file surfaces as a parse-error finding.
-      const parseErrors = result.findings.filter((f) => f.rule_id === "engine/parse-error");
-      expect(parseErrors.length).toBeGreaterThanOrEqual(1);
-      expect(parseErrors[0]?.severity).toBe("high");
+    // ENGINE-07: parse-error file surfaces as a parse-error finding.
+    const parseErrors = result.findings.filter((f) => f.rule_id === "engine/parse-error");
+    expect(parseErrors.length).toBeGreaterThanOrEqual(1);
+    expect(parseErrors[0]?.severity).toBe("high");
 
-      // ENGINE-08: metadata is populated.
-      expect(result.metadata.engine_version).toMatch(/^\d+\.\d+\.\d+/);
-      expect(result.metadata.rule_pack_content_hash).toMatch(/^[0-9a-f]{64}$/);
-      expect(result.metadata.parse_errors_count).toBeGreaterThanOrEqual(1);
-      expect(result.metadata.parsed_files_count).toBeGreaterThan(280);
+    // ENGINE-08: metadata is populated.
+    expect(result.metadata.engine_version).toMatch(/^\d+\.\d+\.\d+/);
+    expect(result.metadata.rule_pack_content_hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(result.metadata.parse_errors_count).toBeGreaterThanOrEqual(1);
+    expect(result.metadata.parsed_files_count).toBeGreaterThan(280);
 
-      // At least one Finding is `verified` (the verified-via-SDK file).
-      const verified = result.findings.filter((f) => f.state === "verified");
-      expect(verified.length).toBeGreaterThanOrEqual(1);
+    // At least one Finding is `verified` (the verified-via-SDK file).
+    const verified = result.findings.filter((f) => f.state === "verified");
+    expect(verified.length).toBeGreaterThanOrEqual(1);
 
-      // Every Finding has a stable hex fingerprint.
-      for (const f of result.findings) {
-        expect(f.id).toMatch(/^[0-9a-f]{64}$/);
-        expect(f.primary_location_line_hash).toMatch(/^[0-9a-f]{64}$/);
-      }
+    // Every Finding has a stable hex fingerprint.
+    for (const f of result.findings) {
+      expect(f.id).toMatch(/^[0-9a-f]{64}$/);
+      expect(f.primary_location_line_hash).toMatch(/^[0-9a-f]{64}$/);
+    }
 
-      // No Finding's snippet contains a literal string from a known secret prefix
-      // (D-39 redaction property; spot-check on `whsec_` / `ghs_`).
-      for (const f of result.findings) {
-        expect(f.snippet).not.toMatch(/whsec_[a-zA-Z0-9]+/);
-        expect(f.snippet).not.toMatch(/ghs_[a-zA-Z0-9]+/);
-      }
-    },
-    90_000,
-  );
+    // No Finding's snippet contains a literal string from a known secret prefix
+    // (D-39 redaction property; spot-check on `whsec_` / `ghs_`).
+    for (const f of result.findings) {
+      expect(f.snippet).not.toMatch(/whsec_[a-zA-Z0-9]+/);
+      expect(f.snippet).not.toMatch(/ghs_[a-zA-Z0-9]+/);
+    }
+  }, 90_000);
 });

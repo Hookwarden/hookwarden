@@ -23,8 +23,7 @@ export const githubTimingSafeEqualPredicate: RulePredicate = async (
   );
   const hasSdkVerify = symbols.some(
     (s) =>
-      s.import_source === "@octokit/webhooks" ||
-      s.import_source === "@octokit/webhooks-methods",
+      s.import_source === "@octokit/webhooks" || s.import_source === "@octokit/webhooks-methods",
   );
   if (hasTimingSafe || hasSdkVerify) return "verified";
   return "not-verified";

@@ -38,9 +38,13 @@ const CONFIG = {
   total_files_count: 1,
 } as const;
 
-async function makeModel(source_text: string) {
-  const file = await parseJsTs({ file_path: "x.ts", source_text });
-  const model = await buildProjectModel({ parsedFiles: [file], ruleSet: TEST_RULESET, config: CONFIG });
+async function makeModel(sourceText: string) {
+  const file = await parseJsTs({ file_path: "x.ts", source_text: sourceText });
+  const model = await buildProjectModel({
+    parsedFiles: [file],
+    ruleSet: TEST_RULESET,
+    config: CONFIG,
+  });
   return { model, handler: model.handlers[0]! };
 }
 

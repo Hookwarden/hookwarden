@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { djangoAdapter } from "../../src/adapters/django.js";
-import { initPythonRuntime, type PythonRuntime } from "../../src/parsers/python-loader.js";
 import { parsePython } from "../../src/parsers/python.js";
+import { initPythonRuntime, type PythonRuntime } from "../../src/parsers/python-loader.js";
 
 let runtime: PythonRuntime;
 

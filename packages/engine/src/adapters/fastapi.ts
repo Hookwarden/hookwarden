@@ -67,12 +67,12 @@ function matchFastApiDecorator(
     if (!pathArg) continue;
     const path = stripPyString(pathArg.text);
     const prefix = prefixByRouterVar.get(routerVar) ?? "";
-    const route_pattern = prefix + path;
+    const routePattern = prefix + path;
 
     return {
       framework: "fastapi" as Framework,
       framework_version: null, // issue #5
-      route_pattern,
+      route_pattern: routePattern,
       http_methods: [methodName.toUpperCase()],
       file_path: file.file_path,
       location: {
@@ -93,9 +93,7 @@ function matchFastApiDecorator(
 // Map router-variable-name → prefix from `app.include_router(router_var, prefix='/api')`
 // across every Python file. Cross-file: a router defined in module A and included in module B
 // resolves as long as both files are in `allFiles`.
-function collectIncludeRouterPrefixes(
-  allFiles: ReadonlyArray<ParsedFile>,
-): Map<string, string> {
+function collectIncludeRouterPrefixes(allFiles: ReadonlyArray<ParsedFile>): Map<string, string> {
   const out = new Map<string, string>();
   for (const f of allFiles) {
     if (f.dialect !== "tree-sitter-python" || f.raw_ast === null) continue;

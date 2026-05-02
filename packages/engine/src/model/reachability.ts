@@ -250,11 +250,11 @@ function collectCallsPython(body: unknown): ReadonlyArray<string> {
 }
 
 function resolveImportSource(
-  qualified_name: string,
+  qualifiedName: string,
   imports: ReadonlyArray<ImportEdge>,
 ): string | null {
   // qualified_name like `stripe.webhooks.constructEvent` — root identifier is `stripe`.
-  const root = qualified_name.split(".")[0];
+  const root = qualifiedName.split(".")[0];
   if (!root) return null;
   for (const edge of imports) {
     for (const name of edge.imported_names) {
@@ -265,12 +265,12 @@ function resolveImportSource(
 }
 
 function findExportedName(
-  qualified_name: string,
+  qualifiedName: string,
   imports: ReadonlyArray<ImportEdge>,
 ): string | null {
   // Map local name back to its source-side export name (e.g. `cd` → `compare_digest`
   // when imported via `from hmac import compare_digest as cd`).
-  const root = qualified_name.split(".")[0];
+  const root = qualifiedName.split(".")[0];
   if (!root) return null;
   for (const edge of imports) {
     for (const name of edge.imported_names) {

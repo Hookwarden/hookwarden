@@ -31,7 +31,7 @@ export async function evaluateRulesForHandler(
 ): Promise<EvaluateForHandlerOutput> {
   const { handler, ruleSet, model } = input;
   const findings: Finding[] = [];
-  const findings_ref: FindingId[] = [];
+  const findingsRef: FindingId[] = [];
   let worst: Verdict = "verified"; // optimistic baseline; rules promote toward not-verified
   for (const rule of ruleSet.rules) {
     if (!ruleAppliesToFramework(rule, handler.framework)) continue;
@@ -39,10 +39,10 @@ export async function evaluateRulesForHandler(
     if (verdict === null) continue; // rule does not apply
     const finding = await buildFinding(rule, handler, verdict);
     findings.push(finding);
-    findings_ref.push(finding.id);
+    findingsRef.push(finding.id);
     if (VERDICT_RANK[verdict] > VERDICT_RANK[worst]) worst = verdict;
   }
-  return { findings, findings_ref, worst_state: worst };
+  return { findings, findings_ref: findingsRef, worst_state: worst };
 }
 
 function ruleAppliesToFramework(
@@ -90,7 +90,7 @@ async function buildFinding(
   verdict: Verdict,
 ): Promise<Finding> {
   const lineText = extractLineFromHandler(handler);
-  const primary_location_line_hash = await computePrimaryLocationLineHash({
+  const primaryLocationLineHash = await computePrimaryLocationLineHash({
     rule_id: rule.rule_id,
     file_path: handler.file_path,
     node_kind: "WebhookHandler",
@@ -100,7 +100,7 @@ async function buildFinding(
     rule_id: rule.rule_id,
     handler_id: handler.id,
     file_path: handler.file_path,
-    primary_location_line_hash,
+    primary_location_line_hash: primaryLocationLineHash,
   });
   return {
     id,
@@ -112,7 +112,7 @@ async function buildFinding(
     location: handler.location,
     snippet: handler.redacted_snippet,
     handler_id: handler.id,
-    primary_location_line_hash,
+    primary_location_line_hash: primaryLocationLineHash,
     message: rule.message,
     metadata: { framework: handler.framework, route_pattern: handler.route_pattern },
   };

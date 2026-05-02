@@ -84,7 +84,7 @@ function detectJsTsCatalog(parsedFile: ParsedFile): ReadonlyArray<CandidateHandl
 // Returns null when the node shape does not match — keeps the walker visitor side-effect-free.
 function matchAppMethodCall(
   node: Node,
-  file_path: string,
+  filePath: string,
   hasHono: boolean,
   hasFastify: boolean,
 ): CandidateHandler | null {
@@ -116,7 +116,7 @@ function matchAppMethodCall(
     framework_version: null, // D-01 — never inferred in Phase 2 (issue #5).
     route_pattern: path,
     http_methods: [methodName.toUpperCase()],
-    file_path,
+    file_path: filePath,
     location: locationOf(node),
     handler_function_name: extractFunctionName(fnNode),
     handler_body_node: fnNode,
@@ -126,7 +126,7 @@ function matchAppMethodCall(
 }
 
 // Matches `fastify.route({ method, url, handler })` shape.
-function matchFastifyRouteCall(node: Node, file_path: string): CandidateHandler | null {
+function matchFastifyRouteCall(node: Node, filePath: string): CandidateHandler | null {
   if (node.type !== "ExpressionStatement") return null;
   const expr = node.expression;
   if (expr.type !== "CallExpression") return null;
@@ -150,7 +150,7 @@ function matchFastifyRouteCall(node: Node, file_path: string): CandidateHandler 
     framework_version: null, // issue #5
     route_pattern: url,
     http_methods: method,
-    file_path,
+    file_path: filePath,
     location: locationOf(node),
     handler_function_name: extractFunctionName(route.handler),
     handler_body_node: route.handler,
@@ -214,7 +214,11 @@ function propertyKeyName(
 
 function extractStringPath(node: Node): string | null {
   if (node.type === "StringLiteral") return node.value;
-  if (node.type === "TemplateLiteral" && node.expressions.length === 0 && node.quasis.length === 1) {
+  if (
+    node.type === "TemplateLiteral" &&
+    node.expressions.length === 0 &&
+    node.quasis.length === 1
+  ) {
     return node.quasis[0]?.value.cooked ?? null;
   }
   return null;
@@ -250,7 +254,9 @@ function spanOf(node: Node): { readonly start: number; readonly end: number } {
   return { start: node.start ?? 0, end: node.end ?? 0 };
 }
 
-function readMethodField(value: string | ReadonlyArray<string> | null): ReadonlyArray<string> | null {
+function readMethodField(
+  value: string | ReadonlyArray<string> | null,
+): ReadonlyArray<string> | null {
   if (value === null) return null;
   if (typeof value === "string") {
     return BODY_METHODS.has(value.toLowerCase()) ? [value.toUpperCase()] : null;
@@ -274,10 +280,7 @@ function detectPythonCatalog(parsedFile: ParsedFile): ReadonlyArray<CandidateHan
   return out;
 }
 
-function matchFlaskDecorator(
-  node: PySyntaxNode,
-  file_path: string,
-): CandidateHandler | null {
+function matchFlaskDecorator(node: PySyntaxNode, filePath: string): CandidateHandler | null {
   const fnDef = node.namedChildren.find((c) => c.type === "function_definition");
   if (!fnDef) return null;
 
@@ -292,7 +295,7 @@ function matchFlaskDecorator(
       framework_version: null, // issue #5
       route_pattern: route.path,
       http_methods: route.methods,
-      file_path,
+      file_path: filePath,
       location: {
         line: node.startPosition.row + 1,
         col: node.startPosition.column + 1,

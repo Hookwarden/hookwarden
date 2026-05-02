@@ -25,8 +25,7 @@ export function extractPythonLiterals(tree: Tree | null): ReadonlyArray<LiteralS
     }
     // String literal. Detect f-string by looking for an `interpolation` named descendant.
     // (Some grammar versions use `string_interpolation`; treat both as template.)
-    const isTemplate =
-      node.descendantsOfType(["interpolation", "string_interpolation"]).length > 0;
+    const isTemplate = node.descendantsOfType(["interpolation", "string_interpolation"]).length > 0;
     if (isTemplate) {
       out.push({
         kind: "template",

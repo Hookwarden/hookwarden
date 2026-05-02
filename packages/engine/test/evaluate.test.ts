@@ -2,10 +2,7 @@ import { describe, expect, it } from "vitest";
 import { evaluate } from "../src/evaluate.js";
 import { buildProjectModel } from "../src/model/build.js";
 import { parseJsTs } from "../src/parsers/babel.js";
-import type {
-  ProjectModel,
-  WebhookHandler,
-} from "../src/types/index.js";
+import type { ProjectModel, WebhookHandler } from "../src/types/index.js";
 import type { RulePredicate, RuleSet } from "../src/types/rule-set.js";
 
 const TEST_CATALOG = {
@@ -69,13 +66,19 @@ describe("evaluate (D-35 ScanResult + ENGINE-08 metadata + DISCOVERY-01 inventor
         "app.post('/webhooks/github', (req, res) => res.send('ok'));\n",
     });
     const broken = await parseJsTs({ file_path: "broken.ts", source_text: "const x = ;" });
-    const model = await buildProjectModel({ parsedFiles: [ok, broken], ruleSet: RULESET, config: CONFIG });
+    const model = await buildProjectModel({
+      parsedFiles: [ok, broken],
+      ruleSet: RULESET,
+      config: CONFIG,
+    });
     const result = await evaluate(model, RULESET, CONFIG);
 
     // Two findings: one parse-error (broken.ts) + one rule finding (github not-verified).
     expect(result.findings).toHaveLength(2);
     const parseErr = result.findings.find((f) => f.rule_id === "engine/parse-error");
-    const ruleFinding = result.findings.find((f) => f.rule_id === "github/missing-timing-safe-equal");
+    const ruleFinding = result.findings.find(
+      (f) => f.rule_id === "github/missing-timing-safe-equal",
+    );
     expect(parseErr).toBeDefined();
     expect(parseErr?.severity).toBe("high");
     expect(ruleFinding).toBeDefined();

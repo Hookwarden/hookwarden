@@ -26,7 +26,7 @@ export function nextjsAdapter(
   if (file.parse_error !== null || file.raw_ast === null) return [];
   if (!ROUTE_FILE_RE.test(file.file_path)) return [];
 
-  const route_pattern = deriveRoute(file.file_path);
+  const routePattern = deriveRoute(file.file_path);
   const ast = file.raw_ast as File;
   const out: CandidateHandler[] = [];
 
@@ -34,7 +34,7 @@ export function nextjsAdapter(
     if (stmt.type !== "ExportNamedDeclaration") continue;
     for (const exported of collectNamedFunctionExports(stmt)) {
       if (!BODY_METHOD_NAMES.has(exported.name)) continue;
-      out.push(buildHandler(file, route_pattern, exported));
+      out.push(buildHandler(file, routePattern, exported));
     }
   }
   return out;
@@ -43,7 +43,7 @@ export function nextjsAdapter(
 function deriveRoute(filePath: string): string {
   // app/api/webhooks/stripe/route.ts → /api/webhooks/stripe
   const m = filePath.match(ROUTE_PATH_RE);
-  if (!m || !m[1]) return "/";
+  if (!m?.[1]) return "/";
   return `/${m[1]}`;
 }
 
@@ -69,14 +69,14 @@ function collectNamedFunctionExports(
 
 function buildHandler(
   file: ParsedFile,
-  route_pattern: string,
+  routePattern: string,
   exported: NamedFunctionExport,
 ): CandidateHandler {
   const span = spanOf(exported.fnNode);
   return {
     framework: "nextjs" as Framework,
     framework_version: null, // D-01 — never inferred in Phase 2 (issue #5).
-    route_pattern,
+    route_pattern: routePattern,
     http_methods: [exported.name],
     file_path: file.file_path,
     location: locationOf(exported.fnNode),

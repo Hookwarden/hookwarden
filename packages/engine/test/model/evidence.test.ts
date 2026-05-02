@@ -88,9 +88,7 @@ describe("computeEvidence (D-32 — 6 of 7 signals; sdk_verify_call emitted in P
       imports: file.imports,
     });
     expect(
-      evidence.some(
-        (e) => e.kind === "secret_env_var_reference" && e.detail === "STRIPE_WEBHOOK",
-      ),
+      evidence.some((e) => e.kind === "secret_env_var_reference" && e.detail === "STRIPE_WEBHOOK"),
     ).toBe(true);
   });
 

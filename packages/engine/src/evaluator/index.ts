@@ -1,7 +1,7 @@
-export { applyMatcher, type ApplyMatcherInput } from "./matchers.js";
+export { type ApplyMatcherInput, applyMatcher } from "./matchers.js";
 export { buildParseErrorFinding } from "./parse-error.js";
 export {
-  evaluateRulesForHandler,
   type EvaluateForHandlerInput,
   type EvaluateForHandlerOutput,
+  evaluateRulesForHandler,
 } from "./visit.js";

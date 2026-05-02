@@ -81,7 +81,9 @@ describe("buildProjectModel (D-25 + D-37 + DISCOVERY-01)", () => {
     // 6 Plan 06a signals + sdk_verify_call from this plan's overlay.
     expect(h.evidence.some((e) => e.kind === "sdk_import")).toBe(true);
     expect(h.evidence.some((e) => e.kind === "signature_header_read")).toBe(true);
-    expect(h.evidence.some((e) => e.kind === "sdk_verify_call" && e.detail === "verify")).toBe(true);
+    expect(h.evidence.some((e) => e.kind === "sdk_verify_call" && e.detail === "verify")).toBe(
+      true,
+    );
     // Middleware chain: express.json (from app.use) + auth (per-route arg).
     const mwNames = h.middleware_chain.map((m) => m.name);
     expect(mwNames).toContain("express.json");

@@ -2,10 +2,7 @@ import { describe, expect, it } from "vitest";
 import { evaluateRulesForHandler } from "../../src/evaluator/visit.js";
 import { buildProjectModel } from "../../src/model/build.js";
 import { parseJsTs } from "../../src/parsers/babel.js";
-import type {
-  ProjectModel,
-  WebhookHandler,
-} from "../../src/types/index.js";
+import type { ProjectModel, WebhookHandler } from "../../src/types/index.js";
 import type { RulePredicate, RuleSet } from "../../src/types/rule-set.js";
 
 const TEST_CATALOG = {
@@ -48,12 +45,12 @@ const RULE = {
   applies_to: ["express"] as const,
 } as const;
 
-function makeRuleSet(applies_to: ReadonlyArray<string> | "all" = ["express"]): RuleSet {
+function makeRuleSet(appliesTo: ReadonlyArray<string> | "all" = ["express"]): RuleSet {
   return {
     schema_version: 1,
     rule_pack_version: "0.0.1",
     providers: TEST_CATALOG,
-    rules: [{ ...RULE, applies_to: applies_to as RULE["applies_to"] }],
+    rules: [{ ...RULE, applies_to: appliesTo as RULE["applies_to"] }],
     predicates: { "github-timing-safe-equal": githubVerifyPredicate },
   };
 }

@@ -122,10 +122,7 @@ function matchUrlsPyPath(call: PySyntaxNode, file: ParsedFile): CandidateHandler
 }
 
 // Map className → '/<path>' by scanning every urls.py for `path('...', ClassName.as_view())`.
-function resolveCBVRoute(
-  className: string | null,
-  allFiles: ReadonlyArray<ParsedFile>,
-): string {
+function resolveCBVRoute(className: string | null, allFiles: ReadonlyArray<ParsedFile>): string {
   if (!className) return "/";
   for (const f of allFiles) {
     if (

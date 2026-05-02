@@ -16,7 +16,10 @@ export type ParsedMatcher =
         readonly equals: string | number | null;
       };
     }
-  | { readonly name: "middlewareOrder"; readonly args: { readonly before: string; readonly after: string } }
+  | {
+      readonly name: "middlewareOrder";
+      readonly args: { readonly before: string; readonly after: string };
+    }
   | { readonly name: "secretLiteralPrefix"; readonly args: { readonly prefix: string } }
   | { readonly name: "signatureHeaderRead"; readonly args: { readonly header: string } };
 

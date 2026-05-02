@@ -2,14 +2,15 @@ import { describe, expect, it } from "vitest";
 import { parseJsTs } from "../../src/parsers/babel.js";
 import { extractBabelLiterals } from "../../src/parsers/literals.js";
 
-async function literalsFor(source_text: string) {
-  const file = await parseJsTs({ file_path: "x.ts", source_text });
+async function literalsFor(sourceText: string) {
+  const file = await parseJsTs({ file_path: "x.ts", source_text: sourceText });
   return extractBabelLiterals(file.raw_ast as Parameters<typeof extractBabelLiterals>[0]);
 }
 
 describe("extractBabelLiterals", () => {
   it("captures string, number, template, regex literals", async () => {
     const literals = await literalsFor(
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: this is JS source being parsed
       "const s = 'hello'; const n = 42; const t = `x${1}`; const r = /abc/g;",
     );
     const kinds = literals.map((l) => l.kind);
@@ -30,9 +31,7 @@ describe("extractBabelLiterals", () => {
   });
 
   it("returns spans in ascending start order for splice safety", async () => {
-    const literals = await literalsFor(
-      "const a = 'first'; const b = 'second'; const c = 'third';",
-    );
+    const literals = await literalsFor("const a = 'first'; const b = 'second'; const c = 'third';");
     for (let i = 1; i < literals.length; i++) {
       const prev = literals[i - 1]!;
       const cur = literals[i]!;
