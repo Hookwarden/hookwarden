@@ -24,6 +24,32 @@ const FORBIDDEN_PATTERNS: Array<[string, RegExp]> = [
   ["node-fetch", /["']node-fetch["']/],
   ["undici", /["']undici["']/],
   ["got", /["']got["']/],
+  // Plan 02-09 extensions — Plan 02 uses globalThis.crypto.subtle (D-02), so the `crypto` regex
+  // matches ONLY string-quoted module references; bare `globalThis.crypto.subtle` MUST NOT trigger
+  // (issue #10). Same shape for path/url.
+  ["crypto", /["']node:crypto["']|require\(\s*["']crypto["']\s*\)|from\s+["']crypto["']/],
+  ["path", /["']node:path["']|require\(\s*["']path["']\s*\)|from\s+["']path["']/],
+  ["url", /["']node:url["']|require\(\s*["']url["']\s*\)|from\s+["']url["']/],
+];
+
+const FORBIDDEN_RUNTIME_DEPS: ReadonlyArray<string> = [
+  "axios",
+  "node-fetch",
+  "got",
+  "undici",
+  "cross-fetch",
+  "isomorphic-fetch",
+  "ky",
+  "wretch",
+  "phin",
+  "needle",
+  "request",
+  "graceful-fs",
+  "fs-extra",
+  "chokidar",
+  "glob",
+  "fast-glob",
+  "tinyglobby",
 ];
 
 beforeAll(() => {
@@ -56,5 +82,27 @@ describe("engine purity (compiled output grep)", () => {
       }
     }
     expect(violations, violations.join("\n")).toEqual([]);
+  });
+
+  it("engine package.json declares no forbidden runtime dependencies", () => {
+    const pkg = JSON.parse(readFileSync(join(PKG_ROOT, "package.json"), "utf8")) as {
+      readonly dependencies?: Record<string, string>;
+    };
+    const deps = pkg.dependencies ?? {};
+    const present = Object.keys(deps).filter((d) => FORBIDDEN_RUNTIME_DEPS.includes(d));
+    expect(present, `forbidden runtime deps present: ${present.join(", ")}`).toEqual([]);
+  });
+
+  it("extended FORBIDDEN_PATTERNS regex does not false-trigger on globalThis.crypto.subtle (issue #10)", () => {
+    // Plan 02 ships /src/findings/webcrypto.ts which uses `globalThis.crypto.subtle.digest(...)`.
+    // The crypto pattern intentionally matches only string-quoted module references; this test
+    // asserts the regex is narrow enough that the WebCrypto API usage in the engine source does
+    // not get flagged. If this test fails after the regex is broadened, narrow it again.
+    const cryptoPattern = /["']node:crypto["']|require\(\s*["']crypto["']\s*\)|from\s+["']crypto["']/;
+    expect(cryptoPattern.test("globalThis.crypto.subtle.digest('SHA-256', bytes)")).toBe(false);
+    expect(cryptoPattern.test("import { sha256Hex } from './webcrypto.js';")).toBe(false);
+    // And it DOES still match real Node-crypto imports.
+    expect(cryptoPattern.test("import { createHash } from 'node:crypto';")).toBe(true);
+    expect(cryptoPattern.test("const c = require('crypto');")).toBe(true);
   });
 });

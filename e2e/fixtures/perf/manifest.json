@@ -1,0 +1,2694 @@
+{
+  "total_files": 384,
+  "total_lines": 46376,
+  "files": [
+    {
+      "relPath": "express-app/handlers/handler-0.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-1.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-2.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-3.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-4.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-5.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-6.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-7.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-8.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-9.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-10.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-11.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-12.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-13.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-14.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-15.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-16.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-17.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-18.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-19.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-20.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-21.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-22.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-23.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-24.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-25.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-26.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-27.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-28.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-29.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-30.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-31.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-32.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-33.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-34.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-35.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-36.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-37.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-38.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-39.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-40.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-41.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-42.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-43.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-44.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-45.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-46.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-47.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-48.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-49.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-50.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-51.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-52.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-53.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-54.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-55.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-56.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-57.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-58.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-59.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-60.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-61.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-62.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-63.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-64.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-65.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-66.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-67.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-68.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-69.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-70.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-71.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-72.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-73.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-74.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-75.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-76.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-77.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-78.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-79.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-80.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-81.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-82.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-83.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-84.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-85.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-86.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-87.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-88.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-89.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-90.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-91.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-92.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-93.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-94.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-95.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-96.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-97.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-98.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/handler-99.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-0.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-1.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-2.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-3.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-4.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-5.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-6.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-7.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-8.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-9.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-10.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-11.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-12.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-13.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-14.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-15.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-16.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-17.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-18.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-19.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-20.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-21.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-22.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-23.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-24.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-25.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-26.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-27.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-28.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-29.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-30.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-31.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-32.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-33.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-34.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-35.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-36.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-37.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-38.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-39.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-40.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-41.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-42.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-43.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-44.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-45.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-46.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-47.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-48.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-49.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-50.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-51.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-52.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-53.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-54.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-55.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-56.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-57.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-58.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "hono-app/handlers/handler-59.ts",
+      "framework": "hono",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-0.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-1.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-2.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-3.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-4.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-5.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-6.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-7.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-8.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-9.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-10.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-11.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-12.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-13.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-14.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-15.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-16.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-17.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-18.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-19.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-20.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-21.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-22.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-23.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-24.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-25.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-26.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-27.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-28.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-29.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-30.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-31.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-32.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-33.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-34.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-35.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-36.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-37.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-38.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastify-app/handlers/handler-39.ts",
+      "framework": "fastify",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-0/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-1/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-2/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-3/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-4/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-5/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-6/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-7/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-8/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-9/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-10/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-11/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-12/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-13/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-14/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-15/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-16/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-17/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-18/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "nextjs-app/app/api/webhooks/svc-19/route.ts",
+      "framework": "nextjs",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_0.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_1.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_2.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_3.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_4.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_5.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_6.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_7.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_8.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_9.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_10.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_11.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_12.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_13.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_14.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_15.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_16.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_17.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_18.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_19.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_20.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_21.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_22.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_23.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_24.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_25.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_26.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_27.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_28.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_29.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_30.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_31.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_32.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_33.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_34.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_35.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_36.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_37.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_38.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_39.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_40.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_41.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_42.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_43.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_44.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_45.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_46.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_47.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_48.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_49.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_50.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_51.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_52.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_53.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_54.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_55.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_56.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_57.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_58.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_59.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_60.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_61.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_62.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_63.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_64.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_65.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_66.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_67.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_68.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_69.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_70.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_71.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_72.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_73.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_74.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_75.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_76.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_77.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_78.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "flask-app/views/view_79.py",
+      "framework": "flask",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_0.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_1.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_2.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_3.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_4.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_5.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_6.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_7.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_8.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_9.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_10.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_11.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_12.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_13.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_14.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_15.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_16.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_17.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_18.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_19.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_20.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_21.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_22.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_23.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_24.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_25.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_26.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_27.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_28.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_29.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_30.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_31.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_32.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_33.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_34.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_35.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_36.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_37.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_38.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_39.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_40.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_41.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_42.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_43.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_44.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_45.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_46.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_47.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_48.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/routers/router_49.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "fastapi-app/main.py",
+      "framework": "fastapi",
+      "language": "python",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_0.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_1.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_2.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_3.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_4.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_5.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_6.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_7.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_8.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_9.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_10.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_11.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_12.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_13.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_14.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_15.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_16.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_17.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_18.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_19.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_20.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_21.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_22.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_23.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_24.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_25.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_26.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_27.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_28.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/views/view_29.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "django-app/urls.py",
+      "framework": "django",
+      "language": "python",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/handlers/verified-github.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "express-app/broken.ts",
+      "framework": "express",
+      "language": "typescript",
+      "expected_handlers": 0,
+      "parse_error_expected": true
+    }
+  ]
+}
