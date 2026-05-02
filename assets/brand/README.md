@@ -9,7 +9,8 @@ assets/brand/
 ├── source/
 │   └── hookwarden-brand-system.png   ← original brand sheet (3K-style master)
 ├── marks/
-│   └── hookwarden-mark.svg           ← canonical vector mark (uses currentColor)
+│   ├── hookwarden-mark.svg           ← canonical vector mark (uses currentColor)
+│   └── hookwarden-icon.svg           ← 512×512 icon: gradient bg + mark (favicon/app icon source)
 ├── icons/
 │   ├── favicon.ico                   ← multi-res 16/32/48
 │   ├── favicon-16.png                ← dark mark on transparent
@@ -20,7 +21,8 @@ assets/brand/
 │   ├── android-chrome-512.png
 │   └── android-chrome-maskable-512.png
 └── social/
-    └── readme-banner.svg / .png      ← 1280×320 README header
+    ├── readme-banner.svg / .png      ← 1280×320 README header
+    └── og-image.svg                  ← 1200×630 Open Graph image
 ```
 
 This is the **canonical brand**. The private SaaS repo
