@@ -2,17 +2,46 @@
 // Decision D-01: no Node built-ins, no network libs.
 // Decision D-02: evaluate() is async (uses globalThis.crypto.subtle).
 // Decision D-03: RuleSet is pre-parsed by the caller; engine never reads files.
-// Phase 2 implements the real evaluate() function. This is a placeholder.
+// Plan 02-08 wires the real evaluate() implementation against these contracts.
 
-export type Finding = { ruleId: string; severity: "critical" | "high" | "medium" | "low" | "info" };
-export type ProjectModel = Record<string, never>;
-export type RuleSet = Record<string, never>;
-export type Config = Record<string, never>;
+// Public type surface (Plan 02-01 D-25..D-39).
+export type {
+  Config,
+  DeclarativeMatcher,
+  Finding,
+  FindingId,
+  Framework,
+  ImportEdge,
+  MatcherName,
+  MiddlewareRegistration,
+  ParsedFile,
+  ParseErrorRecord,
+  ProjectModel,
+  ProviderCatalog,
+  ProviderCatalogEntry,
+  ReachableSymbol,
+  ResolvedMiddleware,
+  RuleDefinition,
+  RulePredicate,
+  RuleSet,
+  ScanMetadata,
+  ScanResult,
+  Severity,
+  SourceLocation,
+  Verdict,
+  WebhookEvidence,
+  WebhookEvidenceKind,
+  WebhookHandler,
+} from "./types/index.js";
 
+import type { Config, ProjectModel, RuleSet, ScanResult } from "./types/index.js";
+
+// Plan 02-08 ships the real evaluate() body. Until then this is a typed placeholder
+// that satisfies the public contract so downstream packages (rules, cli) can compile.
 export async function evaluate(
   _model: ProjectModel,
   _rules: RuleSet,
   _config: Config,
-): Promise<Finding[]> {
-  return [];
+): Promise<ScanResult> {
+  throw new Error("evaluate() is not yet implemented (Plan 02-08 wires the runtime).");
 }

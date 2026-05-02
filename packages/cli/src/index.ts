@@ -1,7 +1,7 @@
 // hookwarden CLI entry. Phase 3 implements the scan subcommand.
-import { evaluate } from "@hookwarden/engine";
 
 export async function main(_argv: string[]): Promise<number> {
-  await evaluate({}, {}, {});
+  // Phase 3 implements the real scan flow (parse files, build ProjectModel, load RuleSet, evaluate).
+  // Plan 02-09 updates this to call evaluate() with real inputs.
   return 0;
 }
