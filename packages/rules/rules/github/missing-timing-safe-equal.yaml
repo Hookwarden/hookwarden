@@ -1,0 +1,17 @@
+schema_version: 1
+rule_id: github/missing-timing-safe-equal
+provider: github
+severity: critical
+emits_state: not-verified
+message: |
+  GitHub webhook handler does not appear to call `crypto.timingSafeEqual` or
+  the `@octokit/webhooks` verifier within 3 hops of the route. Signature
+  verification is missing or unresolvable from static analysis. Add the
+  Octokit SDK call or use `crypto.timingSafeEqual` after computing HMAC-SHA256.
+matcher: null
+predicate: github-timing-safe-equal
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
