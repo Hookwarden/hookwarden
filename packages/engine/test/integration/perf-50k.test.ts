@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { dirname, join, relative } from "node:path";
 import { performance } from "node:perf_hooks";
+import { fileURLToPath } from "node:url";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   ALL_ADAPTERS,
@@ -18,8 +19,12 @@ import {
   type RuleSet,
   type WebhookHandler,
 } from "../../src/index.js";
+import { resolvePythonWasmPath } from "../wasm.js";
 
-const FIXTURE_ROOT = join(process.cwd(), "..", "..", "e2e", "fixtures", "perf", "generated");
+// Resolve the fixture from this file's location, then walk to the workspace root.
+// test/integration/perf-50k.test.ts → up 3 to packages/engine, up 2 more to workspace root.
+const HERE = dirname(fileURLToPath(import.meta.url));
+const FIXTURE_ROOT = join(HERE, "..", "..", "..", "..", "e2e", "fixtures", "perf", "generated");
 
 const TEST_CATALOG: ProviderCatalog = {
   github: {
@@ -86,23 +91,15 @@ function listFiles(root: string): ReadonlyArray<string> {
 let runtime: PythonRuntime;
 
 beforeAll(async () => {
+  // Auto-generate the fixture if missing — the generated tree is gitignored, so CI runners
+  // (and clean local clones) won't have it. Generation is fast (~150ms for 384 files).
   if (!existsSync(FIXTURE_ROOT)) {
-    throw new Error(
-      `Fixture corpus not found at ${FIXTURE_ROOT}. Run \`pnpm exec tsx e2e/fixtures/perf/generate.ts\` first.`,
-    );
+    const { generate } = await import("../../../../e2e/fixtures/perf/generate.js");
+    await generate();
   }
-  const wasmPath = join(
-    process.cwd(),
-    "..",
-    "..",
-    "node_modules",
-    ".pnpm",
-    "tree-sitter-python@0.25.0",
-    "node_modules",
-    "tree-sitter-python",
-    "tree-sitter-python.wasm",
-  );
-  runtime = await initPythonRuntime({ wasmBytes: new Uint8Array(readFileSync(wasmPath)) });
+  runtime = await initPythonRuntime({
+    wasmBytes: new Uint8Array(readFileSync(resolvePythonWasmPath())),
+  });
 }, 60_000);
 
 describe("Phase 2 perf + coverage on the 50K-LOC fixture (ENGINE-06 + ENGINE-09 + ENGINE-07)", () => {

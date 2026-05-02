@@ -1,26 +1,13 @@
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { parsePython } from "../../src/parsers/python.js";
 import { initPythonRuntime, type PythonRuntime } from "../../src/parsers/python-loader.js";
+import { resolvePythonWasmPath } from "../wasm.js";
 
 let runtime: PythonRuntime;
 
 beforeAll(async () => {
-  // Test-only fs read — engine src/ stays pure (test files are outside the purity gate).
-  // pnpm content-addressed install location — verified via `find node_modules/.pnpm`.
-  const wasmPath = join(
-    process.cwd(),
-    "..",
-    "..",
-    "node_modules",
-    ".pnpm",
-    "tree-sitter-python@0.25.0",
-    "node_modules",
-    "tree-sitter-python",
-    "tree-sitter-python.wasm",
-  );
-  const wasmBytes = readFileSync(wasmPath);
+  const wasmBytes = readFileSync(resolvePythonWasmPath());
   runtime = await initPythonRuntime({ wasmBytes: new Uint8Array(wasmBytes) });
 }, 30_000);
 

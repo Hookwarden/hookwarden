@@ -1,25 +1,16 @@
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { fastapiAdapter } from "../../src/adapters/fastapi.js";
 import { parsePython } from "../../src/parsers/python.js";
 import { initPythonRuntime, type PythonRuntime } from "../../src/parsers/python-loader.js";
+import { resolvePythonWasmPath } from "../wasm.js";
 
 let runtime: PythonRuntime;
 
 beforeAll(async () => {
-  const wasmPath = join(
-    process.cwd(),
-    "..",
-    "..",
-    "node_modules",
-    ".pnpm",
-    "tree-sitter-python@0.25.0",
-    "node_modules",
-    "tree-sitter-python",
-    "tree-sitter-python.wasm",
-  );
-  runtime = await initPythonRuntime({ wasmBytes: new Uint8Array(readFileSync(wasmPath)) });
+  runtime = await initPythonRuntime({
+    wasmBytes: new Uint8Array(readFileSync(resolvePythonWasmPath())),
+  });
 }, 30_000);
 
 describe("fastapiAdapter", () => {
