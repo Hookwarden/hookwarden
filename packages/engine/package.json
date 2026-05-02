@@ -28,7 +28,11 @@
   "scripts": {
     "test": "vitest run"
   },
+  "dependencies": {
+    "@babel/parser": "^7.29.3"
+  },
   "devDependencies": {
+    "@babel/types": "^7.29.0",
     "fast-check": "^3.23.0"
   }
 }
