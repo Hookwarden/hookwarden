@@ -1,0 +1,38 @@
+// D-33 provider evidence catalog. Single source of truth across engine routing, rule matchers,
+// and Phase 11 leak-scanner (which reuses secret_literal_prefix). Adding a provider = minor bump
+// of @hookwarden/rules; engine release not required (the catalog is data, not engine code).
+
+import type { ProviderCatalog } from "@hookwarden/engine";
+
+export const PROVIDER_CATALOG: ProviderCatalog = {
+  stripe: {
+    signature_header: ["stripe-signature"],
+    sdk_packages: ["stripe", "@stripe/stripe-js"],
+    sdk_verify_calls: [
+      "webhooks.constructEvent",
+      "Webhook.constructEvent",
+      "Webhook.construct_event",
+    ],
+    secret_env_prefix: ["STRIPE_WEBHOOK", "STRIPE_SIGNING"],
+    secret_literal_prefix: ["whsec_"],
+    conventional_paths: [
+      "/webhooks/stripe",
+      "/api/webhooks/stripe",
+      "/stripe/webhook",
+      "/stripe/webhooks",
+    ],
+  },
+  github: {
+    signature_header: ["x-hub-signature-256", "x-hub-signature"],
+    sdk_packages: ["@octokit/webhooks", "@octokit/webhooks-methods"],
+    sdk_verify_calls: ["verify", "verifyRequest"],
+    secret_env_prefix: ["GITHUB_WEBHOOK", "GH_WEBHOOK"],
+    secret_literal_prefix: ["ghs_", "github_pat_"],
+    conventional_paths: [
+      "/webhooks/github",
+      "/api/webhooks/github",
+      "/github/webhook",
+      "/github/webhooks",
+    ],
+  },
+};

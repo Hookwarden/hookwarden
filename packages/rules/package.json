@@ -19,5 +19,14 @@
   "repository": "github:hookwarden/hookwarden",
   "engines": {
     "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsc --build",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@hookwarden/engine": "workspace:*",
+    "ajv": "^8.17.1"
   }
 }

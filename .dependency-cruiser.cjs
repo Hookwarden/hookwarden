@@ -36,6 +36,26 @@ module.exports = {
         path: "node_modules/(graceful-fs|fs-extra|memfs|chokidar|glob|fast-glob|tinyglobby)/",
       },
     },
+    {
+      name: "rules-predicates-no-node-core",
+      severity: "error",
+      comment:
+        "@hookwarden/rules predicates run inside the engine sandbox (D-28). " +
+        "They must remain browser-safe; no Node built-ins, no network libs, no fs.",
+      from: { path: "^packages/rules/src/predicates/" },
+      to: { dependencyTypes: ["core"] },
+    },
+    {
+      name: "rules-predicates-no-network-libs",
+      severity: "error",
+      comment:
+        "@hookwarden/rules predicates must not perform I/O. " +
+        "Engine purity (D-01) extends to predicates per D-28.",
+      from: { path: "^packages/rules/src/predicates/" },
+      to: {
+        path: "node_modules/(node-fetch|axios|got|undici|cross-fetch|isomorphic-fetch|ky|wretch|phin|needle|request|graceful-fs|fs-extra|chokidar|glob|fast-glob|tinyglobby)/",
+      },
+    },
   ],
   options: {
     tsConfig: { fileName: "tsconfig.base.json" },
