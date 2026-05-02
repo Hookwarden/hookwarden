@@ -2,9 +2,9 @@
 // Decision D-01: no Node built-ins, no network libs.
 // Decision D-02: evaluate() is async (uses globalThis.crypto.subtle).
 // Decision D-03: RuleSet is pre-parsed by the caller; engine never reads files.
-// Plan 02-08 wires the real evaluate() implementation against these contracts.
+// Decision D-23: engine source lives only in the public OSS repo.
 
-// Public type surface (Plan 02-01 D-25..D-39).
+// Public type surface (Plan 02-01 contract).
 export type {
   Config,
   DeclarativeMatcher,
@@ -34,14 +34,15 @@ export type {
   WebhookHandler,
 } from "./types/index.js";
 
-import type { Config, ProjectModel, RuleSet, ScanResult } from "./types/index.js";
-
-// Plan 02-08 ships the real evaluate() body. Until then this is a typed placeholder
-// that satisfies the public contract so downstream packages (rules, cli) can compile.
-export async function evaluate(
-  _model: ProjectModel,
-  _rules: RuleSet,
-  _config: Config,
-): Promise<ScanResult> {
-  throw new Error("evaluate() is not yet implemented (Plan 02-08 wires the runtime).");
-}
+// Public function surface.
+export { ALL_ADAPTERS, type FrameworkAdapter } from "./adapters/index.js";
+export { evaluate } from "./evaluate.js";
+export { buildProjectModel, type BuildProjectModelInput } from "./model/index.js";
+export { parseJsTs, type ParseJsTsInput } from "./parsers/babel.js";
+export {
+  initPythonRuntime,
+  type InitPythonRuntimeInput,
+  type PythonRuntime,
+} from "./parsers/python-loader.js";
+export { parsePython, type ParsePythonInput } from "./parsers/python.js";
+export { ENGINE_VERSION } from "./version.js";
