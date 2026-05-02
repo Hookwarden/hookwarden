@@ -2,7 +2,7 @@
   <img src="./assets/brand/marks/hookwarden-icon.svg" width="80" height="80" alt="hookwarden icon" />
 </p>
 <p align="center">
-  <img src="./assets/brand/social/readme-banner.png" alt="hookwarden" width="100%" />
+  <img src="./assets/brand/social/readme-banner.svg" alt="hookwarden" width="100%" />
 </p>
 
 Webhook security audit CLI. Find every webhook-verification bug in your codebase. License: Apache 2.0.
