@@ -6,10 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 const ROOT = join(__dirname, "..");
 const SC2_FIXTURE = join(ROOT, "packages/engine/src/__sc2-fixture.ts");
 
-function run(
-  cmd: string,
-  opts: { allowFail?: boolean } = {},
-): { code: number; output: string } {
+function run(cmd: string, opts: { allowFail?: boolean } = {}): { code: number; output: string } {
   try {
     const out = execSync(cmd, {
       cwd: ROOT,
