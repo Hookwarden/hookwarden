@@ -4,22 +4,22 @@ import { redactSnippet, type LiteralSpan } from "../../src/redaction/structural.
 
 describe("redactSnippet — security property: no string literal value survives", () => {
   it("any string literal value is absent from the output", () => {
+    // Use a literal-only source text (no surrounding identifiers) so the property holds even
+    // when fast-check generates strings that would otherwise overlap fixture identifiers.
     fc.assert(
       fc.property(
         fc.string({ minLength: 4, maxLength: 30 }).filter((s) => /^[A-Za-z0-9._-]+$/.test(s)),
         (literalValue) => {
-          const source_text = `const secret = "${literalValue}";`;
-          const start = source_text.indexOf(`"${literalValue}"`);
+          const source_text = `"${literalValue}"`;
           const span: LiteralSpan = {
             kind: "string",
-            start,
-            end: start + literalValue.length + 2, // +2 for surrounding quotes
+            start: 0,
+            end: source_text.length,
             value: literalValue,
           };
           const redacted = redactSnippet({ source_text, literals: [span] });
-          // The literal value MUST NOT appear in the redacted output.
           expect(redacted.includes(literalValue)).toBe(false);
-          expect(redacted).toContain(`<STRING:${literalValue.length}>`);
+          expect(redacted).toBe(`<STRING:${literalValue.length}>`);
         },
       ),
       { numRuns: 100 },
