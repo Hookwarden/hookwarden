@@ -76,6 +76,7 @@ export async function evaluate(
     parse_errors_count: parseErrorsCount,
     parsed_files_count: parsedFilesCount,
     total_files_count: config.total_files_count,
+    parse_candidates_count: 0, // D-64 placeholder — Plan 09 (cli/src/pipeline.ts) overrides with walker-derived count.
   };
 
   return { findings, inventory, metadata };

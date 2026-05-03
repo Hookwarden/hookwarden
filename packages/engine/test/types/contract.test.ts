@@ -61,6 +61,7 @@ const sampleMetadata: ScanMetadata = {
   parse_errors_count: 0,
   parsed_files_count: 1,
   total_files_count: 1,
+  parse_candidates_count: 1,
 };
 
 const sampleScanResult: ScanResult = {
@@ -98,6 +99,7 @@ describe("public type contract", () => {
     expect(Object.keys(sampleScanResult.metadata).sort()).toEqual([
       "engine_commit_sha",
       "engine_version",
+      "parse_candidates_count",
       "parse_errors_count",
       "parsed_files_count",
       "rule_pack_content_hash",
