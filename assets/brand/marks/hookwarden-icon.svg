@@ -1,12 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="hookwarden">
   <title>hookwarden</title>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#4F46E5"/>
-      <stop offset="100%" stop-color="#818CF8"/>
-    </linearGradient>
-    <radialGradient id="inner-glow" cx="256" cy="180" r="220" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#818CF8" stop-opacity="0.40"/>
+    <radialGradient id="inner-glow" cx="256" cy="220" r="260" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#6366F1" stop-opacity="0.42"/>
+      <stop offset="60%"  stop-color="#4F46E5" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#4F46E5" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="edge-glow" cx="430" cy="120" r="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#818CF8" stop-opacity="0.18"/>
       <stop offset="100%" stop-color="#818CF8" stop-opacity="0"/>
     </radialGradient>
     <symbol id="hw-mark" viewBox="0 0 1193.501007 2017.192787">
@@ -21,10 +22,12 @@
     </symbol>
   </defs>
 
-  <!-- gradient background -->
-  <rect width="512" height="512" rx="80" fill="url(#bg)"/>
-  <!-- inner glow overlay -->
+  <!-- locked near-black background -->
+  <rect width="512" height="512" rx="80" fill="#0B0F14"/>
+  <!-- indigo central glow -->
   <rect width="512" height="512" rx="80" fill="url(#inner-glow)"/>
+  <!-- subtle indigo-400 edge highlight -->
+  <rect width="512" height="512" rx="80" fill="url(#edge-glow)"/>
   <!-- mark: width=260 height=440, centered: x=(512-260)/2=126, y=(512-440)/2=36 -->
   <use href="#hw-mark" x="126" y="36" width="260" height="440" color="white"/>
 </svg>
