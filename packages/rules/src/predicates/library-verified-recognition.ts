@@ -38,10 +38,10 @@ export function createLibraryVerifiedPredicate(
 // require an engine release — they are data-only.
 export const stripeLibraryVerifiedPredicate: RulePredicate = createLibraryVerifiedPredicate(
   "stripe",
-  PROVIDER_CATALOG.stripe?.sdk_verify_calls ?? [],
+  PROVIDER_CATALOG["stripe"]?.sdk_verify_calls ?? [],
 );
 
 export const githubLibraryVerifiedPredicate: RulePredicate = createLibraryVerifiedPredicate(
   "github",
-  PROVIDER_CATALOG.github?.sdk_verify_calls ?? [],
+  PROVIDER_CATALOG["github"]?.sdk_verify_calls ?? [],
 );
