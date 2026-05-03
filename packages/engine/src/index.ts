@@ -39,6 +39,8 @@ export type {
   ScanResult,
   Severity,
   SourceLocation,
+  SuppressedPayload,
+  SuppressionSource,
   Verdict,
   WebhookEvidence,
   WebhookEvidenceKind,

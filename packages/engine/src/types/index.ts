@@ -2,7 +2,15 @@
 // Locked by phase-2 plan 01; later plans wire the runtime against these contracts.
 
 export type { Config } from "./config.ts";
-export type { Finding, FindingId, Severity, SourceLocation, Verdict } from "./finding.ts";
+export type {
+  Finding,
+  FindingId,
+  Severity,
+  SourceLocation,
+  SuppressedPayload,
+  SuppressionSource,
+  Verdict,
+} from "./finding.ts";
 export type {
   Framework,
   ReachableSymbol,
