@@ -3,7 +3,7 @@ import { evaluate } from "../src/evaluate.js";
 import { buildProjectModel } from "../src/model/build.js";
 import { parseJsTs } from "../src/parsers/babel.js";
 import type { ProjectModel, WebhookHandler } from "../src/types/index.js";
-import type { RulePredicate, RuleSet } from "../src/types/rule-set.js";
+import type { RuleDefinition, RulePredicate, RuleSet } from "../src/types/rule-set.js";
 
 const TEST_CATALOG = {
   github: {
@@ -128,5 +128,67 @@ describe("evaluate (D-35 ScanResult + ENGINE-08 metadata + DISCOVERY-01 inventor
     const r2 = await evaluate(m2, RULESET, cfg);
     expect(r1.findings[0]?.id).toBe(r2.findings[0]?.id);
     expect(r1.metadata.rule_pack_content_hash).toBe(r2.metadata.rule_pack_content_hash);
+  });
+});
+
+// B-3 regression: provider_docs_url + path_severity_overrides MUST be canonicalized into the
+// rule-pack content hash. Phase 12 evidence-pack export uses the hash for reproducibility;
+// adding new RuleDefinition fields without canonicalization silently breaks the contract.
+describe("computeRulePackContentHash (B-3)", () => {
+  function makeRuleSet(overrides: Partial<RuleDefinition> = {}): RuleSet {
+    const rule: RuleDefinition = {
+      rule_id: "stripe/x",
+      provider: "stripe",
+      severity: "critical",
+      emits_state: "not-verified",
+      message: "m",
+      matcher: null,
+      predicate_name: "stripe-x",
+      applies_to: "all",
+      provider_docs_url: "https://stripe.com/docs/webhooks",
+      path_severity_overrides: null,
+      ...overrides,
+    };
+    return {
+      schema_version: 1,
+      rule_pack_version: "0.0.1",
+      providers: TEST_CATALOG,
+      rules: [rule],
+      predicates: { "stripe-x": async () => null },
+    };
+  }
+
+  async function hashOf(rs: RuleSet): Promise<string> {
+    const model = await buildProjectModel({ parsedFiles: [], ruleSet: rs, config: CONFIG });
+    const out = await evaluate(model, rs, CONFIG);
+    return out.metadata.rule_pack_content_hash;
+  }
+
+  it("differs when provider_docs_url differs", async () => {
+    const a = makeRuleSet({ provider_docs_url: "https://stripe.com/docs/webhooks" });
+    const b = makeRuleSet({ provider_docs_url: "https://stripe.com/docs/webhooks/signatures" });
+    expect(await hashOf(a)).not.toBe(await hashOf(b));
+  });
+
+  it("differs when path_severity_overrides differs (null vs populated)", async () => {
+    const a = makeRuleSet({ path_severity_overrides: null });
+    const b = makeRuleSet({
+      path_severity_overrides: [{ patterns: ["**/__tests__/**"], severity: "info" }],
+    });
+    expect(await hashOf(a)).not.toBe(await hashOf(b));
+  });
+
+  it("differs when path_severity_overrides patterns reorder", async () => {
+    const a = makeRuleSet({
+      path_severity_overrides: [{ patterns: ["a", "b"], severity: "info" }],
+    });
+    const b = makeRuleSet({
+      path_severity_overrides: [{ patterns: ["b", "a"], severity: "info" }],
+    });
+    expect(await hashOf(a)).not.toBe(await hashOf(b));
+  });
+
+  it("identical hashes for identical rule sets", async () => {
+    expect(await hashOf(makeRuleSet())).toBe(await hashOf(makeRuleSet()));
   });
 });

@@ -95,6 +95,11 @@ async function computeRulePackContentHash(ruleSet: RuleSet): Promise<string> {
     matcher: r.matcher,
     predicate: r.predicate_name,
     applies_to: r.applies_to,
+    // B-3: new RuleDefinition fields MUST be canonicalized — Phase 12 evidence-pack
+    // export consumes this hash for reproducibility. Adding a field without updating
+    // this function silently breaks the contract.
+    provider_docs_url: r.provider_docs_url,
+    path_severity_overrides: r.path_severity_overrides,
   }));
   const payload = canonicalize({ providers: ruleSet.providers, rules });
   return sha256Hex(payload);
