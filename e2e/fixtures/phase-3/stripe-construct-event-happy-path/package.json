@@ -1,0 +1,7 @@
+{
+  "name": "stripe-construct-event-happy-path",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Phase 3 fixture: correct Stripe constructEvent + raw-body Express handler.",
+  "license": "Apache-2.0"
+}
