@@ -107,8 +107,6 @@ describe("resolveBaseRef", () => {
       BUILDKITE_PULL_REQUEST_BASE_BRANCH: "y",
       CI_MERGE_REQUEST_TARGET_BRANCH_NAME: "z",
     } as NodeJS.ProcessEnv;
-    expect(resolveBaseRef({ explicitFlag: "release/v1", env, cwd: dir }).ref).toBe(
-      "release/v1",
-    );
+    expect(resolveBaseRef({ explicitFlag: "release/v1", env, cwd: dir }).ref).toBe("release/v1");
   });
 });

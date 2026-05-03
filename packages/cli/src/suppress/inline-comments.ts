@@ -96,28 +96,22 @@ function extractComments(file: ParsedFile): CommentLike[] {
   return extractCommentsFromBabel(file.raw_ast);
 }
 
-export function extractInlineSuppressions(
-  files: ReadonlyArray<ParsedFile>,
-): InlineSuppressions {
+export function extractInlineSuppressions(files: ReadonlyArray<ParsedFile>): InlineSuppressions {
   const perLine = new Map<string, Map<number, Set<string>>>();
   const entries: InlineSuppressionEntry[] = [];
 
-  const addPerLine = (
-    file_path: string,
-    line: number,
-    rule_ids: ReadonlyArray<string>,
-  ): void => {
-    let fileMap = perLine.get(file_path);
+  const addPerLine = (filePath: string, line: number, ruleIds: ReadonlyArray<string>): void => {
+    let fileMap = perLine.get(filePath);
     if (!fileMap) {
       fileMap = new Map();
-      perLine.set(file_path, fileMap);
+      perLine.set(filePath, fileMap);
     }
     let lineSet = fileMap.get(line);
     if (!lineSet) {
       lineSet = new Set();
       fileMap.set(line, lineSet);
     }
-    for (const id of rule_ids) lineSet.add(id);
+    for (const id of ruleIds) lineSet.add(id);
   };
 
   for (const file of files) {

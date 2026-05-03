@@ -17,7 +17,9 @@ function mockJsFile(
     language: "javascript",
     dialect: "babel",
     source_text: source,
-    raw_ast: { comments: comments.map((c) => ({ value: c.value, loc: { start: { line: c.line } } })) },
+    raw_ast: {
+      comments: comments.map((c) => ({ value: c.value, loc: { start: { line: c.line } } })),
+    },
     imports: [],
     parse_error: null,
   } as unknown as ParsedFile;
@@ -110,9 +112,7 @@ describe("extractInlineSuppressions", () => {
   });
 
   it("rejects comments without a rule-id (D-61: no silent global suppression)", () => {
-    const file = mockJsFile("a.ts", [
-      { value: " hookwarden-disable-next-line", line: 1 },
-    ]);
+    const file = mockJsFile("a.ts", [{ value: " hookwarden-disable-next-line", line: 1 }]);
     const result = extractInlineSuppressions([file]);
     expect(result.entries).toHaveLength(0);
   });

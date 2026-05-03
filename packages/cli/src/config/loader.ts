@@ -42,9 +42,7 @@ export async function loadConfigFile(filePath: string): Promise<ParsedConfigDocu
   const content = await fs.readFile(filePath, "utf-8");
   // T-04-02-01 — yaml-bomb DoS mitigation. Reject oversized configs BEFORE parse.
   if (content.length > CONFIG_MAX_BYTES) {
-    throw new ConfigError(
-      `config too large at ${filePath}: ${content.length} bytes (max 1 MiB)`,
-    );
+    throw new ConfigError(`config too large at ${filePath}: ${content.length} bytes (max 1 MiB)`);
   }
   let parsed: unknown;
   try {

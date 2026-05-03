@@ -2,7 +2,7 @@ import type { Finding } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
 import type { IgnoreFilter } from "../src/suppress/ignore-file.js";
 import type { InlineSuppressions } from "../src/suppress/inline-comments.js";
-import { type BaselineLike, annotateSuppressions } from "../src/suppress/merge.js";
+import { annotateSuppressions, type BaselineLike } from "../src/suppress/merge.js";
 
 function mockFinding(overrides: Partial<Finding> = {}): Finding {
   return {

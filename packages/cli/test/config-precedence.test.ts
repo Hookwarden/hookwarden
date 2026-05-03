@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { ParsedConfigDocument } from "../src/config/schema.js";
 import { CONFIG_DEFAULTS, resolveConfig } from "../src/config/precedence.js";
+import type { ParsedConfigDocument } from "../src/config/schema.js";
 
 const noEnv = {} as NodeJS.ProcessEnv;
 

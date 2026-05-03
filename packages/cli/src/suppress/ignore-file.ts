@@ -31,11 +31,12 @@ export async function loadHookwardenIgnore(rootPath: string): Promise<IgnoreFilt
 
   const fullIgnore: Ignore = ignore().add(patterns);
   const positivePatterns = patterns.filter((p) => !p.startsWith("!"));
-  const singleMatchers: ReadonlyArray<{ pattern: string; matcher: Ignore }> =
-    positivePatterns.map((pattern) => ({
+  const singleMatchers: ReadonlyArray<{ pattern: string; matcher: Ignore }> = positivePatterns.map(
+    (pattern) => ({
       pattern,
       matcher: ignore().add(pattern),
-    }));
+    }),
+  );
 
   const normalize = (p: string): string => p.split(path.sep).join("/");
 
