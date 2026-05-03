@@ -1,0 +1,20 @@
+schema_version: 1
+rule_id: github/library-verified
+provider: github
+severity: info
+emits_state: verified
+message: |
+  Library-based verification detected: `@octokit/webhooks` `verify` is
+  reachable from this handler within 3 hops. The Octokit SDK enforces
+  HMAC-SHA256 with constant-time comparison internally.
+matcher: null
+predicate: github-library-verified
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries

@@ -1,0 +1,24 @@
+schema_version: 1
+rule_id: github/unreachable-verification
+provider: github
+severity: high
+emits_state: manual-review
+message: |
+  `@octokit/webhooks` is imported in this handler's file but its `verify`
+  call is not reachable from the handler entry within 3 hops. The
+  verification path may be conditional, dynamically dispatched, or in
+  dead code.
+
+  Recommended: review the handler's call graph manually and confirm the
+  verification path is always taken.
+matcher: null
+predicate: github-unreachable-verification
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries
