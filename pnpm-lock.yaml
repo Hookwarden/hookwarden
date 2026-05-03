@@ -50,6 +50,9 @@ importers:
       '@hookwarden/rules':
         specifier: workspace:*
         version: link:../rules
+      ajv:
+        specifier: ^8.17.1
+        version: 8.20.0
       citty:
         specifier: ^0.2.2
         version: 0.2.2
