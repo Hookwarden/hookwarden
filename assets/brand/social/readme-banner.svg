@@ -11,64 +11,53 @@
       </g>
     </symbol>
 
-    <!-- indigo glow from left mark -->
-    <radialGradient id="left-glow" cx="0" cy="160" r="380" gradientUnits="userSpaceOnUse">
+    <!-- soft indigo highlight pool centered on content -->
+    <radialGradient id="hilite" cx="640" cy="160" r="560" gradientUnits="userSpaceOnUse">
       <stop offset="0%"   stop-color="#6366F1" stop-opacity="0.18"/>
-      <stop offset="100%" stop-color="#6366F1" stop-opacity="0"/>
+      <stop offset="60%"  stop-color="#4F46E5" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#4F46E5" stop-opacity="0"/>
     </radialGradient>
 
-    <!-- violet glow from right mark -->
-    <radialGradient id="right-glow" cx="1280" cy="160" r="400" gradientUnits="userSpaceOnUse">
-      <stop offset="0%"   stop-color="#7C3AED" stop-opacity="0.20"/>
-      <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
+    <!-- subtle indigo edge glow on the right -->
+    <radialGradient id="edge-glow" cx="1280" cy="160" r="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#818CF8" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#818CF8" stop-opacity="0"/>
     </radialGradient>
 
-    <!-- gradient for "hookwarden" text -->
-    <linearGradient id="text-grad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%"   stop-color="#F8FAFC"/>
-      <stop offset="100%" stop-color="#818CF8"/>
-    </linearGradient>
-
-    <clipPath id="canvas-clip">
-      <rect width="1280" height="320"/>
-    </clipPath>
+    <!-- long diagonal shadow for the mark -->
+    <filter id="mark-shadow" x="-30%" y="-30%" width="260%" height="260%">
+      <feDropShadow dx="44" dy="22" stdDeviation="9" flood-color="#000000" flood-opacity="0.55"/>
+    </filter>
   </defs>
 
-  <!-- base background -->
+  <!-- base background: locked near-black -->
   <rect width="1280" height="320" fill="#0B0F14"/>
+  <rect width="1280" height="320" fill="url(#hilite)"/>
+  <rect width="1280" height="320" fill="url(#edge-glow)"/>
 
-  <!-- gradient atmosphere from each mark -->
-  <rect width="1280" height="320" fill="url(#left-glow)"/>
-  <rect width="1280" height="320" fill="url(#right-glow)"/>
+  <!-- white mark with long shadow, vertically centred -->
+  <use href="#hw-mark" x="270" y="80" width="118" height="200" color="white" filter="url(#mark-shadow)"/>
 
-  <!-- LEFT ghost mark — indigo tint, bleeds off left edge -->
-  <g clip-path="url(#canvas-clip)" opacity="0.18">
-    <use href="#hw-mark" x="-100" y="-40" width="237" height="400" color="#818CF8"/>
-  </g>
+  <!-- ── text block — right of the mark ── -->
 
-  <!-- crisp white mark — smaller, left of text, vertically centred with text block -->
-  <use href="#hw-mark" x="175" y="90" width="130" height="220" color="white" opacity="0.90"/>
-
-  <!-- ── text block — to the right of the crisp mark ── -->
-
-  <!-- headline: "hookwarden" with gradient -->
+  <!-- headline: "hookwarden" -->
   <text
-    x="325" y="145"
+    x="420" y="170"
     font-family="Geist, 'Geist Sans', system-ui, -apple-system, sans-serif"
-    font-size="80" font-weight="700" letter-spacing="-3"
-    fill="url(#text-grad)">hookwarden</text>
+    font-size="84" font-weight="700" letter-spacing="-3"
+    fill="#FFFFFF">hookwarden</text>
 
-  <!-- tagline — single line -->
+  <!-- tagline: 'Guarding your webhooks. Always.' -->
   <text
-    x="325" y="208"
+    x="422" y="214"
     font-family="Geist, 'Geist Sans', system-ui, -apple-system, sans-serif"
     font-size="22" font-weight="400"
-    fill="#E5E7EB" opacity="0.70">Find every webhook-verification bug in your codebase. In five minutes.</text>
+    xml:space="preserve"><tspan fill="#E5E7EB" opacity="0.88">Guarding your webhooks. </tspan><tspan fill="#818CF8" font-weight="600">Always.</tspan></text>
 
-  <!-- CLI command -->
+  <!-- eyebrow caption -->
   <text
-    x="325" y="264"
+    x="422" y="252"
     font-family="'Geist Mono', ui-monospace, 'Cascadia Code', monospace"
-    font-size="20" font-weight="500"
-    xml:space="preserve"><tspan fill="#6366F1">$ </tspan><tspan fill="#E5E7EB" opacity="0.60">npx hookwarden scan</tspan></text>
+    font-size="13" font-weight="500" letter-spacing="3"
+    fill="#7B8AE6" opacity="0.85">OPEN SOURCE  ·  SECURE  ·  RELIABLE</text>
 </svg>

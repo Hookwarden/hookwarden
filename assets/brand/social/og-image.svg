@@ -17,10 +17,10 @@
       <stop offset="100%" stop-color="#6366F1" stop-opacity="0"/>
     </radialGradient>
 
-    <!-- violet glow emanating from right mark -->
+    <!-- indigo-400 glow emanating from right mark -->
     <radialGradient id="right-glow" cx="1200" cy="315" r="520" gradientUnits="userSpaceOnUse">
-      <stop offset="0%"   stop-color="#7C3AED" stop-opacity="0.20"/>
-      <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
+      <stop offset="0%"   stop-color="#818CF8" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#818CF8" stop-opacity="0"/>
     </radialGradient>
 
     <!-- gradient for the "hookwarden" headline text -->
