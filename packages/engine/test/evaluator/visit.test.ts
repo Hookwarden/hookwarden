@@ -43,6 +43,9 @@ const RULE = {
   matcher: null,
   predicate_name: "github-timing-safe-equal",
   applies_to: ["express"] as const,
+  provider_docs_url:
+    "https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries",
+  path_severity_overrides: null,
 } as const;
 
 function makeRuleSet(appliesTo: ReadonlyArray<string> | "all" = ["express"]): RuleSet {

@@ -69,6 +69,9 @@ const RULESET: RuleSet = {
       matcher: null,
       predicate_name: "github-timing-safe-equal",
       applies_to: ["express", "hono", "fastify", "nextjs"],
+      provider_docs_url:
+        "https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries",
+      path_severity_overrides: null,
     },
   ],
   predicates: { "github-timing-safe-equal": githubVerifyPredicate },

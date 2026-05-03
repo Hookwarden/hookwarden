@@ -5,12 +5,13 @@
 // field listed in D-36 (handler shape) and is internally consistent with findings + metadata.
 
 import { buildParseErrorFinding } from "./evaluator/parse-error.js";
+import { applyPathSeverityOverrides } from "./evaluator/path-severity-overrides.js";
 import { evaluateRulesForHandler } from "./evaluator/visit.js";
 import type { Config } from "./types/config.js";
 import type { Finding, Verdict } from "./types/finding.js";
 import type { WebhookHandler } from "./types/handler.js";
 import type { ProjectModel } from "./types/project-model.js";
-import type { RuleSet } from "./types/rule-set.js";
+import type { RuleDefinition, RuleSet } from "./types/rule-set.js";
 import type { ScanMetadata, ScanResult } from "./types/scan-result.js";
 import { ENGINE_VERSION } from "./version.js";
 
@@ -41,10 +42,19 @@ export async function evaluate(
 
   // 2. Per-handler rule evaluation. Update verification_state + findings_ref on each handler.
   // DISCOVERY-01: this loop is the producer of ScanResult.inventory.
+  // D-57: build a rule_id → RuleDefinition lookup once per scan so each emitted finding can be
+  // run through applyPathSeverityOverrides before being pushed onto findings[].
+  const rulesById = new Map<string, RuleDefinition>();
+  for (const r of ruleSet.rules) rulesById.set(r.rule_id, r);
+
   const inventory: WebhookHandler[] = [];
   for (const handler of model.handlers) {
     const out = await evaluateRulesForHandler({ handler, ruleSet, model });
-    for (const f of out.findings) findings.push(f);
+    for (const f of out.findings) {
+      const rule = rulesById.get(f.rule_id);
+      // D-57 path_severity_overrides applied post-emit; identity when rule has no overrides.
+      findings.push(rule ? applyPathSeverityOverrides(f, rule) : f);
+    }
     // Pick the worst verdict including the existing manual-review baseline.
     const baseline: Verdict = handler.verification_state;
     const worst: Verdict =
