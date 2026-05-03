@@ -1,6 +1,11 @@
 import type { RulePredicate } from "@hookwarden/engine";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
+import { githubMissingSignatureVerificationPredicate } from "./github-missing-signature-verification.js";
+import { githubMissingTimestampCheckPredicate } from "./github-missing-timestamp-check.js";
+import { githubRawBodyMisusePredicate } from "./github-raw-body-misuse.js";
 import { githubTimingSafeEqualPredicate } from "./github-timing-safe-equal.js";
+import { githubUnreachableVerificationPredicate } from "./github-unreachable-verification.js";
+import { githubWrongHmacAlgorithmPredicate } from "./github-wrong-hmac-algorithm.js";
 import {
   githubLibraryVerifiedPredicate,
   stripeLibraryVerifiedPredicate,
@@ -19,11 +24,17 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "express-middleware-ordering": expressMiddlewareOrderingPredicate,
   "stripe-library-verified": stripeLibraryVerifiedPredicate,
   "github-library-verified": githubLibraryVerifiedPredicate,
-  // Wave 3 Stripe pack (Plan 04 will append the GitHub pack on top of this)
+  // Wave 3 Stripe pack
   "stripe-missing-signature-verification": stripeMissingSignatureVerificationPredicate,
   "stripe-timing-unsafe-comparison": stripeTimingUnsafeComparisonPredicate,
   "stripe-raw-body-misuse": stripeRawBodyMisusePredicate,
   "stripe-missing-timestamp-check": stripeMissingTimestampCheckPredicate,
   "stripe-wrong-hmac-algorithm": stripeWrongHmacAlgorithmPredicate,
   "stripe-unreachable-verification": stripeUnreachableVerificationPredicate,
+  // Wave 4 GitHub pack
+  "github-missing-signature-verification": githubMissingSignatureVerificationPredicate,
+  "github-raw-body-misuse": githubRawBodyMisusePredicate,
+  "github-missing-timestamp-check": githubMissingTimestampCheckPredicate,
+  "github-wrong-hmac-algorithm": githubWrongHmacAlgorithmPredicate,
+  "github-unreachable-verification": githubUnreachableVerificationPredicate,
 };
