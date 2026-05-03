@@ -4,6 +4,7 @@
 import { promises as fs } from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { RuleSet } from "@hookwarden/engine";
 import {
   ALL_PREDICATES,
@@ -44,13 +45,17 @@ async function findYamlFiles(dir: string): Promise<string[]> {
 //
 //   1. Prefer `import.meta.resolve("@hookwarden/rules/package.json")` (Node 20.6+ stable).
 //   2. Fall back to `createRequire` for runtimes without `import.meta.resolve`.
+//
+// CR-02 (review): converting `file://…` URLs MUST use `fileURLToPath` from `node:url`.
+// `new URL(pkgUrl).pathname` is broken on Windows — it yields `/C:/…` which `path.resolve`
+// then mishandles. `fileURLToPath` round-trips correctly across platforms.
 export function resolveDefaultRulesDir(): string {
   const resolver = (import.meta as { resolve?: (s: string) => string }).resolve;
   if (typeof resolver === "function") {
     try {
       const pkgUrl = resolver("@hookwarden/rules/package.json");
       if (pkgUrl) {
-        const pkgPath = new URL(pkgUrl).pathname;
+        const pkgPath = fileURLToPath(pkgUrl);
         return path.resolve(path.dirname(pkgPath), "rules");
       }
     } catch {

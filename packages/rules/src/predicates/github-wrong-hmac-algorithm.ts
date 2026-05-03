@@ -39,7 +39,13 @@ export const githubWrongHmacAlgorithmPredicate: RulePredicate = async (
   if (handler.provider !== "github") return null;
   const symbols = handler.reachable_symbols;
   if (!symbols.some((s) => isManualHmacEntry(s.qualified_name))) return null;
-  if (symbols.some((s) => endsWithAny(s.qualified_name, NON_SHA256_HINTS))) return "not-verified";
-  if (symbols.some((s) => endsWithAny(s.qualified_name, SHA256_HINTS))) return null;
+  const hasWrong = symbols.some((s) => endsWithAny(s.qualified_name, NON_SHA256_HINTS));
+  const hasSha256 = symbols.some((s) => endsWithAny(s.qualified_name, SHA256_HINTS));
+  // WR-01 (review): if BOTH algorithm symbols are reachable (e.g., handler uses sha256 for
+  // HMAC and sha1 for an unrelated ETag), the engine cannot statically tell which one feeds
+  // HMAC. Emit manual-review rather than false-flag the wrong-algo finding.
+  if (hasSha256 && hasWrong) return "manual-review";
+  if (hasWrong) return "not-verified";
+  if (hasSha256) return null;
   return "manual-review";
 };

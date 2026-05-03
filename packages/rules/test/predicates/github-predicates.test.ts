@@ -126,7 +126,7 @@ describe("githubRawBodyMisusePredicate (RULES-02 #3)", () => {
 });
 
 describe("githubMissingTimestampCheckPredicate (RULES-02 #4)", () => {
-  it("emits manual-review for manual HMAC + no persistence-adjacent symbol", async () => {
+  it("emits manual-review for manual HMAC + no SDK verify", async () => {
     const h: WebhookHandler = {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
@@ -140,24 +140,23 @@ describe("githubMissingTimestampCheckPredicate (RULES-02 #4)", () => {
     };
     expect(await githubMissingTimestampCheckPredicate(h, {} as never)).toBeNull();
   });
-  it("returns null when persistence-hint symbol reachable (Map)", async () => {
+  it("emits manual-review even when symbols like crypto.createHash are reachable (CR-01 fix — no over-defer)", async () => {
+    // Regression: earlier iteration suppressed manual-review on substring `.has`,
+    // which collided with `crypto.createHash`. Conservative stance is to always
+    // emit manual-review when manual HMAC is reachable and SDK verify is not.
     const h: WebhookHandler = {
       ...baseHandler,
-      reachable_symbols: [sym("crypto.createHmac"), sym("Map.prototype.has")],
+      reachable_symbols: [
+        sym("crypto.createHmac", "node:crypto"),
+        sym("crypto.createHash", "node:crypto"),
+      ],
     };
-    expect(await githubMissingTimestampCheckPredicate(h, {} as never)).toBeNull();
-  });
-  it("returns null when persistence-hint symbol reachable (redis)", async () => {
-    const h: WebhookHandler = {
-      ...baseHandler,
-      reachable_symbols: [sym("crypto.createHmac"), sym("redis.client.set", "ioredis")],
-    };
-    expect(await githubMissingTimestampCheckPredicate(h, {} as never)).toBeNull();
+    expect(await githubMissingTimestampCheckPredicate(h, {} as never)).toBe("manual-review");
   });
   it("returns null when no manual HMAC path is reachable", async () => {
     expect(await githubMissingTimestampCheckPredicate(baseHandler, {} as never)).toBeNull();
   });
-  it("emits manual-review for Python hmac.new without persistence", async () => {
+  it("emits manual-review for Python hmac.new without SDK verify", async () => {
     const h: WebhookHandler = {
       ...baseHandler,
       reachable_symbols: [sym("hmac.new", "hmac")],
@@ -195,6 +194,19 @@ describe("githubWrongHmacAlgorithmPredicate (RULES-02 #5)", () => {
       reachable_symbols: [sym("crypto.createHmac", "node:crypto"), sym("hash.sha256")],
     };
     expect(await githubWrongHmacAlgorithmPredicate(h, {} as never)).toBeNull();
+  });
+  it("emits manual-review when BOTH sha256 and non-sha256 algorithms are reachable (WR-01 fix)", async () => {
+    // Common real-world case: handler uses sha256 for HMAC + sha1 for an unrelated ETag.
+    // Engine cannot statically tell which symbol feeds the HMAC, so defer to human review.
+    const h: WebhookHandler = {
+      ...baseHandler,
+      reachable_symbols: [
+        sym("crypto.createHmac", "node:crypto"),
+        sym("hash.sha256"),
+        sym("etag.sha1"),
+      ],
+    };
+    expect(await githubWrongHmacAlgorithmPredicate(h, {} as never)).toBe("manual-review");
   });
   it("emits manual-review for manual HMAC with undetermined algorithm", async () => {
     const h: WebhookHandler = {
