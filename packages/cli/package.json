@@ -27,7 +27,10 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@hookwarden/engine": "workspace:*"
+    "@hookwarden/engine": "workspace:*",
+    "ignore": "^7.0.5",
+    "p-limit": "^7.3.0",
+    "tinyglobby": "^0.2.16"
   },
   "devDependencies": {
     "@types/tar": "^6.1.13",
