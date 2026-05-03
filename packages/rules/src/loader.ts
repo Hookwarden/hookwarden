@@ -53,6 +53,8 @@ function toRuleDefinition(doc: ParsedRuleDocument): RuleDefinition {
     matcher: doc.matcher === null ? null : toDeclarativeMatcher(doc.matcher),
     predicate_name: doc.predicate,
     applies_to: doc.applies_to as RuleDefinition["applies_to"],
+    provider_docs_url: doc.provider_docs_url,
+    path_severity_overrides: doc.path_severity_overrides,
   };
 }
 

@@ -13,6 +13,9 @@ const VALID_DOC = {
   matcher: null,
   predicate: "github-timing-safe-equal",
   applies_to: ["express", "hono"],
+  provider_docs_url:
+    "https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries",
+  path_severity_overrides: null,
 } as const;
 
 describe("loadRuleSet (D-03 + ENGINE-08 content hash)", () => {
@@ -73,6 +76,61 @@ describe("loadRuleSet (D-03 + ENGINE-08 content hash)", () => {
         rule_pack_version: "0.0.1",
       }),
     ).rejects.toThrow(/must declare either 'matcher' or 'predicate'/);
+  });
+
+  it("rejects a rule missing provider_docs_url (D-58 RULES-08)", async () => {
+    const { provider_docs_url: _drop, ...without } = VALID_DOC;
+    await expect(
+      loadRuleSet({
+        rule_documents: [without],
+        predicates: ALL_PREDICATES,
+        providers: PROVIDER_CATALOG,
+        rule_pack_version: "0.0.1",
+      }),
+    ).rejects.toThrow(/invalid rule document/);
+  });
+
+  it("loads path_severity_overrides into RuleDefinition (D-57 RULES-05)", async () => {
+    const doc = {
+      ...VALID_DOC,
+      path_severity_overrides: [
+        { patterns: ["**/__tests__/**", "**/fixtures/**"], severity: "info" },
+      ],
+    };
+    const rs = await loadRuleSet({
+      rule_documents: [doc],
+      predicates: ALL_PREDICATES,
+      providers: PROVIDER_CATALOG,
+      rule_pack_version: "0.0.1",
+    });
+    expect(rs.rules[0]?.path_severity_overrides).toEqual([
+      { patterns: ["**/__tests__/**", "**/fixtures/**"], severity: "info" },
+    ]);
+  });
+
+  it("defaults path_severity_overrides to null when omitted", async () => {
+    const rs = await loadRuleSet({
+      rule_documents: [VALID_DOC],
+      predicates: ALL_PREDICATES,
+      providers: PROVIDER_CATALOG,
+      rule_pack_version: "0.0.1",
+    });
+    expect(rs.rules[0]?.path_severity_overrides).toBeNull();
+  });
+
+  it("rejects path_severity_overrides with invalid severity (Ajv enum)", async () => {
+    const doc = {
+      ...VALID_DOC,
+      path_severity_overrides: [{ patterns: ["**/x"], severity: "panic" }],
+    };
+    await expect(
+      loadRuleSet({
+        rule_documents: [doc],
+        predicates: ALL_PREDICATES,
+        providers: PROVIDER_CATALOG,
+        rule_pack_version: "0.0.1",
+      }),
+    ).rejects.toThrow(/invalid rule document/);
   });
 
   it("loads each declarative matcher variant via the discriminated-union switch", async () => {

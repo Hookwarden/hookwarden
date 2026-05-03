@@ -15,3 +15,4 @@ applies_to:
   - hono
   - fastify
   - nextjs
+provider_docs_url: https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries
