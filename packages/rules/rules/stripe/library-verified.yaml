@@ -1,0 +1,21 @@
+schema_version: 1
+rule_id: stripe/library-verified
+provider: stripe
+severity: info
+emits_state: verified
+message: |
+  Library-based verification detected: `stripe.webhooks.constructEvent` (or
+  the Python `stripe.Webhook.construct_event`) is reachable from this
+  handler within 3 hops. The Stripe SDK enforces HMAC-SHA256, a 5-minute
+  timestamp tolerance, and constant-time comparison internally.
+matcher: null
+predicate: stripe-library-verified
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://stripe.com/docs/api/webhook_endpoints

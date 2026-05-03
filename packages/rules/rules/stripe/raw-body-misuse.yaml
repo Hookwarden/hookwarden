@@ -1,0 +1,27 @@
+schema_version: 1
+rule_id: stripe/raw-body-misuse
+provider: stripe
+severity: critical
+emits_state: not-verified
+message: |
+  Stripe webhook handler reads the signature header (or calls the SDK verify)
+  but does not appear to receive the request body as raw bytes. Stripe's HMAC
+  is computed over the raw payload — once `express.json()` (or any other JSON
+  middleware) parses the body, the bytes used for the HMAC differ from what
+  was sent and verification fails on every webhook.
+
+  Fix (Express): apply `express.raw({ type: 'application/json' })` to the
+  webhook route only, and call `stripe.webhooks.constructEvent(req.body, ...)`
+  with the Buffer. Do NOT register `express.json()` globally before the
+  webhook route.
+matcher: null
+predicate: stripe-raw-body-misuse
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://stripe.com/docs/webhooks/signatures

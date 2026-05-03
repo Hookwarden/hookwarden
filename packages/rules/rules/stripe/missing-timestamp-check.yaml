@@ -1,0 +1,26 @@
+schema_version: 1
+rule_id: stripe/missing-timestamp-check
+provider: stripe
+severity: high
+emits_state: manual-review
+message: |
+  Stripe webhook handler computes HMAC manually but no timestamp tolerance
+  check (e.g., `Date.now()` comparison against `t=` from the
+  `Stripe-Signature` header) is reachable from the handler. Without a
+  tolerance window, intercepted past webhooks can be replayed indefinitely.
+
+  Recommended: prefer `stripe.webhooks.constructEvent`, which enforces a
+  300-second tolerance by default. If you must roll your own, parse the `t=`
+  timestamp from `Stripe-Signature` and reject deliveries older than ~5
+  minutes.
+matcher: null
+predicate: stripe-missing-timestamp-check
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://stripe.com/docs/webhooks/signatures
