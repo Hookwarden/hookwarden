@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renderInventory (DISCOVERY-01) > snapshot — empty inventory 1`] = `
+"No webhook handlers detected. Frameworks supported: Express, Hono, Fastify, Next.js, Flask, FastAPI, Django.
+"
+`;
+
+exports[`renderInventory (DISCOVERY-01) > snapshot — populated inventory (3 handlers across 3 files) 1`] = `
+"framework  route_pattern     provider  state            file:line
+─────────  ────────────────  ────────  ───────────────  ────────────────────
+flask      /hooks            unknown   [manual-review]  app/handlers.py:42
+hono       /webhooks/github  github    [verified]       src/api/github.ts:8
+express@4  /webhooks/stripe  stripe    [not-verified]   src/api/stripe.ts:12
+"
+`;
