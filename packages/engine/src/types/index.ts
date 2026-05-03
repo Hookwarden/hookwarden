@@ -21,6 +21,7 @@ export type {
 export type {
   DeclarativeMatcher,
   MatcherName,
+  PathSeverityOverride,
   ProviderCatalog,
   ProviderCatalogEntry,
   RuleDefinition,

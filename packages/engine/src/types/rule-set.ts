@@ -39,6 +39,13 @@ export type RulePredicate = (
   model: ProjectModel,
 ) => Promise<Verdict | null>;
 
+// D-57 RULES-05: per-rule severity downgrade based on file path globs. Engine applies post-emit
+// (severity rewrite only — verification_state is NOT touched).
+export interface PathSeverityOverride {
+  readonly patterns: ReadonlyArray<string>; // glob patterns matched against Finding.file_path
+  readonly severity: Severity; // replacement severity when any pattern matches
+}
+
 // A single rule definition (already parsed from YAML by the caller per D-03).
 export interface RuleDefinition {
   readonly rule_id: string; // e.g. "stripe/missing-verification"
@@ -49,6 +56,11 @@ export interface RuleDefinition {
   readonly matcher: DeclarativeMatcher | null; // null when relying solely on a predicate
   readonly predicate_name: string | null; // resolves into RuleSet.predicates[name]
   readonly applies_to: ReadonlyArray<WebhookHandler["framework"]> | "all";
+  // D-58 RULES-08: provider documentation URL — required for new rules; renderer surfaces as
+  // `↳ <url>` line beneath each finding.
+  readonly provider_docs_url: string;
+  // D-57 RULES-05: optional path-glob-based severity downgrade applied by the engine post-emit.
+  readonly path_severity_overrides: ReadonlyArray<PathSeverityOverride> | null;
 }
 
 export interface RuleSet {

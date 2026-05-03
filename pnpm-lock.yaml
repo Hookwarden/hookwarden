@@ -60,6 +60,9 @@ importers:
       '@babel/parser':
         specifier: ^7.29.3
         version: 7.29.3
+      picomatch:
+        specifier: ^4.0.4
+        version: 4.0.4
       tree-sitter-python:
         specifier: ^0.25.0
         version: 0.25.0
@@ -70,6 +73,9 @@ importers:
       '@babel/types':
         specifier: ^7.29.0
         version: 7.29.0
+      '@types/picomatch':
+        specifier: ^4.0.3
+        version: 4.0.3
       fast-check:
         specifier: ^3.23.0
         version: 3.23.2
@@ -583,6 +589,9 @@ packages:
 
   '@types/node@22.19.17':
     resolution: {integrity: sha512-wGdMcf+vPYM6jikpS/qhg6WiqSV/OhG+jeeHT/KlVqxYfD40iYJf9/AE1uQxVWFvU7MipKRkRv8NSHiCGgPr8Q==}
+
+  '@types/picomatch@4.0.3':
+    resolution: {integrity: sha512-iG0T6+nYJ9FAPmx9SsUlnwcq1ZVRuCXcVEvWnntoPlrOpwtSTKNDC9uVAxTsC3PUvJ+99n4RpAcNgBbHX3JSnQ==}
 
   '@types/tar@6.1.13':
     resolution: {integrity: sha512-IznnlmU5f4WcGTh2ltRu/Ijpmk8wiWXfF0VA4s+HPjHZgvFggk1YaIkbo5krX/zUCzWF8N/l4+W/LNxnvAJ8nw==}
@@ -1904,6 +1913,8 @@ snapshots:
   '@types/node@22.19.17':
     dependencies:
       undici-types: 6.21.0
+
+  '@types/picomatch@4.0.3': {}
 
   '@types/tar@6.1.13':
     dependencies:
