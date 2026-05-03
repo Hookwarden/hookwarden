@@ -7,10 +7,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { main } from "../packages/cli/src/index.js";
 
-const FIXTURE_ROOT = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "fixtures/phase-3",
-);
+const FIXTURE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "fixtures/phase-3");
 
 interface Captured {
   exitCode: number;
@@ -84,9 +81,7 @@ describe("Phase 3 success criteria", () => {
   });
 
   it("Criterion #4 RULES-05: hardcoded whsec_ inside __tests__/ → INFO severity, [not-verified] state, NOT CRITICAL (B-1)", async () => {
-    const out = await captureStdout(() =>
-      main(["scan", path.join(FIXTURE_ROOT, "seeded-secret")]),
-    );
+    const out = await captureStdout(() => main(["scan", path.join(FIXTURE_ROOT, "seeded-secret")]));
     expect(out.stdout).toContain("stripe/hardcoded-secret-prefix");
     const infoIdx = out.stdout.indexOf("INFO");
     const criticalIdx = out.stdout.indexOf("CRITICAL");

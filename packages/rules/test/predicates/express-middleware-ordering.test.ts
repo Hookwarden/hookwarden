@@ -20,11 +20,7 @@ const baseHandler: WebhookHandler = {
   redacted_snippet: "",
 };
 
-const mw = (
-  name: string,
-  import_source: string | null,
-  position: number,
-): ResolvedMiddleware => ({
+const mw = (name: string, import_source: string | null, position: number): ResolvedMiddleware => ({
   name,
   import_source,
   position,
@@ -43,10 +39,7 @@ describe("expressMiddlewareOrderingPredicate (RULES-03)", () => {
   it("returns 'not-verified' when body-parser.json is registered before route", async () => {
     const handler: WebhookHandler = {
       ...baseHandler,
-      middleware_chain: [
-        mw("body-parser.json", "body-parser", 0),
-        mw("authMiddleware", null, 1),
-      ],
+      middleware_chain: [mw("body-parser.json", "body-parser", 0), mw("authMiddleware", null, 1)],
     };
     expect(await expressMiddlewareOrderingPredicate(handler, {} as never)).toBe("not-verified");
   });

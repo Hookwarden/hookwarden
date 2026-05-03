@@ -1,9 +1,4 @@
-import type {
-  Finding,
-  ScanMetadata,
-  ScanResult,
-  WebhookHandler,
-} from "@hookwarden/engine";
+import type { Finding, ScanMetadata, ScanResult, WebhookHandler } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
 import { renderSummary } from "../src/render/summary.js";
 
@@ -120,10 +115,7 @@ describe("renderSummary (D-44)", () => {
   it("counts unique files in handlers (handlers in same file count once)", () => {
     const result: ScanResult = {
       findings: [],
-      inventory: [
-        baseHandler,
-        { ...baseHandler, id: "h2", route_pattern: "/webhooks/github" },
-      ],
+      inventory: [baseHandler, { ...baseHandler, id: "h2", route_pattern: "/webhooks/github" }],
       metadata: META,
     };
     const out = renderSummary(result, { useAnsi: false });

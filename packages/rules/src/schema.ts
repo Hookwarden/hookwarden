@@ -36,12 +36,10 @@ export interface ParsedRuleDocument {
   // D-58 RULES-08: provider documentation URL — required.
   readonly provider_docs_url: string;
   // D-57 RULES-05: optional path-glob severity downgrade applied post-emit by the engine.
-  readonly path_severity_overrides:
-    | ReadonlyArray<{
-        readonly patterns: ReadonlyArray<string>;
-        readonly severity: "critical" | "high" | "medium" | "low" | "info";
-      }>
-    | null;
+  readonly path_severity_overrides: ReadonlyArray<{
+    readonly patterns: ReadonlyArray<string>;
+    readonly severity: "critical" | "high" | "medium" | "low" | "info";
+  }> | null;
 }
 
 const SCHEMA = {

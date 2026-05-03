@@ -31,11 +31,7 @@ const sym = (qualified_name: string, import_source: string | null = null): Reach
   via: "direct call",
 });
 
-const ev = (
-  kind: WebhookEvidence["kind"],
-  provider = "github",
-  detail = "x",
-): WebhookEvidence => ({
+const ev = (kind: WebhookEvidence["kind"], provider = "github", detail = "x"): WebhookEvidence => ({
   kind,
   provider,
   location: { line: 1, col: 1, end_line: 1, end_col: 2 },

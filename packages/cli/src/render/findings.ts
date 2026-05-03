@@ -37,7 +37,11 @@ function renderFinding(
 ): string {
   const absPath = path.resolve(opts.cwd, f.file_path);
   const locText = `${f.file_path}:${f.location.line}:${f.location.col}`;
-  const fileLink = ansiLink(`file://${absPath}:${f.location.line}:${f.location.col}`, locText, opts);
+  const fileLink = ansiLink(
+    `file://${absPath}:${f.location.line}:${f.location.col}`,
+    locText,
+    opts,
+  );
   const lines: string[] = [];
   lines.push(`  ${fileLink}`);
   const colored = severityColor(f.severity, f.rule_id, opts);

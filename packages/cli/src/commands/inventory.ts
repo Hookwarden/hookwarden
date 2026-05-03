@@ -18,9 +18,7 @@ export async function runInventoryCommand(args: InventoryArgs): Promise<number> 
   const cwd = process.cwd();
 
   const scanInput =
-    args["rules-dir"] !== undefined
-      ? { rootPath, rulesDir: args["rules-dir"] }
-      : { rootPath };
+    args["rules-dir"] !== undefined ? { rootPath, rulesDir: args["rules-dir"] } : { rootPath };
   const scan = await runScan(scanInput);
 
   process.stdout.write(renderInventory(scan.result, { useAnsi, cwd }));

@@ -3,7 +3,7 @@
 
 import { defineCommand } from "citty";
 import { type InventoryArgs, inventoryCommand, runInventoryCommand } from "./commands/inventory.js";
-import { type ScanArgs, runScanCommand, scanCommand } from "./commands/scan.js";
+import { runScanCommand, type ScanArgs, scanCommand } from "./commands/scan.js";
 
 const VERSION = "0.0.1"; // Changesets bumps in lockstep (D-05).
 

@@ -56,9 +56,7 @@ describe("applyPathSeverityOverrides (D-57 RULES-05)", () => {
   it("matches **/*.test.{js,ts,py} brace expansion", () => {
     const rule: RuleDefinition = {
       ...baseRule,
-      path_severity_overrides: [
-        { patterns: ["**/*.test.{js,ts,py}"], severity: "info" },
-      ],
+      path_severity_overrides: [{ patterns: ["**/*.test.{js,ts,py}"], severity: "info" }],
     };
     const f: Finding = { ...baseFinding, file_path: "src/foo.test.ts" };
     expect(applyPathSeverityOverrides(f, rule).severity).toBe("info");

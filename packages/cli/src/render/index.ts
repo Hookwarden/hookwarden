@@ -1,3 +1,3 @@
-export { renderFindings, type RenderFindingsOptions } from "./findings.js";
-export { renderInventory, type RenderInventoryOptions } from "./inventory.js";
-export { renderSummary, type RenderSummaryOptions } from "./summary.js";
+export { type RenderFindingsOptions, renderFindings } from "./findings.js";
+export { type RenderInventoryOptions, renderInventory } from "./inventory.js";
+export { type RenderSummaryOptions, renderSummary } from "./summary.js";

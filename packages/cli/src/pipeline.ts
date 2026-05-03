@@ -11,16 +11,16 @@ import {
   type Config,
   evaluate,
   initPythonRuntime,
-  parseJsTs,
-  parsePython,
   type ParsedFile,
   type ProjectModel,
   type PythonRuntime,
+  parseJsTs,
+  parsePython,
   type RuleSet,
   type ScanResult,
 } from "@hookwarden/engine";
 import pLimit from "p-limit";
-import { loadRulesFromDir, type LoadRulesOptions } from "./load-rules.js";
+import { type LoadRulesOptions, loadRulesFromDir } from "./load-rules.js";
 import { type WalkResult, walkProject } from "./walker/index.js";
 
 export interface RunScanInput {
@@ -74,12 +74,12 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
     walkResult.files.map((abs) =>
       limit(async () => {
         const rel = path.relative(root, abs);
-        const source_text = await fs.readFile(abs, "utf-8");
+        const sourceText = await fs.readFile(abs, "utf-8");
         if (isPython(abs)) {
           if (pyRuntime === null) throw new Error("Python runtime not initialized");
-          return parsePython({ file_path: rel, source_text }, pyRuntime);
+          return parsePython({ file_path: rel, source_text: sourceText }, pyRuntime);
         }
-        return parseJsTs({ file_path: rel, source_text });
+        return parseJsTs({ file_path: rel, source_text: sourceText });
       }),
     ),
   );

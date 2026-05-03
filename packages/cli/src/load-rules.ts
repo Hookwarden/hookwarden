@@ -8,9 +8,9 @@ import { fileURLToPath } from "node:url";
 import type { RuleSet } from "@hookwarden/engine";
 import {
   ALL_PREDICATES,
+  loadRuleSet,
   PROVIDER_CATALOG,
   RULES_PACK_VERSION,
-  loadRuleSet,
 } from "@hookwarden/rules";
 import { load as parseYaml } from "js-yaml";
 
