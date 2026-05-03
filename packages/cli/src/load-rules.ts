@@ -63,10 +63,16 @@ export function resolveDefaultRulesDir(): string {
 }
 
 export async function loadRulesFromDir(options: LoadRulesOptions = {}): Promise<RuleSet> {
+  // When the caller explicitly supplies --rules-dir, that path is authoritative — failure to
+  // find rules there is an error, not a trigger to fall back to the bundled location.
+  // Without --rules-dir, try the resolved default first, then the workspace dev path.
   const candidates: string[] = [];
-  if (options.rulesDir) candidates.push(path.resolve(options.rulesDir));
-  candidates.push(resolveDefaultRulesDir());
-  candidates.push(path.resolve(process.cwd(), "packages/rules/rules"));
+  if (options.rulesDir) {
+    candidates.push(path.resolve(options.rulesDir));
+  } else {
+    candidates.push(resolveDefaultRulesDir());
+    candidates.push(path.resolve(process.cwd(), "packages/rules/rules"));
+  }
 
   let yamlFiles: string[] = [];
   for (const c of candidates) {

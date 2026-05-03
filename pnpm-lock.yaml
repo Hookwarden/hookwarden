@@ -68,6 +68,9 @@ importers:
       tinyglobby:
         specifier: ^0.2.16
         version: 0.2.16
+      tree-sitter-python:
+        specifier: ^0.25.0
+        version: 0.25.0
     devDependencies:
       '@types/js-yaml':
         specifier: ^4.0.9
