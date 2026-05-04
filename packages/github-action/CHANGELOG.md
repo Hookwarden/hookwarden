@@ -1,5 +1,13 @@
 # @hookwarden/github-action
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [0a0ff4c]
+- Updated dependencies [1fadc62]
+  - hookwarden@0.1.1
+
 ## 0.1.0
 
 ### Patch Changes
