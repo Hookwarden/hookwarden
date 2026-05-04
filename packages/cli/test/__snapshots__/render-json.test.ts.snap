@@ -1,0 +1,86 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renderJson — D-59 envelope > snapshot — canonical mixed scan with active + suppressed findings 1`] = `
+"{
+  "engine": {
+    "commit_sha": "abc1234",
+    "version": "0.4.0"
+  },
+  "rule_pack": {
+    "content_hash": "sha256:deadbeef",
+    "version": "0.4.0"
+  },
+  "scan": {
+    "counts": {
+      "active": {
+        "critical": 1,
+        "high": 0,
+        "info": 0,
+        "low": 0,
+        "medium": 0
+      },
+      "suppressed": {
+        "critical": 0,
+        "high": 1,
+        "info": 0,
+        "low": 0,
+        "medium": 0
+      }
+    },
+    "findings": [
+      {
+        "file_path": "src/stripe.ts",
+        "finding_id": "stripe/missing-verification@h1",
+        "location": {
+          "col": 5,
+          "line": 10
+        },
+        "message": "missing verification",
+        "primary_location_line_hash": "h1",
+        "provider": "stripe",
+        "redacted_snippet": "<redacted-snippet>",
+        "rule_id": "stripe/missing-verification",
+        "severity": "critical",
+        "state": "verified",
+        "suppressed": null
+      },
+      {
+        "file_path": "src/gh.ts",
+        "finding_id": "github/missing-secret@h2",
+        "location": {
+          "col": 1,
+          "line": 20
+        },
+        "message": "missing verification",
+        "primary_location_line_hash": "h2",
+        "provider": "github",
+        "redacted_snippet": "<redacted-snippet>",
+        "rule_id": "github/missing-secret",
+        "severity": "high",
+        "state": "verified",
+        "suppressed": {
+          "comment": "intentional for demo",
+          "source": "inline"
+        }
+      }
+    ],
+    "inventory": [],
+    "parse_candidates_count": 10,
+    "parse_errors_count": 0,
+    "parsed_files_count": 10,
+    "scanned_at": "2026-05-03T12:00:00.000Z",
+    "total_files_count": 10
+  },
+  "schema_version": "1.0",
+  "suppressions": {
+    "applied": [
+      {
+        "finding_id": "github/missing-secret@h2",
+        "source": "inline"
+      }
+    ],
+    "stale": []
+  }
+}
+"
+`;
