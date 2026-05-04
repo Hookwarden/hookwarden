@@ -174,11 +174,22 @@ describe("exit-code matrix — boundary + override conditions", () => {
     expect(r.code).not.toBe(4);
   });
 
-  it("EM-fail-on-low: --fail-on low trips on info findings", async () => {
-    // The happy path emits a stripe/library-verified info-severity finding.
-    const r = runCli(["--fail-on", "low", CANONICAL_HAPPY]);
-    // Exit 1 because there's also a critical finding in the happy-path fixture; either way > 0 active.
+  it("EM-fail-on-low: --fail-on low trips on critical findings (lowest threshold catches everything ≥ low)", async () => {
+    // --fail-on accepts critical|high|medium|low (no info threshold — see severity-threshold.ts).
+    // 'low' is the lowest threshold, so any finding at low/medium/high/critical trips it.
+    // Use the bug fixture which emits critical findings; the happy-path fixture only emits an
+    // info-severity stripe/library-verified finding, which sits BELOW the low threshold and does
+    // not trip --fail-on low.
+    const r = runCli(["--fail-on", "low", CANONICAL_BUG]);
     expect(r.code).toBe(1);
+  });
+
+  it("EM-fail-on-low-info-only: --fail-on low does NOT trip on info-only findings (info < low)", async () => {
+    // Companion to EM-fail-on-low — verifies the threshold semantic. The happy-path fixture
+    // emits only stripe/library-verified (info severity); since info sits below the low
+    // threshold, --fail-on low must not trip and exit code must be 0.
+    const r = runCli(["--fail-on", "low", CANONICAL_HAPPY]);
+    expect(r.code).toBe(0);
   });
 
   it("EM-no-config-bypass: malformed config + --no-config → engine still runs, no exit 3", async () => {
