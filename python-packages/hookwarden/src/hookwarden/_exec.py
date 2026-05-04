@@ -7,12 +7,15 @@ Pre-commit on Windows is deferred per CONTEXT (Out of scope).
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 
 def exec_binary(binary_path: Path, args: list[str]) -> int:
-    """os.execv(str(binary_path), [str(binary_path), *args]).
+    cmd = [str(binary_path), *args]
+    if os.name == "nt":
+        import subprocess
 
-    On Windows: falls back to subprocess.run(...).returncode.
-    """
-    raise NotImplementedError("Plan 04.1-01 Task 2")
+        return subprocess.run(cmd).returncode
+    os.execv(str(binary_path), cmd)
+    return 0

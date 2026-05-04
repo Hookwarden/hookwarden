@@ -7,7 +7,15 @@ not transient (DC-04).
 """
 from __future__ import annotations
 
+import hashlib
+import os
+import socket
+import time
+import urllib.error
+import urllib.request
 from pathlib import Path
+
+from . import __version__, _cache
 
 
 class IntegrityError(Exception):
@@ -21,11 +29,41 @@ def download_and_verify(
     max_retries: int = 3,
     base_backoff: float = 1.0,
 ) -> None:
-    """GET url, stream to a tempfile while computing SHA-256.
-
-    On 5xx or socket.error: exponential backoff retry up to max_retries.
-    On 4xx: raise immediately.
-    On SHA mismatch: delete tempfile, raise IntegrityError (DC-04 — never retry).
-    On success: atomic_write(dest, ...). Sets exec bit on POSIX (chmod 0o755).
-    """
-    raise NotImplementedError("Plan 04.1-01 Task 2")
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            req = urllib.request.Request(
+                url, headers={"User-Agent": f"hookwarden-shim/{__version__}"}
+            )
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                h = hashlib.sha256()
+                chunks: list[bytes] = []
+                while True:
+                    chunk = resp.read(65536)
+                    if not chunk:
+                        break
+                    h.update(chunk)
+                    chunks.append(chunk)
+                actual = h.hexdigest()
+                if actual != expected_sha:
+                    raise IntegrityError(
+                        f"hookwarden: SHA-256 mismatch for {url}.\n"
+                        f"  expected: {expected_sha}\n"
+                        f"  actual:   {actual}\n"
+                        f"  This indicates a tampered download or the wrong "
+                        f"target was selected. Refusing to write binary."
+                    )
+                _cache.atomic_write(dest, iter(chunks))
+                if os.name == "posix":
+                    os.chmod(dest, 0o755)
+                return
+        except urllib.error.HTTPError as e:
+            if 400 <= e.code < 500:
+                raise
+            if attempt >= max_retries:
+                raise
+        except (urllib.error.URLError, socket.error, TimeoutError):
+            if attempt >= max_retries:
+                raise
+        time.sleep(base_backoff * (2 ** (attempt - 1)))
