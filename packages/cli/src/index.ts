@@ -2,6 +2,7 @@
 // D-47 no-arg help. D-48 zero-config flags. D-49 exit 0/1/2/3/4 (Phase 4 expanded matrix).
 
 import { defineCommand } from "citty";
+import { renderBanner, shouldShowBanner } from "./banner.js";
 import { type InventoryArgs, inventoryCommand, runInventoryCommand } from "./commands/inventory.js";
 import { runScanCommand, type ScanArgs, scanCommand } from "./commands/scan.js";
 
@@ -156,8 +157,17 @@ function parseFlags(argv: ReadonlyArray<string>): ParseResult {
 }
 
 export async function main(argv: ReadonlyArray<string>): Promise<number> {
-  // No args → print help and exit 0 (D-47).
+  // No args → branded landing on TTY, plain help otherwise (D-47).
   if (argv.length === 0) {
+    const showBanner = shouldShowBanner({
+      stream: process.stdout,
+      env: process.env,
+      noColorFlag: false,
+    });
+    if (showBanner) {
+      process.stdout.write(renderBanner({ version: VERSION, useAnsi: true }));
+      return 0;
+    }
     process.stdout.write(HELP_TEXT);
     return 0;
   }
