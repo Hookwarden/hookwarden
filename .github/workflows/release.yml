@@ -33,3 +33,10 @@ jobs:
           version: pnpm changeset version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Classic npm token used as the auth source for `pnpm changeset publish`.
+          # Trusted Publishing (OIDC) is still wired up on the workflow side via
+          # `permissions.id-token: write` above, so npm provenance attestation is
+          # attached when publishing — best-of-both: classic auth + signed provenance.
+          # Remove this once Trusted Publisher entries exist on npmjs.com for
+          # `hookwarden`, `@hookwarden/engine`, `@hookwarden/rules` and pure OIDC works.
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
