@@ -2,8 +2,20 @@ import { promises as fs } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { CONFIG_DEFAULTS, type ResolvedConfig } from "../src/config/precedence.js";
 import { resolveDefaultRulesDir } from "../src/load-rules.js";
-import { runScan } from "../src/pipeline.js";
+import { runScan, type RunScanInput } from "../src/pipeline.js";
+
+function scanInput(rootPath: string, overrides: Partial<ResolvedConfig> = {}): RunScanInput {
+  return {
+    rootPath,
+    resolvedConfig: { ...CONFIG_DEFAULTS, ...overrides },
+    diffOnly: false,
+    diffBase: null,
+    baselineWrite: false,
+    verbose: false,
+  };
+}
 
 let tmp: string;
 
@@ -22,7 +34,7 @@ afterEach(async () => {
 
 describe("runScan pipeline (CLI-01 + DISCOVERY-01)", () => {
   it("returns ScanResult with metadata, even on empty dir", async () => {
-    const out = await runScan({ rootPath: tmp });
+    const out = await runScan(scanInput(tmp));
     expect(out.result.findings).toEqual([]);
     expect(out.result.inventory).toEqual([]);
     expect(out.result.metadata.engine_version).toBeTruthy();
@@ -35,16 +47,18 @@ describe("runScan pipeline (CLI-01 + DISCOVERY-01)", () => {
     await writeFile(".gitignore", "private/\n");
     await writeFile("public.ts", "// keep");
     await writeFile("private/secret.ts", "const whsec_test_DEMO = 'whsec_x';");
-    const out = await runScan({ rootPath: tmp });
+    const out = await runScan(scanInput(tmp));
     const rels = out.walkResult.files.map((f) => path.relative(tmp, f));
     expect(rels).toContain("public.ts");
     expect(rels.some((p) => p.startsWith("private"))).toBe(false);
   });
 
-  it("propagates rules-load failure when rulesDir does not contain YAMLs", async () => {
+  it("captures rules-load failure as engineError (does not throw)", async () => {
     const empty = await fs.mkdtemp(path.join(os.tmpdir(), "no-rules-"));
     try {
-      await expect(runScan({ rootPath: tmp, rulesDir: empty })).rejects.toThrow(/rule pack/i);
+      const out = await runScan(scanInput(tmp, { rules_dir: empty }));
+      expect(out.engineError).not.toBeNull();
+      expect(out.engineError?.message).toMatch(/rule pack/i);
     } finally {
       await fs.rm(empty, { recursive: true, force: true });
     }

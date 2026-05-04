@@ -1,6 +1,7 @@
 // `hookwarden inventory <path>` subcommand. DISCOVERY-01 (CLI portion).
 
 import { defineCommand } from "citty";
+import { CONFIG_DEFAULTS } from "../config/precedence.js";
 import { runScan } from "../pipeline.js";
 import { renderInventory, renderSummary } from "../render/index.js";
 import { shouldUseAnsi } from "../walker/tty.js";
@@ -17,9 +18,18 @@ export async function runInventoryCommand(args: InventoryArgs): Promise<number> 
   const useAnsi = noColor ? false : shouldUseAnsi(process.stdout);
   const cwd = process.cwd();
 
-  const scanInput =
-    args["rules-dir"] !== undefined ? { rootPath, rulesDir: args["rules-dir"] } : { rootPath };
-  const scan = await runScan(scanInput);
+  const resolvedConfig =
+    args["rules-dir"] !== undefined
+      ? { ...CONFIG_DEFAULTS, rules_dir: args["rules-dir"] }
+      : CONFIG_DEFAULTS;
+  const scan = await runScan({
+    rootPath,
+    resolvedConfig,
+    diffOnly: false,
+    diffBase: null,
+    baselineWrite: false,
+    verbose: false,
+  });
 
   process.stdout.write(renderInventory(scan.result, { useAnsi, cwd }));
   process.stdout.write(renderSummary(scan.result, { useAnsi, durationMs: scan.durationMs }));
