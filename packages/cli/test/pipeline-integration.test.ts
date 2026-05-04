@@ -83,11 +83,19 @@ describe("Phase 4 ROADMAP success criteria — pipeline integration", () => {
     expect(r0.properties["hookwarden-state"]).toBe("not-verified");
   });
 
-  it("PI-3: --format text on happy path emits a 'verified' badge in output", () => {
-    const r = runCli(["--format", "text", CANONICAL_HAPPY]);
-    // The happy-path fixture also trips a separate critical/not-verified rule (stripe/raw-body-misuse)
-    // so exit code is 1, but the verified badge from stripe/library-verified must appear.
-    expect(r.stdout).toContain("verified");
+  it("PI-3: happy path exits 0, emits stripe/library-verified, does NOT emit stripe/raw-body-misuse", () => {
+    // express.raw({ type: 'application/json' }) is an inline per-route middleware argument —
+    // outside the handler arrow function body. The engine must recognize it via middleware_chain,
+    // not via handler-body text search, so that raw-body-misuse does not fire as a false positive.
+    const r = runCli(["--format", "json", CANONICAL_HAPPY]);
+    expect(r.code).toBe(0);
+    const env = JSON.parse(r.stdout);
+    const findingRuleIds: string[] = env.scan.findings.map(
+      (f: { rule_id: string }) => f.rule_id,
+    );
+    expect(findingRuleIds).toContain("stripe/library-verified");
+    expect(findingRuleIds).not.toContain("stripe/raw-body-misuse");
+    expect(env.scan.counts.active.critical).toBe(0);
   });
 
   it("PI-4: inline disable comment suppresses the finding (D-63 + D-66)", async () => {

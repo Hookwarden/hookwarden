@@ -6,6 +6,7 @@
 //   - Plan 07's bespoke adapters (Next.js / Django / FastAPI) via the bespokeAdapters hook
 //   - This plan's computeReachableSymbols (D-34 cross-file traversal) + extractMiddlewareChain (D-36)
 //   - The sdk_verify_call evidence overlay — completes D-32's 7th signal.
+//   - The raw-body middleware evidence overlay — prevents FP on express.raw / bodyParser.raw chains.
 
 import { computeHandlerId } from "../findings/fingerprint.js";
 import { extractBabelLiterals } from "../parsers/literals.js";
@@ -108,7 +109,15 @@ async function assembleHandler(
   });
   // sdk_verify_call evidence overlay (issue #7 fix) — completes D-32's 7th signal.
   const sdkVerifyEvidence = collectSdkVerifyCallEvidence(cand, reachableSymbols, input.ruleSet);
-  const evidence: ReadonlyArray<WebhookEvidence> = [...baseEvidence.evidence, ...sdkVerifyEvidence];
+  // raw-body middleware evidence overlay — prevents stripe/raw-body-misuse FP when express.raw
+  // (or bodyParser.raw) is registered as an inline route middleware argument. The handler text
+  // search in evidence.ts only sees the arrow function body, not outer route arguments.
+  const rawBodyMwEvidence = collectRawBodyMiddlewareEvidence(cand, middlewareChain);
+  const evidence: ReadonlyArray<WebhookEvidence> = [
+    ...baseEvidence.evidence,
+    ...sdkVerifyEvidence,
+    ...rawBodyMwEvidence,
+  ];
   // Recompute provider attribution since sdk_verify_call evidence may shift the count.
   const provider = recomputeProvider(evidence, baseEvidence.provider);
   const redactedSnippet = renderHandlerSnippet(file, cand);
@@ -156,6 +165,37 @@ function collectSdkVerifyCallEvidence(
     }
   }
   return out;
+}
+
+// Raw-body middleware names that guarantee the body arrives as a Buffer/bytes to the handler.
+// Covers both `express.raw(...)` (qualified member call) and `raw(...)` (named import from express
+// or body-parser). import_source guard prevents false-negatives from unrelated `raw` middleware.
+const RAW_BODY_MIDDLEWARE_NAMES: ReadonlySet<string> = new Set([
+  "express.raw",
+  "raw", // named import: import { raw } from 'express'  or  import { raw } from 'body-parser'
+]);
+
+const RAW_BODY_IMPORT_SOURCES: ReadonlySet<string> = new Set(["express", "body-parser"]);
+
+function collectRawBodyMiddlewareEvidence(
+  cand: CandidateHandler,
+  middlewareChain: ReadonlyArray<ResolvedMiddleware>,
+): ReadonlyArray<WebhookEvidence> {
+  const hasRawMiddleware = middlewareChain.some(
+    (m) =>
+      RAW_BODY_MIDDLEWARE_NAMES.has(m.name) &&
+      m.import_source !== null &&
+      RAW_BODY_IMPORT_SOURCES.has(m.import_source),
+  );
+  if (!hasRawMiddleware) return [];
+  return [
+    {
+      kind: "body_as_bytes_or_buffer",
+      provider: "unknown",
+      location: cand.location,
+      detail: "raw-body middleware in chain",
+    },
+  ];
 }
 
 function recomputeProvider(evidence: ReadonlyArray<WebhookEvidence>, fallback: string): string {
