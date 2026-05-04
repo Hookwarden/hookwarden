@@ -40,3 +40,10 @@ jobs:
           # Remove this once Trusted Publisher entries exist on npmjs.com for
           # `hookwarden`, `@hookwarden/engine`, `@hookwarden/rules` and pure OIDC works.
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # setup-node@v6 writes a project-level .npmrc that interpolates
+          # ${NODE_AUTH_TOKEN}; without this env var that .npmrc resolves to
+          # empty and PUT /registry returns 404 (npm masks no-auth as 404).
+          # See git history of this file: this line existed pre-0a0ff4c and was
+          # the load-bearing variable for token auth — NPM_TOKEN alone is not
+          # enough when registry-url is set on the setup-node action.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
