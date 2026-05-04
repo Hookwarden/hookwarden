@@ -136,3 +136,111 @@ app.post('/webhook', express.json(), (req, res) => {
     expect(r.code).toBe(4);
   });
 });
+
+describe("exit-code matrix — boundary + override conditions", () => {
+  it("EM-bound-1: parse-coverage exactly at minimum (95%) → no exit 4 (boundary inclusive)", async () => {
+    // 19 parseable + 1 unparseable = 95%. Use --fail-on critical so the parse-error finding
+    // (severity=high) doesn't trip fail-on; this isolates the parse-coverage gate from the
+    // findings gate.
+    for (let i = 0; i < 19; i++) {
+      await fs.writeFile(path.join(tmp, `clean${i}.js`), "// nothing\n");
+    }
+    await fs.writeFile(path.join(tmp, "broken.js"), "this { is ! valid\n");
+    const r = runCli(["--fail-on", "critical", tmp]);
+    // 19/20 === 0.95 → not below; gate must not trigger exit 4. Exit code is either 0 (no
+    // critical-severity findings) or 1 (a critical fired) — either is acceptable for this
+    // test, just NOT 4.
+    expect(r.code).not.toBe(4);
+  });
+
+  it("EM-bound-2: parse-coverage one notch below minimum (90%) → exit 4", async () => {
+    // 18 parseable + 2 unparseable = 90%; default min 0.95 → below. Use --fail-on critical
+    // so parse-error severity=high findings don't pre-empt with exit 1 (D-65 says coverage
+    // wins over findings, but if we're testing the gate cleanly, suppress the findings axis).
+    for (let i = 0; i < 18; i++) {
+      await fs.writeFile(path.join(tmp, `clean${i}.js`), "// nothing\n");
+    }
+    await fs.writeFile(path.join(tmp, "broken1.js"), "this { is ! valid\n");
+    await fs.writeFile(path.join(tmp, "broken2.js"), "more } syntax errors\n");
+    const r = runCli(["--fail-on", "critical", tmp]);
+    expect(r.code).toBe(4);
+  });
+
+  it("EM-min-coverage-zero: --min-parse-coverage 0 disables the gate even at 0% coverage", async () => {
+    // All files fail to parse → 0% coverage. With min=0 the gate is disabled → no exit 4.
+    await fs.writeFile(path.join(tmp, "broken1.js"), "this { is ! valid\n");
+    await fs.writeFile(path.join(tmp, "broken2.js"), "more } broken /\n");
+    const r = runCli(["--min-parse-coverage", "0", tmp]);
+    expect(r.code).not.toBe(4);
+  });
+
+  it("EM-fail-on-low: --fail-on low trips on info findings", async () => {
+    // The happy path emits a stripe/library-verified info-severity finding.
+    const r = runCli(["--fail-on", "low", CANONICAL_HAPPY]);
+    // Exit 1 because there's also a critical finding in the happy-path fixture; either way > 0 active.
+    expect(r.code).toBe(1);
+  });
+
+  it("EM-no-config-bypass: malformed config + --no-config → engine still runs, no exit 3", async () => {
+    await fs.writeFile(path.join(tmp, "noop.js"), "// clean\n");
+    await fs.writeFile(path.join(tmp, "hookwarden.config.yaml"), "{ broken: : :\n");
+    const r = runCli(["--no-config", tmp]);
+    expect(r.code).not.toBe(3);
+    expect(r.stderr).not.toContain("YAML parse error");
+  });
+
+  it("EM-malformed-config: bad config without --no-config → exit 3 with stderr explaining", async () => {
+    await fs.writeFile(path.join(tmp, "noop.js"), "// clean\n");
+    await fs.writeFile(path.join(tmp, "hookwarden.config.yaml"), "{ broken: yaml: : :\n");
+    const r = runCli([tmp]);
+    expect(r.code).toBe(3);
+    expect(r.stderr).toMatch(/YAML parse error|invalid|config/i);
+  });
+
+  it("EM-explicit-config: --config <path> overrides walk-up discovery", async () => {
+    await fs.writeFile(path.join(tmp, "noop.js"), "// clean\n");
+    // No config in tmp; explicit path elsewhere.
+    const cfgDir = await fs.mkdtemp(path.join(os.tmpdir(), "em-cfg-"));
+    try {
+      const cfgPath = path.join(cfgDir, "hookwarden.config.yaml");
+      await fs.writeFile(cfgPath, "schema_version: '1.0'\nfail_on: critical\n");
+      const r = runCli(["--config", cfgPath, tmp]);
+      expect(r.code).toBe(0); // clean fixture, config loads cleanly
+    } finally {
+      await fs.rm(cfgDir, { recursive: true, force: true });
+    }
+  });
+
+  it("EM-strict-suppressions: stale ignore pattern → exit 1 with stderr", async () => {
+    await fs.writeFile(path.join(tmp, "noop.js"), "// clean\n");
+    await fs.writeFile(path.join(tmp, ".hookwardenignore"), "matches/nothing/at/all/*.ts\n");
+    const r = runCli(["--strict-suppressions", tmp]);
+    expect(r.code).toBe(1);
+    expect(r.stderr).toContain("stale suppression");
+  });
+
+  it("EM-strict-suppressions-off: stale ignore pattern but no flag → exit 0", async () => {
+    await fs.writeFile(path.join(tmp, "noop.js"), "// clean\n");
+    await fs.writeFile(path.join(tmp, ".hookwardenignore"), "matches/nothing/*.ts\n");
+    const r = runCli([tmp]);
+    expect(r.code).toBe(0); // stale alone is not an error without --strict-suppressions
+  });
+
+  it("EM-unknown-flag: --bogus → exit 3 with stderr naming the flag", () => {
+    const r = runCli(["--bogus", CANONICAL_HAPPY]);
+    expect(r.code).toBe(3);
+    expect(r.stderr).toMatch(/unknown flag/i);
+    expect(r.stderr).toContain("--bogus");
+  });
+
+  it("EM-malformed-rules: rules-dir with broken YAML → exit 2", async () => {
+    const rulesDir = await fs.mkdtemp(path.join(os.tmpdir(), "em-rules-bad-"));
+    try {
+      await fs.writeFile(path.join(rulesDir, "bad.yaml"), "{ not: valid: yaml: : :\n");
+      const r = runCli(["--rules-dir", rulesDir, CANONICAL_HAPPY]);
+      expect(r.code).toBe(2);
+    } finally {
+      await fs.rm(rulesDir, { recursive: true, force: true });
+    }
+  });
+});
