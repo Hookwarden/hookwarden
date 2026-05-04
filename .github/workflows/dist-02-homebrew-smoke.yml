@@ -1,0 +1,46 @@
+name: DIST-02 Homebrew smoke
+on:
+  workflow_dispatch:
+  schedule:
+    # Re-run weekly to catch upstream Homebrew breakage independent of releases.
+    - cron: '0 12 * * 1'
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, macos-13, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    # Until Phase 4.x ships its first release with binaries + checksums.txt,
+    # the formula's sha256 lines are zeros and brew install will hard-fail at
+    # checksum verification. continue-on-error: true is a TEMPORARY waiver
+    # tracked under assumption A-04.1-03-004; flip to false in a follow-up plan
+    # once Phase 4.x lands.
+    continue-on-error: true
+    steps:
+      - name: Install Homebrew on Linux
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
+
+      - name: brew tap + install + version smoke
+        run: |
+          set -euo pipefail
+          brew tap Hookwarden/tap
+          brew install hookwarden
+          INSTALLED_VERSION=$(hookwarden --version | head -1)
+          FORMULA_VERSION=$(brew info --json=v2 hookwarden | jq -r '.formulae[0].versions.stable')
+          echo "Installed: $INSTALLED_VERSION"
+          echo "Formula:   $FORMULA_VERSION"
+          # DIST-02 success criterion: formula version MUST appear in binary --version output
+          echo "$INSTALLED_VERSION" | grep -q "$FORMULA_VERSION"
