@@ -205,10 +205,15 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
   };
 
   // [INSERT 2] suppression annotation post-emit (Plan 04 + CLI-06/07/10)
+  // Baseline path defaults to a relative file name; resolve against the scan root, not process.cwd(),
+  // so a CLI invocation with `path` ≠ cwd reads/writes the baseline next to the scanned project.
+  const baselineAbsPath = path.isAbsolute(input.resolvedConfig.baseline_path)
+    ? input.resolvedConfig.baseline_path
+    : path.resolve(root, input.resolvedConfig.baseline_path);
   const inline = extractInlineSuppressions(parsedFiles);
   const ignoreFilter = await loadHookwardenIgnore(root);
   const baselineDoc = input.resolvedConfig.baseline_enabled
-    ? await readBaseline(input.resolvedConfig.baseline_path)
+    ? await readBaseline(baselineAbsPath)
     : null;
   const baselineMatcher = baselineDoc !== null ? buildBaselineMatcher(baselineDoc) : null;
 
@@ -244,7 +249,7 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
 
   // [INSERT 3] baseline write — explicit flag only (Plan 05 + D-69 explicit-write)
   if (input.baselineWrite) {
-    await writeBaseline(input.resolvedConfig.baseline_path, annotatedResult, input.diffOnly);
+    await writeBaseline(baselineAbsPath, annotatedResult, input.diffOnly);
   }
 
   const durationMs = performance.now() - t0;
