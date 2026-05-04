@@ -1,0 +1,48 @@
+name: DIST-03 Scoop smoke
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 13 * * 1'   # weekly Monday 13:00 UTC
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    # Gated off until Phase 4.x ships real binaries + checksums.txt (A-04.1-04-003).
+    # Set the `PHASE_4X_BINARIES_SHIPPED` repo variable to `true` once binaries land;
+    # same flag controls dist-01 + dist-02 so a single flip turns on the full smoke surface.
+    if: |
+      vars.PHASE_4X_BINARIES_SHIPPED == 'true' && (
+        github.event.workflow_run.conclusion == 'success' ||
+        github.event_name != 'workflow_run'
+      )
+    runs-on: windows-latest
+    steps:
+      - name: Install Scoop
+        shell: powershell
+        run: |
+          Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force
+          Invoke-RestMethod -Uri 'https://get.scoop.sh' -OutFile 'install.ps1'
+          .\install.ps1 -RunAsAdmin
+          echo "$HOME\scoop\shims" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Add bucket and install hookwarden
+        shell: powershell
+        run: |
+          scoop bucket add hookwarden https://github.com/Hookwarden/scoop-bucket
+          scoop install hookwarden
+
+      - name: Verify --version round-trip
+        shell: powershell
+        run: |
+          $installed = (hookwarden --version) -join "`n"
+          $manifestVersion = (scoop info hookwarden | Select-String "Version") -replace '.*:\s*',''
+          Write-Host "Installed: $installed"
+          Write-Host "Manifest:  $manifestVersion"
+          if (-not $installed.Contains($manifestVersion)) {
+            throw "DIST-03 fail: binary --version ($installed) does not contain manifest version ($manifestVersion)"
+          }
