@@ -1,15 +1,20 @@
 # CLI-11 — verified SARIF upload to real GitHub Code Scanning.
-# Runs sarif-integration.test.ts on every release tag. Requires repo secret
-# SARIF_INTEGRATION_PAT — fine-grained PAT scoped to `code-scanning:write`
-# on hookwarden/hookwarden-sarif-integration-test (the dedicated test repo).
+# Runs sarif-integration.test.ts on every release tag AND on PRs that touch
+# the SARIF code path. Requires repo secret SARIF_INTEGRATION_PAT — fine-grained
+# PAT scoped to `code-scanning:write` on hookwarden/hookwarden-sarif-integration-test.
 # (Name cannot start with GITHUB_ — that prefix is reserved by GitHub Actions.)
-# PR-time CI never has the secret; the test is `describe.skipIf(!HAS_TOKEN)`.
+# Forked PRs don't receive secrets — the test self-skips via describe.skipIf(!HAS_TOKEN).
 name: sarif-integration
 
 on:
   push:
     tags:
       - "v*"
+  pull_request:
+    paths:
+      - "packages/cli/src/render/sarif.ts"
+      - "packages/cli/test/sarif-integration.test.ts"
+      - ".github/workflows/sarif-integration.yml"
   workflow_dispatch:
 
 permissions:
