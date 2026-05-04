@@ -2,17 +2,69 @@ name: Release
 on:
   push:
     branches: [main]
+  pull_request:
+    paths:
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "packages/*/package.json"
+      - ".changeset/**"
+      - ".github/workflows/release.yml"
+
 concurrency: ${{ github.workflow }}-${{ github.ref }}
-permissions:
-  contents: write
-  pull-requests: write
-  # OIDC: required for npm Trusted Publishers. The runtime issues a short-lived
-  # JWT that npm verifies against the trust binding configured at npmjs.com.
-  # Replaces NPM_TOKEN; provenance is automatically attached.
-  id-token: write
+
 jobs:
-  release:
+  # PR-time preflight — mirrors the real release setup but stops short of publishing.
+  # Catches NPM auth regressions (missing NODE_AUTH_TOKEN / NPM_TOKEN) before merge,
+  # which historically only surfaced after pushing to main and watching Release fail.
+  preflight:
+    if: github.event_name == 'pull_request'
+    name: Release preflight (auth + dry-run pack)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm exec tsc --build
+      - name: Bundle inspection (pre-publish gate)
+        run: pnpm inspect-bundle
+      - name: Validate npm auth wiring
+        # Regression guard for the NODE_AUTH_TOKEN drop in 0a0ff4c. setup-node@v6
+        # writes a project .npmrc that interpolates ${NODE_AUTH_TOKEN}; if either
+        # secret is empty `npm whoami` returns 401 and we fail fast.
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error::NODE_AUTH_TOKEN is empty — set NPM_TOKEN repo secret and ensure release.yml maps it to NODE_AUTH_TOKEN"
+            exit 1
+          fi
+          npm whoami
+      - name: Dry-run publish every workspace package
+        # Validates each package's tarball + publishConfig without uploading.
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm -r publish --dry-run --no-git-checks --access public
+
+  release:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      # OIDC: required for npm Trusted Publishers. The runtime issues a short-lived
+      # JWT that npm verifies against the trust binding configured at npmjs.com.
+      # Replaces NPM_TOKEN; provenance is automatically attached.
+      id-token: write
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4

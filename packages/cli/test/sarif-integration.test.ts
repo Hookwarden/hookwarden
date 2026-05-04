@@ -84,7 +84,7 @@ async function uploadSarif(sarifJson: string): Promise<UploadResponse> {
   return (await res.json()) as UploadResponse;
 }
 
-async function pollUploadStatus(sarifId: string, timeoutMs = 60_000): Promise<string> {
+async function pollUploadStatus(sarifId: string, timeoutMs = 180_000): Promise<string> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const res = await fetch(
@@ -287,7 +287,7 @@ describe.skipIf(!HAS_TOKEN)("SARIF integration — GitHub Code Scanning round-tr
     expect(byPath.get("src/webhooks/stripe.js")?.rule.severity).toBe("error");
     expect(byPath.get("src/webhooks/github.ts")?.rule.severity).toBe("error");
     expect(byPath.get("src/webhooks/stripe-good.js")?.rule.severity).toBe("warning");
-  }, 90_000);
+  }, 240_000);
 
   it("re-uploading byte-identical SARIF dedups via partialFingerprints (D-76)", async () => {
     // Upload #1
@@ -311,5 +311,5 @@ describe.skipIf(!HAS_TOKEN)("SARIF integration — GitHub Code Scanning round-tr
     // we send the SAME fingerprints, NOT because GitHub is silently dropping different
     // findings. Count parity is the round-trip evidence.
     expect(alerts2.length).toBe(3);
-  }, 120_000);
+  }, 420_000);
 });
