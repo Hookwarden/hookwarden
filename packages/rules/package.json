@@ -1,6 +1,6 @@
 {
   "name": "@hookwarden/rules",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "hookwarden detection rule pack — versioned YAML rules per provider.",
   "license": "Apache-2.0",
   "type": "module",
