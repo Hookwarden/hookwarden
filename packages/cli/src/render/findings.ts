@@ -53,7 +53,7 @@ function renderFinding(
     messageLines.pop();
   }
   for (const ml of messageLines) lines.push(`    ${ml}`);
-  if (rule && rule.provider_docs_url) {
+  if (rule?.provider_docs_url) {
     const arrow = "↳";
     const linked = ansiLink(rule.provider_docs_url, rule.provider_docs_url, opts);
     lines.push(`    ${dim(arrow, opts)} ${linked}`);

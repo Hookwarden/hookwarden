@@ -47,7 +47,7 @@ export async function loadHookwardenIgnore(rootPath: string): Promise<IgnoreFilt
       if (!fullIgnore.ignores(rel)) return null;
       for (let i = singleMatchers.length - 1; i >= 0; i -= 1) {
         const sm = singleMatchers[i];
-        if (sm && sm.matcher.ignores(rel)) return sm.pattern;
+        if (sm?.matcher.ignores(rel)) return sm.pattern;
       }
       return null;
     },

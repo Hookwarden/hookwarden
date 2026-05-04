@@ -1,10 +1,6 @@
 import type { Finding } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
-import {
-  applyBaseline,
-  buildBaselineMatcher,
-  detectRulePackDrift,
-} from "../src/baseline/match.js";
+import { applyBaseline, buildBaselineMatcher, detectRulePackDrift } from "../src/baseline/match.js";
 import type { BaselineDocument, BaselinedFinding } from "../src/baseline/schema.js";
 
 const BASELINED_AT = "2026-05-01T00:00:00.000Z";
@@ -36,12 +32,7 @@ function makeBaselined(
   };
 }
 
-function makeFinding(
-  ruleId: string,
-  hash: string,
-  filePath: string,
-  line = 10,
-): Finding {
+function makeFinding(ruleId: string, hash: string, filePath: string, line = 10): Finding {
   return {
     id: `id-${hash}`,
     rule_id: ruleId,

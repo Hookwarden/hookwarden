@@ -42,7 +42,7 @@ function makeRealIgnoreFilter(patterns: ReadonlyArray<string>): IgnoreFilter {
       if (!fullIgnore.ignores(p)) return null;
       for (let i = single.length - 1; i >= 0; i -= 1) {
         const sm = single[i];
-        if (sm && sm.matcher.ignores(p)) return sm.pattern;
+        if (sm?.matcher.ignores(p)) return sm.pattern;
       }
       return null;
     },

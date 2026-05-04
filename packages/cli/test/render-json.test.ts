@@ -96,9 +96,7 @@ describe("renderJson — D-59 envelope", () => {
 
   it("preserves severity AND state as siblings on each Finding (D-29)", () => {
     const out = renderJson({
-      scanResult: makeResult([
-        makeFinding({ severity: "critical", state: "not-verified" }),
-      ]),
+      scanResult: makeResult([makeFinding({ severity: "critical", state: "not-verified" })]),
       ruleSet: null,
       stale: [],
     });

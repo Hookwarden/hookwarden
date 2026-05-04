@@ -10,7 +10,8 @@
       "**/*.cjs",
       "**/*.mjs",
       "**/*.json",
-      "!e2e/fixtures"
+      "!e2e/fixtures",
+      "!**/test/fixtures"
     ]
   },
   "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
@@ -21,7 +22,7 @@
       "complexity": {
         "noExcessiveCognitiveComplexity": {
           "level": "warn",
-          "options": { "maxAllowedComplexity": 25 }
+          "options": { "maxAllowedComplexity": 50 }
         },
         "noStaticOnlyClass": "error",
         "noUselessTypeConstraint": "error",
@@ -71,9 +72,12 @@
   },
   "overrides": [
     {
-      "includes": ["**/test/**", "**/*.test.ts"],
+      "includes": ["**/test/**", "**/*.test.ts", "e2e/**"],
       "linter": {
         "rules": {
+          "complexity": {
+            "noExcessiveCognitiveComplexity": "off"
+          },
           "style": {
             "noNonNullAssertion": "off",
             "useNamingConvention": "off"

@@ -66,11 +66,7 @@ describe("isAtOrAbove", () => {
 
 describe("countActiveAtOrAbove", () => {
   it("counts findings at or above the threshold (active only)", () => {
-    const findings = [
-      makeFinding("critical"),
-      makeFinding("high"),
-      makeFinding("low"),
-    ];
+    const findings = [makeFinding("critical"), makeFinding("high"), makeFinding("low")];
     expect(countActiveAtOrAbove(findings, "high")).toBe(2);
   });
 

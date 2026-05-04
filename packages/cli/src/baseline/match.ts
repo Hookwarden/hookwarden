@@ -20,8 +20,8 @@ export interface BaselineApplyResult {
   readonly drift_note: string | null;
 }
 
-function key(rule_id: string, hash: string): string {
-  return `${rule_id}|${hash}`;
+function key(ruleId: string, hash: string): string {
+  return `${ruleId}|${hash}`;
 }
 
 export function buildBaselineMatcher(baseline: BaselineDocument): BaselineMatcher {
@@ -41,7 +41,7 @@ export function applyBaseline(finding: Finding, matcher: BaselineMatcher): Basel
   if (!matched) {
     return { finding, drift_note: null };
   }
-  const drift_note =
+  const driftNote =
     matched.file_path !== finding.file_path
       ? `baseline file_path drift: ${matched.file_path} → ${finding.file_path}`
       : null;
@@ -50,7 +50,7 @@ export function applyBaseline(finding: Finding, matcher: BaselineMatcher): Basel
       ...finding,
       suppressed: { source: "baseline", baselined_at: matcher.baselined_at },
     },
-    drift_note,
+    drift_note: driftNote,
   };
 }
 

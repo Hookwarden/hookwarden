@@ -27,21 +27,24 @@ import {
   type ScanResult,
 } from "@hookwarden/engine";
 import pLimit from "p-limit";
-import { type BaselineMatcher, applyBaseline, buildBaselineMatcher } from "./baseline/match.js";
+import {
+  applyBaseline,
+  type BaselineMatcher,
+  buildBaselineMatcher,
+  detectRulePackDrift,
+} from "./baseline/match.js";
 import { readBaseline } from "./baseline/read.js";
 import { writeBaseline } from "./baseline/write.js";
-import { detectRulePackDrift } from "./baseline/match.js";
 import type { ResolvedConfig } from "./config/precedence.js";
 import { changedFiles } from "./diff/changed-files.js";
 import { resolveBaseRef } from "./diff/resolve-base.js";
 import { type LoadRulesOptions, loadRulesFromDir } from "./load-rules.js";
-import { loadHookwardenIgnore } from "./suppress/ignore-file.js";
-import { extractInlineSuppressions } from "./suppress/inline-comments.js";
-import { type StaleSuppression, detectStale } from "./suppress/stale.js";
-import { type WalkResult, walkProject } from "./walker/index.js";
-
 import type { IgnoreFilter } from "./suppress/ignore-file.js";
+import { loadHookwardenIgnore } from "./suppress/ignore-file.js";
 import type { InlineSuppressions } from "./suppress/inline-comments.js";
+import { extractInlineSuppressions } from "./suppress/inline-comments.js";
+import { detectStale, type StaleSuppression } from "./suppress/stale.js";
+import { type WalkResult, walkProject } from "./walker/index.js";
 
 export interface RunScanInput {
   readonly rootPath: string;

@@ -2,8 +2,8 @@
 // Strict-mode Ajv (additionalProperties:false on every nested object) — same pattern as
 // packages/rules/src/schema.ts and packages/cli/src/config/schema.ts.
 
-import { Ajv, type ValidateFunction } from "ajv";
 import type { Severity, Verdict } from "@hookwarden/engine";
+import { Ajv, type ValidateFunction } from "ajv";
 
 const ajv = new Ajv({ allErrors: true, strict: true });
 

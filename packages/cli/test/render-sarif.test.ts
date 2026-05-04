@@ -15,10 +15,7 @@ import type {
 } from "@hookwarden/engine";
 import { Ajv } from "ajv";
 import { describe, expect, it } from "vitest";
-import {
-  renderSarif,
-  SARIF_LEVEL_BY_SEVERITY,
-} from "../src/render/sarif.js";
+import { renderSarif, SARIF_LEVEL_BY_SEVERITY } from "../src/render/sarif.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCHEMA_PATH = path.resolve(__dirname, "fixtures/sarif-2.1.0-schema.json");
@@ -105,7 +102,10 @@ function makeRuleSet(rules: RuleDefinition[]): RuleSet {
 
 describe("renderSarif", () => {
   it("emits SARIF with empty results when no findings; tool.driver.rules populated from RuleSet", () => {
-    const ruleSet = makeRuleSet([makeRule(), makeRule({ rule_id: "github/missing-secret", provider: "github", severity: "high" })]);
+    const ruleSet = makeRuleSet([
+      makeRule(),
+      makeRule({ rule_id: "github/missing-secret", provider: "github", severity: "high" }),
+    ]);
     const out = renderSarif({ scanResult: makeResult([]), ruleSet, stale: [] });
     const parsed = JSON.parse(out);
     expect(parsed.runs[0].results).toEqual([]);
@@ -197,7 +197,11 @@ describe("renderSarif", () => {
 
   it("results sorted by (severity_rank, file_path, line, col, rule_id)", () => {
     const findings = [
-      makeFinding({ severity: "low", file_path: "src/z.ts", primary_location_line_hash: "h-low-z" }),
+      makeFinding({
+        severity: "low",
+        file_path: "src/z.ts",
+        primary_location_line_hash: "h-low-z",
+      }),
       makeFinding({
         severity: "critical",
         file_path: "src/b.ts",
@@ -210,20 +214,31 @@ describe("renderSarif", () => {
         location: { line: 10, col: 1, end_line: 10, end_col: 5 },
         primary_location_line_hash: "h-crit-a",
       }),
-      makeFinding({ severity: "high", file_path: "src/m.ts", primary_location_line_hash: "h-high-m" }),
-      makeFinding({ severity: "medium", file_path: "src/n.ts", primary_location_line_hash: "h-med-n" }),
+      makeFinding({
+        severity: "high",
+        file_path: "src/m.ts",
+        primary_location_line_hash: "h-high-m",
+      }),
+      makeFinding({
+        severity: "medium",
+        file_path: "src/n.ts",
+        primary_location_line_hash: "h-med-n",
+      }),
     ];
     const out = renderSarif({ scanResult: makeResult(findings), ruleSet: null, stale: [] });
     const results = JSON.parse(out).runs[0].results;
-    const order = results.map((r: { level: string; locations: Array<{ physicalLocation: { artifactLocation: { uri: string } } }> }) =>
-      `${r.level}|${r.locations[0].physicalLocation.artifactLocation.uri}`,
+    const order = results.map(
+      (r: {
+        level: string;
+        locations: Array<{ physicalLocation: { artifactLocation: { uri: string } } }>;
+      }) => `${r.level}|${r.locations[0].physicalLocation.artifactLocation.uri}`,
     );
     expect(order).toEqual([
-      "error|src/a.ts",   // critical
-      "error|src/b.ts",   // critical
-      "error|src/m.ts",   // high
+      "error|src/a.ts", // critical
+      "error|src/b.ts", // critical
+      "error|src/m.ts", // high
       "warning|src/n.ts", // medium
-      "note|src/z.ts",    // low
+      "note|src/z.ts", // low
     ]);
   });
 
@@ -280,7 +295,6 @@ describe("renderSarif", () => {
     const parsed = JSON.parse(out);
     const valid = validate(parsed);
     if (!valid) {
-      // biome-ignore lint/suspicious/noConsole: surfacing schema errors makes the failure debuggable
       console.error(JSON.stringify(validate.errors, null, 2));
     }
     expect(valid).toBe(true);

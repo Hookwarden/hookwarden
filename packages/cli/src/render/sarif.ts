@@ -1,18 +1,10 @@
 // D-60 severity mapping. D-76 SARIF 2.1.0 runtime conformance. D-29 three-state preservation. D-63 per-result suppressions[].
 // Pure renderer: (ScanResult, RuleSet, stale, opts) → string. No fs / no process writes.
 
-import type {
-  Finding,
-  RuleDefinition,
-  RuleSet,
-  ScanResult,
-  Severity,
-} from "@hookwarden/engine";
+import type { Finding, RuleDefinition, RuleSet, ScanResult, Severity } from "@hookwarden/engine";
 import type { StaleSuppression } from "../suppress/stale.js";
 
-export const SARIF_LEVEL_BY_SEVERITY: Readonly<
-  Record<Severity, "error" | "warning" | "note">
-> = {
+export const SARIF_LEVEL_BY_SEVERITY: Readonly<Record<Severity, "error" | "warning" | "note">> = {
   critical: "error",
   high: "error",
   medium: "warning",
@@ -65,9 +57,10 @@ function ruleToDriverRule(r: RuleDefinition): Record<string, unknown> {
   return out;
 }
 
-function suppressionEntry(
-  s: NonNullable<Finding["suppressed"]>,
-): { kind: "external" | "inSource"; justification: string } {
+function suppressionEntry(s: NonNullable<Finding["suppressed"]>): {
+  kind: "external" | "inSource";
+  justification: string;
+} {
   // D-63 + D-76: hookwarden suppression source → SARIF kind.
   // inline → inSource (lives in source as a comment); ignore + baseline → external (out-of-source files).
   const kind: "external" | "inSource" = s.source === "inline" ? "inSource" : "external";

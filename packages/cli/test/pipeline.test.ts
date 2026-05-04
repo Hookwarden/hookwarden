@@ -10,7 +10,7 @@ import type { ScanMetadata } from "@hookwarden/engine";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CONFIG_DEFAULTS, type ResolvedConfig } from "../src/config/precedence.js";
 import { evaluateParseCoverage } from "../src/parse-coverage.js";
-import { runScan, type RunScanInput } from "../src/pipeline.js";
+import { type RunScanInput, runScan } from "../src/pipeline.js";
 
 let tmp: string;
 

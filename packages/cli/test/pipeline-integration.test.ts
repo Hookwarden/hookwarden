@@ -259,8 +259,12 @@ describe("Phase 4 — edge cases and cross-cutting behavior", () => {
     );
     const r = runCli(["--no-config", tmp]);
     // With config bypassed, default fail_on=high; canonical bug has critical → exit 1 either way.
+    expect(r.code).toBe(1);
     // The proof of bypass: stderr contains no config-load error from a deliberately-malformed file.
-    await fs.writeFile(path.join(tmp, "hookwarden.config.yaml"), "this: { is: not: valid: yaml }\n");
+    await fs.writeFile(
+      path.join(tmp, "hookwarden.config.yaml"),
+      "this: { is: not: valid: yaml }\n",
+    );
     const r2 = runCli(["--no-config", tmp]);
     expect(r2.code).toBe(1); // engine still ran; config never loaded
     expect(r2.stderr).not.toContain("YAML parse error");

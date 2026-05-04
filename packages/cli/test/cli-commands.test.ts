@@ -4,7 +4,7 @@ import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { CONFIG_DEFAULTS, type ResolvedConfig } from "../src/config/precedence.js";
 import { resolveDefaultRulesDir } from "../src/load-rules.js";
-import { runScan, type RunScanInput } from "../src/pipeline.js";
+import { type RunScanInput, runScan } from "../src/pipeline.js";
 
 function scanInput(rootPath: string, overrides: Partial<ResolvedConfig> = {}): RunScanInput {
   return {

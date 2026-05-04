@@ -12,12 +12,7 @@ import { type ResolvedConfig, resolveConfig } from "../config/precedence.js";
 import { computeExitCode } from "../exit-codes.js";
 import { evaluateParseCoverage } from "../parse-coverage.js";
 import { runScan } from "../pipeline.js";
-import {
-  renderFindings,
-  renderJson,
-  renderSarif,
-  renderSummary,
-} from "../render/index.js";
+import { renderFindings, renderJson, renderSarif, renderSummary } from "../render/index.js";
 import { countActiveAtOrAbove } from "../severity-threshold.js";
 import { shouldUseAnsi } from "../walker/tty.js";
 
@@ -57,9 +52,7 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
     return 3;
   }
   if (args.format !== undefined && !VALID_FORMAT.has(args.format)) {
-    process.stderr.write(
-      `error: --format must be one of text|json|sarif (got "${args.format}")\n`,
-    );
+    process.stderr.write(`error: --format must be one of text|json|sarif (got "${args.format}")\n`);
     return 3;
   }
   let parsedMinCoverage: number | undefined;
