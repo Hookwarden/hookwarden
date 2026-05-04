@@ -90,9 +90,7 @@ describe("Phase 4 ROADMAP success criteria — pipeline integration", () => {
     const r = runCli(["--format", "json", CANONICAL_HAPPY]);
     expect(r.code).toBe(0);
     const env = JSON.parse(r.stdout);
-    const findingRuleIds: string[] = env.scan.findings.map(
-      (f: { rule_id: string }) => f.rule_id,
-    );
+    const findingRuleIds: string[] = env.scan.findings.map((f: { rule_id: string }) => f.rule_id);
     expect(findingRuleIds).toContain("stripe/library-verified");
     expect(findingRuleIds).not.toContain("stripe/raw-body-misuse");
     expect(env.scan.counts.active.critical).toBe(0);
