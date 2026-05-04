@@ -8,10 +8,10 @@
 // Engine purity preserved (D-01) — fs / git / yaml live here, never in packages/engine.
 
 import { promises as fs } from "node:fs";
-import { createRequire } from "node:module";
 import * as os from "node:os";
 import * as path from "node:path";
 import { performance } from "node:perf_hooks";
+import { fileURLToPath } from "node:url";
 import {
   buildProjectModel,
   type Config,
@@ -76,10 +76,18 @@ function isPython(filePath: string): boolean {
   return PYTHON_EXTS.has(filePath.slice(idx).toLowerCase());
 }
 
+// Read the WASM grammar from the CLI's bundled `wasm/` directory. Populated at
+// pnpm install time (the `prepare` script runs sync-wasm.mjs) and bundled into
+// the published tarball via package.json#files. This eliminates the runtime
+// dep on tree-sitter-python and the install-time node-gyp-build native step.
+//
+// Path resolution works for both source mode (vitest reads src/pipeline.ts;
+// __dirname is .../packages/cli/src) and built mode (.../packages/cli/dist) —
+// both walk one level up to .../packages/cli, then into wasm/.
 async function loadPythonWasmBytes(): Promise<Uint8Array> {
-  const req = createRequire(import.meta.url);
-  const pkgPath = req.resolve("tree-sitter-python/package.json");
-  const wasmPath = path.join(path.dirname(pkgPath), "tree-sitter-python.wasm");
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const wasmPath = path.join(__dirname, "..", "wasm", "tree-sitter-python.wasm");
   const buf = await fs.readFile(wasmPath);
   return new Uint8Array(buf);
 }

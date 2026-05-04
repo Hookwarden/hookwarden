@@ -14,10 +14,13 @@
     "LICENSE"
   ],
   "publishConfig": {
-    "access": "public",
-    "provenance": false
+    "access": "public"
   },
-  "repository": "github:hookwarden/hookwarden",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hookwarden/hookwarden.git",
+    "directory": "packages/github-action"
+  },
   "engines": {
     "node": ">=22.0.0"
   },

@@ -18,10 +18,13 @@
     "LICENSE"
   ],
   "publishConfig": {
-    "access": "public",
-    "provenance": false
+    "access": "public"
   },
-  "repository": "github:hookwarden/hookwarden",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hookwarden/hookwarden.git",
+    "directory": "packages/engine"
+  },
   "engines": {
     "node": ">=22.0.0"
   },
@@ -31,12 +34,12 @@
   "dependencies": {
     "@babel/parser": "^7.29.3",
     "picomatch": "^4.0.4",
-    "tree-sitter-python": "^0.25.0",
     "web-tree-sitter": "^0.26.8"
   },
   "devDependencies": {
     "@babel/types": "^7.29.0",
     "@types/picomatch": "^4.0.3",
-    "fast-check": "^3.23.0"
+    "fast-check": "^3.23.0",
+    "tree-sitter-python": "^0.25.0"
   }
 }

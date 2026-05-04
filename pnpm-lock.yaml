@@ -71,9 +71,6 @@ importers:
       tinyglobby:
         specifier: ^0.2.16
         version: 0.2.16
-      tree-sitter-python:
-        specifier: ^0.25.0
-        version: 0.25.0
     devDependencies:
       '@types/js-yaml':
         specifier: ^4.0.9
@@ -84,6 +81,9 @@ importers:
       tar:
         specifier: 7.4.3
         version: 7.4.3
+      tree-sitter-python:
+        specifier: ^0.25.0
+        version: 0.25.0
 
   packages/engine:
     dependencies:
@@ -93,9 +93,6 @@ importers:
       picomatch:
         specifier: ^4.0.4
         version: 4.0.4
-      tree-sitter-python:
-        specifier: ^0.25.0
-        version: 0.25.0
       web-tree-sitter:
         specifier: ^0.26.8
         version: 0.26.8
@@ -109,6 +106,9 @@ importers:
       fast-check:
         specifier: ^3.23.0
         version: 3.23.2
+      tree-sitter-python:
+        specifier: ^0.25.0
+        version: 0.25.0
 
   packages/github-action:
     dependencies:

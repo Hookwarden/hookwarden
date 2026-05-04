@@ -32,12 +32,12 @@
   "files": [
     "dist",
     "bin",
+    "wasm",
     "README.md",
     "LICENSE"
   ],
   "publishConfig": {
-    "access": "public",
-    "provenance": false
+    "access": "public"
   },
   "repository": {
     "type": "git",
@@ -48,7 +48,9 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepare": "node scripts/sync-wasm.mjs",
+    "prepack": "node scripts/sync-wasm.mjs"
   },
   "dependencies": {
     "@hookwarden/engine": "workspace:*",
@@ -59,12 +61,12 @@
     "js-yaml": "^4.1.1",
     "p-limit": "^7.3.0",
     "picocolors": "^1.1.1",
-    "tinyglobby": "^0.2.16",
-    "tree-sitter-python": "^0.25.0"
+    "tinyglobby": "^0.2.16"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/tar": "^6.1.13",
-    "tar": "7.4.3"
+    "tar": "7.4.3",
+    "tree-sitter-python": "^0.25.0"
   }
 }

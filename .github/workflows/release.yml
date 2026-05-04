@@ -6,6 +6,10 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 permissions:
   contents: write
   pull-requests: write
+  # OIDC: required for npm Trusted Publishers. The runtime issues a short-lived
+  # JWT that npm verifies against the trust binding configured at npmjs.com.
+  # Replaces NPM_TOKEN; provenance is automatically attached.
+  id-token: write
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -29,14 +33,3 @@ jobs:
           version: pnpm changeset version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Token auth is a temporary bootstrap path: npm Trusted Publishers
-          # is unavailable on this account tier. NPM_TOKEN is the env name
-          # changesets/action looks for to force token auth (NODE_AUTH_TOKEN
-          # alone leaves OIDC active and forces provenance, which the registry
-          # rejects on private repos). After Plan 08 flips repo to public,
-          # migrate to per-package OIDC trusted publishers and revoke NPM_TOKEN.
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          # setup-node writes a project-level .npmrc that interpolates
-          # ${NODE_AUTH_TOKEN}; without this var the .npmrc resolves to
-          # empty and PUT /registry returns 404 (npm masks no-auth as 404).
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

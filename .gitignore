@@ -5,3 +5,5 @@ dist/
 coverage/
 .changeset/.changes/
 e2e/fixtures/perf/generated/
+# Bundled WASM artifact — copied at install/pack time by packages/cli/scripts/sync-wasm.mjs.
+packages/cli/wasm/
