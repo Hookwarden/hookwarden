@@ -1,35 +1,17 @@
 #!/usr/bin/env node
-// packages/cli/scripts/inspect-bundle.ts -- implements D-19.
+// CLI-09: zero-outbound-network bundle gate. Phase 4: deny-list moved to forbidden-deps.ts (single source of truth).
+// Phase 4 additions: undici, phin, superagent, analytics SDKs. Warning 10: skip test/ paths as defense in depth.
 import { execSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, sep } from "node:path";
 import pc from "picocolors";
 import { extract } from "tar";
+import { buildCategoryRegexes } from "./forbidden-deps.js";
 
 type Violation = { file: string; category: string; pattern: string };
 
-// Match three import shapes:
-//   require("lib")           -> 'require\(\s*'
-//   from "lib"               -> 'from\s+'   (covers `import x from "lib"`, `import {a} from "lib"`, `import * as x from "lib"`)
-//   import "lib"             -> 'import\s+' (bare side-effect import — covers `import "lib";`)
-const FORBIDDEN_PATTERNS: Array<{ category: string; pattern: RegExp }> = [
-  {
-    category: "network-builtin",
-    pattern:
-      /\b(?:require\(\s*|from\s+|import\s+)["'](?:node:)?(?:http|https|net|dgram|tls|dns)["']/,
-  },
-  {
-    category: "network-http-client",
-    pattern:
-      /\b(?:require\(\s*|from\s+|import\s+)["'](?:node-fetch|axios|got|undici|cross-fetch|isomorphic-fetch|ky|wretch|phin|needle|request)["']/,
-  },
-  {
-    category: "analytics-sdk",
-    pattern:
-      /\b(?:require\(\s*|from\s+|import\s+)["'](?:@sentry\/[\w-]+|posthog-[\w-]+|@datadog\/[\w-]+|mixpanel|@amplitude\/[\w-]+|amplitude|@segment\/[\w-]+|analytics-node|heap-node|@logsnag\/[\w-]+|loggly-jslogger|rollbar|honeycomb-beeline|appsignal|bugsnag|@bugsnag\/[\w-]+)["']/,
-  },
-];
+const FORBIDDEN_CATEGORIES = buildCategoryRegexes();
 
 const FORBIDDEN_SCRIPTS = [
   "preinstall",
@@ -55,10 +37,22 @@ function stripComments(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 }
 
+/**
+ * Warning 10 — defense in depth: even if the package.json `files:` array drifts to include
+ * test fixtures, do not regex-scan them. Test sources may LEGITIMATELY mention "axios" etc.
+ * in a string assertion or a deny-list test fixture without that being a real network dep.
+ * The pack-contents.test.ts unit test enforces the package.json invariant separately.
+ */
+function isTestPath(relPath: string): boolean {
+  const norm = relPath.split(sep).join("/");
+  return /^test\//.test(norm) || /\/test\//.test(norm);
+}
+
 function checkSourceFile(file: string, content: string): Violation[] {
+  if (isTestPath(file)) return [];
   const stripped = stripComments(content);
   const out: Violation[] = [];
-  for (const { category, pattern } of FORBIDDEN_PATTERNS) {
+  for (const { category, pattern } of FORBIDDEN_CATEGORIES) {
     if (pattern.test(stripped)) out.push({ file, category, pattern: pattern.source });
   }
   return out;
@@ -95,6 +89,7 @@ async function main(): Promise<number> {
     const pkgDir = join(extractDir, "package");
     const files = walk(pkgDir);
     for (const rel of files) {
+      if (isTestPath(rel)) continue;
       const content = readFileSync(join(pkgDir, rel), "utf8");
       errors.push(...checkSourceFile(rel, content));
     }
@@ -111,7 +106,7 @@ async function main(): Promise<number> {
     for (const e of errors) {
       console.error(pc.red(`  - [${e.category}] ${e.file} matches: ${e.pattern}`));
     }
-    console.error(pc.yellow("\nSee CONTEXT.md decision D-19 for the forbidden list."));
+    console.error(pc.yellow("\nSee CONTEXT.md decision D-19 + Phase 4 D-73 / forbidden-deps.ts for the deny-list."));
     return 1;
   }
   return 0;
