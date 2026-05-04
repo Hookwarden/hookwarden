@@ -1,7 +1,27 @@
 {
   "name": "hookwarden",
   "version": "0.0.1",
-  "description": "Webhook security audit CLI. Find signature-verification bugs in JS/TS and Python codebases.",
+  "description": "Webhook security audit CLI — finds signature-verification bugs in JavaScript, TypeScript, and Python codebases. Local, deterministic, zero-network. Stripe + GitHub rules; JSON / SARIF 2.1.0 output for CI and GitHub Code Scanning.",
+  "keywords": [
+    "webhook",
+    "webhooks",
+    "webhook-security",
+    "security",
+    "audit",
+    "static-analysis",
+    "sast",
+    "sarif",
+    "code-scanning",
+    "stripe",
+    "github",
+    "hmac",
+    "signature-verification",
+    "cli"
+  ],
+  "homepage": "https://hookwarden.dev",
+  "bugs": {
+    "url": "https://github.com/Hookwarden/hookwarden/issues"
+  },
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -19,7 +39,11 @@
     "access": "public",
     "provenance": false
   },
-  "repository": "github:hookwarden/hookwarden",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hookwarden/hookwarden.git",
+    "directory": "packages/cli"
+  },
   "engines": {
     "node": ">=22.0.0"
   },
