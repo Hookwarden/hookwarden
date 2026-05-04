@@ -1,0 +1,26 @@
+# Pre-commit framework hook registration for hookwarden.
+# Users add this repo to their .pre-commit-config.yaml and `pre-commit run` invokes hookwarden
+# against staged files. The hookwarden Python package downloads the standalone binary on first
+# invocation (no Node runtime required) — see python-packages/hookwarden/.
+#
+# NOTE on additional_dependencies (B4 fix): pre-commit's `language: python` normally
+# expects a root-level pyproject.toml in this repo so it can `pip install .`. The hookwarden
+# repo is a Node monorepo with NO root pyproject.toml (the shim lives at
+# python-packages/hookwarden/). Specifying `additional_dependencies: ['hookwarden']` tells
+# pre-commit to install the published PyPI package into the hook venv instead of the local
+# repo — sidestepping the root-pyproject discovery problem entirely. This is the same pattern
+# ruff-pre-commit uses (https://github.com/astral-sh/ruff-pre-commit). The version is
+# implicitly the latest published `hookwarden` on PyPI; consumers can pin via
+# `additional_dependencies: ['hookwarden==X.Y.Z']` in their own .pre-commit-config.yaml if
+# they need a specific version.
+- id: hookwarden
+  name: hookwarden (webhook signature audit)
+  description: Detects webhook signature-verification bugs in JS/TS and Python.
+  entry: hookwarden scan
+  language: python
+  additional_dependencies: ['hookwarden']
+  pass_filenames: false
+  args: ['--diff-base', 'HEAD', '--diff-only']
+  types_or: [javascript, jsx, ts, tsx, python]
+  stages: [pre-commit, manual]
+  minimum_pre_commit_version: '3.0.0'

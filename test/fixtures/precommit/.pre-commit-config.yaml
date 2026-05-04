@@ -1,0 +1,13 @@
+# Fixture pre-commit config for DIST-01 CI smoke test.
+# `repo: local` would skip cloning, but we want to exercise the real pre-commit framework
+# path that downloads our PyPI shim and invokes the binary. The CI job substitutes
+# `repo: <ABSOLUTE_PATH_TO_REPO_ROOT>` at runtime so pre-commit treats the local checkout
+# as a git repo and reads our .pre-commit-hooks.yaml. The `additional_dependencies:
+# ['hookwarden']` declared in our .pre-commit-hooks.yaml resolves to the
+# `pip install -e ./python-packages/hookwarden` already installed by the CI job
+# (pre-commit reuses by package name).
+repos:
+  - repo: REPO_ROOT_PLACEHOLDER
+    rev: HEAD
+    hooks:
+      - id: hookwarden

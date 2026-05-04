@@ -36,3 +36,75 @@ jobs:
         run: pytest python-packages/hookwarden -x
       - name: Bundle inspection (CLI)
         run: pnpm inspect-bundle
+
+  dist-01-precommit-fixture:
+    name: DIST-01 pre-commit hook fixture
+    # See .planning/phases/04.1-adoption-channels/04.1-02-precommit-hooks-yaml-PLAN.md.
+    # continue-on-error: true is intentional until Phase 4.x predecessor ships real
+    # binaries + checksums.txt (assumption A-04.1-02-002). Plan 06 flips this to false.
+    # TODO(A-04.1-02-002): remove continue-on-error once binaries land.
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install pre-commit + local hookwarden shim
+        run: |
+          pip install --upgrade pip
+          pip install pre-commit
+          # Editable install — pre-commit's additional_dependencies: ['hookwarden']
+          # resolves to this already-installed package by name (Step F / B4 fix Option A)
+          pip install -e ./python-packages/hookwarden
+
+      - name: Materialize fixture config (substitute REPO_ROOT_PLACEHOLDER)
+        shell: bash
+        working-directory: test/fixtures/precommit
+        run: |
+          REPO_ROOT="$(git -C "$GITHUB_WORKSPACE" rev-parse --show-toplevel)"
+          sed -i.bak "s|REPO_ROOT_PLACEHOLDER|$REPO_ROOT|" .pre-commit-config.yaml
+          rm -f .pre-commit-config.yaml.bak
+          cat .pre-commit-config.yaml
+
+      - name: Initialize fixture as a temp git repo (pre-commit requires a git repo)
+        shell: bash
+        working-directory: test/fixtures/precommit
+        run: |
+          git init --quiet
+          git -c user.email=ci@example.com -c user.name=CI add .
+          git -c user.email=ci@example.com -c user.name=CI commit --quiet -m "fixture initial"
+
+      - name: Run pre-commit (expect non-zero — fixture has a not-verified Stripe handler)
+        id: precommit
+        shell: bash
+        working-directory: test/fixtures/precommit
+        run: |
+          set +e
+          pre-commit run --all-files | tee /tmp/precommit.log
+          code=${PIPESTATUS[0]}
+          echo "precommit-exit=$code" >> "$GITHUB_OUTPUT"
+          # We expect a non-zero exit. Exit 0 from this step is the failure mode.
+          if [[ "$code" == "0" ]]; then
+            echo "ERROR: pre-commit exited 0; expected non-zero (Stripe fixture should be flagged)" >&2
+            exit 1
+          fi
+          # Assert finding output mentions the fixture file (proves the hook ran the binary).
+          if ! grep -q "stripe-not-verified" /tmp/precommit.log; then
+            echo "ERROR: pre-commit output did not mention stripe-not-verified.ts" >&2
+            cat /tmp/precommit.log >&2
+            exit 1
+          fi
+          # Assert pre-commit successfully installed the shim (Step F / B4 fix verification).
+          if grep -qE "InstallationError|Installing environment for .* failed" /tmp/precommit.log; then
+            echo "ERROR: pre-commit failed to install the hookwarden shim — Step F (B4 fix) regression" >&2
+            cat /tmp/precommit.log >&2
+            exit 1
+          fi
+          echo "OK: pre-commit correctly reported the fixture's not-verified Stripe handler"
