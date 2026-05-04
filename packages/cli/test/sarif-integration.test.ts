@@ -1,5 +1,5 @@
 // CLI-11 — verified GitHub Code Scanning round-trip.
-// Runs only when GITHUB_PAT_SARIF_INTEGRATION is set (release-gate workflow only).
+// Runs only when SARIF_INTEGRATION_PAT is set (release-gate workflow only).
 // PAT MUST be a fine-grained token with code-scanning:write on
 // hookwarden/hookwarden-sarif-integration-test (see specifics §"SARIF integration
 // test against real GitHub Code Scanning"). PR-time CI never has the secret —
@@ -24,7 +24,7 @@ import type {
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { renderSarif } from "../src/render/sarif.js";
 
-const HAS_TOKEN = Boolean(process.env["GITHUB_PAT_SARIF_INTEGRATION"]);
+const HAS_TOKEN = Boolean(process.env["SARIF_INTEGRATION_PAT"]);
 const REPO =
   process.env["SARIF_INTEGRATION_REPO"] ?? "hookwarden/hookwarden-sarif-integration-test";
 const REF = "refs/heads/main";
@@ -53,8 +53,8 @@ interface CodeScanningAlert {
 }
 
 function authHeaders(): Record<string, string> {
-  const token = process.env["GITHUB_PAT_SARIF_INTEGRATION"];
-  if (!token) throw new Error("GITHUB_PAT_SARIF_INTEGRATION not set");
+  const token = process.env["SARIF_INTEGRATION_PAT"];
+  if (!token) throw new Error("SARIF_INTEGRATION_PAT not set");
   return {
     Accept: "application/vnd.github+json",
     Authorization: `Bearer ${token}`,
