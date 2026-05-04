@@ -39,5 +39,10 @@ jobs:
         env:
           SARIF_INTEGRATION_PAT: ${{ secrets.SARIF_INTEGRATION_PAT }}
           SARIF_INTEGRATION_REPO: hookwarden/hookwarden-sarif-integration-test
-          SARIF_INTEGRATION_COMMIT_SHA: ${{ github.sha }}
+          # Sentinel SHA pinned to main of hookwarden-sarif-integration-test.
+          # GitHub's code-scanning/sarifs endpoint validates commit_sha exists in
+          # the *target* repo — source-repo SHAs from this workflow do not. The
+          # test repo is an inert sink, so this SHA is stable. Refresh if main moves:
+          #   gh api repos/hookwarden/hookwarden-sarif-integration-test/commits/main --jq .sha
+          SARIF_INTEGRATION_COMMIT_SHA: 0151e6827c8e912c23b09224bbcc151040a89579
         run: pnpm --filter hookwarden exec vitest run test/sarif-integration.test.ts
