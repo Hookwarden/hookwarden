@@ -1,0 +1,41 @@
+# CLI-09 — bundle-inspection gate for every release tag.
+# Runs scripts/inspect-bundle.ts AND the forbidden-deps + pack-contents unit tests.
+# Fails the workflow if any forbidden import is found in the published tarball,
+# or if test/ paths leak into the tarball (Warning 10).
+# Phase 4 success criterion 6.
+name: release-gate
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bundle-inspection:
+    name: Bundle inspection (zero-network gate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build CLI
+        run: pnpm exec tsc --build
+
+      - name: Run forbidden-deps + pack-contents unit tests
+        run: pnpm --filter hookwarden exec vitest run test/forbidden-deps.test.ts test/pack-contents.test.ts
+
+      - name: Inspect published tarball for forbidden imports
+        run: pnpm inspect-bundle

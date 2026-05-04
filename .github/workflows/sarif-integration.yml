@@ -1,0 +1,42 @@
+# CLI-11 — verified SARIF upload to real GitHub Code Scanning.
+# Runs sarif-integration.test.ts on every release tag. Requires repo secret
+# GITHUB_PAT_SARIF_INTEGRATION — fine-grained PAT scoped to `code-scanning:write`
+# on hookwarden/hookwarden-sarif-integration-test (the dedicated test repo).
+# PR-time CI never has the secret; the test is `describe.skipIf(!HAS_TOKEN)`.
+name: sarif-integration
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sarif-roundtrip:
+    name: SARIF round-trip against real GitHub Code Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build CLI
+        run: pnpm exec tsc --build
+
+      - name: Run SARIF integration test
+        env:
+          GITHUB_PAT_SARIF_INTEGRATION: ${{ secrets.GITHUB_PAT_SARIF_INTEGRATION }}
+          SARIF_INTEGRATION_REPO: hookwarden/hookwarden-sarif-integration-test
+          SARIF_INTEGRATION_COMMIT_SHA: ${{ github.sha }}
+        run: pnpm --filter hookwarden exec vitest run test/sarif-integration.test.ts
