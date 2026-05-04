@@ -3,16 +3,18 @@
 # against staged files. The hookwarden Python package downloads the standalone binary on first
 # invocation (no Node runtime required) — see python-packages/hookwarden/.
 #
-# NOTE on additional_dependencies (B4 fix): pre-commit's `language: python` normally
-# expects a root-level pyproject.toml in this repo so it can `pip install .`. The hookwarden
-# repo is a Node monorepo with NO root pyproject.toml (the shim lives at
-# python-packages/hookwarden/). Specifying `additional_dependencies: ['hookwarden']` tells
-# pre-commit to install the published PyPI package into the hook venv instead of the local
-# repo — sidestepping the root-pyproject discovery problem entirely. This is the same pattern
-# ruff-pre-commit uses (https://github.com/astral-sh/ruff-pre-commit). The version is
-# implicitly the latest published `hookwarden` on PyPI; consumers can pin via
-# `additional_dependencies: ['hookwarden==X.Y.Z']` in their own .pre-commit-config.yaml if
-# they need a specific version.
+# How language: python works here:
+#  1. pre-commit clones THIS repo into its hook cache and runs `pip install .` — this resolves
+#     against the stub root pyproject.toml (hookwarden-precommit-stub, an empty package).
+#  2. pre-commit then installs every package in `additional_dependencies` — this brings in
+#     the real `hookwarden` shim from PyPI (python-packages/hookwarden/).
+#  3. pre-commit invokes the `entry: hookwarden scan` console script, which resolves to the
+#     real shim's main() (registered by python-packages/hookwarden/pyproject.toml).
+# The stub root pyproject is needed because additional_dependencies SUPPLEMENTS pip install .,
+# it does not replace it. ruff-pre-commit's repo root is itself a Python package (their
+# wrapper is the package); we can't restructure the Node monorepo so we ship a stub instead.
+# Consumers can pin a specific shim version via `additional_dependencies: ['hookwarden==X.Y.Z']`
+# in their own .pre-commit-config.yaml.
 - id: hookwarden
   name: hookwarden (webhook signature audit)
   description: Detects webhook signature-verification bugs in JS/TS and Python.

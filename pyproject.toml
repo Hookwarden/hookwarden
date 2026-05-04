@@ -1,0 +1,32 @@
+# Stub pyproject.toml for pre-commit framework consumption.
+#
+# Why this exists: when consumers add `repo: https://github.com/Hookwarden/hookwarden`
+# with `language: python` to their .pre-commit-config.yaml, pre-commit clones THIS repo
+# and runs `pip install .` on it BEFORE applying `additional_dependencies: ['hookwarden']`.
+# Without a root-level pyproject.toml, that pip install fails with
+# "Directory '.' is not installable". `additional_dependencies` only SUPPLEMENTS the
+# install — it does not replace it.
+#
+# This stub is an empty installable package. The real PyPI shim lives at
+# python-packages/hookwarden/ and is brought in by `additional_dependencies: ['hookwarden']`
+# declared in .pre-commit-hooks.yaml. The stub's only job is to satisfy `pip install .`.
+#
+# This pattern is the equivalent of how ruff-pre-commit's repo root is itself a
+# Python package (https://github.com/astral-sh/ruff-pre-commit). We can't restructure
+# the monorepo into a Python package without disrupting the Node tooling, so we ship
+# this stub at the root instead.
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hookwarden-precommit-stub"
+version = "0.0.1"
+description = "Pre-commit framework stub for hookwarden — installs the real shim via additional_dependencies."
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+
+[tool.setuptools]
+packages = []
+py-modules = []
