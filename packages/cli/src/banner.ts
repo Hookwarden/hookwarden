@@ -9,22 +9,24 @@ import { shouldUseAnsi } from "./walker/tty.js";
 
 const ACCENT_RGB = "99;102;241"; // #6366F1 — locked brand indigo.
 
-// Lowercase wordmark for "hookwarden". Each letter is a 3-row × N-col glyph
-// (N varies). Letters are joined with a single-space gap per row. Rendered
-// in indigo (#6366F1) on TTY, plain ASCII otherwise.
+// Uppercase wordmark for "HOOKWARDEN". Each letter is a 3-row × N-col glyph
+// (N is 4 or 5). Letters are joined with a single-space gap per row.
+// Uppercase reads cleaner than lowercase in 3-row block ASCII because every
+// glyph fills the full vertical band — no empty top-row cells make h/d/etc.
+// look visually punched-in. Rendered in indigo (#6366F1) on TTY.
 const GLYPHS: Record<string, ReadonlyArray<string>> = {
-  h: ["█   ", "█▀▀▄", "█  █"],
-  o: ["▄▀▀▄", "█  █", "▀▄▄▀"],
-  k: ["█ ▄▀", "█▀▄ ", "█ ▀▄"],
-  w: ["█     █", "█  █  █", " ▀▄▀▄▀ "],
-  a: ["▄▀▀▄", "█▀▀█", "█  █"],
-  r: ["█▀▀▄", "█▄▄▀", "█   "],
-  d: ["   █", "▄▀▀█", "▀▄▄█"],
-  e: ["▄▀▀▄", "█▀▀ ", "▀▄▄▄"],
-  n: ["█▀▀▄", "█  █", "█  █"],
+  H: ["█  █", "████", "█  █"],
+  O: ["▄▀▀▄", "█  █", "▀▄▄▀"],
+  K: ["█ ▄▀", "█▀▄ ", "█ ▀▄"],
+  W: ["█   █", "█ █ █", "▀▄▀▄▀"],
+  A: ["▄▀▀▄", "█▀▀█", "█  █"],
+  R: ["█▀▀▄", "██▀ ", "█ ▀▄"],
+  D: ["█▀▀▄", "█  █", "█▄▄▀"],
+  E: ["████", "█▀▀ ", "████"],
+  N: ["█  █", "██ █", "█ ██"],
 };
 
-const WORD = "hookwarden";
+const WORD = "HOOKWARDEN";
 
 const WORDMARK_LINES: ReadonlyArray<string> = (() => {
   const rows: string[] = ["", "", ""];
