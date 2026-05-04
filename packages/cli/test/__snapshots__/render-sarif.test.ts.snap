@@ -1,0 +1,117 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`renderSarif > snapshot — canonical mixed scan with active + suppressed findings 1`] = `
+"{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/schemas/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "hookwarden",
+          "version": "0.4.0",
+          "semanticVersion": "0.4.0",
+          "informationUri": "https://hookwarden.dev",
+          "rules": [
+            {
+              "id": "stripe/missing-verification",
+              "shortDescription": {
+                "text": "missing verification"
+              },
+              "fullDescription": {
+                "text": "missing verification"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "hookwarden-severity": "critical"
+              },
+              "helpUri": "https://stripe.com/docs/webhooks"
+            },
+            {
+              "id": "github/missing-secret",
+              "shortDescription": {
+                "text": "missing verification"
+              },
+              "fullDescription": {
+                "text": "missing verification"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "hookwarden-severity": "high"
+              },
+              "helpUri": "https://stripe.com/docs/webhooks"
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "stripe/missing-verification",
+          "level": "error",
+          "message": {
+            "text": "missing verification"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/stripe.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 5
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "h1"
+          },
+          "properties": {
+            "hookwarden-state": "verified"
+          }
+        },
+        {
+          "ruleId": "github/missing-secret",
+          "level": "error",
+          "message": {
+            "text": "missing verification"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/gh.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 20,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "h2"
+          },
+          "properties": {
+            "hookwarden-state": "verified"
+          },
+          "suppressions": [
+            {
+              "kind": "inSource",
+              "justification": "source=inline comment=intentional"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+"
+`;
