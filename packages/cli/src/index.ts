@@ -1,5 +1,5 @@
 // hookwarden CLI entry. D-45 citty defineCommand. D-46 sibling scan + inventory.
-// D-47 no-arg help. D-48 zero-config flags. D-49 exit 0/1/2.
+// D-47 no-arg help. D-48 zero-config flags. D-49 exit 0/1/2/3/4 (Phase 4 expanded matrix).
 
 import { defineCommand } from "citty";
 import { type InventoryArgs, inventoryCommand, runInventoryCommand } from "./commands/inventory.js";
@@ -26,22 +26,73 @@ const HELP_TEXT =
   `Usage:\n` +
   `  hookwarden scan [path]       Scan a project for verification bugs.\n` +
   `  hookwarden inventory [path]  List every detected webhook handler.\n\n` +
-  `Flags (per subcommand):\n` +
-  `  -v, --verbose      Verbose output (scan only).\n` +
-  `      --no-color     Disable color and OSC-8 hyperlinks.\n` +
-  `      --rules-dir D  Override the bundled rule pack (dev-only).\n` +
-  `      --help, -h     Show subcommand help.\n` +
-  `      --version, -V  Print CLI version.\n`;
+  `Common flags:\n` +
+  `  -v, --verbose                Verbose output (scan only).\n` +
+  `      --no-color               Disable color and OSC-8 hyperlinks.\n` +
+  `      --rules-dir D            Override the bundled rule pack (dev-only).\n` +
+  `      --help, -h               Show subcommand help.\n` +
+  `      --version, -V            Print CLI version.\n\n` +
+  `Scan-only flags (Phase 4):\n` +
+  `      --format F               Output format: text | json | sarif.\n` +
+  `      --fail-on S              Severity threshold: critical | high | medium | low.\n` +
+  `      --baseline write         Capture current findings as a baseline (auto-read otherwise).\n` +
+  `      --no-baseline            Disable baseline reading.\n` +
+  `      --diff-only              Scan only files changed vs base ref.\n` +
+  `      --diff-base R            Override auto-detected base ref.\n` +
+  `      --config P               Path to hookwarden.config.yaml.\n` +
+  `      --no-config              Bypass config-file discovery.\n` +
+  `      --strict-suppressions    Promote stale suppressions to errors.\n` +
+  `      --min-parse-coverage N   Minimum parse-coverage ratio 0..1 (default 0.95).\n`;
 
 interface ParsedFlags {
   path?: string;
   verbose?: boolean;
   "no-color"?: boolean;
   "rules-dir"?: string;
+  // Phase 4:
+  format?: string;
+  "fail-on"?: string;
+  baseline?: string;
+  "no-baseline"?: boolean;
+  "diff-only"?: boolean;
+  "diff-base"?: string;
+  config?: string;
+  "no-config"?: boolean;
+  "strict-suppressions"?: boolean;
+  "min-parse-coverage"?: string;
   help?: boolean;
 }
 
-function parseFlags(argv: ReadonlyArray<string>): ParsedFlags {
+interface ParseResult {
+  readonly flags: ParsedFlags;
+  readonly error: string | null;
+}
+
+const STRING_FLAGS: ReadonlyArray<{
+  readonly long: string;
+  readonly key: keyof ParsedFlags;
+}> = [
+  { long: "--rules-dir", key: "rules-dir" },
+  { long: "--format", key: "format" },
+  { long: "--fail-on", key: "fail-on" },
+  { long: "--baseline", key: "baseline" },
+  { long: "--diff-base", key: "diff-base" },
+  { long: "--config", key: "config" },
+  { long: "--min-parse-coverage", key: "min-parse-coverage" },
+];
+
+const BOOLEAN_FLAGS: ReadonlyArray<{
+  readonly long: string;
+  readonly key: keyof ParsedFlags;
+}> = [
+  { long: "--no-color", key: "no-color" },
+  { long: "--no-baseline", key: "no-baseline" },
+  { long: "--diff-only", key: "diff-only" },
+  { long: "--no-config", key: "no-config" },
+  { long: "--strict-suppressions", key: "strict-suppressions" },
+];
+
+function parseFlags(argv: ReadonlyArray<string>): ParseResult {
   const out: ParsedFlags = {};
   let i = 0;
   while (i < argv.length) {
@@ -55,31 +106,53 @@ function parseFlags(argv: ReadonlyArray<string>): ParsedFlags {
       i++;
       continue;
     }
-    if (arg === "--no-color") {
-      out["no-color"] = true;
-      i++;
-      continue;
-    }
-    if (arg === "--rules-dir") {
-      const next = argv[i + 1];
-      if (next !== undefined) out["rules-dir"] = next;
-      i += 2;
-      continue;
-    }
     if (arg === "--help" || arg === "-h") {
       out.help = true;
       i++;
       continue;
     }
+    let matched = false;
+    for (const f of BOOLEAN_FLAGS) {
+      if (arg === f.long) {
+        (out as Record<string, unknown>)[f.key] = true;
+        i++;
+        matched = true;
+        break;
+      }
+    }
+    if (matched) continue;
+    for (const f of STRING_FLAGS) {
+      if (arg === f.long) {
+        const next = argv[i + 1];
+        if (next === undefined) {
+          return { flags: out, error: `flag ${f.long} requires a value` };
+        }
+        (out as Record<string, unknown>)[f.key] = next;
+        i += 2;
+        matched = true;
+        break;
+      }
+      // Support --flag=value form.
+      if (arg.startsWith(`${f.long}=`)) {
+        (out as Record<string, unknown>)[f.key] = arg.slice(f.long.length + 1);
+        i++;
+        matched = true;
+        break;
+      }
+    }
+    if (matched) continue;
     if (!arg.startsWith("-") && out.path === undefined) {
       out.path = arg;
       i++;
       continue;
     }
-    // Unknown flag: skip silently (Phase 4 introduces strict flag validation).
+    if (arg.startsWith("-")) {
+      // D-65 — unknown flag is a config error (exit 3).
+      return { flags: out, error: `unknown flag '${arg}'` };
+    }
     i++;
   }
-  return out;
+  return { flags: out, error: null };
 }
 
 export async function main(argv: ReadonlyArray<string>): Promise<number> {
@@ -104,20 +177,28 @@ export async function main(argv: ReadonlyArray<string>): Promise<number> {
   const sub = argv[0];
   try {
     if (sub === "scan") {
-      const parsed = parseFlags(argv.slice(1));
-      if (parsed.help === true) {
+      const { flags, error } = parseFlags(argv.slice(1));
+      if (error !== null) {
+        process.stderr.write(`error: ${error}\n`);
+        return 3;
+      }
+      if (flags.help === true) {
         process.stdout.write(`Usage: hookwarden scan [path] [flags]\n`);
         return 0;
       }
-      return await runScanCommand(parsed as ScanArgs);
+      return await runScanCommand(flags as ScanArgs);
     }
     if (sub === "inventory") {
-      const parsed = parseFlags(argv.slice(1));
-      if (parsed.help === true) {
+      const { flags, error } = parseFlags(argv.slice(1));
+      if (error !== null) {
+        process.stderr.write(`error: ${error}\n`);
+        return 3;
+      }
+      if (flags.help === true) {
         process.stdout.write(`Usage: hookwarden inventory [path] [flags]\n`);
         return 0;
       }
-      return await runInventoryCommand(parsed as InventoryArgs);
+      return await runInventoryCommand(flags as InventoryArgs);
     }
     process.stderr.write(`error: unknown command '${sub}'\nrun 'hookwarden' for help\n`);
     return 2;
