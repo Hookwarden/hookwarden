@@ -126,7 +126,12 @@ describe("detectStale", () => {
     expect(stale.find((s) => s.pattern === "vendor/lib.ts")).toBeUndefined();
   });
 
-  it("processes 5000 findings × 25 patterns in < 250ms (no O(P²×F) regression)", () => {
+  it("processes 5000 findings × 25 patterns under the regression budget (catches O(P²×F))", () => {
+    // Threshold rationale: the fast path is ~125k ops (5000 × 25 single-pattern checks).
+    // An O(P²×F) regression balloons to ~625M ops — multiple seconds, not millis. A 1500ms
+    // budget on a shared CI runner still catches a real regression by orders of magnitude
+    // while absorbing the wall-clock noise that 250ms could not (CI flakes at ~256ms were
+    // tripping this gate without indicating a real regression).
     const findings: Finding[] = Array.from({ length: 5000 }, (_, i) =>
       mockFinding({
         id: `f${i}`,
@@ -139,6 +144,6 @@ describe("detectStale", () => {
     const t0 = performance.now();
     detectStale(findings, emptyInline, filter, null);
     const dt = performance.now() - t0;
-    expect(dt).toBeLessThan(250);
+    expect(dt).toBeLessThan(1500);
   });
 });
