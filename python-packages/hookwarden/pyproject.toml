@@ -5,17 +5,22 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "hookwarden"
 version = "0.0.0"
-description = "hookwarden — webhook signature-verification audit tool. The Python package is a placeholder pointing to the npm CLI; install via `npx hookwarden@latest scan`."
+description = "hookwarden — webhook signature-verification audit. The Python package downloads the standalone binary on first invocation, verifies its SHA-256, caches it, and execs into it."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Adelina Lipsa", email = "adelina.lipsa@gmail.com" }]
-keywords = ["hookwarden", "webhook", "security", "audit"]
+keywords = ["hookwarden", "webhook", "security", "audit", "pre-commit"]
 classifiers = [
   "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
   "Operating System :: OS Independent",
+  "Topic :: Security",
+]
+dependencies = [
+  "platformdirs>=4,<5",
+  "filelock>=3,<4",
 ]
 
 [project.scripts]
@@ -23,10 +28,21 @@ hookwarden = "hookwarden.__main__:main"
 
 [project.urls]
 Homepage = "https://hookwarden.dev"
-Repository = "https://github.com/hookwarden/hookwarden"
+Repository = "https://github.com/Hookwarden/hookwarden"
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9"]
 
 [tool.setuptools]
 package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"hookwarden" = ["_data/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-x --tb=short"

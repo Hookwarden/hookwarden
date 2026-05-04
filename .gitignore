@@ -7,3 +7,11 @@ coverage/
 e2e/fixtures/perf/generated/
 # Bundled WASM artifact — copied at install/pack time by packages/cli/scripts/sync-wasm.mjs.
 packages/cli/wasm/
+
+# Python build/test artifacts (PyPI shim — python-packages/hookwarden)
+__pycache__/
+*.py[co]
+*.egg-info/
+.pytest_cache/
+.venv/
+build/
