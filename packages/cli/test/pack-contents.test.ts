@@ -41,9 +41,7 @@ describe("pack-contents (Warning 10) — published tarball excludes test/", () =
       //   npm notice 456B    test/fixture.ts   <-- forbidden
       const offending = textListing
         .split(/\r?\n/)
-        .filter((line) =>
-          /^\s*npm notice\s+[0-9]+(?:\.[0-9]+)?\s*[a-zA-Z]+\s+test\//.test(line),
-        );
+        .filter((line) => /^\s*npm notice\s+[0-9]+(?:\.[0-9]+)?\s*[a-zA-Z]+\s+test\//.test(line));
       expect(offending).toEqual([]);
     }
   });

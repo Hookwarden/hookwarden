@@ -106,7 +106,11 @@ async function main(): Promise<number> {
     for (const e of errors) {
       console.error(pc.red(`  - [${e.category}] ${e.file} matches: ${e.pattern}`));
     }
-    console.error(pc.yellow("\nSee CONTEXT.md decision D-19 + Phase 4 D-73 / forbidden-deps.ts for the deny-list."));
+    console.error(
+      pc.yellow(
+        "\nSee CONTEXT.md decision D-19 + Phase 4 D-73 / forbidden-deps.ts for the deny-list.",
+      ),
+    );
     return 1;
   }
   return 0;
