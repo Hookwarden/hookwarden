@@ -1,0 +1,27 @@
+schema_version: 1
+rule_id: slack/missing-timestamp-check
+provider: slack
+severity: high
+emits_state: manual-review
+message: |
+  Slack webhook handler computes HMAC manually but no timestamp tolerance check
+  is reachable from the handler. Slack signs `'v0:' + X-Slack-Request-Timestamp
+  + ':' + body` — without rejecting deliveries whose timestamp is outside a
+  ~5-minute window, an attacker who captures one signed webhook can replay it
+  indefinitely.
+
+  Fix: read `X-Slack-Request-Timestamp`, parse to integer, and reject any
+  request where `Math.abs(Date.now() / 1000 - ts) > 300` (Node) or
+  `abs(time.time() - int(ts)) > 60 * 5` (Python). The official `@slack/bolt`
+  receiver and `slack_sdk.signature.SignatureVerifier` enforce this.
+matcher: null
+predicate: slack-missing-timestamp-check
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://api.slack.com/authentication/verifying-requests-from-slack

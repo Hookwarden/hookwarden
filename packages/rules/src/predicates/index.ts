@@ -28,41 +28,48 @@ import { githubTimingSafeEqualPredicate } from "./github-timing-safe-equal.js";
 import {
   githubLibraryVerifiedPredicate,
   shopifyLibraryVerifiedPredicate,
+  slackLibraryVerifiedPredicate,
   stripeLibraryVerifiedPredicate,
   twilioLibraryVerifiedPredicate,
 } from "./library-verified-recognition.js";
 import {
   githubMissingSignatureVerificationPredicate,
   shopifyMissingSignatureVerificationPredicate,
+  slackMissingSignatureVerificationPredicate,
   stripeMissingSignatureVerificationPredicate,
   twilioMissingSignatureVerificationPredicate,
 } from "./missing-signature-verification.js";
 import {
   githubMissingTimestampCheckPredicate,
   shopifyMissingTimestampCheckPredicate,
+  slackMissingTimestampCheckPredicate,
   stripeMissingTimestampCheckPredicate,
   twilioMissingTimestampCheckPredicate,
 } from "./missing-timestamp-check.js";
 import {
   githubRawBodyMisusePredicate,
   shopifyRawBodyMisusePredicate,
+  slackRawBodyMisusePredicate,
   stripeRawBodyMisusePredicate,
   twilioRawBodyMisusePredicate,
 } from "./raw-body-misuse.js";
 import {
   shopifyTimingUnsafeComparisonPredicate,
+  slackTimingUnsafeComparisonPredicate,
   stripeTimingUnsafeComparisonPredicate,
   twilioTimingUnsafeComparisonPredicate,
 } from "./timing-unsafe-comparison.js";
 import {
   githubUnreachableVerificationPredicate,
   shopifyUnreachableVerificationPredicate,
+  slackUnreachableVerificationPredicate,
   stripeUnreachableVerificationPredicate,
   twilioUnreachableVerificationPredicate,
 } from "./unreachable-verification.js";
 import {
   githubWrongHmacAlgorithmPredicate,
   shopifyWrongHmacAlgorithmPredicate,
+  slackWrongHmacAlgorithmPredicate,
   stripeWrongHmacAlgorithmPredicate,
   twilioWrongHmacAlgorithmPredicate,
 } from "./wrong-hmac-algorithm.js";
@@ -103,4 +110,12 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "twilio-missing-timestamp-check": twilioMissingTimestampCheckPredicate,
   "twilio-wrong-hmac-algorithm": twilioWrongHmacAlgorithmPredicate,
   "twilio-unreachable-verification": twilioUnreachableVerificationPredicate,
+  // Phase 6.4 Slack pack (signing_input_format: 'timestamp_dot_body'; first non-null timestamp_header)
+  "slack-library-verified": slackLibraryVerifiedPredicate,
+  "slack-missing-signature-verification": slackMissingSignatureVerificationPredicate,
+  "slack-timing-unsafe-comparison": slackTimingUnsafeComparisonPredicate,
+  "slack-raw-body-misuse": slackRawBodyMisusePredicate,
+  "slack-missing-timestamp-check": slackMissingTimestampCheckPredicate,
+  "slack-wrong-hmac-algorithm": slackWrongHmacAlgorithmPredicate,
+  "slack-unreachable-verification": slackUnreachableVerificationPredicate,
 };

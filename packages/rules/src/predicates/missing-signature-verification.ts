@@ -75,6 +75,12 @@ export const twilioMissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["twilio"] ?? throwMissing("twilio"),
   );
 
+export const slackMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "slack",
+    PROVIDER_CATALOG["slack"] ?? throwMissing("slack"),
+  );
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

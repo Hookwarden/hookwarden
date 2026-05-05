@@ -55,3 +55,8 @@ export const twilioLibraryVerifiedPredicate: RulePredicate = createLibraryVerifi
   "twilio",
   PROVIDER_CATALOG["twilio"]?.sdk_verify_calls ?? [],
 );
+
+export const slackLibraryVerifiedPredicate: RulePredicate = createLibraryVerifiedPredicate(
+  "slack",
+  PROVIDER_CATALOG["slack"]?.sdk_verify_calls ?? [],
+);

@@ -63,6 +63,12 @@ export const twilioUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["twilio"] ?? throwMissing("twilio"),
   );
 
+export const slackUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "slack",
+    PROVIDER_CATALOG["slack"] ?? throwMissing("slack"),
+  );
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

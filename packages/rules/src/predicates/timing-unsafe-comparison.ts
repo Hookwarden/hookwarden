@@ -53,6 +53,12 @@ export const twilioTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["twilio"] ?? throwMissing("twilio"),
   );
 
+export const slackTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "slack",
+    PROVIDER_CATALOG["slack"] ?? throwMissing("slack"),
+  );
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

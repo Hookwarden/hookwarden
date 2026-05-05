@@ -76,6 +76,11 @@ export const twilioWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacA
   PROVIDER_CATALOG["twilio"] ?? throwMissing("twilio"),
 );
 
+export const slackWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
+  "slack",
+  PROVIDER_CATALOG["slack"] ?? throwMissing("slack"),
+);
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

@@ -1,0 +1,25 @@
+schema_version: 1
+rule_id: slack/wrong-hmac-algorithm
+provider: slack
+severity: critical
+emits_state: not-verified
+message: |
+  Slack webhook handler uses a manual HMAC path but the algorithm in use
+  appears to be other than HMAC-SHA256. Slack signs requests with HMAC-SHA256
+  (the `v0=` prefix on the X-Slack-Signature header denotes the version, not
+  the algorithm) — any other algorithm (MD5, SHA-1, SHA-384, SHA-512) will
+  never match, so verification cannot succeed.
+
+  Fix: `crypto.createHmac('sha256', signingSecret)` (Node) or
+  `hmac.new(signing_secret, msg, hashlib.sha256)` (Python).
+matcher: null
+predicate: slack-wrong-hmac-algorithm
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://api.slack.com/authentication/verifying-requests-from-slack

@@ -1,0 +1,25 @@
+schema_version: 1
+rule_id: slack/unreachable-verification
+provider: slack
+severity: high
+emits_state: manual-review
+message: |
+  Slack webhook handler imports `@slack/bolt` / `@slack/events-api` /
+  `slack_sdk` but the verify call is not reachable from the handler entry
+  within 3 hops. The verification call may be conditional, dynamically
+  dispatched, or in dead code — static analysis cannot determine whether
+  every request goes through it.
+
+  Recommended: review the handler's call graph manually and confirm the
+  verification path is always taken.
+matcher: null
+predicate: slack-unreachable-verification
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://api.slack.com/authentication/verifying-requests-from-slack

@@ -1,0 +1,22 @@
+schema_version: 1
+rule_id: slack/library-verified
+provider: slack
+severity: info
+emits_state: verified
+message: |
+  Library-based verification detected: `verifyRequestSignature` (@slack/events-api)
+  or `SignatureVerifier.is_valid_request` (Python slack_sdk) is reachable from
+  this handler within 3 hops. The Slack SDK enforces the v0 canonical-string
+  construction, HMAC-SHA256 + hex, the 5-minute timestamp tolerance, and
+  constant-time comparison.
+matcher: null
+predicate: slack-library-verified
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://slack.dev/bolt-js/concepts
