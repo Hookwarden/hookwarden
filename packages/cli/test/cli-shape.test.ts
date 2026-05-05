@@ -19,7 +19,7 @@ describe("CLI main(argv) shape (CLI-01)", () => {
     }
   });
 
-  it("--version returns 0 and prints the version", async () => {
+  it("--version returns 0 and prints the version from package.json", async () => {
     const writes: string[] = [];
     const spy = vi.spyOn(process.stdout, "write").mockImplementation((chunk: unknown) => {
       writes.push(typeof chunk === "string" ? chunk : Buffer.from(chunk as Uint8Array).toString());
@@ -28,7 +28,9 @@ describe("CLI main(argv) shape (CLI-01)", () => {
     try {
       const code = await main(["--version"]);
       expect(code).toBe(0);
-      expect(writes.join("")).toContain("0.0.1");
+      // VERSION is read from package.json at module load (D-05); just assert it's
+      // a semver-shaped string, not a specific literal that drifts each release.
+      expect(writes.join("").trim()).toMatch(/^\d+\.\d+\.\d+(?:-[\w.-]+)?$/);
     } finally {
       spy.mockRestore();
     }

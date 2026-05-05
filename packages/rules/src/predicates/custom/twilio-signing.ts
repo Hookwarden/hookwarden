@@ -30,9 +30,7 @@ export const twilioSigningPredicate: RulePredicate = async (
 ) => {
   if (handler.provider !== "twilio") return null;
   const symbols = handler.reachable_symbols;
-  if (
-    reachesSdkVerifyCall(symbols, TWILIO_CATALOG.sdk_verify_calls, TWILIO_CATALOG.sdk_packages)
-  ) {
+  if (reachesSdkVerifyCall(symbols, TWILIO_CATALOG.sdk_verify_calls, TWILIO_CATALOG.sdk_packages)) {
     return null;
   }
   if (symbols.some((s) => isManualHmacEntry(s.qualified_name))) return null;

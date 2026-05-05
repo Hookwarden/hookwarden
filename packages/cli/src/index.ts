@@ -16,9 +16,9 @@ import { shouldUseAnsi } from "./walker/tty.js";
 // `package.json` ships in the published tarball (npm always includes it), and resolves one
 // directory up from both src/ (vitest) and dist/ (npm).
 const moduleDir = dirname(fileURLToPath(import.meta.url));
-const cliPackageJson = JSON.parse(
-  readFileSync(join(moduleDir, "..", "package.json"), "utf8"),
-) as { version: string };
+const cliPackageJson = JSON.parse(readFileSync(join(moduleDir, "..", "package.json"), "utf8")) as {
+  version: string;
+};
 const VERSION: string = cliPackageJson.version;
 
 // Public registration of the citty command tree (consumed by hosts that prefer citty's runMain).

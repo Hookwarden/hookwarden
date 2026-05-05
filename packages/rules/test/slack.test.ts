@@ -141,9 +141,7 @@ describe("slackWrongHmacAlgorithmPredicate", () => {
 describe("slackUnreachableVerificationPredicate", () => {
   it("emits manual-review when sdk_import present but no SDK verify reachable", async () => {
     const handler: WebhookHandler = { ...baseHandler, evidence: [ev("sdk_import")] };
-    expect(await slackUnreachableVerificationPredicate(handler, {} as never)).toBe(
-      "manual-review",
-    );
+    expect(await slackUnreachableVerificationPredicate(handler, {} as never)).toBe("manual-review");
   });
 });
 

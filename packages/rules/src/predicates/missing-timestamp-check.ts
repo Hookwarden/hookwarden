@@ -66,10 +66,7 @@ export const twilioMissingTimestampCheckPredicate: RulePredicate =
   );
 
 export const slackMissingTimestampCheckPredicate: RulePredicate =
-  createMissingTimestampCheckPredicate(
-    "slack",
-    PROVIDER_CATALOG["slack"] ?? throwMissing("slack"),
-  );
+  createMissingTimestampCheckPredicate("slack", PROVIDER_CATALOG["slack"] ?? throwMissing("slack"));
 
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
