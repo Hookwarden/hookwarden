@@ -71,6 +71,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       homebrew-sha: ${{ steps.bump-homebrew.outputs.sha }}
       scoop-sha: ${{ steps.bump-scoop.outputs.sha }}
+      action-sha: ${{ steps.bump-action.outputs.sha }}
     # [FOLLOW-UP — W1 fix triggered_by: phase_4x_ships]: When Phase 4.x's first production
     # binary release with checksums.txt is published, in the SAME commit that wires up Plan 07's
     # parity gate, ALSO remove `continue-on-error: true` from the four CI smoke jobs:
@@ -159,7 +160,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Mint GitHub App token (homebrew-tap + scoop-bucket)
+      - name: Mint GitHub App token (homebrew-tap + scoop-bucket + hookwarden-action)
         id: app-token
         if: steps.changesets.outputs.published == 'true'
         uses: actions/create-github-app-token@v2
@@ -170,6 +171,7 @@ jobs:
           repositories: |
             homebrew-tap
             scoop-bucket
+            hookwarden-action
 
       - name: Bump Homebrew formula
         id: bump-homebrew
@@ -188,6 +190,30 @@ jobs:
         run: |
           set -euo pipefail
           sha=$(scripts/release/bump-scoop.sh)
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+
+      - name: Build + bump hookwarden-action
+        id: bump-action
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          set -euo pipefail
+          # D-79: ncc bundles src/index.ts + workspace `hookwarden` dep + @actions/* runtime deps
+          # into dist/index.js. The bundle inlines transitive supply-chain — Phase 1's
+          # bundle-inspection gate (`pnpm inspect-bundle` earlier in this workflow) is the
+          # integrity check.
+          # WARNING 5 reconciliation: invoke the canonical `bundle` npm script (defined in
+          # packages/github-action/package.json by Plan 05-01) — single source of truth.
+          # Local devs run `pnpm --filter @hookwarden/github-action run bundle`; CI runs the
+          # exact same command. No drift between local and CI bundle invocations.
+          # Note: action-sha is intentionally NOT fed into the channel-parity gate below;
+          # the parity gate enforces SHA lockstep across binary channels (PyPI shim /
+          # Homebrew / Scoop). The JS Action's bundled CLI inherits the same npm version
+          # via the workspace dep, so it is trivially in lockstep — no separate gate needed.
+          pnpm --filter @hookwarden/github-action run bundle
+          sha=$(scripts/release/bump-hookwarden-action.sh)
           echo "sha=${sha}" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
