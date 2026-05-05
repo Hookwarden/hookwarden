@@ -11,13 +11,17 @@ PYPI_FILE="${2:?PyPI shim _data/checksums.json path required}"
 FORMULA_FILE="${3:?Formula/hookwarden.rb path required}"
 SCOOP_FILE="${4:?bucket/hookwarden.json path required}"
 
-declare -A CANONICAL
-while read -r sha file; do
+# Canonical set as a plain array of SHA values (membership-only check; the
+# filename→SHA mapping isn't needed for divergence detection). Plain arrays
+# work on bash 3.2+ — `declare -A` would force bash 4+, which macOS defaults
+# don't ship.
+CANONICAL_VALUES=()
+while read -r sha _file; do
   [[ -z "$sha" ]] && continue
-  CANONICAL[$file]=$sha
+  CANONICAL_VALUES+=("$sha")
 done < "$CANONICAL_FILE"
 
-if [[ ${#CANONICAL[@]} -eq 0 ]]; then
+if [[ ${#CANONICAL_VALUES[@]} -eq 0 ]]; then
   echo "FAIL: canonical checksums.txt empty or unparseable" >&2
   exit 1
 fi
@@ -36,7 +40,7 @@ assert_in_canonical() {
     fail=1
     return
   fi
-  for v in "${CANONICAL[@]}"; do
+  for v in "${CANONICAL_VALUES[@]}"; do
     if [[ "$v" == "$needle" ]]; then return; fi
   done
   divergence+=("DIVERGED ($source_label): SHA $needle not in canonical set")

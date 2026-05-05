@@ -1,0 +1,25 @@
+name: DIST parity-gate mutation test
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/release/verify-channel-parity*.sh'
+      - 'scripts/release/test-parity-gate-mutation.sh'
+      - '.github/workflows/dist-parity-gate-mutation-test.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/release/verify-channel-parity*.sh'
+      - 'scripts/release/test-parity-gate-mutation.sh'
+      - '.github/workflows/dist-parity-gate-mutation-test.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  mutation-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run mutation test
+        run: bash scripts/release/test-parity-gate-mutation.sh
