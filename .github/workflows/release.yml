@@ -65,6 +65,19 @@ jobs:
       # JWT that npm verifies against the trust binding configured at npmjs.com.
       # Replaces NPM_TOKEN; provenance is automatically attached.
       id-token: write
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      published-packages: ${{ steps.changesets.outputs.publishedPackages }}
+      version: ${{ steps.version.outputs.version }}
+      homebrew-sha: ${{ steps.bump-homebrew.outputs.sha }}
+      scoop-sha: ${{ steps.bump-scoop.outputs.sha }}
+    # [FOLLOW-UP — W1 fix triggered_by: phase_4x_ships]: When Phase 4.x's first production
+    # binary release with checksums.txt is published, in the SAME commit that wires up Plan 07's
+    # parity gate, ALSO remove `continue-on-error: true` from the four CI smoke jobs:
+    #   ci.yml: dist-01-precommit-fixture, dist-02-homebrew-smoke, dist-03-scoop-smoke,
+    #           dist-03-winget-smoke
+    # Verification (post-flip):
+    #   ! grep -A1 'dist-0[123]-.*-(fixture|smoke):' .github/workflows/ci.yml | grep -q 'continue-on-error: true'
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
@@ -99,3 +112,86 @@ jobs:
           # the load-bearing variable for token auth — NPM_TOKEN alone is not
           # enough when registry-url is set on the setup-node action.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # ----- Phase 4.1 channel fan-out (only when Changesets actually published) -----
+
+      - name: Resolve version (drop leading v)
+        id: version
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          # changesets publishedPackages is a JSON array of {name, version}
+          # All packages co-version per Phase 1 D-05; pick the first as canonical.
+          version=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[0].version')
+          echo "version=v${version}" >> "$GITHUB_OUTPUT"
+          echo "Resolved release version: v${version}"
+
+      - name: Wait for PyPI publish workflow (release-py.yml triggered by the tag push)
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          # Changesets pushes the tag; release-py.yml runs on tag. Poll until it completes.
+          # B2 FIX: GHA `gh run list --json headBranch` for tag-triggered runs may return
+          # either `v1.2.3` (bare tag) or `refs/tags/v1.2.3` (full ref). Strip a leading
+          # `refs/tags/` prefix in the jq filter so both forms match. Without normalization
+          # the loop exhausts 60 × 10s = 10 minutes and hard-fails every release.
+          set -euo pipefail
+          tag="${{ steps.version.outputs.version }}"
+          echo "Waiting for release-py.yml run on tag $tag..."
+          for i in {1..60}; do
+            status=$(gh run list --repo Hookwarden/hookwarden --workflow=release-py.yml \
+                       --json status,conclusion,headBranch,event,displayTitle --jq \
+                       "map(select((.headBranch // \"\" | sub(\"^refs/tags/\"; \"\")) == \"$tag\")) | .[0]" || echo "")
+            if [[ -z "$status" || "$status" == "null" ]]; then sleep 10; continue; fi
+            conclusion=$(echo "$status" | jq -r .conclusion)
+            run_status=$(echo "$status" | jq -r .status)
+            if [[ "$run_status" == "completed" ]]; then
+              if [[ "$conclusion" == "success" ]]; then
+                echo "PyPI publish succeeded for $tag"
+                exit 0
+              else
+                echo "PyPI publish FAILED for $tag (conclusion=$conclusion)"
+                exit 1
+              fi
+            fi
+            sleep 10
+          done
+          echo "Timed out waiting for release-py.yml on $tag"
+          exit 1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mint GitHub App token (homebrew-tap + scoop-bucket)
+        id: app-token
+        if: steps.changesets.outputs.published == 'true'
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.HOOKWARDEN_BOT_APP_ID }}
+          private-key: ${{ secrets.HOOKWARDEN_BOT_APP_PRIVATE_KEY }}
+          owner: Hookwarden
+          repositories: |
+            homebrew-tap
+            scoop-bucket
+
+      - name: Bump Homebrew formula
+        id: bump-homebrew
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          set -euo pipefail
+          sha=$(scripts/release/bump-homebrew.sh)
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+
+      - name: Bump Scoop manifest
+        id: bump-scoop
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          set -euo pipefail
+          sha=$(scripts/release/bump-scoop.sh)
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+
+      # The channel-parity SHA gate is wired in Plan 07 — it appends after this step
+      # and reads steps.version.outputs.version + the just-pushed homebrew-sha + scoop-sha.
