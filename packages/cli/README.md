@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Hookwarden/hookwarden/main/assets/brand/social/readme-banner.svg" alt="hookwarden" width="100%" />
+  <img src="https://cdn.jsdelivr.net/gh/Hookwarden/hookwarden@main/assets/brand/social/readme-banner.svg" alt="hookwarden" width="100%" />
 </p>
 
 <p align="center">
