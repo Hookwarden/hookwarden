@@ -31,10 +31,12 @@ jobs:
         uses: vedantmgoyal9/winget-releaser@v2
         with:
           identifier: Hookwarden.Hookwarden
-          version: ${{ steps.tag.outputs.tag }}
           # Strict regex — match ONLY the Windows x64 binary; never pick up darwin/linux artifacts.
           # See RESEARCH §Pattern 4 invariant 1 + §Code Examples WinGet workflow notes.
           installers-regex: 'hookwarden-windows-x64\.exe$'
+          # Pass the full tag (v1.2.3); the action derives PackageVersion (1.2.3) by stripping
+          # the leading 'v' when `version:` is unset. Setting `version:` explicitly skips that
+          # strip, which produces an invalid WinGet PackageVersion.
           release-tag: ${{ steps.tag.outputs.tag }}
           # Bot account that owns the fork of microsoft/winget-pkgs.
           # Documented in docs/release/winget-bot-setup.md.
