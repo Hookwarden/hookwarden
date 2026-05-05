@@ -1,6 +1,9 @@
 // hookwarden CLI entry. D-45 citty defineCommand. D-46 sibling scan + inventory.
 // D-47 no-arg help. D-48 zero-config flags. D-49 exit 0/1/2/3/4 (Phase 4 expanded matrix).
 
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineCommand } from "citty";
 import { renderBanner, shouldShowBanner } from "./banner.js";
 import { type InventoryArgs, inventoryCommand, runInventoryCommand } from "./commands/inventory.js";
@@ -8,7 +11,15 @@ import { runScanCommand, type ScanArgs, scanCommand } from "./commands/scan.js";
 import { renderLogo } from "./logo.js";
 import { shouldUseAnsi } from "./walker/tty.js";
 
-const VERSION = "0.0.1"; // Changesets bumps in lockstep (D-05).
+// Read VERSION from package.json at module load (D-05 lockstep with Changesets); avoids the
+// drift bug where a hardcoded literal here lags behind the published package.json version.
+// `package.json` ships in the published tarball (npm always includes it), and resolves one
+// directory up from both src/ (vitest) and dist/ (npm).
+const moduleDir = dirname(fileURLToPath(import.meta.url));
+const cliPackageJson = JSON.parse(
+  readFileSync(join(moduleDir, "..", "package.json"), "utf8"),
+) as { version: string };
+const VERSION: string = cliPackageJson.version;
 
 // Public registration of the citty command tree (consumed by hosts that prefer citty's runMain).
 export const root = defineCommand({

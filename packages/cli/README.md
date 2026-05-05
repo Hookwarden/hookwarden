@@ -1,10 +1,11 @@
 # hookwarden
 
 [![npm](https://img.shields.io/npm/v/hookwarden?color=6366F1&label=npm)](https://www.npmjs.com/package/hookwarden)
+[![npm downloads](https://img.shields.io/npm/dm/hookwarden?color=6366F1)](https://www.npmjs.com/package/hookwarden)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-6366F1)](https://github.com/Hookwarden/hookwarden/blob/main/LICENSE)
 ![Node 22+](https://img.shields.io/badge/node-%E2%89%A522-6366F1)
 
-**Webhook security audit CLI.** Finds signature-verification bugs in JavaScript, TypeScript, and Python codebases — locally, deterministically, in under five minutes.
+**Webhook security audit CLI.** Find every signature-verification bug in your codebase in under five minutes — locally, deterministically, zero-network.
 
 ```bash
 npx hookwarden scan ./your-app
@@ -55,6 +56,9 @@ hookwarden scan ./your-app
 
 # Set the failure threshold
 hookwarden scan ./your-app --fail-on high
+
+# List every detected webhook handler (without running rules)
+hookwarden inventory ./your-app
 ```
 
 ### Suppressing a finding
@@ -94,7 +98,7 @@ Precedence: `3 > 2 > 4 > 1 > 0`. Use these in CI for branching logic.
 
 ### GitHub Code Scanning
 
-Add findings to your repo's Security tab:
+Use the official Action for PR comments + SARIF upload, or call the CLI directly:
 
 ```yaml
 # .github/workflows/hookwarden.yml
@@ -102,22 +106,31 @@ name: hookwarden
 on: [pull_request, push]
 permissions:
   contents: read
+  pull-requests: write
   security-events: write
 jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '22' }
-      - run: npx hookwarden scan . --format sarif > hookwarden.sarif
-      - uses: github/codeql-action/upload-sarif@v3
+        with: { fetch-depth: 0 }
+      - uses: Hookwarden/hookwarden-action@v1
         with:
-          sarif_file: hookwarden.sarif
+          fail-on: high
 ```
 
-Severity maps per the [published table](https://github.com/Hookwarden/hookwarden/blob/main/packages/cli/docs/sarif-severity-mapping.md):
-critical/high → `error`, medium → `warning`, low/info → `note`. Re-uploading the same scan dedups via SARIF `partialFingerprints`.
+Or call the binary directly:
+
+```yaml
+- uses: actions/setup-node@v4
+  with: { node-version: '22' }
+- run: npx hookwarden scan . --format sarif > hookwarden.sarif
+- uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: hookwarden.sarif
+```
+
+Severity maps per the [published table](https://github.com/Hookwarden/hookwarden/blob/main/packages/cli/docs/sarif-severity-mapping.md): critical/high → `error`, medium → `warning`, low/info → `note`. Re-uploading the same scan dedups via SARIF `partialFingerprints`.
 
 ## Configuration
 
@@ -136,9 +149,20 @@ CLI flags override the config file; the config overrides defaults.
 
 ## Provider coverage
 
-v0.1 ships rules for **Stripe** and **GitHub** with provider-doc-quoted fix guidance on every finding.
+v0.2 ships rules for **six providers**, each with provider-doc-quoted fix guidance on every finding:
 
-Coming next: Shopify, Twilio, Slack, Square, Adyen, Zendesk, Mailgun, SendGrid — all measured against a 200-repo OSS regression corpus with a published <5% false-positive rate.
+| Provider | Detections | Custom signing |
+|---|---|---|
+| **Stripe** | 9 | — |
+| **GitHub** | 9 | — |
+| **Shopify** | 7 | — |
+| **Slack** | 7 | — |
+| **Twilio** | 7 | URL+sorted-params + HMAC-SHA1 |
+| **Square** | 6 | — |
+
+Coming next: Adyen, Zendesk, Mailgun, SendGrid — measured against a 200-repo OSS regression corpus with a published <5% false-positive rate.
+
+See the full [rule coverage matrix](https://github.com/Hookwarden/hookwarden/blob/main/docs/rule-coverage.md).
 
 ## License
 
