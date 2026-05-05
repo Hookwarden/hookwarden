@@ -5,6 +5,8 @@ import { defineCommand } from "citty";
 import { renderBanner, shouldShowBanner } from "./banner.js";
 import { type InventoryArgs, inventoryCommand, runInventoryCommand } from "./commands/inventory.js";
 import { runScanCommand, type ScanArgs, scanCommand } from "./commands/scan.js";
+import { renderLogo } from "./logo.js";
+import { shouldUseAnsi } from "./walker/tty.js";
 
 const VERSION = "0.0.1"; // Changesets bumps in lockstep (D-05).
 
@@ -26,7 +28,8 @@ const HELP_TEXT =
   `hookwarden v${VERSION} — webhook security audit CLI\n\n` +
   `Usage:\n` +
   `  hookwarden scan [path]       Scan a project for verification bugs.\n` +
-  `  hookwarden inventory [path]  List every detected webhook handler.\n\n` +
+  `  hookwarden inventory [path]  List every detected webhook handler.\n` +
+  `  hookwarden logo              Print the hookwarden mascot + wordmark.\n\n` +
   `Common flags:\n` +
   `  -v, --verbose                Verbose output (scan only).\n` +
   `      --no-color               Disable color and OSC-8 hyperlinks.\n` +
@@ -209,6 +212,13 @@ export async function main(argv: ReadonlyArray<string>): Promise<number> {
         return 0;
       }
       return await runInventoryCommand(flags as InventoryArgs);
+    }
+    if (sub === "logo") {
+      const noColor = argv.includes("--no-color");
+      const useAnsi = !noColor && shouldUseAnsi(process.stdout, process.env);
+      const columns = process.stdout.columns ?? 80;
+      process.stdout.write(`${renderLogo({ columns, useAnsi })}\n`);
+      return 0;
     }
     process.stderr.write(`error: unknown command '${sub}'\nrun 'hookwarden' for help\n`);
     return 2;
