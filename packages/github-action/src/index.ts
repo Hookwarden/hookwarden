@@ -50,18 +50,15 @@ export async function run(): Promise<void> {
       );
     }
 
-    // Plan 04 — SARIF upload (skip on fork events)
-    if (!result.isFork) {
-      try {
-        const sarifMod = await import('./sarif-upload.js');
-        await sarifMod.uploadSarif(result.sarifPath);
-      } catch (err) {
-        core.warning(`SARIF upload failed: ${(err as Error).message}`);
-      }
-    } else {
-      core.warning(
-        'Skipping SARIF upload: security-events:write unavailable on fork PRs',
-      );
+    // Plan 04 — SARIF upload (uploadSarif handles the fork-PR skip internally)
+    try {
+      const sarifMod = await import('./sarif-upload.js');
+      await sarifMod.uploadSarif({
+        sarifPath: result.sarifPath,
+        isFork: result.isFork,
+      });
+    } catch (err) {
+      core.warning(`SARIF upload failed: ${(err as Error).message}`);
     }
 
     if (result.failed) {
