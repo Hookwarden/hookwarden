@@ -193,5 +193,11 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           VERSION: ${{ steps.version.outputs.version }}
 
-      # The channel-parity SHA gate is wired in Plan 07 — it appends after this step
-      # and reads steps.version.outputs.version + the just-pushed homebrew-sha + scoop-sha.
+      - name: Channel-parity SHA gate
+        if: steps.changesets.outputs.published == 'true'
+        run: bash scripts/release/verify-channel-parity.sh
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          HOMEBREW_SHA: ${{ steps.bump-homebrew.outputs.sha }}
+          SCOOP_SHA: ${{ steps.bump-scoop.outputs.sha }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
