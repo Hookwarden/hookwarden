@@ -5,15 +5,15 @@
 // D-82: top-5 findings table sorted by severity desc → file_path → line.
 // D-83: callers handle silent-on-clean dispatch; this module does not post.
 
-import type { ScanFinding } from './types.js';
+import type { ScanFinding } from "./types.js";
 
-export const STICKY_MARKER = '<!-- hookwarden:pr-summary -->';
+export const STICKY_MARKER = "<!-- hookwarden:pr-summary -->";
 
 export const CLEAN_BODY = `${STICKY_MARKER}\n✅ hookwarden: no new findings`;
 
 // T-05-03-01: identity verification literal. The default GITHUB_TOKEN posts as
 // 'github-actions[bot]'. Plan grep gate enforces this exact string.
-export const BOT_LOGIN = 'github-actions[bot]';
+export const BOT_LOGIN = "github-actions[bot]";
 
 interface RenderInput {
   readonly newFindings: ReadonlyArray<ScanFinding>;
@@ -21,7 +21,7 @@ interface RenderInput {
   readonly codeScanningUrl: string;
 }
 
-const SEVERITY_RANK: Record<ScanFinding['severity'], number> = {
+const SEVERITY_RANK: Record<ScanFinding["severity"], number> = {
   critical: 0,
   high: 1,
   medium: 2,
@@ -29,12 +29,12 @@ const SEVERITY_RANK: Record<ScanFinding['severity'], number> = {
   info: 4,
 };
 
-const SEVERITY_ORDER: ReadonlyArray<ScanFinding['severity']> = [
-  'critical',
-  'high',
-  'medium',
-  'low',
-  'info',
+const SEVERITY_ORDER: ReadonlyArray<ScanFinding["severity"]> = [
+  "critical",
+  "high",
+  "medium",
+  "low",
+  "info",
 ];
 
 function compareFindings(a: ScanFinding, b: ScanFinding): number {
@@ -47,8 +47,8 @@ function compareFindings(a: ScanFinding, b: ScanFinding): number {
 
 function tabulateBySeverity(
   findings: ReadonlyArray<ScanFinding>,
-): Record<ScanFinding['severity'], number> {
-  const counts: Record<ScanFinding['severity'], number> = {
+): Record<ScanFinding["severity"], number> {
+  const counts: Record<ScanFinding["severity"], number> = {
     critical: 0,
     high: 0,
     medium: 0,
@@ -61,22 +61,20 @@ function tabulateBySeverity(
   return counts;
 }
 
-function severityTotalsLine(
-  counts: Record<ScanFinding['severity'], number>,
-): string {
+function severityTotalsLine(counts: Record<ScanFinding["severity"], number>): string {
   const parts: string[] = [];
   for (const sev of SEVERITY_ORDER) {
     if (counts[sev] > 0) parts.push(`${counts[sev]} ${sev}`);
   }
-  return `**Severity:** ${parts.join(', ')}`;
+  return `**Severity:** ${parts.join(", ")}`;
 }
 
 function fixHintFor(f: ScanFinding): string {
-  const msg = (f.message ?? '').trim();
-  if (msg === '') return '—';
+  const msg = (f.message ?? "").trim();
+  if (msg === "") return "—";
   // First sentence only — keeps the cell narrow. Fall back to the full message
   // if no terminal punctuation is found.
-  const period = msg.indexOf('.');
+  const period = msg.indexOf(".");
   return period > 0 ? msg.slice(0, period) : msg;
 }
 
@@ -94,25 +92,25 @@ export function renderSummaryBody(input: RenderInput): string {
   const lines: string[] = [
     STICKY_MARKER,
     `## hookwarden: ${sorted.length} new finding(s)`,
-    '',
+    "",
     severityTotalsLine(counts),
-    '',
-    '| Severity | Location | Rule | Fix |',
-    '| --- | --- | --- | --- |',
+    "",
+    "| Severity | Location | Rule | Fix |",
+    "| --- | --- | --- | --- |",
     ...top.map(tableRow),
   ];
 
   if (overflow > 0) {
-    lines.push('');
+    lines.push("");
     lines.push(
       `_…see Code Scanning for ${overflow} more finding(s) → [view all](${codeScanningUrl})._`,
     );
   }
 
-  lines.push('');
+  lines.push("");
   lines.push(
     `_Total findings in this PR: ${findingsCount}. Inline annotations available in [Code Scanning](${codeScanningUrl})._`,
   );
 
-  return lines.join('\n');
+  return lines.join("\n");
 }

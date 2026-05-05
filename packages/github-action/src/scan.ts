@@ -16,65 +16,50 @@
 // there is no --output-file flag. The Action captures stdout via @actions/exec
 // listeners and writes it to a file with fs.writeFile when a path is required.
 
-import { promises as fs } from 'node:fs';
-import { createRequire } from 'node:module';
-import * as path from 'node:path';
-import * as core from '@actions/core';
-import * as exec from '@actions/exec';
-import * as github from '@actions/github';
-import type {
-  ActionInputs,
-  ActionScanOutput,
-  ScanJsonEnvelope,
-  SeverityCounts,
-} from './types.js';
+import { promises as fs } from "node:fs";
+import { createRequire } from "node:module";
+import * as path from "node:path";
+import * as core from "@actions/core";
+import * as exec from "@actions/exec";
+import * as github from "@actions/github";
+import type { ActionInputs, ActionScanOutput, ScanJsonEnvelope, SeverityCounts } from "./types.js";
 
 const require = createRequire(import.meta.url);
-const BUNDLED_HOOKWARDEN_ENTRY = require.resolve('hookwarden/dist/index.js');
+const BUNDLED_HOOKWARDEN_ENTRY = require.resolve("hookwarden/dist/index.js");
 
 interface RunCliResult {
   readonly stdout: string;
   readonly code: number;
 }
 
-async function runCli(
-  args: ReadonlyArray<string>,
-  cwd: string,
-): Promise<RunCliResult> {
-  let stdout = '';
-  const code = await exec.exec(
-    'node',
-    [BUNDLED_HOOKWARDEN_ENTRY, 'scan', ...args],
-    {
-      cwd,
-      ignoreReturnCode: true,
-      env: { ...process.env, NO_COLOR: '1' },
-      listeners: {
-        stdout: (data: Buffer) => {
-          stdout += data.toString();
-        },
+async function runCli(args: ReadonlyArray<string>, cwd: string): Promise<RunCliResult> {
+  let stdout = "";
+  const code = await exec.exec("node", [BUNDLED_HOOKWARDEN_ENTRY, "scan", ...args], {
+    cwd,
+    ignoreReturnCode: true,
+    env: { ...process.env, NO_COLOR: "1" },
+    listeners: {
+      stdout: (data: Buffer) => {
+        stdout += data.toString();
       },
     },
-  );
+  });
   return { stdout, code };
 }
 
 function sumActive(counts: SeverityCounts): number {
-  return (
-    counts.critical + counts.high + counts.medium + counts.low + counts.info
-  );
+  return counts.critical + counts.high + counts.medium + counts.low + counts.info;
 }
 
 async function gitCheckout(ref: string, cwd: string): Promise<void> {
-  await exec.exec('git', ['checkout', ref], { cwd });
+  await exec.exec("git", ["checkout", ref], { cwd });
 }
 
 async function gitFetch(ref: string, cwd: string): Promise<void> {
-  const code = await exec.exec(
-    'git',
-    ['fetch', 'origin', ref, '--depth=1000'],
-    { cwd, ignoreReturnCode: true },
-  );
+  const code = await exec.exec("git", ["fetch", "origin", ref, "--depth=1000"], {
+    cwd,
+    ignoreReturnCode: true,
+  });
   if (code !== 0) {
     core.warning(
       `git fetch origin ${ref} failed; ensure actions/checkout@v6 is configured with fetch-depth: 0`,
@@ -88,7 +73,7 @@ interface PullRequestPayload {
 }
 
 function getPullRequest(): PullRequestPayload | undefined {
-  return github.context.payload['pull_request'] as PullRequestPayload | undefined;
+  return github.context.payload["pull_request"] as PullRequestPayload | undefined;
 }
 
 function detectFork(): boolean {
@@ -96,18 +81,16 @@ function detectFork(): boolean {
   if (pr === undefined) return false;
   const headRepo = pr.head.repo?.full_name;
   const baseRepo = pr.base.repo?.full_name;
-  return (
-    headRepo !== undefined && baseRepo !== undefined && headRepo !== baseRepo
-  );
+  return headRepo !== undefined && baseRepo !== undefined && headRepo !== baseRepo;
 }
 
 function configArgs(inputs: ActionInputs): string[] {
   const out: string[] = [];
   if (inputs.configPath !== undefined) {
-    out.push('--config', inputs.configPath);
+    out.push("--config", inputs.configPath);
   }
-  if (inputs.failOn !== '') {
-    out.push('--fail-on', inputs.failOn);
+  if (inputs.failOn !== "") {
+    out.push("--fail-on", inputs.failOn);
   }
   return out;
 }
@@ -121,30 +104,22 @@ function throwOnEngineConfigOrCoverageError(code: number, label: string): void {
   }
 }
 
-export async function runActionScan(
-  inputs: ActionInputs,
-): Promise<ActionScanOutput> {
+export async function runActionScan(inputs: ActionInputs): Promise<ActionScanOutput> {
   const eventName = github.context.eventName;
   const cwd = path.resolve(inputs.workingDirectory);
-  const sarifPath = path.resolve(
-    process.env['RUNNER_TEMP'] ?? cwd,
-    'hookwarden.sarif',
-  );
+  const sarifPath = path.resolve(process.env["RUNNER_TEMP"] ?? cwd, "hookwarden.sarif");
   const isFork = detectFork();
 
   // -------------------- non-PR path (D-85) --------------------
-  if (eventName !== 'pull_request') {
-    const jsonRun = await runCli(['--format', 'json', ...configArgs(inputs)], cwd);
-    throwOnEngineConfigOrCoverageError(jsonRun.code, 'non-PR JSON scan');
+  if (eventName !== "pull_request") {
+    const jsonRun = await runCli(["--format", "json", ...configArgs(inputs)], cwd);
+    throwOnEngineConfigOrCoverageError(jsonRun.code, "non-PR JSON scan");
 
     // D-80: SARIF run is the FULL head scan (no --diff-only) — Code Scanning
     // shows pre-existing alerts on the default branch.
-    const sarifRun = await runCli(
-      ['--format', 'sarif', ...configArgs(inputs)],
-      cwd,
-    );
-    throwOnEngineConfigOrCoverageError(sarifRun.code, 'non-PR SARIF emission');
-    await fs.writeFile(sarifPath, sarifRun.stdout, 'utf8');
+    const sarifRun = await runCli(["--format", "sarif", ...configArgs(inputs)], cwd);
+    throwOnEngineConfigOrCoverageError(sarifRun.code, "non-PR SARIF emission");
+    await fs.writeFile(sarifPath, sarifRun.stdout, "utf8");
 
     const envelope = JSON.parse(jsonRun.stdout) as ScanJsonEnvelope;
     const cliExitCode = jsonRun.code;
@@ -164,7 +139,7 @@ export async function runActionScan(
   // -------------------- PR path (D-84) --------------------
   const pr = getPullRequest();
   if (pr === undefined) {
-    throw new Error('eventName=pull_request but payload.pull_request is undefined');
+    throw new Error("eventName=pull_request but payload.pull_request is undefined");
   }
   const baseRef = pr.base.ref;
   const headSha = pr.head.sha;
@@ -172,8 +147,8 @@ export async function runActionScan(
   // 1. Fetch + checkout base, scan with full --format json to capture baseline fingerprints.
   await gitFetch(baseRef, cwd);
   await gitCheckout(`origin/${baseRef}`, cwd);
-  const baseRun = await runCli(['--format', 'json', ...configArgs(inputs)], cwd);
-  throwOnEngineConfigOrCoverageError(baseRun.code, 'base scan');
+  const baseRun = await runCli(["--format", "json", ...configArgs(inputs)], cwd);
+  throwOnEngineConfigOrCoverageError(baseRun.code, "base scan");
   const baseEnvelope = JSON.parse(baseRun.stdout) as ScanJsonEnvelope;
   const baseHashes = new Set<string>(
     baseEnvelope.scan.findings
@@ -187,26 +162,19 @@ export async function runActionScan(
   // !f.suppressed filter below honors that automatically.
   // D-86: auto-commit baseline REJECTED (see file header).
   await gitCheckout(headSha, cwd);
-  const headRun = await runCli(
-    ['--format', 'json', '--diff-only', ...configArgs(inputs)],
-    cwd,
-  );
-  throwOnEngineConfigOrCoverageError(headRun.code, 'head scan');
+  const headRun = await runCli(["--format", "json", "--diff-only", ...configArgs(inputs)], cwd);
+  throwOnEngineConfigOrCoverageError(headRun.code, "head scan");
   const headEnvelope = JSON.parse(headRun.stdout) as ScanJsonEnvelope;
   const newFindings = headEnvelope.scan.findings.filter(
-    (f) =>
-      f.suppressed === null && !baseHashes.has(f.primary_location_line_hash),
+    (f) => f.suppressed === null && !baseHashes.has(f.primary_location_line_hash),
   );
 
   // 3. SARIF emission — D-80 invariant: NO --diff-only here. Full head scan so Code
   // Scanning shows pre-existing alerts on PR-touched lines. The new-findings set
   // for the sticky comment was already computed above from the JSON envelope diff.
-  const sarifRun = await runCli(
-    ['--format', 'sarif', ...configArgs(inputs)],
-    cwd,
-  );
-  throwOnEngineConfigOrCoverageError(sarifRun.code, 'SARIF emission');
-  await fs.writeFile(sarifPath, sarifRun.stdout, 'utf8');
+  const sarifRun = await runCli(["--format", "sarif", ...configArgs(inputs)], cwd);
+  throwOnEngineConfigOrCoverageError(sarifRun.code, "SARIF emission");
+  await fs.writeFile(sarifPath, sarifRun.stdout, "utf8");
 
   const cliExitCode = headRun.code;
   return {

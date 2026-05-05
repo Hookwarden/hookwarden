@@ -26,18 +26,18 @@ export interface ScanFinding {
   readonly finding_id: string;
   readonly rule_id: string;
   readonly provider: string | null;
-  readonly severity: 'critical' | 'high' | 'medium' | 'low' | 'info';
-  readonly state: 'verified' | 'not-verified' | 'manual-review';
+  readonly severity: "critical" | "high" | "medium" | "low" | "info";
+  readonly state: "verified" | "not-verified" | "manual-review";
   readonly file_path: string;
   readonly location: ScanFindingLocation;
   readonly primary_location_line_hash: string;
   readonly message: string;
   readonly redacted_snippet: string | null;
-  readonly suppressed: { readonly source: 'inline' | 'ignore' | 'baseline' } | null;
+  readonly suppressed: { readonly source: "inline" | "ignore" | "baseline" } | null;
 }
 
 export interface ScanJsonEnvelope {
-  readonly schema_version: '1.0';
+  readonly schema_version: "1.0";
   readonly engine: { readonly version: string; readonly commit_sha: string };
   readonly rule_pack: { readonly version: string; readonly content_hash: string };
   readonly scan: {

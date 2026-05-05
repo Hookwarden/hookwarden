@@ -5,15 +5,10 @@
 // T-05-03-01: identity verification — c.user.login === BOT_LOGIN BEFORE editing.
 // T-05-03-04: skip-with-warning on fork PRs (pull-requests:write unavailable).
 
-import * as core from '@actions/core';
-import * as github from '@actions/github';
-import {
-  BOT_LOGIN,
-  CLEAN_BODY,
-  STICKY_MARKER,
-  renderSummaryBody,
-} from './comment.format.js';
-import type { ScanFinding } from './types.js';
+import * as core from "@actions/core";
+import * as github from "@actions/github";
+import { BOT_LOGIN, CLEAN_BODY, renderSummaryBody, STICKY_MARKER } from "./comment.format.js";
+import type { ScanFinding } from "./types.js";
 
 export interface PostCommentInput {
   readonly newFindings: ReadonlyArray<ScanFinding>;
@@ -28,27 +23,21 @@ interface PullRequestPayloadShape {
   readonly number: number;
 }
 
-export async function postOrUpdateStickyComment(
-  input: PostCommentInput,
-): Promise<void> {
-  if (input.eventName !== 'pull_request') return;
+export async function postOrUpdateStickyComment(input: PostCommentInput): Promise<void> {
+  if (input.eventName !== "pull_request") return;
 
   if (input.isFork) {
-    core.warning(
-      'Skipping PR comment: pull-requests:write not available on fork PRs',
-    );
+    core.warning("Skipping PR comment: pull-requests:write not available on fork PRs");
     return;
   }
 
-  const pr = github.context.payload['pull_request'] as
-    | PullRequestPayloadShape
-    | undefined;
-  if (pr === undefined || typeof pr.number !== 'number') return;
+  const pr = github.context.payload["pull_request"] as PullRequestPayloadShape | undefined;
+  if (pr === undefined || typeof pr.number !== "number") return;
   const issueNumber = pr.number;
 
-  const token = process.env['GITHUB_TOKEN'];
-  if (typeof token !== 'string' || token.length === 0) {
-    core.warning('Skipping PR comment: GITHUB_TOKEN not available');
+  const token = process.env["GITHUB_TOKEN"];
+  if (typeof token !== "string" || token.length === 0) {
+    core.warning("Skipping PR comment: GITHUB_TOKEN not available");
     return;
   }
 
@@ -68,9 +57,7 @@ export async function postOrUpdateStickyComment(
 
     const existing = comments.find(
       (c) =>
-        typeof c.body === 'string' &&
-        c.body.includes(STICKY_MARKER) &&
-        c.user?.login === BOT_LOGIN,
+        typeof c.body === "string" && c.body.includes(STICKY_MARKER) && c.user?.login === BOT_LOGIN,
     );
 
     if (input.newFindings.length === 0) {

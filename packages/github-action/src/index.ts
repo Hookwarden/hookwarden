@@ -7,16 +7,16 @@
 // Plan 03 (sticky comment) and Plan 04 (SARIF upload) are dynamic-imported so this
 // plan ships standalone; failures in those modules surface as warnings, not failures.
 
-import * as core from '@actions/core';
-import { runActionScan } from './scan.js';
-import type { ActionInputs } from './types.js';
+import * as core from "@actions/core";
+import { runActionScan } from "./scan.js";
+import type { ActionInputs } from "./types.js";
 
 function readInputs(): ActionInputs {
-  const configPath = core.getInput('config-path');
+  const configPath = core.getInput("config-path");
   return {
-    failOn: core.getInput('fail-on') || 'high',
-    configPath: configPath !== '' ? configPath : undefined,
-    workingDirectory: core.getInput('working-directory') || '.',
+    failOn: core.getInput("fail-on") || "high",
+    configPath: configPath !== "" ? configPath : undefined,
+    workingDirectory: core.getInput("working-directory") || ".",
   };
 }
 
@@ -26,15 +26,15 @@ export async function run(): Promise<void> {
     const result = await runActionScan(inputs);
 
     // D-88: 4 outputs
-    core.setOutput('findings-count', result.findingsCount);
-    core.setOutput('new-findings-count', result.newFindingsCount);
-    core.setOutput('findings-by-severity', JSON.stringify(result.bySeverity));
-    core.setOutput('sarif-path', result.sarifPath);
+    core.setOutput("findings-count", result.findingsCount);
+    core.setOutput("new-findings-count", result.newFindingsCount);
+    core.setOutput("findings-by-severity", JSON.stringify(result.bySeverity));
+    core.setOutput("sarif-path", result.sarifPath);
 
     // Plan 03 — sticky PR comment (skip on non-PR or fork events)
-    if (result.eventName === 'pull_request' && !result.isFork) {
+    if (result.eventName === "pull_request" && !result.isFork) {
       try {
-        const commentMod = await import('./comment.js');
+        const commentMod = await import("./comment.js");
         await commentMod.postOrUpdateStickyComment({
           newFindings: result.newFindings,
           findingsCount: result.findingsCount,
@@ -45,14 +45,12 @@ export async function run(): Promise<void> {
         core.warning(`Sticky comment failed: ${(err as Error).message}`);
       }
     } else if (result.isFork) {
-      core.warning(
-        'Skipping PR summary comment: pull-requests:write unavailable on fork PRs',
-      );
+      core.warning("Skipping PR summary comment: pull-requests:write unavailable on fork PRs");
     }
 
     // Plan 04 — SARIF upload (uploadSarif handles the fork-PR skip internally)
     try {
-      const sarifMod = await import('./sarif-upload.js');
+      const sarifMod = await import("./sarif-upload.js");
       await sarifMod.uploadSarif({
         sarifPath: result.sarifPath,
         isFork: result.isFork,
@@ -74,6 +72,6 @@ export async function run(): Promise<void> {
 // Auto-run when bundled as the Action entrypoint. Vitest sets VITEST=true so
 // tests can import this module and invoke run() explicitly without the auto-run
 // firing first (which would double-execute the entire Action under test).
-if (process.env['VITEST'] !== 'true') {
+if (process.env["VITEST"] !== "true") {
   void run();
 }
