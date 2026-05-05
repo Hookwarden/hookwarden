@@ -1,0 +1,30 @@
+name: 'hookwarden'
+description: 'Webhook signature-verification audit (JS/TS + Python). New findings → PR summary + Code Scanning.'
+author: 'Hookwarden'
+branding:
+  icon: 'shield'
+  color: 'purple'
+inputs:
+  fail-on:
+    description: 'Severity threshold (critical|high|medium|low). Default: high.'
+    required: false
+    default: 'high'
+  config-path:
+    description: 'Path to hookwarden.config.yaml. Default: walking-up search per Phase 4 D-75.'
+    required: false
+  working-directory:
+    description: 'Working directory for scan + config-walk. Default: $GITHUB_WORKSPACE.'
+    required: false
+    default: '.'
+outputs:
+  findings-count:
+    description: 'Total findings in the head scan.'
+  new-findings-count:
+    description: 'Findings present in head but not in base (PR events only).'
+  findings-by-severity:
+    description: 'JSON map: { critical: N, high: N, medium: N, low: N, info: N }'
+  sarif-path:
+    description: 'Absolute path to the SARIF file written by the Action.'
+runs:
+  using: 'node22'
+  main: 'dist/index.js'
