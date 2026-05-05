@@ -13,13 +13,13 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/hookwarden"><img src="https://img.shields.io/npm/v/hookwarden?color=6366F1&label=npm&style=flat-square" alt="npm version" /></a>
-  <a href="https://www.npmjs.com/package/hookwarden"><img src="https://img.shields.io/npm/dm/hookwarden?color=6366F1&style=flat-square" alt="npm downloads" /></a>
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-6366F1?style=flat-square" alt="License: Apache 2.0" /></a>
-  <img src="https://img.shields.io/badge/node-%E2%89%A522-6366F1?style=flat-square" alt="Node 22+" />
-  <a href="https://github.com/Hookwarden/hookwarden/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Hookwarden/hookwarden/ci.yml?branch=main&color=6366F1&label=CI&style=flat-square" alt="CI" /></a>
-  <a href="https://github.com/Hookwarden/hookwarden/stargazers"><img src="https://img.shields.io/github/stars/Hookwarden/hookwarden?color=6366F1&style=flat-square" alt="GitHub stars" /></a>
-  <img src="https://img.shields.io/badge/TypeScript-strict-6366F1?style=flat-square" alt="TypeScript strict" />
+  <a href="https://www.npmjs.com/package/hookwarden"><img src="https://img.shields.io/npm/v/hookwarden?color=4F46E5&label=npm&style=flat-square" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/hookwarden"><img src="https://img.shields.io/npm/dm/hookwarden?color=4F46E5&style=flat-square" alt="npm downloads" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-4F46E5?style=flat-square" alt="License: Apache 2.0" /></a>
+  <img src="https://img.shields.io/badge/node-%E2%89%A522-4F46E5?style=flat-square" alt="Node 22+" />
+  <a href="https://github.com/Hookwarden/hookwarden/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Hookwarden/hookwarden/ci.yml?branch=main&color=4F46E5&label=CI&style=flat-square" alt="CI" /></a>
+  <a href="https://github.com/Hookwarden/hookwarden/stargazers"><img src="https://img.shields.io/github/stars/Hookwarden/hookwarden?color=4F46E5&style=flat-square" alt="GitHub stars" /></a>
+  <img src="https://img.shields.io/badge/TypeScript-strict-4F46E5?style=flat-square" alt="TypeScript strict" />
 </p>
 
 <br />
