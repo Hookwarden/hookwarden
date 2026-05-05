@@ -71,4 +71,9 @@ export async function run(): Promise<void> {
   }
 }
 
-void run();
+// Auto-run when bundled as the Action entrypoint. Vitest sets VITEST=true so
+// tests can import this module and invoke run() explicitly without the auto-run
+// firing first (which would double-execute the entire Action under test).
+if (process.env['VITEST'] !== 'true') {
+  void run();
+}
