@@ -1,0 +1,20 @@
+name: WinGet SHA-drift probe
+on:
+  schedule:
+    # ~07:00 UTC daily — cron drift up to ~22 min is acceptable (RESEARCH §Pitfall 9)
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write   # to open dist/sha-drift issues
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run drift probe
+        run: bash scripts/release/probe-winget-drift.sh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
