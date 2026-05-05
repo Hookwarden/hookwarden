@@ -1,0 +1,46 @@
+name: Publish to WinGet
+on:
+  release:
+    # Trigger MUST be `published`, NOT `created` — drafts don't expose artifact URLs publicly
+    # (RESEARCH §Watch Out For #14, §Pattern 4 invariant 5).
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to submit (e.g. v1.2.3) — used for manual re-runs after PR rejection'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Submit to WinGet
+        uses: vedantmgoyal9/winget-releaser@v2
+        with:
+          identifier: Hookwarden.Hookwarden
+          version: ${{ steps.tag.outputs.tag }}
+          # Strict regex — match ONLY the Windows x64 binary; never pick up darwin/linux artifacts.
+          # See RESEARCH §Pattern 4 invariant 1 + §Code Examples WinGet workflow notes.
+          installers-regex: 'hookwarden-windows-x64\.exe$'
+          release-tag: ${{ steps.tag.outputs.tag }}
+          # Bot account that owns the fork of microsoft/winget-pkgs.
+          # Documented in docs/release/winget-bot-setup.md.
+          fork-user: hookwarden-bot
+          # Classic PAT with `public_repo` scope on the bot account.
+          # CANNOT be a fine-grained PAT or GitHub App token (RESEARCH §Pitfall 6, §Watch Out For #12).
+          token: ${{ secrets.HOOKWARDEN_BOT_WINGET_PAT }}
+          # Keep WinGet manifest list manageable — prune older versions on submission.
+          max-versions-to-keep: 5
