@@ -1,0 +1,128 @@
+{
+  "schema_version": "1.0",
+  "engine": {
+    "version": "0.5.0",
+    "commit_sha": "deadbeef000000000000000000000000deadbeef"
+  },
+  "rule_pack": {
+    "version": "0.5.0",
+    "content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "scan": {
+    "scanned_at": "2026-05-15T12:00:00.000Z",
+    "findings": [
+      {
+        "finding_id": "stripe/missing-signature-verification@a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "rule_id": "stripe/missing-signature-verification",
+        "provider": "stripe",
+        "severity": "critical",
+        "state": "not-verified",
+        "file_path": "src/api/stripe-webhook.ts",
+        "location": { "line": 42, "col": 3 },
+        "primary_location_line_hash": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "message": "Webhook handler does not verify signature before parsing body. Call stripe.webhooks.constructEvent(rawBody, sig, secret) before processing.",
+        "redacted_snippet": null,
+        "suppressed": null
+      },
+      {
+        "finding_id": "stripe/missing-signature-verification@0707070707070707070707070707070707070707070707070707070707070707",
+        "rule_id": "stripe/missing-signature-verification",
+        "provider": "stripe",
+        "severity": "critical",
+        "state": "not-verified",
+        "file_path": "src/api/legacy.ts",
+        "location": { "line": 5, "col": 1 },
+        "primary_location_line_hash": "0707070707070707070707070707070707070707070707070707070707070707",
+        "message": "Legacy handler — known issue per inline disable",
+        "redacted_snippet": null,
+        "suppressed": { "source": "inline" }
+      },
+      {
+        "finding_id": "github/missing-signature-verification@b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+        "rule_id": "github/missing-signature-verification",
+        "provider": "github",
+        "severity": "high",
+        "state": "not-verified",
+        "file_path": "src/api/github-webhook.ts",
+        "location": { "line": 17, "col": 1 },
+        "primary_location_line_hash": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+        "message": "Missing X-Hub-Signature-256 verification. Verify HMAC-SHA256 of payload against X-Hub-Signature-256 header.",
+        "redacted_snippet": null,
+        "suppressed": null
+      },
+      {
+        "finding_id": "github/timing-unsafe-comparison@0808080808080808080808080808080808080808080808080808080808080808",
+        "rule_id": "github/timing-unsafe-comparison",
+        "provider": "github",
+        "severity": "high",
+        "state": "not-verified",
+        "file_path": "src/lib/verify-gh.ts",
+        "location": { "line": 14, "col": 1 },
+        "primary_location_line_hash": "0808080808080808080808080808080808080808080808080808080808080808",
+        "message": "Pre-existing timing issue (baseline)",
+        "redacted_snippet": null,
+        "suppressed": { "source": "baseline" }
+      },
+      {
+        "finding_id": "stripe/timing-unsafe-comparison@c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+        "rule_id": "stripe/timing-unsafe-comparison",
+        "provider": "stripe",
+        "severity": "medium",
+        "state": "not-verified",
+        "file_path": "src/lib/verify.ts",
+        "location": { "line": 8, "col": 5 },
+        "primary_location_line_hash": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+        "message": "Comparison uses === instead of crypto.timingSafeEqual",
+        "redacted_snippet": null,
+        "suppressed": null
+      },
+      {
+        "finding_id": "stripe/raw-body-misuse@d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+        "rule_id": "stripe/raw-body-misuse",
+        "provider": "stripe",
+        "severity": "low",
+        "state": "manual-review",
+        "file_path": "src/api/stripe-webhook.ts",
+        "location": { "line": 23, "col": 7 },
+        "primary_location_line_hash": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+        "message": "Body parsed before signature verification",
+        "redacted_snippet": null,
+        "suppressed": null
+      },
+      {
+        "finding_id": "stripe/library-verified@f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+        "rule_id": "stripe/library-verified",
+        "provider": "stripe",
+        "severity": "info",
+        "state": "verified",
+        "file_path": "src/api/stripe-good.ts",
+        "location": { "line": 12, "col": 1 },
+        "primary_location_line_hash": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+        "message": "Webhook verified via stripe.webhooks.constructEvent",
+        "redacted_snippet": null,
+        "suppressed": null
+      },
+      {
+        "finding_id": "stripe/hardcoded-secret@e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "rule_id": "stripe/hardcoded-secret",
+        "provider": "stripe",
+        "severity": "info",
+        "state": "manual-review",
+        "file_path": "src/__tests__/fixtures/stripe.ts",
+        "location": { "line": 4, "col": 1 },
+        "primary_location_line_hash": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+        "message": "Hardcoded webhook secret matches Stripe pattern (test fixture)",
+        "redacted_snippet": null,
+        "suppressed": null
+      }
+    ],
+    "counts": {
+      "active": { "critical": 1, "high": 1, "medium": 1, "low": 1, "info": 2 },
+      "suppressed": { "critical": 1, "high": 1, "medium": 0, "low": 0, "info": 0 }
+    },
+    "parse_errors_count": 0,
+    "parse_candidates_count": 100,
+    "total_files_count": 200,
+    "parsed_files_count": 100
+  }
+}
