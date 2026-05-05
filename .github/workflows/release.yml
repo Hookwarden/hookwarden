@@ -65,6 +65,15 @@ jobs:
       # JWT that npm verifies against the trust binding configured at npmjs.com.
       # Replaces NPM_TOKEN; provenance is automatically attached.
       id-token: write
+    env:
+      # Skip the simple-git-hooks pre-push hook in CI. The hook runs `pnpm preflight`
+      # which spawns vitest; `pnpm changeset publish` does multiple `git push origin
+      # <tag>` calls (one per published package) and the resulting concurrent vitest
+      # runs race on `inspect-bundle.test.ts`'s in-place package.json mutations
+      # (`withPkgEdit`). Pre-push hooks are a local-dev guard against pushing broken
+      # code; CI already ran the same checks in the dedicated `CI` workflow + the
+      # `Build` and `Bundle inspection` steps above this changesets/action step.
+      SKIP_SIMPLE_GIT_HOOKS: '1'
     outputs:
       published: ${{ steps.changesets.outputs.published }}
       published-packages: ${{ steps.changesets.outputs.publishedPackages }}
