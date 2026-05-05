@@ -41,6 +41,12 @@ export const githubTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["github"] ?? throwMissing("github"),
   );
 
+export const shopifyTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "shopify",
+    PROVIDER_CATALOG["shopify"] ?? throwMissing("shopify"),
+  );
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

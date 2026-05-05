@@ -51,6 +51,12 @@ export const githubUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["github"] ?? throwMissing("github"),
   );
 
+export const shopifyUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "shopify",
+    PROVIDER_CATALOG["shopify"] ?? throwMissing("shopify"),
+  );
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

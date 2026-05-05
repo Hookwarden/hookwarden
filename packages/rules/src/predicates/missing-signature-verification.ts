@@ -62,6 +62,12 @@ export const githubMissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["github"] ?? throwMissing("github"),
   );
 
+export const shopifyMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "shopify",
+    PROVIDER_CATALOG["shopify"] ?? throwMissing("shopify"),
+  );
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

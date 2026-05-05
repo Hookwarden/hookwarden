@@ -1,0 +1,21 @@
+schema_version: 1
+rule_id: shopify/library-verified
+provider: shopify
+severity: info
+emits_state: verified
+message: |
+  Library-based verification detected: `shopify.webhooks.validate` (Node SDK
+  `@shopify/shopify-api`) or `verifyHmac` is reachable from this handler
+  within 3 hops. The Shopify SDK enforces HMAC-SHA256 over the raw body and
+  base64 comparison internally.
+matcher: null
+predicate: shopify-library-verified
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://shopify.dev/docs/api/shopify-api-node

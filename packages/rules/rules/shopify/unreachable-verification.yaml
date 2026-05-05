@@ -1,0 +1,26 @@
+schema_version: 1
+rule_id: shopify/unreachable-verification
+provider: shopify
+severity: high
+emits_state: manual-review
+message: |
+  Shopify webhook handler imports `@shopify/shopify-api` (or
+  `@shopify/shopify-app-express`) but `shopify.webhooks.validate` /
+  `verifyHmac` is not reachable from the handler entry within 3 hops. The
+  verification call may be conditional, dynamically dispatched, or in dead
+  code — static analysis cannot determine whether every request goes through
+  it.
+
+  Recommended: review the handler's call graph manually and confirm the
+  verification path is always taken.
+matcher: null
+predicate: shopify-unreachable-verification
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://shopify.dev/docs/apps/webhooks/configuration/https#step-5-verify-the-webhook

@@ -1,14 +1,17 @@
-// 14 registered predicate keys (Phase 6 D-93 refactor — byte-identical to pre-refactor):
+// 21 registered predicate keys (Phase 6 D-93 refactor + 06.2 Shopify pack):
 //   github-timing-safe-equal, express-middleware-ordering,
-//   stripe-library-verified, github-library-verified,
+//   stripe-library-verified, github-library-verified, shopify-library-verified,
 //   stripe-missing-signature-verification, stripe-timing-unsafe-comparison,
 //   stripe-raw-body-misuse, stripe-missing-timestamp-check,
 //   stripe-wrong-hmac-algorithm, stripe-unreachable-verification,
 //   github-missing-signature-verification, github-raw-body-misuse,
 //   github-missing-timestamp-check, github-wrong-hmac-algorithm,
-//   github-unreachable-verification
+//   github-unreachable-verification,
+//   shopify-missing-signature-verification, shopify-timing-unsafe-comparison,
+//   shopify-raw-body-misuse, shopify-missing-timestamp-check,
+//   shopify-wrong-hmac-algorithm, shopify-unreachable-verification
 //
-// The implementations now come from catalog-parameterized factory files (D-90, D-91).
+// Implementations come from catalog-parameterized factory files (D-90, D-91).
 // Per-provider names import the bound exports from those factories.
 
 import type { RulePredicate } from "@hookwarden/engine";
@@ -16,27 +19,36 @@ import { expressMiddlewareOrderingPredicate } from "./express-middleware-orderin
 import { githubTimingSafeEqualPredicate } from "./github-timing-safe-equal.js";
 import {
   githubLibraryVerifiedPredicate,
+  shopifyLibraryVerifiedPredicate,
   stripeLibraryVerifiedPredicate,
 } from "./library-verified-recognition.js";
 import {
   githubMissingSignatureVerificationPredicate,
+  shopifyMissingSignatureVerificationPredicate,
   stripeMissingSignatureVerificationPredicate,
 } from "./missing-signature-verification.js";
 import {
   githubMissingTimestampCheckPredicate,
+  shopifyMissingTimestampCheckPredicate,
   stripeMissingTimestampCheckPredicate,
 } from "./missing-timestamp-check.js";
 import {
   githubRawBodyMisusePredicate,
+  shopifyRawBodyMisusePredicate,
   stripeRawBodyMisusePredicate,
 } from "./raw-body-misuse.js";
-import { stripeTimingUnsafeComparisonPredicate } from "./timing-unsafe-comparison.js";
+import {
+  shopifyTimingUnsafeComparisonPredicate,
+  stripeTimingUnsafeComparisonPredicate,
+} from "./timing-unsafe-comparison.js";
 import {
   githubUnreachableVerificationPredicate,
+  shopifyUnreachableVerificationPredicate,
   stripeUnreachableVerificationPredicate,
 } from "./unreachable-verification.js";
 import {
   githubWrongHmacAlgorithmPredicate,
+  shopifyWrongHmacAlgorithmPredicate,
   stripeWrongHmacAlgorithmPredicate,
 } from "./wrong-hmac-algorithm.js";
 
@@ -60,4 +72,12 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "github-missing-timestamp-check": githubMissingTimestampCheckPredicate,
   "github-wrong-hmac-algorithm": githubWrongHmacAlgorithmPredicate,
   "github-unreachable-verification": githubUnreachableVerificationPredicate,
+  // Phase 6.2 Shopify pack (parameterized raw_body recipe; no custom predicate)
+  "shopify-library-verified": shopifyLibraryVerifiedPredicate,
+  "shopify-missing-signature-verification": shopifyMissingSignatureVerificationPredicate,
+  "shopify-timing-unsafe-comparison": shopifyTimingUnsafeComparisonPredicate,
+  "shopify-raw-body-misuse": shopifyRawBodyMisusePredicate,
+  "shopify-missing-timestamp-check": shopifyMissingTimestampCheckPredicate,
+  "shopify-wrong-hmac-algorithm": shopifyWrongHmacAlgorithmPredicate,
+  "shopify-unreachable-verification": shopifyUnreachableVerificationPredicate,
 };

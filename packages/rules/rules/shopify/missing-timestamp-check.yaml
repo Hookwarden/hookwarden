@@ -1,0 +1,28 @@
+schema_version: 1
+rule_id: shopify/missing-timestamp-check
+provider: shopify
+severity: info
+emits_state: manual-review
+message: |
+  Shopify webhooks do not include a request-time timestamp header — replay
+  defense relies on Shopify's request-id de-duping at the platform level.
+  The hookwarden parameterized predicate emits manual-review when a manual
+  HMAC path is reachable AND no timestamp comparison symbol is reachable, so
+  a reviewer can confirm the application-side dedupe story (e.g., persisting
+  the X-Shopify-Webhook-Id and rejecting duplicates).
+
+  Recommended: prefer `shopify.webhooks.validate(...)` from
+  `@shopify/shopify-api` — Shopify's own SDK encapsulates the verification
+  contract. If you must hand-roll, persist the X-Shopify-Webhook-Id header
+  and reject any delivery whose ID has been seen before.
+matcher: null
+predicate: shopify-missing-timestamp-check
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://shopify.dev/docs/apps/webhooks/configuration/https#step-5-verify-the-webhook

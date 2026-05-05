@@ -66,6 +66,11 @@ export const githubWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacA
   PROVIDER_CATALOG["github"] ?? throwMissing("github"),
 );
 
+export const shopifyWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
+  "shopify",
+  PROVIDER_CATALOG["shopify"] ?? throwMissing("shopify"),
+);
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

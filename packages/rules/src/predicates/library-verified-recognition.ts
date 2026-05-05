@@ -45,3 +45,8 @@ export const githubLibraryVerifiedPredicate: RulePredicate = createLibraryVerifi
   "github",
   PROVIDER_CATALOG["github"]?.sdk_verify_calls ?? [],
 );
+
+export const shopifyLibraryVerifiedPredicate: RulePredicate = createLibraryVerifiedPredicate(
+  "shopify",
+  PROVIDER_CATALOG["shopify"]?.sdk_verify_calls ?? [],
+);
