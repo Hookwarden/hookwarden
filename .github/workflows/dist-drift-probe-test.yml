@@ -1,0 +1,27 @@
+name: DIST drift-probe test
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/release/probe-winget-drift.sh'
+      - 'scripts/release/test-drift-probe.sh'
+      - '.github/workflows/dist-drift-probe-test.yml'
+      - '.github/workflows/winget-drift-probe.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/release/probe-winget-drift.sh'
+      - 'scripts/release/test-drift-probe.sh'
+      - '.github/workflows/dist-drift-probe-test.yml'
+      - '.github/workflows/winget-drift-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run drift-probe synthetic test
+        run: bash scripts/release/test-drift-probe.sh
