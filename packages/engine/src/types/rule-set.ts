@@ -15,6 +15,17 @@ export interface ProviderCatalogEntry {
   readonly secret_env_prefix: ReadonlyArray<string>; // e.g. ["STRIPE_WEBHOOK"]
   readonly secret_literal_prefix: ReadonlyArray<string>; // e.g. ["whsec_"]; consumed by Phase 11 leak-scan too
   readonly conventional_paths: ReadonlyArray<string>; // e.g. ["/webhooks/stripe", "/api/webhooks/stripe"]
+  // D-91 signing-recipe extension; additive only.
+  readonly hmac_algorithm: "sha256" | "sha512";
+  readonly signing_input_format:
+    | "raw_body"
+    | "timestamp_dot_body"
+    | "url_plus_sorted_params"
+    | "custom_field_tuple"
+    | "custom";
+  readonly timestamp_header: string | null;
+  readonly signature_encoding: "hex" | "base64";
+  readonly applicable_rules: ReadonlyArray<string>;
 }
 
 export type ProviderCatalog = Readonly<Record<string, ProviderCatalogEntry>>;
