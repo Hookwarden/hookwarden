@@ -2,7 +2,18 @@
 
 This runbook configures the auth model that hookwarden's release pipeline relies on. The setup runs ONCE before the first Phase 4.1 release.
 
-## A. GitHub App for cross-repo writes (Homebrew + Scoop)
+## A. GitHub App for cross-repo writes (Homebrew + Scoop + Action)
+
+### Pre-flight checklist for adding `hookwarden-action` (Phase 5)
+
+If the App was already installed for Homebrew + Scoop (Phase 4.1) and you only need to add the Action distribution repo, this is the minimal sequence:
+
+- [ ] Create empty `Hookwarden/hookwarden-action` repo on GitHub
+- [ ] Initialize it with a `main` branch (`git init && git commit --allow-empty && git push origin main`) — `bump-hookwarden-action.sh` force-pushes, which requires the branch to exist
+- [ ] Visit the existing `Hookwarden Release Bot` App's installation settings → **Configure** → add `hookwarden-action` to the repository list (no permission changes — `Contents: Read & Write` already covers it)
+- [ ] Verify: the next `pnpm changeset publish` will mint a token scoped to all three repos and `Build + bump hookwarden-action` step will succeed
+
+The next sections below describe the full first-time App setup (only needed if the App doesn't exist yet — Phase 4.1 should have done this already).
 
 ### Prerequisites
 
