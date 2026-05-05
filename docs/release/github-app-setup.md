@@ -7,7 +7,7 @@ This runbook configures the auth model that hookwarden's release pipeline relies
 ### Prerequisites
 
 - Admin access to the `Hookwarden` GitHub org
-- `Hookwarden/homebrew-tap` and `Hookwarden/scoop-bucket` repos already exist (Plans 03 + 04 — RESEARCH §Watch Out For #5: BOTH repos must exist BEFORE App installation)
+- `Hookwarden/homebrew-tap`, `Hookwarden/scoop-bucket`, and `Hookwarden/hookwarden-action` repos already exist (Plans 04.1-03 + 04.1-04 + Phase 5 — RESEARCH §Watch Out For #5: ALL distribution repos must exist BEFORE App installation; `hookwarden-action` must be initialized with a `main` branch since the bump script force-pushes to it)
 
 ### Step 1 — Create the GitHub App
 
@@ -32,7 +32,7 @@ This runbook configures the auth model that hookwarden's release pipeline relies
 1. In the App's left nav, click **Install App**
 2. Click **Install** next to `Hookwarden`
 3. **Repository access:** select **Only select repositories**
-4. Choose `homebrew-tap` AND `scoop-bucket` (exact list — RESEARCH §Pitfall 10). Do NOT select `hookwarden` or "All repositories" — least privilege.
+4. Choose `homebrew-tap` AND `scoop-bucket` AND `hookwarden-action` (exact list — RESEARCH §Pitfall 10; `hookwarden-action` added in Phase 5). Do NOT select `hookwarden` or "All repositories" — least privilege. The App permissions remain `Contents: Read & Write ONLY` (no additional scopes for the Action repo — same scope set covers all three).
 5. Click **Install**
 
 ### Step 4 — Configure repo variables and secrets on `Hookwarden/hookwarden`
@@ -48,6 +48,7 @@ This runbook configures the auth model that hookwarden's release pipeline relies
 
 - App installation tokens are short-lived (≤1 hour); no rotation needed at the token level
 - The App's PRIVATE KEY should be rotated annually: regenerate via Step 2, update the secret, delete the old key from the App settings
+- When the App's installation list changes (e.g., adding a new distribution repo such as `hookwarden-action` in Phase 5), update Step 3's repository list AND the `repositories: |` block in `.github/workflows/release.yml` in the same commit — drift between the App scope and the workflow's mint-token step causes silent token-mint failures
 
 ## B. PyPI Trusted Publisher
 
