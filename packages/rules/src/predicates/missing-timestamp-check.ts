@@ -59,6 +59,12 @@ export const shopifyMissingTimestampCheckPredicate: RulePredicate =
     PROVIDER_CATALOG["shopify"] ?? throwMissing("shopify"),
   );
 
+export const twilioMissingTimestampCheckPredicate: RulePredicate =
+  createMissingTimestampCheckPredicate(
+    "twilio",
+    PROVIDER_CATALOG["twilio"] ?? throwMissing("twilio"),
+  );
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

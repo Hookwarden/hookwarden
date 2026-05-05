@@ -71,6 +71,11 @@ export const shopifyWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmac
   PROVIDER_CATALOG["shopify"] ?? throwMissing("shopify"),
 );
 
+export const twilioWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
+  "twilio",
+  PROVIDER_CATALOG["twilio"] ?? throwMissing("twilio"),
+);
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

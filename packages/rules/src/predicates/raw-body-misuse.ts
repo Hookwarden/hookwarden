@@ -47,6 +47,11 @@ export const shopifyRawBodyMisusePredicate: RulePredicate = createRawBodyMisuseP
   PROVIDER_CATALOG["shopify"] ?? throwMissing("shopify"),
 );
 
+export const twilioRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "twilio",
+  PROVIDER_CATALOG["twilio"] ?? throwMissing("twilio"),
+);
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

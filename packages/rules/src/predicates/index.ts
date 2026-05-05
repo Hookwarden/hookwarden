@@ -1,18 +1,26 @@
-// 21 registered predicate keys (Phase 6 D-93 refactor + 06.2 Shopify pack):
+// 28 registered predicate keys (Phase 6 D-93 refactor + 06.2 Shopify + 06.3 Twilio):
 //   github-timing-safe-equal, express-middleware-ordering,
-//   stripe-library-verified, github-library-verified, shopify-library-verified,
+//   stripe-library-verified, github-library-verified, shopify-library-verified, twilio-library-verified,
 //   stripe-missing-signature-verification, stripe-timing-unsafe-comparison,
 //   stripe-raw-body-misuse, stripe-missing-timestamp-check,
 //   stripe-wrong-hmac-algorithm, stripe-unreachable-verification,
 //   github-missing-signature-verification, github-raw-body-misuse,
 //   github-missing-timestamp-check, github-wrong-hmac-algorithm,
 //   github-unreachable-verification,
-//   shopify-missing-signature-verification, shopify-timing-unsafe-comparison,
-//   shopify-raw-body-misuse, shopify-missing-timestamp-check,
-//   shopify-wrong-hmac-algorithm, shopify-unreachable-verification
+//   shopify-{missing-signature-verification, timing-unsafe-comparison, raw-body-misuse,
+//            missing-timestamp-check, wrong-hmac-algorithm, unreachable-verification},
+//   twilio-{missing-signature-verification, timing-unsafe-comparison, raw-body-misuse,
+//           missing-timestamp-check, wrong-hmac-algorithm, unreachable-verification}
 //
-// Implementations come from catalog-parameterized factory files (D-90, D-91).
-// Per-provider names import the bound exports from those factories.
+// Implementations come from catalog-parameterized factory files (D-90, D-91). Twilio's
+// missing-signature-verification dispatches through CUSTOM_SIGNING_PREDICATES['twilio']
+// (D-92) at predicates/custom/twilio-signing.ts.
+
+// Custom-predicate side-effect registrations (D-92). Each import populates
+// CUSTOM_SIGNING_PREDICATES[<provider>] at module-load time. Living here (not in
+// missing-signature-verification.ts) avoids the circular dep where each custom predicate
+// imports CUSTOM_SIGNING_PREDICATES from missing-signature-verification.js.
+import "./custom/twilio-signing.js";
 
 import type { RulePredicate } from "@hookwarden/engine";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
@@ -21,35 +29,42 @@ import {
   githubLibraryVerifiedPredicate,
   shopifyLibraryVerifiedPredicate,
   stripeLibraryVerifiedPredicate,
+  twilioLibraryVerifiedPredicate,
 } from "./library-verified-recognition.js";
 import {
   githubMissingSignatureVerificationPredicate,
   shopifyMissingSignatureVerificationPredicate,
   stripeMissingSignatureVerificationPredicate,
+  twilioMissingSignatureVerificationPredicate,
 } from "./missing-signature-verification.js";
 import {
   githubMissingTimestampCheckPredicate,
   shopifyMissingTimestampCheckPredicate,
   stripeMissingTimestampCheckPredicate,
+  twilioMissingTimestampCheckPredicate,
 } from "./missing-timestamp-check.js";
 import {
   githubRawBodyMisusePredicate,
   shopifyRawBodyMisusePredicate,
   stripeRawBodyMisusePredicate,
+  twilioRawBodyMisusePredicate,
 } from "./raw-body-misuse.js";
 import {
   shopifyTimingUnsafeComparisonPredicate,
   stripeTimingUnsafeComparisonPredicate,
+  twilioTimingUnsafeComparisonPredicate,
 } from "./timing-unsafe-comparison.js";
 import {
   githubUnreachableVerificationPredicate,
   shopifyUnreachableVerificationPredicate,
   stripeUnreachableVerificationPredicate,
+  twilioUnreachableVerificationPredicate,
 } from "./unreachable-verification.js";
 import {
   githubWrongHmacAlgorithmPredicate,
   shopifyWrongHmacAlgorithmPredicate,
   stripeWrongHmacAlgorithmPredicate,
+  twilioWrongHmacAlgorithmPredicate,
 } from "./wrong-hmac-algorithm.js";
 
 export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
@@ -80,4 +95,12 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "shopify-missing-timestamp-check": shopifyMissingTimestampCheckPredicate,
   "shopify-wrong-hmac-algorithm": shopifyWrongHmacAlgorithmPredicate,
   "shopify-unreachable-verification": shopifyUnreachableVerificationPredicate,
+  // Phase 6.3 Twilio pack (signing_input_format: 'custom' — dispatches via D-92 custom slot)
+  "twilio-library-verified": twilioLibraryVerifiedPredicate,
+  "twilio-missing-signature-verification": twilioMissingSignatureVerificationPredicate,
+  "twilio-timing-unsafe-comparison": twilioTimingUnsafeComparisonPredicate,
+  "twilio-raw-body-misuse": twilioRawBodyMisusePredicate,
+  "twilio-missing-timestamp-check": twilioMissingTimestampCheckPredicate,
+  "twilio-wrong-hmac-algorithm": twilioWrongHmacAlgorithmPredicate,
+  "twilio-unreachable-verification": twilioUnreachableVerificationPredicate,
 };

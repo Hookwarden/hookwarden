@@ -51,10 +51,10 @@ describe("PROVIDER_CATALOG D-91 signing-recipe shape", () => {
     }
   });
 
-  it("hmac_algorithm is always sha256 or sha512 (D-91 union)", () => {
+  it("hmac_algorithm is one of the D-91 union members (sha1 | sha256 | sha512)", () => {
     for (const provider of Object.keys(PROVIDER_CATALOG)) {
       const entry = PROVIDER_CATALOG[provider];
-      expect(["sha256", "sha512"]).toContain(entry?.hmac_algorithm);
+      expect(["sha1", "sha256", "sha512"]).toContain(entry?.hmac_algorithm);
     }
   });
 

@@ -16,7 +16,10 @@ export interface ProviderCatalogEntry {
   readonly secret_literal_prefix: ReadonlyArray<string>; // e.g. ["whsec_"]; consumed by Phase 11 leak-scan too
   readonly conventional_paths: ReadonlyArray<string>; // e.g. ["/webhooks/stripe", "/api/webhooks/stripe"]
   // D-91 signing-recipe extension; additive only.
-  readonly hmac_algorithm: "sha256" | "sha512";
+  // Twilio (06.3) is the v1 outlier on sha1. Every other v1 provider uses sha256. The union is
+  // intentionally narrow (no 'md5', 'sha224', 'sha384') so wrong-hmac-algorithm.ts can derive
+  // WRONG_HINTS from a closed set. Adding sha1 was a discrete, reviewed type extension.
+  readonly hmac_algorithm: "sha1" | "sha256" | "sha512";
   readonly signing_input_format:
     | "raw_body"
     | "timestamp_dot_body"

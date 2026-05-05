@@ -57,6 +57,12 @@ export const shopifyUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["shopify"] ?? throwMissing("shopify"),
   );
 
+export const twilioUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "twilio",
+    PROVIDER_CATALOG["twilio"] ?? throwMissing("twilio"),
+  );
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

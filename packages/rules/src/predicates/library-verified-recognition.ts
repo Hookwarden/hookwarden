@@ -50,3 +50,8 @@ export const shopifyLibraryVerifiedPredicate: RulePredicate = createLibraryVerif
   "shopify",
   PROVIDER_CATALOG["shopify"]?.sdk_verify_calls ?? [],
 );
+
+export const twilioLibraryVerifiedPredicate: RulePredicate = createLibraryVerifiedPredicate(
+  "twilio",
+  PROVIDER_CATALOG["twilio"]?.sdk_verify_calls ?? [],
+);

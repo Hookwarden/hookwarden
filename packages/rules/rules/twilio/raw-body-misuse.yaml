@@ -1,0 +1,29 @@
+schema_version: 1
+rule_id: twilio/raw-body-misuse
+provider: twilio
+severity: critical
+emits_state: not-verified
+message: |
+  Twilio webhook handler reads the X-Twilio-Signature header (or calls
+  `validateRequest`) but does not appear to receive the request body as raw
+  bytes / form parameters. Twilio's HMAC-SHA1 is computed over the canonical-
+  string (URL + sorted form params, or URL + raw JSON body), so a pre-parsed
+  body whose key order differs from Twilio's sort produces the wrong signature
+  and verification fails on every webhook delivery.
+
+  Fix (Express): use `express.urlencoded({ extended: false })` for application/
+  x-www-form-urlencoded webhooks (Twilio's default), and pass the parsed body
+  object to `twilio.validateRequest(...)` directly. For JSON-body webhooks, use
+  `express.raw({ type: 'application/json' })` and feed the Buffer to the
+  validator.
+matcher: null
+predicate: twilio-raw-body-misuse
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://www.twilio.com/docs/usage/webhooks/webhooks-security

@@ -1,0 +1,26 @@
+schema_version: 1
+rule_id: twilio/missing-timestamp-check
+provider: twilio
+severity: info
+emits_state: manual-review
+message: |
+  Twilio webhooks do not include a request-time timestamp header — the canonical
+  string is URL+sorted-params, signed with HMAC-SHA1. Replay defense relies on
+  URL freshness (one-time-use webhook URLs or session-bound URLs).
+
+  hookwarden surfaces this as manual-review when a manual HMAC path is reachable
+  AND no timestamp comparison symbol is reachable, so a reviewer can confirm
+  the application's replay-defense story (per-URL nonce, time-bounded URL,
+  application-side dedupe, etc.). When `twilio.validateRequest` is reachable,
+  this rule is not relevant.
+matcher: null
+predicate: twilio-missing-timestamp-check
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://www.twilio.com/docs/usage/webhooks/webhooks-security

@@ -1,0 +1,30 @@
+schema_version: 1
+rule_id: twilio/missing-signature-verification
+provider: twilio
+severity: critical
+emits_state: not-verified
+message: |
+  Twilio webhook handler does not appear to verify the X-Twilio-Signature header
+  before processing the request. Neither `twilio.validateRequest` (Node SDK) nor
+  `twilio.request_validator.RequestValidator.validate` (Python SDK) is reachable
+  from this handler within 3 hops, and no manual HMAC-SHA1 path was detected.
+
+  Twilio docs: "Twilio includes a signature for every webhook request, allowing
+  you to verify that the request actually came from Twilio."
+
+  Fix: pass `process.env.TWILIO_AUTH_TOKEN`, the request URL, the params object,
+  and the `X-Twilio-Signature` header to `twilio.validateRequest(...)` (Node) or
+  `RequestValidator(auth_token).validate(url, params, signature)` (Python) at
+  the top of the handler. Note: Twilio uses HMAC-SHA1 + base64 (legacy); do not
+  substitute SHA-256.
+matcher: null
+predicate: twilio-missing-signature-verification
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://www.twilio.com/docs/usage/webhooks/webhooks-security

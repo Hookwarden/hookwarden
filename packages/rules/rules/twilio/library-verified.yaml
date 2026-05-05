@@ -1,0 +1,22 @@
+schema_version: 1
+rule_id: twilio/library-verified
+provider: twilio
+severity: info
+emits_state: verified
+message: |
+  Library-based verification detected: `twilio.validateRequest` (Node SDK) or
+  `twilio.request_validator.RequestValidator.validate` (Python SDK) is reachable
+  from this handler within 3 hops. The Twilio SDKs encapsulate the URL+sorted-
+  params canonical-string construction, HMAC-SHA1 + base64, and constant-time
+  comparison.
+matcher: null
+predicate: twilio-library-verified
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://www.twilio.com/docs/libraries/node

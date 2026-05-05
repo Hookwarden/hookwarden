@@ -10,3 +10,4 @@ research note (no Python SDK; framework-specific FP risk; etc.).
 | stripe | YES | YES | YES | YES | YES | YES | YES (`whsec_`) | YES | No |
 | github | YES | YES | YES | YES | YES | YES | YES (`ghs_`, `github_pat_`) | YES | No |
 | shopify | YES | YES | YES | YES (info) | YES | YES | NO (D-95 — no canonical prefix) | YES | No |
+| twilio | YES | YES | YES | YES (info) | YES | YES | NO (D-95 — no canonical prefix) | YES | YES (`predicates/custom/twilio-signing.ts`; URL+sorted-params canonical-string + HMAC-SHA1) |

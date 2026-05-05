@@ -1,0 +1,27 @@
+schema_version: 1
+rule_id: twilio/wrong-hmac-algorithm
+provider: twilio
+severity: high
+emits_state: not-verified
+message: |
+  Twilio webhook handler uses a manual HMAC path but the algorithm in use
+  appears to be other than HMAC-SHA1. Twilio is the v1 outlier — its webhook
+  signing remains on legacy HMAC-SHA1 + base64 (the canonical-string
+  construction predates Twilio's SHA-256 migration on the REST API). Any other
+  algorithm produces a signature Twilio cannot match.
+
+  Fix: `crypto.createHmac('sha1', authToken).update(canonicalString).digest('base64')`
+  in Node, or `hmac.new(auth_token, canonical_string, hashlib.sha1).digest()` in
+  Python. Note: the SHA-1 choice is intentional for Twilio webhooks; it is NOT
+  a security mistake to be silently upgraded.
+matcher: null
+predicate: twilio-wrong-hmac-algorithm
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://www.twilio.com/docs/usage/webhooks/webhooks-security

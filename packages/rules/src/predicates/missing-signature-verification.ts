@@ -23,9 +23,10 @@ import { PROVIDER_CATALOG } from "../catalog.js";
 import { isManualHmacEntry, reachesSdkVerifyCall } from "./_helpers.js";
 
 // D-92 registry. Custom-signing predicate files under predicates/custom/<provider>-signing.ts
-// register their predicate here at module-load time (side-effect import). When a provider's
-// catalog uses signing_input_format: 'custom' but no predicate is registered, the dispatch
-// returns null — deferred until the predicate lands.
+// register their predicate here at module-load time. Side-effect imports of custom predicate
+// files live in predicates/index.ts (NOT here) to avoid a module-load circular: each custom
+// predicate file imports CUSTOM_SIGNING_PREDICATES from this module, so this module must
+// finish initializing before any custom predicate body runs.
 export const CUSTOM_SIGNING_PREDICATES: Record<string, RulePredicate> = {};
 
 export function createMissingSignatureVerificationPredicate(
@@ -66,6 +67,12 @@ export const shopifyMissingSignatureVerificationPredicate: RulePredicate =
   createMissingSignatureVerificationPredicate(
     "shopify",
     PROVIDER_CATALOG["shopify"] ?? throwMissing("shopify"),
+  );
+
+export const twilioMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "twilio",
+    PROVIDER_CATALOG["twilio"] ?? throwMissing("twilio"),
   );
 
 function throwMissing(provider: string): never {
