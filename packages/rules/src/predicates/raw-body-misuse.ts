@@ -57,6 +57,11 @@ export const slackRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePre
   PROVIDER_CATALOG["slack"] ?? throwMissing("slack"),
 );
 
+export const squareRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "square",
+  PROVIDER_CATALOG["square"] ?? throwMissing("square"),
+);
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

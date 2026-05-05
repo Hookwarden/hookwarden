@@ -12,3 +12,4 @@ research note (no Python SDK; framework-specific FP risk; etc.).
 | shopify | YES | YES | YES | YES (info) | YES | YES | NO (D-95 — no canonical prefix) | YES | No |
 | twilio | YES | YES | YES | YES (info) | YES | YES | NO (D-95 — no canonical prefix) | YES | YES (`predicates/custom/twilio-signing.ts`; URL+sorted-params canonical-string + HMAC-SHA1) |
 | slack | YES | YES | YES | YES (high) | YES | YES | NO (D-95 — no canonical prefix) | YES | No (parameterized `timestamp_dot_body` recipe) |
+| square | YES | YES | YES | NO (no timestamp in scheme) | YES | YES | NO (D-95 — webhook signature keys have no canonical prefix) | YES | No (parameterized `custom_field_tuple` recipe) |

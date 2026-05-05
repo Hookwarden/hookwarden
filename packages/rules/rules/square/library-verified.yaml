@@ -1,0 +1,22 @@
+schema_version: 1
+rule_id: square/library-verified
+provider: square
+severity: info
+emits_state: verified
+message: |
+  Library-based verification detected: `WebhooksHelper.verifySignature` (Node
+  `square` SDK) or `WebhooksHelper.is_valid_webhook_event_signature` (Python
+  `squareup`) is reachable from this handler within 3 hops. The Square SDK
+  encapsulates the URL+body canonical-string construction, HMAC-SHA256 + base64,
+  and constant-time comparison.
+matcher: null
+predicate: square-library-verified
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://developer.squareup.com/docs/webhooks/overview

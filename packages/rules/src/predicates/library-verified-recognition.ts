@@ -60,3 +60,8 @@ export const slackLibraryVerifiedPredicate: RulePredicate = createLibraryVerifie
   "slack",
   PROVIDER_CATALOG["slack"]?.sdk_verify_calls ?? [],
 );
+
+export const squareLibraryVerifiedPredicate: RulePredicate = createLibraryVerifiedPredicate(
+  "square",
+  PROVIDER_CATALOG["square"]?.sdk_verify_calls ?? [],
+);

@@ -1,0 +1,25 @@
+schema_version: 1
+rule_id: square/unreachable-verification
+provider: square
+severity: high
+emits_state: manual-review
+message: |
+  Square webhook handler imports `square` (or `squareup`) but
+  `WebhooksHelper.verifySignature` / `is_valid_webhook_event_signature` is not
+  reachable from the handler entry within 3 hops. The verification call may be
+  conditional, dynamically dispatched, or in dead code — static analysis cannot
+  determine whether every request goes through it.
+
+  Recommended: review the handler's call graph manually and confirm the
+  verification path is always taken.
+matcher: null
+predicate: square-unreachable-verification
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+provider_docs_url: https://developer.squareup.com/docs/webhooks/step3validate

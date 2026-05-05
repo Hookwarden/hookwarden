@@ -81,6 +81,12 @@ export const slackMissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["slack"] ?? throwMissing("slack"),
   );
 
+export const squareMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "square",
+    PROVIDER_CATALOG["square"] ?? throwMissing("square"),
+  );
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

@@ -29,6 +29,7 @@ import {
   githubLibraryVerifiedPredicate,
   shopifyLibraryVerifiedPredicate,
   slackLibraryVerifiedPredicate,
+  squareLibraryVerifiedPredicate,
   stripeLibraryVerifiedPredicate,
   twilioLibraryVerifiedPredicate,
 } from "./library-verified-recognition.js";
@@ -36,6 +37,7 @@ import {
   githubMissingSignatureVerificationPredicate,
   shopifyMissingSignatureVerificationPredicate,
   slackMissingSignatureVerificationPredicate,
+  squareMissingSignatureVerificationPredicate,
   stripeMissingSignatureVerificationPredicate,
   twilioMissingSignatureVerificationPredicate,
 } from "./missing-signature-verification.js";
@@ -50,12 +52,14 @@ import {
   githubRawBodyMisusePredicate,
   shopifyRawBodyMisusePredicate,
   slackRawBodyMisusePredicate,
+  squareRawBodyMisusePredicate,
   stripeRawBodyMisusePredicate,
   twilioRawBodyMisusePredicate,
 } from "./raw-body-misuse.js";
 import {
   shopifyTimingUnsafeComparisonPredicate,
   slackTimingUnsafeComparisonPredicate,
+  squareTimingUnsafeComparisonPredicate,
   stripeTimingUnsafeComparisonPredicate,
   twilioTimingUnsafeComparisonPredicate,
 } from "./timing-unsafe-comparison.js";
@@ -63,6 +67,7 @@ import {
   githubUnreachableVerificationPredicate,
   shopifyUnreachableVerificationPredicate,
   slackUnreachableVerificationPredicate,
+  squareUnreachableVerificationPredicate,
   stripeUnreachableVerificationPredicate,
   twilioUnreachableVerificationPredicate,
 } from "./unreachable-verification.js";
@@ -70,6 +75,7 @@ import {
   githubWrongHmacAlgorithmPredicate,
   shopifyWrongHmacAlgorithmPredicate,
   slackWrongHmacAlgorithmPredicate,
+  squareWrongHmacAlgorithmPredicate,
   stripeWrongHmacAlgorithmPredicate,
   twilioWrongHmacAlgorithmPredicate,
 } from "./wrong-hmac-algorithm.js";
@@ -118,4 +124,12 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "slack-missing-timestamp-check": slackMissingTimestampCheckPredicate,
   "slack-wrong-hmac-algorithm": slackWrongHmacAlgorithmPredicate,
   "slack-unreachable-verification": slackUnreachableVerificationPredicate,
+  // Phase 6.5 Square pack (signing_input_format: 'custom_field_tuple'; URL+body canonical-string;
+  // no missing-timestamp-check, no hardcoded-secret-prefix per D-95 verification)
+  "square-library-verified": squareLibraryVerifiedPredicate,
+  "square-missing-signature-verification": squareMissingSignatureVerificationPredicate,
+  "square-timing-unsafe-comparison": squareTimingUnsafeComparisonPredicate,
+  "square-raw-body-misuse": squareRawBodyMisusePredicate,
+  "square-wrong-hmac-algorithm": squareWrongHmacAlgorithmPredicate,
+  "square-unreachable-verification": squareUnreachableVerificationPredicate,
 };

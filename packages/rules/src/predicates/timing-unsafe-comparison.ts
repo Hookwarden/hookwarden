@@ -59,6 +59,12 @@ export const slackTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["slack"] ?? throwMissing("slack"),
   );
 
+export const squareTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "square",
+    PROVIDER_CATALOG["square"] ?? throwMissing("square"),
+  );
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }
