@@ -106,7 +106,10 @@ describe("evaluate (D-35 ScanResult + ENGINE-08 metadata + DISCOVERY-01 inventor
     expect(typeof h.redacted_snippet).toBe("string");
 
     // Metadata.
-    expect(result.metadata.engine_version).toBe("0.0.1");
+    // engine_version is the ENGINE_VERSION constant; assert semver shape rather than a
+    // frozen literal that drifts each release. rule_pack_version is fixture-driven (set
+    // at line 35 above) — that one CAN assert the literal.
+    expect(result.metadata.engine_version).toMatch(/^\d+\.\d+\.\d+(?:-[\w.-]+)?$/);
     expect(result.metadata.rule_pack_version).toBe("0.0.1");
     expect(result.metadata.rule_pack_content_hash).toMatch(/^[0-9a-f]{64}$/);
     expect(result.metadata.scanned_at).toBe("2026-05-02T00:00:00Z");

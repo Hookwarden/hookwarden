@@ -1,6 +1,6 @@
 {
   "name": "hookwardne",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Did you mean `hookwarden`? This is a typo-defense package. See https://hookwarden.dev",
   "main": "./index.cjs",
   "type": "commonjs",

@@ -1,5 +1,17 @@
 # hookwarden
 
+## 0.2.0
+
+### Patch Changes
+
+- Updated dependencies [b32262e]
+- Updated dependencies [961b967]
+- Updated dependencies [0bf95c1]
+- Updated dependencies [f28136e]
+- Updated dependencies [5c5811f]
+  - @hookwarden/engine@0.2.0
+  - @hookwarden/rules@0.2.0
+
 ## 0.1.1
 
 ### Patch Changes
