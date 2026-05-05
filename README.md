@@ -1,10 +1,12 @@
 <p align="center">
-  <video src="https://github.com/Hookwarden/hookwarden/raw/main/assets/brand/metal-hookwarden.mp4" autoplay loop muted playsinline width="320" alt="hookwarden">
-    <img src="./assets/brand/social/readme-banner.svg" alt="hookwarden" width="100%" />
-  </video>
+  <img src="./assets/brand/social/readme-banner.svg" alt="hookwarden" width="100%" />
 </p>
 
-<h1 align="center">hookwarden</h1>
+<p align="center">
+  <video src="https://github.com/Hookwarden/hookwarden/raw/main/assets/brand/metal-hookwarden.mp4" autoplay loop muted playsinline width="320">
+    Your browser does not support inline video.
+  </video>
+</p>
 
 <p align="center">
   <strong>Webhook verification audit for JS/TS and Python codebases. Local. Deterministic. Zero-network.</strong>
