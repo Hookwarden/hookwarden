@@ -235,3 +235,16 @@ export async function main(argv: ReadonlyArray<string>): Promise<number> {
     return 2;
   }
 }
+
+// Self-invoke when this file IS the binary entry (Bun --compile output).
+// Under Node + npm, packages/cli/bin/cli.cjs is the entry and explicitly
+// calls main() — `import.meta.main` is undefined in Node, so this guard
+// stays inert. Under Bun's `--compile`, the bundled module IS the entry,
+// `import.meta.main` is `true`, and we boot the CLI here.
+//
+// Library consumers (`import { main } from "hookwarden"`) also stay inert
+// because import.meta.main is only true for the literal process entry.
+const isCompiledEntry = (import.meta as ImportMeta & { main?: boolean }).main === true;
+if (isCompiledEntry) {
+  process.exitCode = await main(process.argv.slice(2));
+}
