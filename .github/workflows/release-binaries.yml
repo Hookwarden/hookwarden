@@ -104,10 +104,68 @@ jobs:
           bun build "$ENTRY" --compile --target="$TARGET" --outfile="$ASSET"
           ls -la "$ASSET"
 
-      - name: Upload unsigned binary as workflow artifact
+      - name: Azure login via OIDC federated identity (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Authenticode-sign binary via Azure Trusted Signing (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: azure/trusted-signing-action@v1.2.0
+        with:
+          endpoint: ${{ secrets.TRUSTED_SIGNING_ENDPOINT }}
+          trusted-signing-account-name: ${{ secrets.TRUSTED_SIGNING_ACCOUNT_NAME }}
+          certificate-profile-name: ${{ secrets.TRUSTED_SIGNING_CERT_PROFILE_NAME }}
+          files-folder: ${{ github.workspace }}
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Verify Authenticode signature (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        env:
+          ASSET: ${{ matrix.asset }}
+        run: |
+          $sig = Get-AuthenticodeSignature -FilePath "$env:ASSET"
+          if ($sig.Status -ne 'Valid') {
+            Write-Error "Signature status: $($sig.Status); StatusMessage: $($sig.StatusMessage)"
+            exit 1
+          }
+          Write-Host "Signature Status: $($sig.Status)"
+          Write-Host "Signer: $($sig.SignerCertificate.Subject)"
+          # Locate signtool from any installed Windows 10/11 SDK on the runner.
+          $signtool = (Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" `
+                      -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -First 1).FullName
+          if (-not $signtool) {
+            Write-Error "signtool.exe not found on runner"
+            exit 1
+          }
+          # /pa = Default Authentication Verification Policy (Authenticode); /v = verbose
+          & $signtool verify /pa /v "$env:ASSET"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "signtool verify failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
+          # Confirm the signed binary still executes.
+          & ".\$env:ASSET" --version
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Signed binary failed to execute --version (exit $LASTEXITCODE)"
+            exit $LASTEXITCODE
+          }
+
+      - name: Upload binary as workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.asset }}-unsigned
+          # Windows: -signed (Authenticode via Trusted Signing above).
+          # Linux:   -unsigned (no platform-mandated codesigning in v0.3.0).
+          # When 04.2-04 is reactivated and macOS rejoins the matrix, extend
+          # this conditional with `startsWith(matrix.os, 'macos')`.
+          name: ${{ matrix.asset }}-${{ matrix.os == 'windows-latest' && 'signed' || 'unsigned' }}
           path: ${{ matrix.asset }}
           if-no-files-found: error
           retention-days: 1
