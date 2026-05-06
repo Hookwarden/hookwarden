@@ -9,7 +9,8 @@
 </p>
 
 <p align="center">
-  <strong>Webhook verification audit for JS/TS and Python codebases. Local. Deterministic. Zero-network.</strong>
+  <strong>The only scanner laser-focused on webhook signature verification.</strong><br />
+  Local. Deterministic. Zero-network. JS/TS + Python. Five minutes from `npx` to fix.
 </p>
 
 <p align="center">
@@ -50,9 +51,11 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
 ## Why
 
-Most webhook bugs are not in delivery — they're in verification. A handler that accepts an unsigned payload, compares HMACs with `==`, or skips the signature check on a `?test=true` path will silently route attacker traffic into your business logic. The attack surface is real, the bugs are common, and static analysis tools that weren't built for this miss most of them.
+**Snyk and Semgrep find everything. Hookwarden finds the one thing that lets attackers replay your Stripe webhooks.**
 
-hookwarden walks your repo, parses every webhook handler across Express, Hono, Fastify, Next.js, Flask, FastAPI, and Django, and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix drawn verbatim from provider documentation.
+Most webhook bugs are not in delivery — they're in verification. A handler that accepts an unsigned payload, compares HMACs with `==`, or skips the signature check on a `?test=true` path will silently route attacker traffic into your business logic. The attack surface is real, the bugs are common, and general-purpose SAST tools weren't built for this — they bury the high-signal webhook bug under hundreds of medium-priority generic findings.
+
+Hookwarden does one thing. It walks your repo, parses every webhook handler across Express, Hono, Fastify, Next.js, Flask, FastAPI, and Django, and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix drawn verbatim from provider documentation. That focus is the entire point. The provider catalog (Stripe, GitHub, Shopify, Slack, Twilio, Square — and growing) encodes signature-format quirks no generic scanner has the surface area to know: that Stripe uses HMAC-SHA256 with a 5-minute timestamp tolerance, that Slack uses `v0:${ts}:${body}` not raw-body, that Twilio is the SHA1 outlier the rest of the catalog has to accommodate.
 
 **The three-state verdict is not a hedge.** `manual-review` is what you get when hookwarden can't prove safety or unsafety from the source alone — a handler inside a middleware chain that the analyzer couldn't fully unroll, for example. It's how the false-positive rate stays honest. A tool that reports every gray area as a bug is not a security tool; it's noise.
 
@@ -255,7 +258,7 @@ The engine's I/O boundary is the architectural load-bearing constraint. The same
 
 ## vs. other tools
 
-hookwarden is specialized. These tools are not competitors — they're solving different scopes of the problem.
+Hookwarden is **specialized on purpose.** Webhook signature verification is the only thing it does, and that's why it does it better than tools whose surface area covers everything. The general-purpose scanners below are excellent at what they do — they're just not in this fight.
 
 | Tool | What it does well | Webhook verification coverage |
 |---|---|---|
