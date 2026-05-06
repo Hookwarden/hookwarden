@@ -2,12 +2,11 @@
 // catalog and hands the engine a pre-parsed RuleSet object.
 
 import { promises as fs } from "node:fs";
-import { createRequire } from "node:module";
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
 import type { RuleSet } from "@hookwarden/engine";
 import {
   ALL_PREDICATES,
+  BUNDLED_RULE_DOCUMENTS,
   loadRuleSet,
   PROVIDER_CATALOG,
   RULES_PACK_VERSION,
@@ -16,6 +15,10 @@ import { load as parseYaml } from "js-yaml";
 
 export interface LoadRulesOptions {
   // Override the bundled rule pack location. D-48 ships --rules-dir as a dev-only flag.
+  // When set, the on-disk YAML files at that path are loaded and parsed, ignoring the
+  // build-time-bundled rule documents. When unset, the bundled rules are used directly,
+  // which works in both Node + npm and Bun --compile (no fs reads, no YAML parsing at
+  // runtime, no `node_modules/@hookwarden/rules/rules/*.yaml` lookup).
   readonly rulesDir?: string;
 }
 
@@ -39,55 +42,26 @@ async function findYamlFiles(dir: string): Promise<string[]> {
   return out;
 }
 
-// W-6: relative-path resolution `../../rules/rules` is fragile under npm flat-install layouts
-// (npm hoists workspace siblings to <root>/node_modules/@hookwarden/rules/, breaking the
-// relative `..` walk from the CLI's installed location). Use the package-resolver protocol:
-//
-//   1. Prefer `import.meta.resolve("@hookwarden/rules/package.json")` (Node 20.6+ stable).
-//   2. Fall back to `createRequire` for runtimes without `import.meta.resolve`.
-//
-// CR-02 (review): converting `file://…` URLs MUST use `fileURLToPath` from `node:url`.
-// `new URL(pkgUrl).pathname` is broken on Windows — it yields `/C:/…` which `path.resolve`
-// then mishandles. `fileURLToPath` round-trips correctly across platforms.
-export function resolveDefaultRulesDir(): string {
-  const resolver = (import.meta as { resolve?: (s: string) => string }).resolve;
-  if (typeof resolver === "function") {
-    try {
-      const pkgUrl = resolver("@hookwarden/rules/package.json");
-      if (pkgUrl) {
-        const pkgPath = fileURLToPath(pkgUrl);
-        return path.resolve(path.dirname(pkgPath), "rules");
-      }
-    } catch {
-      // fall through
-    }
-  }
-  const req = createRequire(import.meta.url);
-  const pkgPath = req.resolve("@hookwarden/rules/package.json");
-  return path.resolve(path.dirname(pkgPath), "rules");
-}
-
 export async function loadRulesFromDir(options: LoadRulesOptions = {}): Promise<RuleSet> {
-  // When the caller explicitly supplies --rules-dir, that path is authoritative — failure to
-  // find rules there is an error, not a trigger to fall back to the bundled location.
-  // Without --rules-dir, try the resolved default first, then the workspace dev path.
-  const candidates: string[] = [];
-  if (options.rulesDir) {
-    candidates.push(path.resolve(options.rulesDir));
-  } else {
-    candidates.push(resolveDefaultRulesDir());
-    candidates.push(path.resolve(process.cwd(), "packages/rules/rules"));
+  // Default path: use the build-time-bundled rule documents from @hookwarden/rules.
+  // This is the canonical path for both Node + npm consumers AND Bun --compile output;
+  // no filesystem access, no YAML parsing, no node_modules resolution. Phase 4.2 DC-19.
+  if (options.rulesDir === undefined) {
+    return loadRuleSet({
+      rule_documents: BUNDLED_RULE_DOCUMENTS.map((entry) => entry.doc),
+      predicates: ALL_PREDICATES,
+      providers: PROVIDER_CATALOG,
+      rule_pack_version: RULES_PACK_VERSION,
+    });
   }
 
-  let yamlFiles: string[] = [];
-  for (const c of candidates) {
-    yamlFiles = await findYamlFiles(c);
-    if (yamlFiles.length > 0) break;
-  }
+  // --rules-dir override: dev-only path that loads YAML from the supplied directory.
+  // Failure here is an error, not a fallback to the bundle.
+  const root = path.resolve(options.rulesDir);
+  const yamlFiles = (await findYamlFiles(root)).sort();
   if (yamlFiles.length === 0) {
-    throw new Error(`Could not locate rule pack. Searched: ${candidates.join(", ")}`);
+    throw new Error(`Could not locate rule pack. Searched: ${root}`);
   }
-  yamlFiles.sort();
   const docs: unknown[] = [];
   for (const f of yamlFiles) {
     const content = await fs.readFile(f, "utf-8");

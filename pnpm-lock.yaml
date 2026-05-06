@@ -143,6 +143,13 @@ importers:
       ajv:
         specifier: ^8.17.1
         version: 8.20.0
+    devDependencies:
+      '@types/js-yaml':
+        specifier: ^4.0.9
+        version: 4.0.9
+      js-yaml:
+        specifier: ^4.1.1
+        version: 4.1.1
 
   packages/typo-shims/hook-warden:
     dependencies:

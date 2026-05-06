@@ -1,6 +1,10 @@
 // @hookwarden/rules — provider evidence catalog + rule loader + predicate registry.
 // Phase 2 ships this skeleton + one smoke-test rule. Phase 3 + 6 grow the rule library.
 
+export {
+  BUNDLED_RULE_DOCUMENTS,
+  type BundledRuleDocument,
+} from "./bundled-rules.js";
 export { PROVIDER_CATALOG } from "./catalog.js";
 export { computeContentHash, type LoadRuleSetInput, loadRuleSet } from "./loader.js";
 export { ALL_PREDICATES } from "./predicates/index.js";

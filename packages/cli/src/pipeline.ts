@@ -44,7 +44,7 @@ import type { InlineSuppressions } from "./suppress/inline-comments.js";
 import { extractInlineSuppressions } from "./suppress/inline-comments.js";
 import { detectStale, type StaleSuppression } from "./suppress/stale.js";
 import { type WalkResult, walkProject } from "./walker/index.js";
-import { loadPythonWasmBytes } from "./wasm/loader.js";
+import { loadPythonWasmBytes, loadTreeSitterRuntimeWasmBytes } from "./wasm/loader.js";
 
 export interface RunScanInput {
   readonly rootPath: string;
@@ -140,8 +140,15 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
   const hasPython = walkResult.files.some(isPython);
   let pyRuntime: PythonRuntime | null = null;
   if (hasPython) {
-    const wasmBytes = await loadPythonWasmBytes();
-    pyRuntime = await initPythonRuntime({ wasmBytes });
+    const [wasmBytes, treeSitterRuntimeWasmBytes] = await Promise.all([
+      loadPythonWasmBytes(),
+      loadTreeSitterRuntimeWasmBytes(),
+    ]);
+    pyRuntime = await initPythonRuntime(
+      treeSitterRuntimeWasmBytes !== undefined
+        ? { wasmBytes, treeSitterRuntimeWasmBytes }
+        : { wasmBytes },
+    );
   }
 
   const concurrency = Math.min(8, os.availableParallelism?.() ?? 4);

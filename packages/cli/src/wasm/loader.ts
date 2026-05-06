@@ -38,3 +38,17 @@ export async function loadPythonWasmBytes(): Promise<Uint8Array> {
   const buf = await fs.readFile(wasmPath);
   return new Uint8Array(buf);
 }
+
+// Loads the bytes of `web-tree-sitter.wasm` (the tree-sitter runtime itself).
+// Returns `undefined` in Node mode — web-tree-sitter's emscripten loader finds
+// its own .wasm via the npm install layout, no caller intervention needed.
+// Returns embedded bytes in Bun --compile mode where /$bunfs/ has no .wasm
+// for the runtime to discover. The CLI passes the bytes (or undefined) into
+// engine.initPythonRuntime, which forwards to Parser.init({ wasmBinary }).
+export async function loadTreeSitterRuntimeWasmBytes(): Promise<Uint8Array | undefined> {
+  if (isBunRuntime()) {
+    const { loadBunEmbeddedWebTreeSitterRuntimeWasm } = await import("./bun-asset.js");
+    return await loadBunEmbeddedWebTreeSitterRuntimeWasm();
+  }
+  return undefined;
+}

@@ -3,7 +3,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { CONFIG_DEFAULTS, type ResolvedConfig } from "../src/config/precedence.js";
-import { resolveDefaultRulesDir } from "../src/load-rules.js";
+import { loadRulesFromDir } from "../src/load-rules.js";
 import { type RunScanInput, runScan } from "../src/pipeline.js";
 
 function scanInput(rootPath: string, overrides: Partial<ResolvedConfig> = {}): RunScanInput {
@@ -65,16 +65,21 @@ describe("runScan pipeline (CLI-01 + DISCOVERY-01)", () => {
   });
 });
 
-describe("resolveDefaultRulesDir (W-6 flat-install regression)", () => {
-  it("resolves to a path whose final segment is 'rules'", () => {
-    const dir = resolveDefaultRulesDir();
-    expect(path.basename(dir)).toBe("rules");
-    // In a workspace layout, the resolved path is `<repo>/packages/rules/rules`.
-    // In a flat-install layout, it's `<consumer>/node_modules/@hookwarden/rules/rules`.
-    // Either form satisfies the W-6 mitigation: the resolver does not assume a
-    // relative `..` walk from the CLI's installed location.
-    const isWorkspace = dir.includes(`packages${path.sep}rules${path.sep}rules`);
-    const isFlatInstall = dir.includes(`@hookwarden${path.sep}rules${path.sep}rules`);
-    expect(isWorkspace || isFlatInstall).toBe(true);
+describe("loadRulesFromDir — bundled-rules path (Phase 4.2 DC-19, replaces W-6 filesystem-resolver)", () => {
+  it("uses the build-time-bundled rule documents when no rulesDir is supplied", async () => {
+    // Default path (no --rules-dir): consumes BUNDLED_RULE_DOCUMENTS from
+    // @hookwarden/rules. No filesystem access, no YAML parsing at runtime.
+    // This is the canonical path for both Node + npm and Bun --compile.
+    const ruleSet = await loadRulesFromDir();
+    expect(ruleSet.rule_pack_version).toMatch(/^\d+\.\d+\.\d+/);
+    expect(ruleSet.rules.length).toBeGreaterThan(0);
+  });
+
+  it("loads from disk when rulesDir override is supplied (dev-only --rules-dir)", async () => {
+    // Override path: still works for dev workflows that point at a local YAML tree.
+    const repoRoot = path.resolve(__dirname, "..", "..", "..");
+    const overrideDir = path.join(repoRoot, "packages", "rules", "rules");
+    const ruleSet = await loadRulesFromDir({ rulesDir: overrideDir });
+    expect(ruleSet.rules.length).toBeGreaterThan(0);
   });
 });

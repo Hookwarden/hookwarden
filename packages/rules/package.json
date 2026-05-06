@@ -27,11 +27,15 @@
     "test": "vitest run",
     "build": "tsc --build",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "prepare": "node scripts/sync-version.mjs",
-    "prepack": "node scripts/sync-version.mjs"
+    "prepare": "node scripts/sync-version.mjs && node scripts/sync-bundle.mjs",
+    "prepack": "node scripts/sync-version.mjs && node scripts/sync-bundle.mjs"
   },
   "dependencies": {
     "@hookwarden/engine": "workspace:*",
     "ajv": "^8.17.1"
+  },
+  "devDependencies": {
+    "js-yaml": "^4.1.1",
+    "@types/js-yaml": "^4.0.9"
   }
 }
