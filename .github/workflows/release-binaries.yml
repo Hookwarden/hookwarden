@@ -49,9 +49,14 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          # Pin tightly per CLAUDE.md "verify version pin" discipline.
-          # Bump in tandem with the workspace `package.json#packageManager`.
-          bun-version: 1.1.34
+          # `latest` while we discover a Windows-stable version. Bun 1.1.34
+          # has a Windows --compile bug ("Expected pretty file path to have
+          # only forward slashes") on backslash-separated module paths.
+          # Once a green Windows build identifies a working version, pin it
+          # tightly per CLAUDE.md "verify version pin" discipline AND bump
+          # the workspace `package.json#packageManager` (or add a bun-version
+          # file) to match.
+          bun-version: latest
 
       - name: Cache Bun install store
         uses: actions/cache@v4
