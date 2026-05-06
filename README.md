@@ -237,14 +237,9 @@ SARIF severity mapping: `critical`/`high` → `error` · `medium` → `warning` 
 
 hookwarden is a pnpm monorepo with three load-bearing packages and a strict dependency boundary enforced in CI.
 
-```mermaid
-graph LR
-  A["@hookwarden/rules<br/>(YAML data + predicate factories)"]
-  B["@hookwarden/engine<br/>(pure-functional, I/O-free)"]
-  C["hookwarden CLI<br/>(binary, renders output)"]
-
-  A --> B --> C
-```
+<p align="center">
+  <img src="./assets/brand/diagrams/architecture.svg" alt="hookwarden architecture: source AST and YAML rules feed the pure engine, which feeds the CLI; CLI emits text, JSON, and SARIF." width="100%" />
+</p>
 
 | Package | Purpose | License |
 |---|---|---|
@@ -393,18 +388,12 @@ pnpm -r test
 
 > To add yourself as a contributor after a merged PR, comment `@all-contributors please add @<username> for <contribution>` on your PR. The bot will open a follow-up PR.
 
----
-
-## Documentation
-
-- [hookwarden.dev](https://hookwarden.dev)
-- [Rule coverage matrix](./docs/rule-coverage.md)
-- [GitHub Action docs](./packages/github-action/README.md)
+More: [hookwarden.dev](https://hookwarden.dev) · [rule coverage matrix](./docs/rule-coverage.md) · [GitHub Action docs](./packages/github-action/README.md).
 
 ---
 
 ## License
 
-Apache 2.0. The CLI, engine, and rule packs in this repo are open source and will remain so. A separate closed-source SaaS tier handles continuous monitoring, secret leak scanning, automated rotation, and SOC 2 evidence export — [hookwarden.dev](https://hookwarden.dev).
+Apache 2.0 — see [`LICENSE`](./LICENSE). The CLI, engine, and rule packs in this repo are open source and will remain so. A separate closed-source SaaS tier handles continuous monitoring, secret leak scanning, automated rotation, and SOC 2 evidence export — [hookwarden.dev](https://hookwarden.dev).
 
 Brand assets live at [`assets/brand/`](./assets/brand/).
