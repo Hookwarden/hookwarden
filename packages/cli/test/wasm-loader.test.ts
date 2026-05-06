@@ -56,9 +56,7 @@ describe("loadPythonWasmBytes — runtime detection", () => {
   });
 
   it("Bun branch: delegates to bun-asset.loadBunEmbeddedWasm()", async () => {
-    const fakeBytes = new Uint8Array([
-      0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00,
-    ]);
+    const fakeBytes = new Uint8Array([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
     setBunRuntime();
     vi.doMock("../src/wasm/bun-asset.js", () => ({
       loadBunEmbeddedWasm: async () => fakeBytes,
@@ -103,9 +101,7 @@ describe("loadPythonWasmBytes — runtime detection", () => {
         promises: {
           ...actual.promises,
           readFile: vi.fn(async () => {
-            const e = new Error(
-              "ENOENT: no such file or directory",
-            ) as NodeJS.ErrnoException;
+            const e = new Error("ENOENT: no such file or directory") as NodeJS.ErrnoException;
             e.code = "ENOENT";
             throw e;
           }),

@@ -20,9 +20,7 @@ import { fileURLToPath } from "node:url";
 declare const Bun: undefined | { file: (p: string) => { bytes: () => Promise<Uint8Array> } };
 
 function isBunRuntime(): boolean {
-  return (
-    typeof Bun !== "undefined" && typeof process.versions["bun"] === "string"
-  );
+  return typeof Bun !== "undefined" && typeof process.versions["bun"] === "string";
 }
 
 export async function loadPythonWasmBytes(): Promise<Uint8Array> {
@@ -36,13 +34,7 @@ export async function loadPythonWasmBytes(): Promise<Uint8Array> {
   // against build-output snapshot in 04.2-CONTEXT.md (W5/B2).
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
-  const wasmPath = path.join(
-    __dirname,
-    "..",
-    "..",
-    "wasm",
-    "tree-sitter-python.wasm",
-  );
+  const wasmPath = path.join(__dirname, "..", "..", "wasm", "tree-sitter-python.wasm");
   const buf = await fs.readFile(wasmPath);
   return new Uint8Array(buf);
 }
