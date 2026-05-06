@@ -26,7 +26,9 @@
   "scripts": {
     "test": "vitest run",
     "build": "tsc --build",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prepare": "node scripts/sync-version.mjs",
+    "prepack": "node scripts/sync-version.mjs"
   },
   "dependencies": {
     "@hookwarden/engine": "workspace:*",

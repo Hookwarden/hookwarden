@@ -7,9 +7,11 @@ coverage/
 e2e/fixtures/perf/generated/
 # Bundled WASM artifact — copied at install/pack time by packages/cli/scripts/sync-wasm.mjs.
 packages/cli/wasm/
-# Version constant — generated at install/pack/CI time from packages/cli/package.json#version
-# by packages/cli/scripts/sync-version.mjs (prevents Bun --compile reading /$bunfs/package.json).
+# Version constants — generated at install/pack/CI time from each package's
+# package.json#version by scripts/sync-version.mjs (prevents Bun --compile reading
+# /$bunfs/package.json). Same pattern as packages/cli/wasm/ above.
 packages/cli/src/version.ts
+packages/rules/src/version.ts
 
 # Python build/test artifacts (PyPI shim — python-packages/hookwarden)
 __pycache__/

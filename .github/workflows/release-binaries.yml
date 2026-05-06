@@ -69,13 +69,14 @@ jobs:
       - name: Install workspace deps
         run: pnpm install --frozen-lockfile
 
-      - name: Sync generated assets (WASM + version constant)
+      - name: Sync generated assets (WASM + version constants)
         run: |
           # sync-wasm + sync-version run in `prepare` (post pnpm install) but
-          # we re-run defensively — both must exist before tsc compiles, and
-          # `prepare` can be skipped under some pnpm configurations on CI.
+          # we re-run defensively — all generated files must exist before tsc
+          # compiles, and `prepare` can be skipped under some pnpm configs on CI.
           node packages/cli/scripts/sync-wasm.mjs
           node packages/cli/scripts/sync-version.mjs
+          node packages/rules/scripts/sync-version.mjs
 
       - name: Build CLI (TS → JS)
         run: pnpm build
