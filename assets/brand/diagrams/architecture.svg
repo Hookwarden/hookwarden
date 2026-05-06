@@ -1,21 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 520" width="1280" height="520" role="img" aria-label="hookwarden architecture: source AST and YAML rules feed the pure engine, which feeds the CLI; CLI emits text, JSON, and SARIF.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 600" width="1280" height="600" role="img" aria-label="hookwarden architecture: source AST and YAML rules feed the pure engine, which feeds the CLI; CLI emits text, JSON, SARIF, CI.">
   <defs>
-    <radialGradient id="hilite" cx="640" cy="260" r="540" gradientUnits="userSpaceOnUse">
+    <radialGradient id="hilite" cx="640" cy="300" r="600" gradientUnits="userSpaceOnUse">
       <stop offset="0%"   stop-color="#6366F1" stop-opacity="0.14"/>
       <stop offset="60%"  stop-color="#4F46E5" stop-opacity="0.04"/>
       <stop offset="100%" stop-color="#4F46E5" stop-opacity="0"/>
     </radialGradient>
 
-    <radialGradient id="engine-glow" cx="640" cy="260" r="280" gradientUnits="userSpaceOnUse">
+    <radialGradient id="engine-glow" cx="640" cy="320" r="320" gradientUnits="userSpaceOnUse">
       <stop offset="0%"   stop-color="#6366F1" stop-opacity="0.30"/>
       <stop offset="100%" stop-color="#6366F1" stop-opacity="0"/>
     </radialGradient>
-
-    <linearGradient id="flow-stroke" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%"  stop-color="#6366F1" stop-opacity="0.0"/>
-      <stop offset="50%" stop-color="#818CF8" stop-opacity="1.0"/>
-      <stop offset="100%" stop-color="#6366F1" stop-opacity="0.0"/>
-    </linearGradient>
 
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#818CF8"/>
@@ -59,117 +53,121 @@
     </symbol>
   </defs>
 
-  <rect width="1280" height="520" fill="#0B0F14"/>
-  <rect width="1280" height="520" fill="url(#hilite)"/>
-  <circle cx="640" cy="260" r="280" fill="url(#engine-glow)">
-    <animate attributeName="r" values="240;300;240" dur="4.2s" repeatCount="indefinite"/>
+  <rect width="1280" height="600" fill="#0B0F14"/>
+  <rect width="1280" height="600" fill="url(#hilite)"/>
+  <circle cx="640" cy="320" r="320" fill="url(#engine-glow)">
+    <animate attributeName="r" values="280;340;280" dur="4.2s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0.55;0.95;0.55" dur="4.2s" repeatCount="indefinite"/>
   </circle>
 
   <!-- Top-left node: Source AST -->
   <g>
-    <rect x="80" y="60" width="320" height="120" rx="14" fill="#0F172A" stroke="#1E293B" stroke-width="1.5"/>
-    <use href="#ast-icon" x="100" y="80" width="28" height="28"/>
-    <text x="138" y="100" font-family="'Geist Mono', ui-monospace, monospace" font-size="12" fill="#7B8AE6" letter-spacing="2.4">INPUT</text>
-    <text x="100" y="138" font-family="Geist, 'Geist Sans', system-ui, sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Source AST</text>
-    <text x="100" y="162" font-family="'Geist Mono', ui-monospace, monospace" font-size="12" fill="#94A3B8">@babel/parser  ·  web-tree-sitter</text>
+    <rect x="120" y="60" width="300" height="120" rx="14" fill="#0F172A" stroke="#1E293B" stroke-width="1.5"/>
+    <use href="#ast-icon" x="140" y="80" width="26" height="26"/>
+    <text x="176" y="98" font-family="'Geist Mono', ui-monospace, monospace" font-size="12" fill="#7B8AE6" letter-spacing="2.4">INPUT</text>
+    <text x="140" y="138" font-family="Geist, 'Geist Sans', system-ui, sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">Source AST</text>
+    <text x="140" y="162" font-family="'Geist Mono', ui-monospace, monospace" font-size="12" fill="#94A3B8">@babel/parser  ·  web-tree-sitter</text>
   </g>
 
   <!-- Top-right node: rules catalog -->
   <g>
-    <rect x="880" y="60" width="320" height="120" rx="14" fill="#0F172A" stroke="#1E293B" stroke-width="1.5"/>
-    <use href="#yaml-icon" x="900" y="80" width="28" height="28"/>
-    <text x="938" y="100" font-family="'Geist Mono', ui-monospace, monospace" font-size="12" fill="#7B8AE6" letter-spacing="2.4">CATALOG</text>
-    <text x="900" y="138" font-family="Geist, 'Geist Sans', system-ui, sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">@hookwarden/rules</text>
-    <text x="900" y="162" font-family="'Geist Mono', ui-monospace, monospace" font-size="12" fill="#94A3B8">YAML  ·  predicate factories</text>
+    <rect x="860" y="60" width="300" height="120" rx="14" fill="#0F172A" stroke="#1E293B" stroke-width="1.5"/>
+    <use href="#yaml-icon" x="880" y="80" width="26" height="26"/>
+    <text x="916" y="98" font-family="'Geist Mono', ui-monospace, monospace" font-size="12" fill="#7B8AE6" letter-spacing="2.4">CATALOG</text>
+    <text x="880" y="138" font-family="Geist, 'Geist Sans', system-ui, sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">@hookwarden/rules</text>
+    <text x="880" y="162" font-family="'Geist Mono', ui-monospace, monospace" font-size="12" fill="#94A3B8">YAML  ·  predicate factories</text>
   </g>
 
-  <!-- Center node: engine (pulsing accent border) -->
-  <g>
-    <rect x="420" y="220" width="440" height="140" rx="16" fill="#0F172A" stroke="#6366F1" stroke-width="2"/>
-    <rect x="420" y="220" width="440" height="140" rx="16" fill="none" stroke="#818CF8" stroke-width="1.4">
-      <animate attributeName="stroke-width" values="0.8;3.4;0.8" dur="2.8s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.85;0.05;0.85" dur="2.8s" repeatCount="indefinite"/>
-    </rect>
-    <use href="#engine-icon" x="448" y="244" width="32" height="32"/>
-    <text x="488" y="266" font-family="'Geist Mono', ui-monospace, monospace" font-size="12" fill="#A5B4FC" letter-spacing="2.4">PURE  ·  NO I/O  ·  BROWSER-SAFE</text>
-    <text x="448" y="304" font-family="Geist, 'Geist Sans', system-ui, sans-serif" font-size="28" font-weight="700" fill="#E5E7EB">@hookwarden/engine</text>
-    <text x="448" y="332" font-family="'Geist Mono', ui-monospace, monospace" font-size="13" fill="#94A3B8">discovery  ·  reachability  ·  evidence</text>
-
-    <!-- inner data activity (pulsing dots) -->
-    <g>
-      <circle cx="800" cy="260" r="3" fill="#34D399">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.4s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="800" cy="278" r="3" fill="#FBBF24">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.4s" begin="0.4s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="800" cy="296" r="3" fill="#F87171">
-        <animate attributeName="opacity" values="0.2;1;0.2" dur="1.4s" begin="0.8s" repeatCount="indefinite"/>
-      </circle>
-      <text x="812" y="264" font-family="'Geist Mono', ui-monospace, monospace" font-size="11" fill="#94A3B8">verified</text>
-      <text x="812" y="282" font-family="'Geist Mono', ui-monospace, monospace" font-size="11" fill="#94A3B8">manual-review</text>
-      <text x="812" y="300" font-family="'Geist Mono', ui-monospace, monospace" font-size="11" fill="#94A3B8">not-verified</text>
-    </g>
-  </g>
-
-  <!-- Animated input arrows: AST → engine -->
+  <!-- Animated input arrows: land on engine TOP edge (y=260), well clear of verdict legend at bottom -->
   <g fill="none" stroke-linecap="round">
-    <path d="M 240 184 Q 240 220 420 260" stroke="#1E293B" stroke-width="2"/>
-    <path d="M 240 184 Q 240 220 420 260" stroke="#818CF8" stroke-width="2.4" stroke-dasharray="10 14" marker-end="url(#arrow)">
+    <path d="M 270 184 Q 270 220 440 258" stroke="#1E293B" stroke-width="2"/>
+    <path d="M 270 184 Q 270 220 440 258" stroke="#818CF8" stroke-width="2.4" stroke-dasharray="10 14" marker-end="url(#arrow)">
       <animate attributeName="stroke-dashoffset" from="96" to="0" dur="1.8s" repeatCount="indefinite"/>
     </path>
 
-    <!-- Animated input arrows: rules → engine -->
-    <path d="M 1040 184 Q 1040 220 860 260" stroke="#1E293B" stroke-width="2"/>
-    <path d="M 1040 184 Q 1040 220 860 260" stroke="#818CF8" stroke-width="2.4" stroke-dasharray="10 14" marker-end="url(#arrow)">
+    <path d="M 1010 184 Q 1010 220 840 258" stroke="#1E293B" stroke-width="2"/>
+    <path d="M 1010 184 Q 1010 220 840 258" stroke="#818CF8" stroke-width="2.4" stroke-dasharray="10 14" marker-end="url(#arrow)">
       <animate attributeName="stroke-dashoffset" from="96" to="0" dur="1.8s" begin="0.3s" repeatCount="indefinite"/>
     </path>
+  </g>
 
-    <!-- engine → CLI -->
-    <path d="M 640 360 L 640 396" stroke="#1E293B" stroke-width="2"/>
-    <path d="M 640 360 L 640 396" stroke="#818CF8" stroke-width="2.4" stroke-dasharray="8 12" marker-end="url(#arrow)">
+  <!-- Center node: engine — verdict legend along the BOTTOM as a horizontal row, well below arrows landing on top edge -->
+  <g>
+    <rect x="320" y="260" width="640" height="200" rx="16" fill="#0F172A" stroke="#6366F1" stroke-width="2"/>
+    <rect x="320" y="260" width="640" height="200" rx="16" fill="none" stroke="#818CF8" stroke-width="1.4">
+      <animate attributeName="stroke-width" values="0.8;3.4;0.8" dur="2.8s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.85;0.05;0.85" dur="2.8s" repeatCount="indefinite"/>
+    </rect>
+
+    <use href="#engine-icon" x="360" y="290" width="28" height="28"/>
+    <text x="398" y="310" font-family="'Geist Mono', ui-monospace, monospace" font-size="12" fill="#A5B4FC" letter-spacing="2.4">PURE  ·  NO I/O  ·  BROWSER-SAFE</text>
+    <text x="640" y="358" text-anchor="middle" font-family="Geist, 'Geist Sans', system-ui, sans-serif" font-size="32" font-weight="700" fill="#E5E7EB">@hookwarden/engine</text>
+    <text x="640" y="384" text-anchor="middle" font-family="'Geist Mono', ui-monospace, monospace" font-size="13" fill="#94A3B8">discovery  ·  reachability  ·  evidence</text>
+
+    <!-- divider above verdict legend -->
+    <line x1="360" y1="412" x2="920" y2="412" stroke="#1E293B" stroke-width="1"/>
+
+    <!-- verdict legend: three colored dots in a horizontal row, centered as a group inside the engine card -->
+    <g font-family="'Geist Mono', ui-monospace, monospace" font-size="13">
+      <g transform="translate(384,438)">
+        <circle cx="0" cy="-4" r="4" fill="#34D399">
+          <animate attributeName="opacity" values="0.25;1;0.25" dur="1.5s" repeatCount="indefinite"/>
+        </circle>
+        <text x="14" y="0" fill="#E5E7EB">verified</text>
+      </g>
+      <g transform="translate(560,438)">
+        <circle cx="0" cy="-4" r="4" fill="#FBBF24">
+          <animate attributeName="opacity" values="0.25;1;0.25" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
+        </circle>
+        <text x="14" y="0" fill="#E5E7EB">manual-review</text>
+      </g>
+      <g transform="translate(784,438)">
+        <circle cx="0" cy="-4" r="4" fill="#F87171">
+          <animate attributeName="opacity" values="0.25;1;0.25" dur="1.5s" begin="1s" repeatCount="indefinite"/>
+        </circle>
+        <text x="14" y="0" fill="#E5E7EB">not-verified</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- engine → CLI vertical arrow -->
+  <g fill="none" stroke-linecap="round">
+    <path d="M 640 460 L 640 498" stroke="#1E293B" stroke-width="2"/>
+    <path d="M 640 460 L 640 498" stroke="#818CF8" stroke-width="2.4" stroke-dasharray="8 12" marker-end="url(#arrow)">
       <animate attributeName="stroke-dashoffset" from="40" to="0" dur="1.4s" repeatCount="indefinite"/>
     </path>
   </g>
 
-  <!-- Bottom node: CLI -->
+  <!-- Bottom-center node: CLI -->
   <g>
-    <rect x="480" y="400" width="320" height="80" rx="14" fill="#0F172A" stroke="#1E293B" stroke-width="1.5"/>
-    <use href="#cli-icon" x="500" y="420" width="28" height="28"/>
-    <text x="538" y="440" font-family="'Geist Mono', ui-monospace, monospace" font-size="12" fill="#7B8AE6" letter-spacing="2.4">RENDER  ·  EXIT CODES</text>
-    <text x="500" y="466" font-family="Geist, 'Geist Sans', system-ui, sans-serif" font-size="22" font-weight="600" fill="#E5E7EB">hookwarden  CLI</text>
+    <rect x="480" y="498" width="320" height="64" rx="14" fill="#0F172A" stroke="#1E293B" stroke-width="1.5"/>
+    <use href="#cli-icon" x="500" y="514" width="22" height="22"/>
+    <text x="530" y="530" font-family="'Geist Mono', ui-monospace, monospace" font-size="11" fill="#7B8AE6" letter-spacing="2.4">RENDER  ·  EXIT CODES</text>
+    <text x="500" y="552" font-family="Geist, 'Geist Sans', system-ui, sans-serif" font-size="20" font-weight="600" fill="#E5E7EB">hookwarden  CLI</text>
   </g>
 
-  <!-- Output format chips, fading in/out -->
+  <!-- Output chips: single centered row directly below CLI, evenly spaced, no decorative splines.
+       Group span x=420..860 → centered on x=640 (matches CLI center exactly). -->
   <g font-family="'Geist Mono', ui-monospace, monospace" font-size="13" letter-spacing="2">
     <g>
-      <rect x="180"  y="430" width="92" height="34" rx="17" fill="#0F172A" stroke="#1E293B"/>
-      <text x="226" y="453" text-anchor="middle" fill="#E5E7EB">text</text>
-      <animate attributeName="opacity" values="0.35;1;0.35" dur="3s" repeatCount="indefinite"/>
+      <rect x="420" y="572" width="92" height="24" rx="12" fill="#0F172A" stroke="#1E293B"/>
+      <text x="466" y="588" text-anchor="middle" fill="#E5E7EB">text</text>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="3s" repeatCount="indefinite"/>
     </g>
     <g>
-      <rect x="64"   y="430" width="92" height="34" rx="17" fill="#0F172A" stroke="#1E293B"/>
-      <text x="110"  y="453" text-anchor="middle" fill="#E5E7EB">JSON</text>
-      <animate attributeName="opacity" values="0.35;1;0.35" dur="3s" begin="1s" repeatCount="indefinite"/>
+      <rect x="536" y="572" width="92" height="24" rx="12" fill="#0F172A" stroke="#1E293B"/>
+      <text x="582" y="588" text-anchor="middle" fill="#E5E7EB">JSON</text>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="3s" begin="0.75s" repeatCount="indefinite"/>
     </g>
     <g>
-      <rect x="1008" y="430" width="92" height="34" rx="17" fill="#0F172A" stroke="#1E293B"/>
-      <text x="1054" y="453" text-anchor="middle" fill="#E5E7EB">SARIF</text>
-      <animate attributeName="opacity" values="0.35;1;0.35" dur="3s" begin="2s" repeatCount="indefinite"/>
+      <rect x="652" y="572" width="92" height="24" rx="12" fill="#0F172A" stroke="#1E293B"/>
+      <text x="698" y="588" text-anchor="middle" fill="#E5E7EB">SARIF</text>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="3s" begin="1.5s" repeatCount="indefinite"/>
     </g>
     <g>
-      <rect x="1124" y="430" width="92" height="34" rx="17" fill="#0F172A" stroke="#1E293B"/>
-      <text x="1170" y="453" text-anchor="middle" fill="#E5E7EB">CI</text>
-      <animate attributeName="opacity" values="0.35;1;0.35" dur="3s" begin="0.5s" repeatCount="indefinite"/>
+      <rect x="768" y="572" width="92" height="24" rx="12" fill="#0F172A" stroke="#1E293B"/>
+      <text x="814" y="588" text-anchor="middle" fill="#E5E7EB">CI</text>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="3s" begin="2.25s" repeatCount="indefinite"/>
     </g>
-  </g>
-
-  <!-- CLI → outputs splines -->
-  <g fill="none" stroke="#1E293B" stroke-width="1.4" stroke-linecap="round">
-    <path d="M 510 460 Q 380 460 272 447"/>
-    <path d="M 480 440 Q 320 420 156 447"/>
-    <path d="M 770 460 Q 900 460 1008 447"/>
-    <path d="M 800 440 Q 970 420 1124 447"/>
   </g>
 </svg>
