@@ -53,8 +53,8 @@
   },
   "scripts": {
     "test": "vitest run",
-    "prepare": "node scripts/sync-wasm.mjs",
-    "prepack": "node scripts/sync-wasm.mjs"
+    "prepare": "node scripts/sync-wasm.mjs && node scripts/sync-version.mjs",
+    "prepack": "node scripts/sync-wasm.mjs && node scripts/sync-version.mjs"
   },
   "dependencies": {
     "@hookwarden/engine": "workspace:*",

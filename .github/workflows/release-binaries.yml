@@ -69,12 +69,16 @@ jobs:
       - name: Install workspace deps
         run: pnpm install --frozen-lockfile
 
-      - name: Build CLI (TS → JS) and sync WASM
+      - name: Sync generated assets (WASM + version constant)
         run: |
-          pnpm build
-          # sync-wasm runs in `prepare`; re-run defensively to ensure
-          # packages/cli/wasm/tree-sitter-python.wasm exists before bun --compile.
+          # sync-wasm + sync-version run in `prepare` (post pnpm install) but
+          # we re-run defensively — both must exist before tsc compiles, and
+          # `prepare` can be skipped under some pnpm configurations on CI.
           node packages/cli/scripts/sync-wasm.mjs
+          node packages/cli/scripts/sync-version.mjs
+
+      - name: Build CLI (TS → JS)
+        run: pnpm build
 
       - name: Compile standalone binary
         shell: bash

@@ -1,25 +1,21 @@
 // hookwarden CLI entry. D-45 citty defineCommand. D-46 sibling scan + inventory.
 // D-47 no-arg help. D-48 zero-config flags. D-49 exit 0/1/2/3/4 (Phase 4 expanded matrix).
 
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { defineCommand } from "citty";
 import { renderBanner, shouldShowBanner } from "./banner.js";
 import { type InventoryArgs, inventoryCommand, runInventoryCommand } from "./commands/inventory.js";
 import { runScanCommand, type ScanArgs, scanCommand } from "./commands/scan.js";
 import { renderLogo } from "./logo.js";
+// VERSION is generated from package.json by scripts/sync-version.mjs (runs in
+// `prepare` + `prepack` + CI before `bun build --compile`). Generating a TS
+// constant bakes the literal into both the npm-published dist/ AND the Bun
+// compiled binary, side-stepping the runtime read-package.json failure inside
+// Bun's virtual /$bunfs/ filesystem. D-05 lockstep with Changesets is preserved
+// because the Changesets release bumps package.json#version, sync-version
+// regenerates src/version.ts before publish/compile, and any drift is a
+// build-time error rather than a runtime surprise.
+import { VERSION } from "./version.js";
 import { shouldUseAnsi } from "./walker/tty.js";
-
-// Read VERSION from package.json at module load (D-05 lockstep with Changesets); avoids the
-// drift bug where a hardcoded literal here lags behind the published package.json version.
-// `package.json` ships in the published tarball (npm always includes it), and resolves one
-// directory up from both src/ (vitest) and dist/ (npm).
-const moduleDir = dirname(fileURLToPath(import.meta.url));
-const cliPackageJson = JSON.parse(readFileSync(join(moduleDir, "..", "package.json"), "utf8")) as {
-  version: string;
-};
-const VERSION: string = cliPackageJson.version;
 
 // Public registration of the citty command tree (consumed by hosts that prefer citty's runMain).
 export const root = defineCommand({
