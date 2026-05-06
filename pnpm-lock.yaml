@@ -87,6 +87,9 @@ importers:
       tree-sitter-python:
         specifier: ^0.25.0
         version: 0.25.0
+      web-tree-sitter:
+        specifier: 0.26.8
+        version: 0.26.8
 
   packages/engine:
     dependencies:

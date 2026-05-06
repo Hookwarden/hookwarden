@@ -26,12 +26,17 @@ export async function loadBunEmbeddedWasm(): Promise<Uint8Array> {
 }
 
 export async function loadBunEmbeddedWebTreeSitterRuntimeWasm(): Promise<Uint8Array> {
-  // Resolves at compile time to the .wasm shipped by the web-tree-sitter npm
-  // package. Bun bundles it into the binary; at runtime we read the embedded
-  // bytes via Bun.file().bytes() and hand them to Parser.init({ wasmBinary }).
+  // Resolves at compile time to packages/cli/wasm/web-tree-sitter.wasm — a
+  // local copy synced by scripts/sync-wasm.mjs from the web-tree-sitter npm
+  // package. We import via the same relative path as tree-sitter-python.wasm
+  // because Bun's bundler rejects `web-tree-sitter/web-tree-sitter.wasm`
+  // through pnpm's hoisted layout (`error: Could not resolve... maybe you
+  // need to bun install`). The copy lives next to the Python grammar so the
+  // import surface is symmetric and the gitignore rule (`packages/cli/wasm/`)
+  // covers both files.
   const mod = await import(
     // @ts-expect-error — Bun-only import attribute, resolved at compile time
-    "web-tree-sitter/web-tree-sitter.wasm",
+    "../../wasm/web-tree-sitter.wasm",
     { with: { type: "file" } }
   );
   const wasmPath: string = mod.default ?? mod;
