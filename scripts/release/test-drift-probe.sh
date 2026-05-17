@@ -25,6 +25,7 @@ ago_hours() {
 echo "Test 1: in-sync state — probe must report 'in-sync', no issue creation"
 out=$(MOCK_GH_TAG=v1.2.3 \
       MOCK_GH_PUBLISHED_AT="$(ago_hours 1)" \
+      MOCK_GH_HAS_WINDOWS_ASSET=true \
       MOCK_WINGET_VERSIONS="1.2.0
 1.2.1
 1.2.3" \
@@ -47,6 +48,7 @@ echo "  PASS"
 echo "Test 2: drift <72h — probe must report 'within 72h grace', no issue creation"
 out=$(MOCK_GH_TAG=v1.2.4 \
       MOCK_GH_PUBLISHED_AT="$(ago_hours 24)" \
+      MOCK_GH_HAS_WINDOWS_ASSET=true \
       MOCK_WINGET_VERSIONS="1.2.3" \
       MOCK_EXISTING_ISSUES_COUNT=0 \
       DRY_RUN=1 \
@@ -67,6 +69,7 @@ echo "  PASS"
 echo "Test 3: drift >72h with no existing issue — probe MUST create issue"
 out=$(MOCK_GH_TAG=v1.2.4 \
       MOCK_GH_PUBLISHED_AT="$(ago_hours 96)" \
+      MOCK_GH_HAS_WINDOWS_ASSET=true \
       MOCK_WINGET_VERSIONS="1.2.3" \
       MOCK_EXISTING_ISSUES_COUNT=0 \
       DRY_RUN=1 \
@@ -92,6 +95,7 @@ echo "  PASS"
 echo "Test 4: drift >72h with existing open issue — probe MUST NOT create duplicate"
 out=$(MOCK_GH_TAG=v1.2.4 \
       MOCK_GH_PUBLISHED_AT="$(ago_hours 96)" \
+      MOCK_GH_HAS_WINDOWS_ASSET=true \
       MOCK_WINGET_VERSIONS="1.2.3" \
       MOCK_EXISTING_ISSUES_COUNT=1 \
       DRY_RUN=1 \
@@ -112,6 +116,7 @@ echo "  PASS"
 echo "Test 5: WinGet directory missing — probe must handle gracefully"
 out=$(MOCK_GH_TAG=v1.2.4 \
       MOCK_GH_PUBLISHED_AT="$(ago_hours 96)" \
+      MOCK_GH_HAS_WINDOWS_ASSET=true \
       MOCK_WINGET_VERSIONS="" \
       MOCK_EXISTING_ISSUES_COUNT=0 \
       DRY_RUN=1 \
@@ -123,5 +128,31 @@ if ! echo "$out" | grep -q "WinGet manifest directory does not exist yet"; then
 fi
 echo "  PASS"
 
+# ---- Test 6: release has no Windows asset ----
+echo "Test 6: release with no hookwarden-windows-x64.exe — probe must skip cleanly"
+out=$(MOCK_GH_TAG=v0.1.1 \
+      MOCK_GH_PUBLISHED_AT="$(ago_hours 200)" \
+      MOCK_GH_HAS_WINDOWS_ASSET=false \
+      MOCK_WINGET_VERSIONS="" \
+      MOCK_EXISTING_ISSUES_COUNT=0 \
+      DRY_RUN=1 \
+      bash "$PROBE" 2>&1)
+if ! echo "$out" | grep -q "no hookwarden-windows-x64.exe asset — nothing to package for WinGet"; then
+  echo "FAIL: no-asset skip message missing. Output:"
+  echo "$out"
+  exit 1
+fi
+if echo "$out" | grep -q "DRY_RUN: would create issue"; then
+  echo "FAIL: no-asset release attempted to create an issue. Output:"
+  echo "$out"
+  exit 1
+fi
+if echo "$out" | grep -qE "Drift age:|STATUS: drift"; then
+  echo "FAIL: no-asset release proceeded past the skip gate. Output:"
+  echo "$out"
+  exit 1
+fi
+echo "  PASS"
+
 echo
-echo "All 5 drift-probe tests passed."
+echo "All 6 drift-probe tests passed."

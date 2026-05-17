@@ -7,11 +7,14 @@
 #   GH_TOKEN — for `gh` CLI
 #
 # Inputs (env, OPTIONAL — for testing):
-#   MOCK_GH_TAG               — substitute for `gh release view ... tagName`
-#   MOCK_GH_PUBLISHED_AT      — substitute for `gh release view ... publishedAt` (ISO 8601)
-#   MOCK_WINGET_VERSIONS      — substitute for the version directory listing (newline-separated)
-#   MOCK_EXISTING_ISSUES_COUNT — substitute for the existing issue search count (integer)
-#   DRY_RUN                   — if "1", print the would-be `gh issue create` invocation but don't execute it
+#   MOCK_GH_TAG                 — substitute for `gh release view ... tagName`
+#   MOCK_GH_PUBLISHED_AT        — substitute for `gh release view ... publishedAt` (ISO 8601)
+#   MOCK_GH_HAS_WINDOWS_ASSET   — "true" or "false"; substitute for the
+#                                 `gh release view --json assets` Windows-binary lookup. If unset,
+#                                 the real gh call is made.
+#   MOCK_WINGET_VERSIONS        — substitute for the version directory listing (newline-separated)
+#   MOCK_EXISTING_ISSUES_COUNT  — substitute for the existing issue search count (integer)
+#   DRY_RUN                     — if "1", print the would-be `gh issue create` invocation but don't execute it
 #
 # Exit codes:
 #   0 — probe ran successfully (regardless of drift; a created issue is normal)
@@ -36,6 +39,21 @@ if [[ -z "$GH_TAG" || "$GH_TAG" == "null" ]]; then
   exit 0
 fi
 GH_VER="${GH_TAG#v}"
+
+# Skip drift comparison for releases that did not ship a Windows binary.
+# Pre-Phase-4.x releases are source-only (no `hookwarden-windows-x64.exe`
+# asset), so WinGet has nothing to package and any "drift" is meaningless.
+# The probe auto-resumes once a Windows-binary release ships.
+if [[ -n "${MOCK_GH_HAS_WINDOWS_ASSET+set}" ]]; then
+  HAS_WIN_ASSET="$MOCK_GH_HAS_WINDOWS_ASSET"
+else
+  HAS_WIN_ASSET=$(gh release view "$GH_TAG" --repo Hookwarden/hookwarden --json assets \
+                    --jq '[.assets[].name] | any(. == "hookwarden-windows-x64.exe")' 2>/dev/null || echo "false")
+fi
+if [[ "$HAS_WIN_ASSET" != "true" ]]; then
+  echo "INFO: release ${GH_TAG} has no hookwarden-windows-x64.exe asset — nothing to package for WinGet. Skipping."
+  exit 0
+fi
 
 # Use ${VAR+set} so MOCK_WINGET_VERSIONS="" (set-but-empty) takes the mock path.
 # Plain ${VAR:-} would treat empty-set as unset and fall through to the real `gh api` call,
