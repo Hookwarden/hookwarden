@@ -40,9 +40,14 @@ jobs:
   dist-01-precommit-fixture:
     name: DIST-01 pre-commit hook fixture
     # See .planning/phases/04.1-adoption-channels/04.1-02-precommit-hooks-yaml-PLAN.md.
-    # Load-bearing on every PR (DC-18 — dead-gate removal). Previously gated on a
-    # pre-launch repo variable with a continue-on-error waiver; both removed in
-    # Plan 04.2-08 now that Phase 4.2 ships binaries + checksums.txt.
+    # Gated on `PHASE_4X_BINARIES_SHIPPED`: this fixture exercises the full
+    # pre-commit → PyPI shim → SHA-pinned binary download chain, which only
+    # works AFTER the first successful v0.3.0 tag-push (release-binaries.yml's
+    # aggregate job flips the variable + release-py.yml stamps checksums.json
+    # against the just-uploaded binary SHAs). DC-18 removed the gate prematurely
+    # in Plan 04.2-08; counter-corrected here. The `continue-on-error: true`
+    # waiver stays REMOVED — once the gate flips, failures should be loud.
+    if: ${{ vars.PHASE_4X_BINARIES_SHIPPED == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -60,23 +65,12 @@ jobs:
           pip install --upgrade pip
           pip install pre-commit
 
-      - name: Materialize fixture config (substitute REPO_ROOT_PLACEHOLDER + HOOKWARDEN_LOCAL_PATH_PLACEHOLDER)
+      - name: Materialize fixture config (substitute REPO_ROOT_PLACEHOLDER)
         shell: bash
         working-directory: test/fixtures/precommit
         run: |
           REPO_ROOT="$(git -C "$GITHUB_WORKSPACE" rev-parse --show-toplevel)"
-          # HOOKWARDEN_LOCAL_PATH points pre-commit's isolated venv at the local shim
-          # source tree (the canonical Step F / B4 fix — the prior "resolve by name"
-          # approach didn't account for pre-commit's per-hook venv isolation; see
-          # the fixture's .pre-commit-config.yaml comment). Once `hookwarden` is
-          # published on PyPI (currently Pending Publisher binding for release-py.yml
-          # → auto-converts on first publish), the override can be dropped and the
-          # upstream `additional_dependencies: ['hookwarden']` will resolve normally.
-          HOOKWARDEN_LOCAL_PATH="${REPO_ROOT}/python-packages/hookwarden"
-          sed -i.bak \
-            -e "s|REPO_ROOT_PLACEHOLDER|$REPO_ROOT|" \
-            -e "s|HOOKWARDEN_LOCAL_PATH_PLACEHOLDER|$HOOKWARDEN_LOCAL_PATH|" \
-            .pre-commit-config.yaml
+          sed -i.bak "s|REPO_ROOT_PLACEHOLDER|$REPO_ROOT|" .pre-commit-config.yaml
           rm -f .pre-commit-config.yaml.bak
           cat .pre-commit-config.yaml
 
