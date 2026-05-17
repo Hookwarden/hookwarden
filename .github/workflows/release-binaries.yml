@@ -166,18 +166,147 @@ jobs:
             exit $LASTEXITCODE
           }
 
-      - name: Smoke-test unsigned binary (Windows fallback)
-        if: matrix.os == 'windows-latest' && env.SIGN_ENABLED != 'true'
+      - name: Per-target smoke + binary forbidden-deps scan (Linux)
+        if: runner.os != 'Windows'
+        shell: bash
+        env:
+          ASSET: ${{ matrix.asset }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+
+          # 1. --version sanity. For tag-push: must contain the tag minus the leading 'v'.
+          # For workflow_dispatch dry-runs: just assert non-empty.
+          chmod +x "./$ASSET"
+          VERSION_OUT="$(./$ASSET --version 2>&1)"
+          echo "Binary --version: $VERSION_OUT"
+          if [[ -z "$VERSION_OUT" ]]; then
+            echo "ERROR: --version returned empty output" >&2
+            exit 1
+          fi
+          if [[ "$GITHUB_EVENT_NAME" == "push" && "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            EXPECTED="${GITHUB_REF_NAME#v}"
+            if ! echo "$VERSION_OUT" | grep -qF "$EXPECTED"; then
+              echo "ERROR: --version output '$VERSION_OUT' does not contain expected version '$EXPECTED' (from tag $GITHUB_REF_NAME)" >&2
+              exit 1
+            fi
+          fi
+
+          # 2. scan against the release-smoke fixture corpus.
+          # Phase 4 CLI-04 default --fail-on threshold is 'high'. Both
+          # not-verified fixtures are at critical severity, so exit code MUST
+          # be non-zero (1 = findings at/above threshold). Exit codes >=2 are
+          # engine/config/parse errors — smoke failures, not expected outcomes.
+          set +e
+          ./$ASSET scan packages/cli/test/fixtures/release-smoke/ > /tmp/scan-out.txt 2>&1
+          SCAN_EXIT=$?
+          set -e
+          cat /tmp/scan-out.txt
+          if [[ "$SCAN_EXIT" -eq 0 ]]; then
+            echo "ERROR: scan against release-smoke fixture exited 0; expected non-zero (Phase 4 CLI-04 — not-verified findings at/above 'high' threshold)" >&2
+            exit 1
+          fi
+          if [[ "$SCAN_EXIT" -ge 2 ]]; then
+            echo "ERROR: scan exited with engine/config/parse error code $SCAN_EXIT; expected exit 1 (findings at/above threshold)" >&2
+            exit 1
+          fi
+          # Both finding states must appear (proves both code paths execute end-to-end —
+          # JS + Python fixtures, library-verified + not-verified rules).
+          grep -q 'verified' /tmp/scan-out.txt || { echo "ERROR: scan output missing 'verified' state" >&2; exit 1; }
+          grep -q 'not-verified' /tmp/scan-out.txt || { echo "ERROR: scan output missing 'not-verified' state" >&2; exit 1; }
+
+          # 3. Binary-level forbidden-deps strings scan (DC-19 defense-in-depth).
+          # The deny-list emitter applies the 4-char-minimum filter UPSTREAM
+          # (W1 invariant) — no in-step length filter here. Same emitter,
+          # same list, both platforms.
+          pnpm exec tsx packages/cli/scripts/forbidden-deps.ts > /tmp/deny-list.txt
+          test -s /tmp/deny-list.txt
+          if strings "./$ASSET" | grep -F -f /tmp/deny-list.txt; then
+            echo "ERROR: forbidden import literal(s) found in compiled binary $ASSET (printed above). Source-level inspect-bundle.ts may have missed a transitive dep — investigate." >&2
+            exit 1
+          fi
+          echo "OK: smoke + forbidden-deps scan passed for $ASSET"
+
+      - name: Per-target smoke + binary forbidden-deps scan (Windows)
+        if: runner.os == 'Windows'
         shell: pwsh
         env:
           ASSET: ${{ matrix.asset }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
         run: |
-          Write-Warning "Trusted Signing identity not provisioned (TRUSTED_SIGNING_ACCOUNT_NAME unset). Shipping unsigned Windows .exe — SmartScreen will warn on first run."
-          & ".\$env:ASSET" --version
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Unsigned binary failed to execute --version (exit $LASTEXITCODE)"
-            exit $LASTEXITCODE
+          $ErrorActionPreference = "Stop"
+
+          if ($env:SIGN_ENABLED -ne 'true') {
+            Write-Warning "Trusted Signing identity not provisioned (TRUSTED_SIGNING_ACCOUNT_NAME unset). Shipping unsigned Windows .exe — SmartScreen will warn on first run."
           }
+
+          # 1. --version sanity.
+          $versionOut = & ".\$env:ASSET" --version 2>&1 | Out-String
+          Write-Host "Binary --version: $versionOut"
+          if ([string]::IsNullOrWhiteSpace($versionOut)) {
+            Write-Error "--version returned empty output"
+            exit 1
+          }
+          if ($env:GITHUB_EVENT_NAME -eq "push" -and $env:GITHUB_REF_NAME -match '^v\d+\.\d+\.\d+') {
+            $expected = $env:GITHUB_REF_NAME.TrimStart("v")
+            if (-not $versionOut.Contains($expected)) {
+              Write-Error "--version output '$versionOut' does not contain expected version '$expected' (from tag $env:GITHUB_REF_NAME)"
+              exit 1
+            }
+          }
+
+          # 2. scan against the release-smoke fixture corpus.
+          $scanOut = & ".\$env:ASSET" scan packages/cli/test/fixtures/release-smoke/ 2>&1 | Out-String
+          $scanExit = $LASTEXITCODE
+          Write-Host $scanOut
+          if ($scanExit -eq 0) {
+            Write-Error "scan against release-smoke fixture exited 0; expected non-zero (Phase 4 CLI-04)"
+            exit 1
+          }
+          if ($scanExit -ge 2) {
+            Write-Error "scan exited with engine/config/parse error code $scanExit; expected exit 1"
+            exit 1
+          }
+          if ($scanOut -notmatch 'verified') { Write-Error "scan output missing 'verified' state"; exit 1 }
+          if ($scanOut -notmatch 'not-verified') { Write-Error "scan output missing 'not-verified' state"; exit 1 }
+
+          # 3. Binary-level forbidden-deps strings scan (DC-19 defense-in-depth).
+          # Windows runners do NOT ship GNU `strings`; we replicate it by
+          # scanning the binary for printable-ASCII runs of length >=4 and
+          # testing substring containment against each deny-list literal.
+          # The deny-list emitter applies the 4-char-minimum UPSTREAM (W1
+          # invariant) — we do NOT re-filter here. Reading the literals
+          # verbatim ensures Windows + Linux scan against the SAME input.
+          # The >=4 threshold on printable-ASCII runs is the strings-extraction
+          # property, NOT a deny-list filter.
+          & pnpm exec tsx packages/cli/scripts/forbidden-deps.ts | Out-File -FilePath "$env:TEMP\deny-list.txt" -Encoding ascii
+          $denyList = Get-Content "$env:TEMP\deny-list.txt"
+          $bytes = [System.IO.File]::ReadAllBytes((Resolve-Path ".\$env:ASSET"))
+          $sb = New-Object System.Text.StringBuilder
+          $current = New-Object System.Text.StringBuilder
+          foreach ($b in $bytes) {
+            if ($b -ge 0x20 -and $b -le 0x7e) {
+              [void]$current.Append([char]$b)
+            } else {
+              if ($current.Length -ge 4) { [void]$sb.Append($current.ToString()); [void]$sb.Append("`n") }
+              [void]$current.Clear()
+            }
+          }
+          if ($current.Length -ge 4) { [void]$sb.Append($current.ToString()) }
+          $printable = $sb.ToString()
+          $hits = @()
+          foreach ($lit in $denyList) {
+            if ([string]::IsNullOrWhiteSpace($lit)) { continue }
+            # No length filter here (W1 invariant) — the emitter applied it upstream.
+            if ($printable.Contains($lit)) { $hits += $lit }
+          }
+          if ($hits.Count -gt 0) {
+            Write-Error "forbidden import literal(s) found in compiled binary $($env:ASSET): $($hits -join ', ')"
+            exit 1
+          }
+          Write-Host "OK: smoke + forbidden-deps scan passed for $env:ASSET"
 
       - name: Upload binary as workflow artifact
         uses: actions/upload-artifact@v4
