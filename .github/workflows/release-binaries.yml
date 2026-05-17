@@ -321,3 +321,133 @@ jobs:
           path: ${{ matrix.asset }}
           if-no-files-found: error
           retention-days: 1
+
+  aggregate:
+    name: aggregate (checksums + release assets + variable flip)
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download all matrix artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          # Matches both -signed (Windows x64) and -unsigned (Linux arm64,
+          # Linux x64) — Phase 4.2 v0.3.0 has no platform-mandated codesigning
+          # for Linux. macOS legs absent — Plan 04.2-04 deferred per 2026-05-06.
+          pattern: hookwarden-*
+
+      - name: Stage binaries to workspace root
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          # Each artifact lands at ./artifacts/<artifact-name>/<filename>.
+          # Stage every binary at the repo root so sha256sum produces the
+          # exact filename consumers expect (no leading dirs).
+          for d in ./artifacts/hookwarden-*; do
+            for f in "$d"/*; do
+              base="$(basename "$f")"
+              cp "$f" "./$base"
+            done
+          done
+          echo "Staged binaries:"
+          ls -la hookwarden-* 2>/dev/null || { echo "ERROR: no binaries staged from artifacts" >&2; exit 1; }
+
+          # Sanity: exactly the 3 expected filenames must be present (post-2026-05-06).
+          for expected in hookwarden-linux-arm64 hookwarden-linux-x64 hookwarden-windows-x64.exe; do
+            if [[ ! -f "$expected" ]]; then
+              echo "ERROR: expected binary $expected missing after artifact staging" >&2
+              ls -la hookwarden-* >&2 || true
+              exit 1
+            fi
+          done
+
+      - name: Generate checksums.txt (format-locked <sha>  <filename>)
+        run: |
+          set -euo pipefail
+          # sha256sum produces lines in the exact format `<sha>  <filename>\n`
+          # (two-space separator, lowercase 64-char hex). This is the FORMAT
+          # LOCK contract for downstream consumers (bump-homebrew.sh,
+          # bump-scoop.sh, stamp-checksums.py) — see Phase 4.2 PATTERNS.md.
+          # macOS targets absent — Plan 04.2-04 deferred per 2026-05-06; restore
+          # the two darwin entries here when Apple Developer enrollment lands.
+          sha256sum \
+            hookwarden-linux-arm64 \
+            hookwarden-linux-x64 \
+            hookwarden-windows-x64.exe \
+            > checksums.txt
+          echo "checksums.txt content:"
+          cat checksums.txt
+
+          # Hard-fail on any line that doesn't match <sha:64-hex>  <filename>.
+          if ! awk 'NF != 2 || $1 !~ /^[a-f0-9]{64}$/ { exit 1 }' checksums.txt; then
+            echo "ERROR: checksums.txt has lines that violate the format lock <sha:64-hex>  <filename>" >&2
+            cat checksums.txt >&2
+            exit 1
+          fi
+
+          # Hard-fail on any filename outside the narrowed v0.3.0 whitelist.
+          if ! awk '$2 !~ /^hookwarden-(linux-(arm64|x64)|windows-x64\.exe)$/ { exit 1 }' checksums.txt; then
+            echo "ERROR: checksums.txt has filenames outside the v0.3.0 whitelist (linux-arm64|linux-x64|windows-x64.exe)" >&2
+            cat checksums.txt >&2
+            exit 1
+          fi
+
+          # Hard-fail if any of the 3 expected filenames is missing.
+          for expected in hookwarden-linux-arm64 hookwarden-linux-x64 hookwarden-windows-x64.exe; do
+            if ! awk -v f="$expected" '$2 == f { found=1; exit } END { exit !found }' checksums.txt; then
+              echo "ERROR: filename $expected missing from checksums.txt" >&2
+              cat checksums.txt >&2
+              exit 1
+            fi
+          done
+
+      - name: Upload binaries + checksums.txt to GitHub Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME}"
+          # Defensive create-if-missing: in DC-17's chained model, this
+          # aggregation job is the first publisher to the Release, so the
+          # Release may not yet exist when we upload assets.
+          if ! gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create "$VERSION" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "$VERSION" \
+              --generate-notes
+          fi
+          # --clobber: idempotent on partial-state reruns.
+          gh release upload "$VERSION" \
+            hookwarden-linux-arm64 \
+            hookwarden-linux-x64 \
+            hookwarden-windows-x64.exe \
+            checksums.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
+      - name: Flip PHASE_4X_BINARIES_SHIPPED repo variable (idempotent)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Idempotent — harmless on every subsequent release; survives a
+          # hypothetical `gh variable delete` mistake.
+          gh variable set PHASE_4X_BINARIES_SHIPPED \
+            --body true \
+            --repo "$GITHUB_REPOSITORY"
+
+      - name: Summary
+        run: |
+          echo "Aggregation job complete."
+          echo "Event: ${GITHUB_EVENT_NAME}"
+          echo "Ref: ${GITHUB_REF}"
+          echo "Tag (if any): ${GITHUB_REF_NAME}"
+          if [[ "${GITHUB_EVENT_NAME}" != "push" || ! "${GITHUB_REF}" =~ ^refs/tags/v ]]; then
+            echo "NOTE: workflow_dispatch dry-run — Release upload + variable flip skipped."
+          fi
