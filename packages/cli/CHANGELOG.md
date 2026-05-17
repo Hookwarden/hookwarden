@@ -1,5 +1,20 @@
 # hookwarden
 
+## 0.2.1
+
+### Patch Changes
+
+- 08fb590: Refresh README on npm: switch badge accent from `#6366F1` to deeper indigo `#4F46E5` (resolves indigo-vs-violet ambiguity in shields.io rendering), and sync the CLI package README with the root GitHub README — banner, provider matrix, comparison table, architecture diagram, and advanced-usage collapsibles. Asset URLs rewritten to absolute `raw.githubusercontent.com` / `github.com` paths so they resolve on npmjs.com.
+
+  No code changes. Docs-only patch — included to trigger an npm refresh of the package README.
+
+- 442f0b9: Fix npm-page banner: swap `raw.githubusercontent.com` → `cdn.jsdelivr.net` for the readme-banner SVG. GitHub's raw endpoint sets `Content-Security-Policy: ... sandbox` on SVG responses, which npmjs.com's iframe renderer refuses to load. jsDelivr serves the same file with permissive CORS and no sandbox header.
+
+  No code changes. Docs-only patch.
+
+  - @hookwarden/engine@0.2.1
+  - @hookwarden/rules@0.2.1
+
 ## 0.2.0
 
 ### Patch Changes

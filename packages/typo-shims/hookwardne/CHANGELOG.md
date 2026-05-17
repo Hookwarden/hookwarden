@@ -1,5 +1,13 @@
 # hookwardne
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [08fb590]
+- Updated dependencies [442f0b9]
+  - hookwarden@0.2.1
+
 ## 0.2.0
 
 ### Patch Changes
