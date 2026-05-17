@@ -1,7 +1,8 @@
 name: Release
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: [release-binaries]
+    types: [completed]
   pull_request:
     paths:
       - "package.json"
@@ -56,7 +57,12 @@ jobs:
         run: pnpm -r publish --dry-run --no-git-checks --access public
 
   release:
-    if: github.event_name == 'push'
+    # Run on PR validation OR on successful release-binaries completion
+    # (DC-17 producer/consumer chain). Skips on workflow_run with a
+    # non-success conclusion (failure, cancelled, skipped).
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -81,13 +87,6 @@ jobs:
       homebrew-sha: ${{ steps.bump-homebrew.outputs.sha }}
       scoop-sha: ${{ steps.bump-scoop.outputs.sha }}
       action-sha: ${{ steps.bump-action.outputs.sha }}
-    # [FOLLOW-UP — W1 fix triggered_by: phase_4x_ships]: When Phase 4.x's first production
-    # binary release with checksums.txt is published, in the SAME commit that wires up Plan 07's
-    # parity gate, ALSO remove `continue-on-error: true` from the four CI smoke jobs:
-    #   ci.yml: dist-01-precommit-fixture, dist-02-homebrew-smoke, dist-03-scoop-smoke,
-    #           dist-03-winget-smoke
-    # Verification (post-flip):
-    #   ! grep -A1 'dist-0[123]-.*-(fixture|smoke):' .github/workflows/ci.yml | grep -q 'continue-on-error: true'
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
