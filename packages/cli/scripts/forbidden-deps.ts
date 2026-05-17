@@ -179,5 +179,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   // every platform scanner consumes the same input — no per-platform filter
   // in the workflow YAML.
   const unique = Array.from(new Set(literals)).filter((lit) => lit.length >= 4);
-  process.stdout.write(unique.join("\n") + "\n");
+  process.stdout.write(`${unique.join("\n")}\n`);
 }
