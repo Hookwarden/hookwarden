@@ -40,15 +40,9 @@ jobs:
   dist-01-precommit-fixture:
     name: DIST-01 pre-commit hook fixture
     # See .planning/phases/04.1-adoption-channels/04.1-02-precommit-hooks-yaml-PLAN.md.
-    #
-    # Gated off until Phase 4.x predecessor ships real binaries + checksums.txt
-    # (assumption A-04.1-02-002). Until then the fixture's binary-fetch step would
-    # 404 against placeholder URLs and the matrix would post two red Xs on every PR.
-    # Plan 06 flips this to `if: true` (and removes continue-on-error) in the same
-    # edit that wires up the parity gate. Trigger manually meanwhile via
-    # `gh workflow run ci.yml` if you need to verify the install path locally.
-    if: ${{ vars.PHASE_4X_BINARIES_SHIPPED == 'true' }}
-    continue-on-error: true
+    # Load-bearing on every PR (DC-18 — dead-gate removal). Previously gated on a
+    # pre-launch repo variable with a continue-on-error waiver; both removed in
+    # Plan 04.2-08 now that Phase 4.2 ships binaries + checksums.txt.
     strategy:
       fail-fast: false
       matrix:

@@ -13,15 +13,12 @@ permissions:
 
 jobs:
   smoke:
-    # Gated off until Phase 4.x ships real binaries + checksums.txt (A-04.1-03-004).
-    # Set the `PHASE_4X_BINARIES_SHIPPED` repo variable to `true` once binaries land
-    # to activate this matrix; same flag controls dist-01 + dist-03 so a single flip
-    # turns on the full smoke surface.
+    # Cross-workflow sync: only fire from a successful Release run (or any
+    # non-workflow_run trigger like schedule / dispatch). DC-18 removed the
+    # pre-launch gate (Plan 04.2-08) now that binaries ship.
     if: |
-      vars.PHASE_4X_BINARIES_SHIPPED == 'true' && (
-        github.event.workflow_run.conclusion == 'success' ||
-        github.event_name != 'workflow_run'
-      )
+      github.event.workflow_run.conclusion == 'success' ||
+      github.event_name != 'workflow_run'
     strategy:
       fail-fast: false
       matrix:
