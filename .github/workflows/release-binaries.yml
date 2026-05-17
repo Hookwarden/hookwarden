@@ -21,6 +21,14 @@ permissions:
   contents: write
   id-token: write
 
+# Gate Authenticode signing on the Trusted Signing identity actually existing.
+# Microsoft's identity-validation queue can sit for weeks; without this gate,
+# an unvalidated tenant fails the whole Windows job. Remove the gate (and the
+# unsigned-fallback smoke step below) once TRUSTED_SIGNING_ACCOUNT_NAME is a
+# permanent repo secret and we never intend to ship unsigned Windows .exes.
+env:
+  SIGN_ENABLED: ${{ secrets.TRUSTED_SIGNING_ACCOUNT_NAME != '' }}
+
 jobs:
   build:
     name: build (${{ matrix.target }})
@@ -105,7 +113,7 @@ jobs:
           ls -la "$ASSET"
 
       - name: Azure login via OIDC federated identity (Windows)
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-latest' && env.SIGN_ENABLED == 'true'
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
@@ -113,7 +121,7 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Authenticode-sign binary via Azure Trusted Signing (Windows)
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-latest' && env.SIGN_ENABLED == 'true'
         uses: azure/trusted-signing-action@v1.2.0
         with:
           endpoint: ${{ secrets.TRUSTED_SIGNING_ENDPOINT }}
@@ -126,7 +134,7 @@ jobs:
           timestamp-digest: SHA256
 
       - name: Verify Authenticode signature (Windows)
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-latest' && env.SIGN_ENABLED == 'true'
         shell: pwsh
         env:
           ASSET: ${{ matrix.asset }}
@@ -158,14 +166,29 @@ jobs:
             exit $LASTEXITCODE
           }
 
+      - name: Smoke-test unsigned binary (Windows fallback)
+        if: matrix.os == 'windows-latest' && env.SIGN_ENABLED != 'true'
+        shell: pwsh
+        env:
+          ASSET: ${{ matrix.asset }}
+        run: |
+          Write-Warning "Trusted Signing identity not provisioned (TRUSTED_SIGNING_ACCOUNT_NAME unset). Shipping unsigned Windows .exe — SmartScreen will warn on first run."
+          & ".\$env:ASSET" --version
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Unsigned binary failed to execute --version (exit $LASTEXITCODE)"
+            exit $LASTEXITCODE
+          }
+
       - name: Upload binary as workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          # Windows: -signed (Authenticode via Trusted Signing above).
-          # Linux:   -unsigned (no platform-mandated codesigning in v0.3.0).
-          # When 04.2-04 is reactivated and macOS rejoins the matrix, extend
-          # this conditional with `startsWith(matrix.os, 'macos')`.
-          name: ${{ matrix.asset }}-${{ matrix.os == 'windows-latest' && 'signed' || 'unsigned' }}
+          # Suffix encodes signing status so downstream release-upload steps
+          # can pick the right asset without re-deriving it. Windows is -signed
+          # only when Trusted Signing actually ran; Linux is always -unsigned
+          # (no platform-mandated codesigning in v0.3.0). When 04.2-04 is
+          # reactivated and macOS rejoins the matrix, extend this conditional
+          # with `startsWith(matrix.os, 'macos')`.
+          name: ${{ matrix.asset }}-${{ (matrix.os == 'windows-latest' && env.SIGN_ENABLED == 'true') && 'signed' || 'unsigned' }}
           path: ${{ matrix.asset }}
           if-no-files-found: error
           retention-days: 1
