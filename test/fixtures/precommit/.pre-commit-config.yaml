@@ -2,12 +2,25 @@
 # `repo: local` would skip cloning, but we want to exercise the real pre-commit framework
 # path that downloads our PyPI shim and invokes the binary. The CI job substitutes
 # `repo: <ABSOLUTE_PATH_TO_REPO_ROOT>` at runtime so pre-commit treats the local checkout
-# as a git repo and reads our .pre-commit-hooks.yaml. The `additional_dependencies:
-# ['hookwarden']` declared in our .pre-commit-hooks.yaml resolves to the
-# `pip install -e ./python-packages/hookwarden` already installed by the CI job
-# (pre-commit reuses by package name).
+# as a git repo and reads our .pre-commit-hooks.yaml.
+#
+# Pre-commit creates an ISOLATED venv per hook, so the `additional_dependencies: ['hookwarden']`
+# declared in our upstream .pre-commit-hooks.yaml is resolved against PyPI from inside that venv —
+# the CI step's `pip install -e ./python-packages/hookwarden` lives in the parent venv and is
+# unreachable from the isolated one. The earlier "Step F / B4 fix Option A" comment that claimed
+# pre-commit reuses an already-installed package by name was wrong; that's not how pre-commit's
+# isolated venvs work, and the fixture was silently failing on the PyPI resolution before the
+# `continue-on-error: true` waiver was removed in Plan 04.2-08 (DC-18 dead-gate removal).
+#
+# Until the hookwarden PyPI package publishes for the first time (currently Pending Publisher,
+# auto-converts on the first successful release-py.yml run), downstream-override
+# `additional_dependencies` here to point at the local source tree. The CI job substitutes
+# HOOKWARDEN_LOCAL_PATH_PLACEHOLDER with the absolute path to ./python-packages/hookwarden.
+# Once PyPI publish lands, the override can be removed and the upstream `['hookwarden']` will
+# resolve normally — same shape as a real end-user installation.
 repos:
   - repo: REPO_ROOT_PLACEHOLDER
     rev: HEAD
     hooks:
       - id: hookwarden
+        additional_dependencies: ['HOOKWARDEN_LOCAL_PATH_PLACEHOLDER']

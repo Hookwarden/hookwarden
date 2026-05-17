@@ -55,20 +55,28 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install pre-commit + local hookwarden shim
+      - name: Install pre-commit
         run: |
           pip install --upgrade pip
           pip install pre-commit
-          # Editable install — pre-commit's additional_dependencies: ['hookwarden']
-          # resolves to this already-installed package by name (Step F / B4 fix Option A)
-          pip install -e ./python-packages/hookwarden
 
-      - name: Materialize fixture config (substitute REPO_ROOT_PLACEHOLDER)
+      - name: Materialize fixture config (substitute REPO_ROOT_PLACEHOLDER + HOOKWARDEN_LOCAL_PATH_PLACEHOLDER)
         shell: bash
         working-directory: test/fixtures/precommit
         run: |
           REPO_ROOT="$(git -C "$GITHUB_WORKSPACE" rev-parse --show-toplevel)"
-          sed -i.bak "s|REPO_ROOT_PLACEHOLDER|$REPO_ROOT|" .pre-commit-config.yaml
+          # HOOKWARDEN_LOCAL_PATH points pre-commit's isolated venv at the local shim
+          # source tree (the canonical Step F / B4 fix — the prior "resolve by name"
+          # approach didn't account for pre-commit's per-hook venv isolation; see
+          # the fixture's .pre-commit-config.yaml comment). Once `hookwarden` is
+          # published on PyPI (currently Pending Publisher binding for release-py.yml
+          # → auto-converts on first publish), the override can be dropped and the
+          # upstream `additional_dependencies: ['hookwarden']` will resolve normally.
+          HOOKWARDEN_LOCAL_PATH="${REPO_ROOT}/python-packages/hookwarden"
+          sed -i.bak \
+            -e "s|REPO_ROOT_PLACEHOLDER|$REPO_ROOT|" \
+            -e "s|HOOKWARDEN_LOCAL_PATH_PLACEHOLDER|$HOOKWARDEN_LOCAL_PATH|" \
+            .pre-commit-config.yaml
           rm -f .pre-commit-config.yaml.bak
           cat .pre-commit-config.yaml
 
