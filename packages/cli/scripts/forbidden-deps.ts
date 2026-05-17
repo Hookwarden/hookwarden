@@ -141,3 +141,43 @@ export function buildForbiddenImportRegex(): RegExp {
   const source = String.raw`\b(?:require\(\s*|from\s+|import\s+)["'](?:${allParts})["']`;
   return new RegExp(source, "g");
 }
+
+// CLI entrypoint — emits the deny-list as newline-separated plain literals
+// for `grep -F -f` consumption by Phase 4.2 release-binaries.yml's binary-
+// level strings scan (DC-19, defense-in-depth on top of inspect-bundle.ts).
+//
+// Usage:
+//   node packages/cli/scripts/forbidden-deps.js > /tmp/deny-list.txt
+//   strings hookwarden-<target> | grep -F -f /tmp/deny-list.txt && exit 1 || exit 0
+//
+// W1 fix (checker iter 1): the 4-char-minimum filter is applied HERE so every
+// downstream scanner (bash grep on Linux, PowerShell printable-ASCII scan on
+// Windows) consumes the same filtered list. Short builtins like `tls`, `dns`,
+// `net`, `os`, `fs` are dropped at emit time — they would false-positive
+// against WASM section names, asset paths, and variable names baked into the
+// compiled binary. Centralizing the filter eliminates the previous platform-
+// asymmetric behavior where Windows had its own length filter and Linux did
+// not.
+
+function extractStemFromRegex(re: RegExp): string {
+  // /^posthog-[\w-]+$/ → "posthog-": strip leading "^", capture the literal
+  // prefix up to the first regex metachar so grep -F can match it.
+  const src = re.source.replace(/^\^/, "");
+  const m = src.match(/^([A-Za-z0-9_./@-]+)/);
+  return m ? m[1] : "";
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const literals: string[] = [];
+  literals.push(...FORBIDDEN_NETWORK_BUILTIN);
+  literals.push(...FORBIDDEN_HTTP_CLIENTS);
+  for (const pat of FORBIDDEN_ANALYTICS_SDK_PATTERNS) {
+    const stem = extractStemFromRegex(pat);
+    if (stem.length > 0) literals.push(stem);
+  }
+  // W1: 4-char minimum applied to ALL entries (builtins, clients, stems) so
+  // every platform scanner consumes the same input — no per-platform filter
+  // in the workflow YAML.
+  const unique = Array.from(new Set(literals)).filter((lit) => lit.length >= 4);
+  process.stdout.write(unique.join("\n") + "\n");
+}
