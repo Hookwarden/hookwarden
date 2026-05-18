@@ -16,6 +16,34 @@ jobs:
           python-version: '3.12'
       - name: Install build
         run: pip install --upgrade build
+
+      # Race-safety gate: release-binaries.yml is the only producer of
+      # `checksums.txt` on the GH Release for tag $TAG; stamp-checksums.py
+      # below downloads that asset. Both workflows trigger on `tags: v*.*.*`,
+      # so this job races release-binaries.yml. If we run before the
+      # aggregate job in release-binaries.yml has created the GH Release,
+      # `gh release download` 404s. Poll for up to 30 min for the Release
+      # to exist (release-binaries builds 3 binaries cross-platform — typically
+      # 8-15 min total). DC-17 producer/consumer chain made release.yml a
+      # workflow_run consumer; release-py.yml stayed on the naive tag trigger
+      # and inherits this race — close it here.
+      - name: Wait for GH Release (release-binaries.yml producer)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          echo "Polling for GH Release '$TAG' (produced by release-binaries.yml aggregate job)..."
+          for i in {1..60}; do
+            if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json name -q .name >/dev/null 2>&1; then
+              echo "GH Release '$TAG' is ready after $((i * 30))s."
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "ERROR: GH Release '$TAG' did not appear within 30 min — release-binaries.yml failed or is stalled." >&2
+          exit 1
+
       - name: Sync version from git tag
         run: |
           VERSION="${GITHUB_REF#refs/tags/v}"

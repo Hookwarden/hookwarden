@@ -244,7 +244,22 @@ export async function main(argv: ReadonlyArray<string>): Promise<number> {
 //
 // Library consumers (`import { main } from "hookwarden"`) also stay inert
 // because import.meta.main is only true for the literal process entry.
+//
+// Exit semantics for the compiled binary: Bun's --target=bun-linux-* compiled
+// output does NOT reliably honor `process.exitCode` at end-of-event-loop
+// (verified against bun 1.3.14 in CI Ubuntu 24.04 arm64/x64 on 2026-05-18:
+// scan exited 0 despite setting exitCode = 1, then dumped Bun's internal
+// string table to stdout). Native macOS arm64 compilation honored it
+// correctly; only cross-compiled Linux targets exhibit the bug. The fix
+// is to drain stdout explicitly via a flushed write callback, then call
+// `process.exit(code)` — this avoids the SARIF-on-pipe truncation that
+// motivated process.exitCode in the first place, while guaranteeing the
+// process exits with the right status on every target.
 const isCompiledEntry = (import.meta as ImportMeta & { main?: boolean }).main === true;
 if (isCompiledEntry) {
-  process.exitCode = await main(process.argv.slice(2));
+  const code = await main(process.argv.slice(2));
+  await new Promise<void>((resolve) => {
+    process.stdout.write("", () => resolve());
+  });
+  process.exit(code);
 }
