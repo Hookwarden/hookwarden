@@ -25,6 +25,13 @@ FILENAME_TO_KEY = {
     "hookwarden-windows-x64.exe": "windows-x64",
 }
 
+# Targets required to ship the release. macOS (darwin-arm64, darwin-x64)
+# is excluded from v0.3.x because Apple Developer Program enrollment is
+# unfunded; Plan 04.2-04 is deferred-in-place. Restore the two darwin
+# entries when funding lands and the macOS build matrix re-activates in
+# release-binaries.yml.
+REQUIRED_TARGETS = frozenset({"linux-arm64", "linux-x64", "windows-x64"})
+
 SHA_RE = re.compile(r"^([a-f0-9]{64})\s+(\S+)$", re.M)
 
 
@@ -60,9 +67,8 @@ def main(version: str) -> int:
         else:
             sys.stderr.write(f"INFO: ignoring unrecognized artifact {filename}\n")
 
-    expected = set(FILENAME_TO_KEY.values())
     actual = set(pinned.keys())
-    missing = expected - actual
+    missing = REQUIRED_TARGETS - actual
     if missing:
         sys.stderr.write(f"ERROR: missing pins for targets: {sorted(missing)}\n")
         sys.stderr.write(f"checksums.txt content:\n{raw}\n")
