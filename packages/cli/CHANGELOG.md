@@ -1,5 +1,35 @@
 # hookwarden
 
+## 0.3.0
+
+### Minor Changes
+
+- f72331f: Distribution channels — Linux + Windows.
+
+  v0.2.0 was npm-only. v0.3.0 begins channel fan-out for Linux + Windows via four new install paths, all sourced from the same `bun build --compile` binary SHA enforced by the release-pipeline channel-parity gate:
+
+  - `brew install hookwarden` — Homebrew tap (Linux only)
+  - `scoop install hookwarden` — Scoop bucket (Windows)
+  - `winget install hookwarden` — WinGet manifest (Windows)
+  - `pip install hookwarden` — PyPI binary-fetcher shim (Linux + Windows)
+
+  Windows binaries are Authenticode-signed via Azure Trusted Signing (federated OIDC, no static signing cert).
+
+  **macOS is intentionally not included in v0.3.0.** Apple Developer Program enrollment is not funded for this release; macOS users continue using `npx hookwarden`. The Homebrew tap and PyPI shim both fall back to recommending `npx hookwarden` on macOS. The macOS binary surface is deferred to a future funded release.
+
+### Patch Changes
+
+- 08fb590: Refresh README on npm: switch badge accent from `#6366F1` to deeper indigo `#4F46E5` (resolves indigo-vs-violet ambiguity in shields.io rendering), and sync the CLI package README with the root GitHub README — banner, provider matrix, comparison table, architecture diagram, and advanced-usage collapsibles. Asset URLs rewritten to absolute `raw.githubusercontent.com` / `github.com` paths so they resolve on npmjs.com.
+
+  No code changes. Docs-only patch — included to trigger an npm refresh of the package README.
+
+- 442f0b9: Fix npm-page banner: swap `raw.githubusercontent.com` → `cdn.jsdelivr.net` for the readme-banner SVG. GitHub's raw endpoint sets `Content-Security-Policy: ... sandbox` on SVG responses, which npmjs.com's iframe renderer refuses to load. jsDelivr serves the same file with permissive CORS and no sandbox header.
+
+  No code changes. Docs-only patch.
+
+  - @hookwarden/engine@0.3.0
+  - @hookwarden/rules@0.3.0
+
 ## 0.2.0
 
 ### Patch Changes
