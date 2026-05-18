@@ -1,5 +1,5 @@
+import { CLEAN_BODY, STICKY_MARKER } from "@hookwarden/pr-renderer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CLEAN_BODY, STICKY_MARKER } from "../src/comment.format.js";
 import type { ScanFinding } from "../src/types.js";
 
 const mocks = vi.hoisted(() => ({

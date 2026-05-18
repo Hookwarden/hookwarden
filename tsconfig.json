@@ -3,6 +3,7 @@
   "references": [
     { "path": "./packages/engine" },
     { "path": "./packages/cli" },
+    { "path": "./packages/pr-renderer" },
     { "path": "./packages/github-action" },
     { "path": "./packages/rules" }
   ]

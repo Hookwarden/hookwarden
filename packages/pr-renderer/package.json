@@ -1,0 +1,39 @@
+{
+  "name": "@hookwarden/pr-renderer",
+  "version": "1.0.0",
+  "description": "Markdown PR-comment renderer for hookwarden. Single source of truth for the sticky-comment shape used by the public GitHub Action and the SaaS continuous-scanning worker.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hookwarden/hookwarden.git",
+    "directory": "packages/pr-renderer"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0"
+  }
+}

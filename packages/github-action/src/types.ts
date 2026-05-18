@@ -2,6 +2,15 @@
 // Mirrors Phase 4 D-59 JSON envelope (packages/cli/src/render/json.ts) as the wire
 // format the Action parses from CLI stdout. Field names here MUST match the envelope
 // emitted by `hookwarden scan --format json` byte-for-byte.
+//
+// ScanFinding + ScanFindingLocation are owned by @hookwarden/pr-renderer (the
+// renderer is the only thing in the OSS repo that semantically depends on the
+// finding shape). They're re-exported here so existing imports under
+// "./types.js" keep working without touching every consumer file.
+
+import type { ScanFinding, ScanFindingLocation } from "@hookwarden/pr-renderer";
+
+export type { ScanFinding, ScanFindingLocation };
 
 export interface ActionInputs {
   readonly failOn: string;
@@ -15,25 +24,6 @@ export interface SeverityCounts {
   readonly medium: number;
   readonly low: number;
   readonly info: number;
-}
-
-export interface ScanFindingLocation {
-  readonly line: number;
-  readonly col: number;
-}
-
-export interface ScanFinding {
-  readonly finding_id: string;
-  readonly rule_id: string;
-  readonly provider: string | null;
-  readonly severity: "critical" | "high" | "medium" | "low" | "info";
-  readonly state: "verified" | "not-verified" | "manual-review";
-  readonly file_path: string;
-  readonly location: ScanFindingLocation;
-  readonly primary_location_line_hash: string;
-  readonly message: string;
-  readonly redacted_snippet: string | null;
-  readonly suppressed: { readonly source: "inline" | "ignore" | "baseline" } | null;
 }
 
 export interface ScanJsonEnvelope {

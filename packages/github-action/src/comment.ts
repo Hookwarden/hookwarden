@@ -7,7 +7,7 @@
 
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { BOT_LOGIN, CLEAN_BODY, renderSummaryBody, STICKY_MARKER } from "./comment.format.js";
+import { BOT_LOGIN, CLEAN_BODY, renderSummaryBody, STICKY_MARKER } from "@hookwarden/pr-renderer";
 import type { ScanFinding } from "./types.js";
 
 export interface PostCommentInput {

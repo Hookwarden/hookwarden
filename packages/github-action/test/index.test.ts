@@ -2,8 +2,8 @@ import { promises as fs } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
+import { CLEAN_BODY, STICKY_MARKER } from "@hookwarden/pr-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CLEAN_BODY, STICKY_MARKER } from "../src/comment.format.js";
 import type { ScanJsonEnvelope } from "../src/types.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
