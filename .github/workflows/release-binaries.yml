@@ -287,6 +287,13 @@ jobs:
           # remains authoritative.
           Write-Host "OK: smoke (--version + scan + state-grep) passed for $env:ASSET; binary-strings scan disabled pending import-shape rewrite"
 
+          # Reset $LASTEXITCODE — the scan invocation above legitimately exits 1
+          # (findings at threshold) and $LASTEXITCODE persists across pwsh
+          # commands. Without this reset, the step exits with the scan's 1
+          # despite Write-Host succeeding. The Linux bash variant avoids this
+          # via `set +e` / explicit SCAN_EXIT capture.
+          exit 0
+
       - name: Upload binary as workflow artifact
         uses: actions/upload-artifact@v4
         with:
