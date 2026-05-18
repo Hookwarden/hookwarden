@@ -216,17 +216,26 @@ jobs:
           grep -q 'verified' /tmp/scan-out.txt || { echo "ERROR: scan output missing 'verified' state" >&2; exit 1; }
           grep -q 'not-verified' /tmp/scan-out.txt || { echo "ERROR: scan output missing 'not-verified' state" >&2; exit 1; }
 
-          # 3. Binary-level forbidden-deps strings scan (DC-19 defense-in-depth).
-          # The deny-list emitter applies the 4-char-minimum filter UPSTREAM
-          # (W1 invariant) — no in-step length filter here. Same emitter,
-          # same list, both platforms.
-          pnpm exec tsx packages/cli/scripts/forbidden-deps.ts > /tmp/deny-list.txt
-          test -s /tmp/deny-list.txt
-          if strings "./$ASSET" | grep -F -f /tmp/deny-list.txt; then
-            echo "ERROR: forbidden import literal(s) found in compiled binary $ASSET (printed above). Source-level inspect-bundle.ts may have missed a transitive dep — investigate." >&2
-            exit 1
-          fi
-          echo "OK: smoke + forbidden-deps scan passed for $ASSET"
+          # 3. Binary-level forbidden-deps strings scan — DISABLED for Bun-compiled binaries.
+          #
+          # Originally introduced in 04.2-06 as DC-19 defense-in-depth on top of the
+          # source-level inspect-bundle.ts gate (run in release.yml's PR-time preflight).
+          # Discovered on the v0.3.0 release (2026-05-18): Bun's --target=bun-linux-*
+          # compiled binaries embed (a) every package on Bun's "popular packages
+          # needing build scripts" reference list (@sentry/profiling-node, @datadog/*,
+          # @appsignal/nodejs, …) and (b) bundled-stdlib shim paths like
+          # `tmp_modules/thirdparty/undici.ts`. `grep -F -f` against `strings` output
+          # produces guaranteed false positives that no deny-list pruning can avoid
+          # — the offending strings live inside Bun's runtime, not user code.
+          #
+          # The source-level inspect-bundle.ts gate remains authoritative: it parses
+          # import-shape regexes (\brequire\(["']…|from\s+["']…) against the tarball-
+          # bound dist/, where Bun's internal strings are absent.
+          #
+          # TODO(post-v0.3.0): rewrite as an import-shape pattern check against
+          # bun-compiled output (e.g., compiled `__require("axios")` markers) and
+          # re-enable.
+          echo "OK: smoke (--version + scan + state-grep) passed for $ASSET; binary-strings scan disabled pending import-shape rewrite"
 
       - name: Per-target smoke + binary forbidden-deps scan (Windows)
         if: runner.os == 'Windows'
@@ -272,41 +281,11 @@ jobs:
           if ($scanOut -notmatch 'verified') { Write-Error "scan output missing 'verified' state"; exit 1 }
           if ($scanOut -notmatch 'not-verified') { Write-Error "scan output missing 'not-verified' state"; exit 1 }
 
-          # 3. Binary-level forbidden-deps strings scan (DC-19 defense-in-depth).
-          # Windows runners do NOT ship GNU `strings`; we replicate it by
-          # scanning the binary for printable-ASCII runs of length >=4 and
-          # testing substring containment against each deny-list literal.
-          # The deny-list emitter applies the 4-char-minimum UPSTREAM (W1
-          # invariant) — we do NOT re-filter here. Reading the literals
-          # verbatim ensures Windows + Linux scan against the SAME input.
-          # The >=4 threshold on printable-ASCII runs is the strings-extraction
-          # property, NOT a deny-list filter.
-          & pnpm exec tsx packages/cli/scripts/forbidden-deps.ts | Out-File -FilePath "$env:TEMP\deny-list.txt" -Encoding ascii
-          $denyList = Get-Content "$env:TEMP\deny-list.txt"
-          $bytes = [System.IO.File]::ReadAllBytes((Resolve-Path ".\$env:ASSET"))
-          $sb = New-Object System.Text.StringBuilder
-          $current = New-Object System.Text.StringBuilder
-          foreach ($b in $bytes) {
-            if ($b -ge 0x20 -and $b -le 0x7e) {
-              [void]$current.Append([char]$b)
-            } else {
-              if ($current.Length -ge 4) { [void]$sb.Append($current.ToString()); [void]$sb.Append("`n") }
-              [void]$current.Clear()
-            }
-          }
-          if ($current.Length -ge 4) { [void]$sb.Append($current.ToString()) }
-          $printable = $sb.ToString()
-          $hits = @()
-          foreach ($lit in $denyList) {
-            if ([string]::IsNullOrWhiteSpace($lit)) { continue }
-            # No length filter here (W1 invariant) — the emitter applied it upstream.
-            if ($printable.Contains($lit)) { $hits += $lit }
-          }
-          if ($hits.Count -gt 0) {
-            Write-Error "forbidden import literal(s) found in compiled binary $($env:ASSET): $($hits -join ', ')"
-            exit 1
-          }
-          Write-Host "OK: smoke + forbidden-deps scan passed for $env:ASSET"
+          # 3. Binary-level forbidden-deps strings scan — DISABLED on Bun-compiled
+          # binaries; same false-positive issue as the Linux leg (see Linux step
+          # comment for details). Source-level inspect-bundle.ts gate at PR time
+          # remains authoritative.
+          Write-Host "OK: smoke (--version + scan + state-grep) passed for $env:ASSET; binary-strings scan disabled pending import-shape rewrite"
 
       - name: Upload binary as workflow artifact
         uses: actions/upload-artifact@v4

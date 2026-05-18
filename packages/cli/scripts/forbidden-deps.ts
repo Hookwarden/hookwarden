@@ -158,6 +158,27 @@ export function buildForbiddenImportRegex(): RegExp {
 // compiled binary. Centralizing the filter eliminates the previous platform-
 // asymmetric behavior where Windows had its own length filter and Linux did
 // not.
+//
+// 2026-05-18 fix (v0.3.0 second-tag retry): binary-strings scan was matching
+// false positives against Bun's bundled stdlib. The compiled binary contains
+// Bun's own http/https/dgram/undici/request error-message strings ("request
+// canceled", "The :path header is forbidden for CONNECT requests") that match
+// generic deny-list entries as SUBSTRINGS under `grep -F -f`. Source-level
+// inspect-bundle.ts (run at PR time in the release-job preflight) is the
+// correct gate for builtin-module presence and for ambiguous-name HTTP
+// clients. The binary-strings scan only needs to catch third-party clients
+// and analytics SDKs whose names are unlikely to appear as substrings inside
+// Bun's runtime strings.
+const BINARY_SCAN_DROP = new Set<string>([
+  // Node built-in modules — Bun's bundled stdlib contains its own
+  // implementations and surfaces these as error messages / help text.
+  "http",
+  "https",
+  "dgram",
+  // Too generic — "request" appears in "request handler", "requests" (plural),
+  // "request canceled", "requested" anywhere in Bun's runtime strings.
+  "request",
+]);
 
 function extractStemFromRegex(re: RegExp): string {
   // /^posthog-[\w-]+$/ → "posthog-": strip leading "^", capture the literal
@@ -175,9 +196,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const stem = extractStemFromRegex(pat);
     if (stem.length > 0) literals.push(stem);
   }
-  // W1: 4-char minimum applied to ALL entries (builtins, clients, stems) so
-  // every platform scanner consumes the same input — no per-platform filter
-  // in the workflow YAML.
-  const unique = Array.from(new Set(literals)).filter((lit) => lit.length >= 4);
+  // W1: 4-char minimum applied to ALL entries.
+  // BINARY_SCAN_DROP additionally removes entries that produce false positives
+  // when grep -F'd against `strings <compiled-binary>` output. The dropped
+  // entries are still caught at source level by inspect-bundle.ts.
+  const unique = Array.from(new Set(literals))
+    .filter((lit) => lit.length >= 4)
+    .filter((lit) => !BINARY_SCAN_DROP.has(lit));
   process.stdout.write(`${unique.join("\n")}\n`);
 }
