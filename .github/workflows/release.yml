@@ -122,20 +122,47 @@ jobs:
           # enough when registry-url is set on the setup-node action.
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      # ----- Phase 4.1 channel fan-out (only when Changesets actually published) -----
+      # ----- Phase 4.1 channel fan-out (only when the `hookwarden` CLI was published) -----
+      #
+      # Original gate: all downstream steps fired whenever Changesets published anything.
+      # That broke for npm-only scoped publishes (e.g. @hookwarden/pr-renderer@1.0.0, Phase 8):
+      # the "Wait for PyPI publish" step would resolve `version` from the wrong package and
+      # poll for a PyPI release that never fires (release-py.yml is CLI-only). Likewise the
+      # Homebrew/Scoop/hookwarden-action bumps and channel-parity gate are CLI-distribution
+      # concerns that have no meaning for `@hookwarden/*` library publishes.
+      #
+      # New gate: detect whether `hookwarden` (the unscoped CLI package, npm+PyPI dual-
+      # publish) is in the published set. Only then run the CLI fan-out.
+
+      - name: Detect whether hookwarden CLI was published
+        id: cli-published
+        if: steps.changesets.outputs.published == 'true'
+        run: |
+          set -euo pipefail
+          if echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -e 'any(.name == "hookwarden")' > /dev/null; then
+            echo "cli=true" >> "$GITHUB_OUTPUT"
+            echo "hookwarden CLI included in this publish — running CLI distribution fan-out"
+          else
+            echo "cli=false" >> "$GITHUB_OUTPUT"
+            published=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r 'map(.name + "@" + .version) | join(", ")')
+            echo "::notice::Skipping PyPI wait + Homebrew/Scoop/hookwarden-action bumps + channel-parity gate — published set is library-only: ${published}"
+          fi
 
       - name: Resolve version (drop leading v)
         id: version
-        if: steps.changesets.outputs.published == 'true'
+        if: steps.cli-published.outputs.cli == 'true'
         run: |
-          # changesets publishedPackages is a JSON array of {name, version}
-          # All packages co-version per Phase 1 D-05; pick the first as canonical.
-          version=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[0].version')
+          # changesets publishedPackages is a JSON array of {name, version}.
+          # The `hookwarden` CLI (unscoped) is the canonical version source for the
+          # distribution channels — pick its version explicitly, not the array's first
+          # element (which is order-dependent and can be a scoped lib like
+          # @hookwarden/pr-renderer when CLI+lib publish in the same Changesets run).
+          version=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[] | select(.name == "hookwarden") | .version')
           echo "version=v${version}" >> "$GITHUB_OUTPUT"
           echo "Resolved release version: v${version}"
 
       - name: Wait for PyPI publish workflow (release-py.yml triggered by the tag push)
-        if: steps.changesets.outputs.published == 'true'
+        if: steps.cli-published.outputs.cli == 'true'
         run: |
           # Changesets pushes the tag; release-py.yml runs on tag. Poll until it completes.
           # B2 FIX: GHA `gh run list --json headBranch` for tag-triggered runs may return
@@ -170,7 +197,7 @@ jobs:
 
       - name: Mint GitHub App token (homebrew-tap + scoop-bucket + hookwarden-action)
         id: app-token
-        if: steps.changesets.outputs.published == 'true'
+        if: steps.cli-published.outputs.cli == 'true'
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ vars.HOOKWARDEN_BOT_APP_ID }}
@@ -183,7 +210,7 @@ jobs:
 
       - name: Bump Homebrew formula
         id: bump-homebrew
-        if: steps.changesets.outputs.published == 'true'
+        if: steps.cli-published.outputs.cli == 'true'
         run: |
           set -euo pipefail
           sha=$(scripts/release/bump-homebrew.sh)
@@ -194,7 +221,7 @@ jobs:
 
       - name: Bump Scoop manifest
         id: bump-scoop
-        if: steps.changesets.outputs.published == 'true'
+        if: steps.cli-published.outputs.cli == 'true'
         run: |
           set -euo pipefail
           sha=$(scripts/release/bump-scoop.sh)
@@ -205,7 +232,7 @@ jobs:
 
       - name: Build + bump hookwarden-action
         id: bump-action
-        if: steps.changesets.outputs.published == 'true'
+        if: steps.cli-published.outputs.cli == 'true'
         run: |
           set -euo pipefail
           # D-79: ncc bundles src/index.ts + workspace `hookwarden` dep + @actions/* runtime deps
@@ -228,7 +255,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
 
       - name: Channel-parity SHA gate
-        if: steps.changesets.outputs.published == 'true'
+        if: steps.cli-published.outputs.cli == 'true'
         run: bash scripts/release/verify-channel-parity.sh
         env:
           VERSION: ${{ steps.version.outputs.version }}
