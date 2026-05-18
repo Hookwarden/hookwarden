@@ -30,14 +30,17 @@ afterEach(() => {
 });
 
 describe("Phase 1 — Foundation & Defensive Registration: Success Criteria", () => {
-  it("Success Criterion 1: TS project references resolve and 4 OSS package dirs exist", () => {
+  it("Success Criterion 1: TS project references resolve and 5 OSS package dirs exist", () => {
     run("pnpm exec tsc --build --dry");
-    for (const name of ["engine", "cli", "github-action", "rules"]) {
+    // pr-renderer added in phase 8 (08-02) as the canonical home of the PR
+    // sticky-comment renderer — shared between @hookwarden/github-action (this
+    // repo) and the SaaS continuous-scanning worker (private repo via npm).
+    for (const name of ["engine", "cli", "github-action", "rules", "pr-renderer"]) {
       const path = join(ROOT, "packages", name, "package.json");
       expect(existsSync(path), `packages/${name}/package.json missing`).toBe(true);
     }
     const root = JSON.parse(readFileSync(join(ROOT, "tsconfig.json"), "utf8"));
-    expect(root.references.length).toBe(4);
+    expect(root.references.length).toBe(5);
   });
 
   it("Success Criterion 2: dep-cruiser blocks fs import in packages/engine", () => {
