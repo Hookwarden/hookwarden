@@ -1,0 +1,25 @@
+name: DIST stamp-checksums test
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/release/stamp-checksums.py'
+      - 'scripts/release/test-stamp-checksums-subset.sh'
+      - '.github/workflows/dist-stamp-checksums-test.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/release/stamp-checksums.py'
+      - 'scripts/release/test-stamp-checksums-subset.sh'
+      - '.github/workflows/dist-stamp-checksums-test.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run stamp-checksums REQUIRED_TARGETS subset test
+        run: bash scripts/release/test-stamp-checksums-subset.sh
