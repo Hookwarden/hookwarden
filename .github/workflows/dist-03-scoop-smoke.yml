@@ -38,7 +38,11 @@ jobs:
         shell: powershell
         run: |
           $installed = (hookwarden --version) -join "`n"
-          $manifestVersion = (scoop info hookwarden | Select-String "Version") -replace '.*:\s*',''
+          # ^Version anchors to the start-of-line so "Updated at" / "Updated by"
+          # rows (which contain "Version" substring or get caught by the greedy
+          # .*: replace) don't poison the parse. First-match guards against any
+          # future scoop info field that also begins with "Version".
+          $manifestVersion = (scoop info hookwarden | Select-String "^Version" | Select-Object -First 1) -replace '^Version\s*:\s*',''
           Write-Host "Installed: $installed"
           Write-Host "Manifest:  $manifestVersion"
           if (-not $installed.Contains($manifestVersion)) {
