@@ -68,7 +68,7 @@ On a Windows machine (the bot owner's machine, or a Windows VM):
    - **Publisher:** `Hookwarden`
    - **License:** `Apache-2.0`
    - **ShortDescription:** `Webhook signature-verification audit tool`
-   - **Homepage:** `https://hookwarden.dev`
+   - **Homepage:** `https://github.com/Hookwarden/hookwarden` (use the GitHub repo URL until `hookwarden.dev` is deployed — winget validates URL reachability and rejects 5xx)
 3. Authenticate with the bot's PAT when prompted
 4. `wingetcreate` opens a PR to `microsoft/winget-pkgs` from `hookwarden-bot/winget-pkgs` — review the PR URL it prints
 5. Wait 1-3 days for microsoft moderators to review and merge
