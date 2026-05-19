@@ -87,9 +87,12 @@ jobs:
         run: pnpm inspect-bundle
       - name: Upgrade npm for OIDC support
         # npm 11.5.1+ is required for native OIDC Trusted Publisher publishing.
-        # Node 22 LTS ships with npm 10.x, so an explicit bump is needed until
-        # setup-node bundles a newer npm by default.
-        run: npm install -g npm@latest
+        # Node 22 LTS ships with npm 10.x. Self-upgrade via `npm install -g
+        # npm@latest` is known-flaky (npm 10 → 11 self-replacement can hit
+        # MODULE_NOT_FOUND for `promise-retry`); pinning to a specific version
+        # is the reliable path. Gated to non-PR — PR validation doesn't publish.
+        if: github.event_name != 'pull_request'
+        run: npm install -g npm@11.5.1
       - id: changesets
         # Skip on PR events — changesets/action expects to run on a real branch
         # (main) so it can open/update the Version Packages PR with `base: main`.
