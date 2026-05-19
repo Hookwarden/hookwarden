@@ -1,0 +1,102 @@
+name: DIST bun-compile behavior tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/cli/test/fixtures/bun-compile/**'
+      - 'packages/cli/scripts/forbidden-deps.ts'
+      - '.github/workflows/dist-bun-compile-tests.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/cli/test/fixtures/bun-compile/**'
+      - 'packages/cli/scripts/forbidden-deps.ts'
+      - '.github/workflows/dist-bun-compile-tests.yml'
+  schedule:
+    # Weekly — these tests detect upstream Bun behavior changes (bugs 1 + 3
+    # are Bun-side issues that the CLI worked around). Periodic runs catch
+    # "Bun fixed the bug, we can simplify" signals.
+    - cron: '0 13 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Bug 1: assert `bun build --compile` honors explicit process.exit(N).
+  # If this ever fails, the CLI's exit code is silently being dropped —
+  # `npx hookwarden scan` would exit 0 on findings, breaking CI gates.
+  exit-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - name: Print Bun version (informational)
+        run: bun --version
+
+      - name: Bug 1 — explicit process.exit(N) honored
+        run: |
+          set -euo pipefail
+          OUT=$(mktemp -d)/bin
+          bun build --compile packages/cli/test/fixtures/bun-compile/exit-code-explicit.ts --outfile "$OUT"
+          if "$OUT"; then
+            echo "FAIL: bug 1 regression — explicit process.exit(1) in compiled binary exited 0"
+            exit 1
+          fi
+          actual=$?
+          if [[ "$actual" != "1" ]]; then
+            echo "FAIL: expected exit 1, got exit $actual"
+            exit 1
+          fi
+          echo "PASS: explicit process.exit(1) → binary exits 1"
+
+      - name: Bug 1 — implicit process.exitCode probe (informational)
+        run: |
+          set -uo pipefail
+          OUT=$(mktemp -d)/bin
+          bun build --compile packages/cli/test/fixtures/bun-compile/exit-code-implicit.ts --outfile "$OUT"
+          "$OUT" || true
+          actual=$?
+          if [[ "$actual" == "1" ]]; then
+            echo "::notice::Bun honors process.exitCode in --compile output now. The explicit process.exit(code) workaround in packages/cli/src/index.ts can be removed."
+          else
+            echo "::notice::Bun still ignores process.exitCode in --compile output (exited $actual). Explicit process.exit(code) workaround remains required."
+          fi
+
+  # Bug 3: probe whether Bun embeds forbidden-deps names as literal strings
+  # in compiled binaries (independent of user code). If yes, the binary-
+  # level forbidden-deps scan is unreliable — must stay disabled.
+  forbidden-deps-fp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Bug 3 — compile vanilla hello-world + grep for forbidden-deps names
+        run: |
+          set -euo pipefail
+          OUT=$(mktemp -d)/hello
+          bun build --compile packages/cli/test/fixtures/bun-compile/hello-world.ts --outfile "$OUT"
+
+          # Subset of FORBIDDEN_HTTP_CLIENTS from packages/cli/scripts/forbidden-deps.ts.
+          # Matched as whole-word against `strings` output to avoid false-FPs on
+          # substrings like "ax-iosX" inside legitimate runtime symbols.
+          deny_list=(node-fetch axios got undici phin superagent cross-fetch isomorphic-fetch ky wretch needle request)
+          hits=0
+          hit_names=()
+          for name in "${deny_list[@]}"; do
+            if strings "$OUT" | grep -qFx "$name"; then
+              hits=$((hits + 1))
+              hit_names+=("$name")
+            fi
+          done
+          echo "deny-list hits in vanilla compiled binary: $hits"
+          if (( hits > 0 )); then
+            echo "  hit names: ${hit_names[*]}"
+            echo "PASS: bug 3 still present (Bun embeds forbidden-deps strings as literals). Binary-level deps scan must stay disabled."
+            exit 0
+          fi
+          # Zero hits would mean Bun no longer embeds these — re-evaluate the
+          # disabled binary scan. Fail loudly so we notice.
+          echo "::warning::Bun --compile output no longer embeds forbidden-deps strings in a vanilla hello-world (0 hits). Re-evaluate enabling the binary-level forbidden-deps scan in release-binaries.yml DC-19."
+          exit 1

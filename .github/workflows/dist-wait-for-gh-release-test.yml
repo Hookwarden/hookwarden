@@ -1,0 +1,27 @@
+name: DIST wait-for-gh-release test
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/release/wait-for-gh-release.sh'
+      - 'scripts/release/test-wait-for-gh-release.sh'
+      - '.github/workflows/release-py.yml'
+      - '.github/workflows/dist-wait-for-gh-release-test.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/release/wait-for-gh-release.sh'
+      - 'scripts/release/test-wait-for-gh-release.sh'
+      - '.github/workflows/release-py.yml'
+      - '.github/workflows/dist-wait-for-gh-release-test.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run wait-for-gh-release synthetic test
+        run: bash scripts/release/test-wait-for-gh-release.sh

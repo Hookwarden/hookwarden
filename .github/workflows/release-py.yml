@@ -28,21 +28,12 @@ jobs:
       # workflow_run consumer; release-py.yml stayed on the naive tag trigger
       # and inherits this race — close it here.
       - name: Wait for GH Release (release-binaries.yml producer)
+        # Delegates to scripts/release/wait-for-gh-release.sh — extracted so
+        # the polling logic is testable in isolation (bug 2 from #12).
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}
-        run: |
-          set -euo pipefail
-          echo "Polling for GH Release '$TAG' (produced by release-binaries.yml aggregate job)..."
-          for i in {1..60}; do
-            if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json name -q .name >/dev/null 2>&1; then
-              echo "GH Release '$TAG' is ready after $((i * 30))s."
-              exit 0
-            fi
-            sleep 30
-          done
-          echo "ERROR: GH Release '$TAG' did not appear within 30 min — release-binaries.yml failed or is stalled." >&2
-          exit 1
+        run: bash scripts/release/wait-for-gh-release.sh
 
       - name: Sync version from git tag
         run: |
