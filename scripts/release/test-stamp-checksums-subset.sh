@@ -52,7 +52,17 @@ run_stamp() {
   )
 }
 
-cleanup() { [[ -n "${TMP:-}" && -d "$TMP" ]] && rm -rf "$TMP"; }
+cleanup() {
+  if [[ -n "${TMP:-}" && -d "$TMP" ]]; then
+    rm -rf "$TMP"
+  fi
+  # Always return 0 — trap-on-EXIT in `set -e` mode propagates the
+  # function's last command's exit status. The original `&& rm -rf` form
+  # returns 1 when TMP is already gone (e.g. after the last in-test
+  # cleanup call), which exits the script silently between the final
+  # PASS print and the trailing "All N tests passed." line. Reproduces
+  # in ubuntu-latest GHA but not on macOS local — bash version drift.
+}
 trap cleanup EXIT
 
 SHA_LA=$(printf 'a%.0s' {1..64})
