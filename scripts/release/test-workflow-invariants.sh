@@ -180,5 +180,54 @@ if "pull_request" not in gate_line:
 print(f"  PASS (gate: {gate_line!r})")
 PY
 
+# ---- Test 4 (bug 9): bump-* scripts use `git commit -q` + `git push -q` ----
+echo "Test 4 (bug 9): bump-* scripts must use 'git commit -q' + 'git push -q' (preserves pristine stdout for \$GITHUB_OUTPUT capture)"
+python3 - <<'PY'
+import re
+import sys
+from pathlib import Path
+
+# release.yml captures bump-script stdout via `sha=$(scripts/release/bump-X.sh)`
+# and writes it to $GITHUB_OUTPUT. Any extra lines from `git commit` (the
+# `[branch hash] msg \n N file changed, ...` block) fail $GITHUB_OUTPUT parsing
+# with `Invalid format ...`. The -q flag silences git's stdout chatter so only
+# the trailing `git rev-parse HEAD` reaches the caller.
+SCRIPTS = [
+    "scripts/release/bump-homebrew.sh",
+    "scripts/release/bump-scoop.sh",
+    "scripts/release/bump-hookwarden-action.sh",
+]
+failed = []
+for path in SCRIPTS:
+    src = Path(path).read_text()
+    # Every `git commit` and `git push` invocation must include -q
+    commit_calls = re.findall(r'^\s*git commit(\s+\S+)*', src, re.M)
+    push_calls = re.findall(r'^\s*git push(\s+\S+)*', src, re.M)
+    bad = []
+    for line in re.findall(r'^\s*git commit(?:\s.*)?$', src, re.M):
+        if not re.search(r'\s-q(\s|$)', line):
+            bad.append(line.strip())
+    for line in re.findall(r'^\s*git push(?:\s.*)?$', src, re.M):
+        if not re.search(r'\s-q(\s|$)', line):
+            bad.append(line.strip())
+    if bad:
+        failed.append((path, bad))
+
+if failed:
+    sys.stderr.write("FAIL: bug 9 regression — bump-* script(s) leak git output to stdout:\n")
+    for path, bad in failed:
+        sys.stderr.write(f"  {path}:\n")
+        for line in bad:
+            sys.stderr.write(f"    {line}\n")
+    sys.stderr.write(
+        "release.yml captures these scripts' stdout via `sha=$(...)` and feeds it "
+        "to $GITHUB_OUTPUT — any extra lines from `git commit`/`git push` fail "
+        "with `Invalid format`. Use `git commit -q` + `git push -q`.\n"
+    )
+    sys.exit(1)
+
+print(f"  PASS ({len(SCRIPTS)} bump-* scripts all use -q on commit + push)")
+PY
+
 echo
-echo "All 3 workflow-invariant tests passed."
+echo "All 4 workflow-invariant tests passed."
