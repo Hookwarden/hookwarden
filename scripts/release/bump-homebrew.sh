@@ -31,13 +31,15 @@ extract_sha() {
   local filename=$1
   awk -v f="$filename" '$2 == f { print $1; exit }' "$WORKDIR/checksums.txt"
 }
-SHA_DARWIN_ARM=$(extract_sha hookwarden-darwin-arm64)
-SHA_DARWIN_X64=$(extract_sha hookwarden-darwin-x64)
+# Formula is Linux-only — macOS binaries are unfunded (Apple Developer
+# Program). macOS users install via `npx hookwarden`; the formula's
+# on_macos block (in homebrew-tap) calls `odie` with that guidance.
+# Mirrors stamp-checksums.py's REQUIRED_TARGETS pattern.
 SHA_LINUX_ARM=$(extract_sha hookwarden-linux-arm64)
 SHA_LINUX_X64=$(extract_sha hookwarden-linux-x64)
-for sha in "$SHA_DARWIN_ARM" "$SHA_DARWIN_X64" "$SHA_LINUX_ARM" "$SHA_LINUX_X64"; do
+for sha in "$SHA_LINUX_ARM" "$SHA_LINUX_X64"; do
   if [[ ! "$sha" =~ ^[a-f0-9]{64}$ ]]; then
-    echo "ERROR: missing or malformed SHA for one of the targets — checksums.txt content:" >&2
+    echo "ERROR: missing or malformed SHA for one of the Linux targets — checksums.txt content:" >&2
     cat "$WORKDIR/checksums.txt" >&2
     exit 1
   fi
@@ -53,9 +55,9 @@ FORMULA=Formula/hookwarden.rb
 # Bump version line
 sed -i.bak -E "s|^  version \"[^\"]+\"|  version \"${VER_NO_V}\"|" "$FORMULA"
 
-# Replace the four sha256 lines IN ORDER (darwin-arm, darwin-x64, linux-arm, linux-x64).
-# We rely on the formula's deterministic block ordering.
-python3 - "$FORMULA" "$SHA_DARWIN_ARM" "$SHA_DARWIN_X64" "$SHA_LINUX_ARM" "$SHA_LINUX_X64" <<'PY'
+# Replace the two sha256 lines IN ORDER (linux-arm, linux-x64).
+# Couples to the formula shape — see formula's on_linux blocks.
+python3 - "$FORMULA" "$SHA_LINUX_ARM" "$SHA_LINUX_X64" <<'PY'
 import re
 import sys
 
@@ -63,9 +65,9 @@ path, *shas = sys.argv[1:]
 src = open(path).read()
 pattern = re.compile(r'sha256 "[a-f0-9]{64}"')
 matches = list(pattern.finditer(src))
-assert len(matches) == 4, f"expected 4 sha256 lines, found {len(matches)}"
+assert len(matches) == 2, f"expected 2 sha256 lines, found {len(matches)}"
 # Replace in reverse order so earlier offsets remain valid.
-for i in range(3, -1, -1):
+for i in range(1, -1, -1):
     m = matches[i]
     src = src[: m.start()] + f'sha256 "{shas[i]}"' + src[m.end() :]
 open(path, "w").write(src)
