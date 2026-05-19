@@ -14,12 +14,12 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  # PR-time preflight — mirrors the real release setup but stops short of publishing.
-  # Catches NPM auth regressions (missing NODE_AUTH_TOKEN / NPM_TOKEN) before merge,
-  # which historically only surfaced after pushing to main and watching Release fail.
+  # PR-time preflight — validates build + tarball shape without publishing.
+  # No npm auth needed: --dry-run skips registry interaction; OIDC happens
+  # at real-publish time on the workflow_run leg (release job below).
   preflight:
     if: github.event_name == 'pull_request'
-    name: Release preflight (auth + dry-run pack)
+    name: Release preflight (build + dry-run pack)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -36,24 +36,9 @@ jobs:
         run: pnpm exec tsc --build
       - name: Bundle inspection (pre-publish gate)
         run: pnpm inspect-bundle
-      - name: Validate npm auth wiring
-        # Regression guard for the NODE_AUTH_TOKEN drop in 0a0ff4c. setup-node@v6
-        # writes a project .npmrc that interpolates ${NODE_AUTH_TOKEN}; if either
-        # secret is empty `npm whoami` returns 401 and we fail fast.
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -z "$NODE_AUTH_TOKEN" ]; then
-            echo "::error::NODE_AUTH_TOKEN is empty — set NPM_TOKEN repo secret and ensure release.yml maps it to NODE_AUTH_TOKEN"
-            exit 1
-          fi
-          npm whoami
       - name: Dry-run publish every workspace package
         # Validates each package's tarball + publishConfig without uploading.
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # No auth: --dry-run skips the registry PUT.
         run: pnpm -r publish --dry-run --no-git-checks --access public
 
   release:
@@ -100,6 +85,14 @@ jobs:
         run: pnpm exec tsc --build
       - name: Bundle inspection (pre-publish gate)
         run: pnpm inspect-bundle
+      - name: Upgrade npm for OIDC support
+        # npm 11.5.1+ is required for native OIDC Trusted Publisher publishing.
+        # Node 22 LTS ships with npm 10.x. Self-upgrade via `npm install -g
+        # npm@latest` is known-flaky (npm 10 → 11 self-replacement can hit
+        # MODULE_NOT_FOUND for `promise-retry`); pinning to a specific version
+        # is the reliable path. Gated to non-PR — PR validation doesn't publish.
+        if: github.event_name != 'pull_request'
+        run: npm install -g npm@11.5.1
       - id: changesets
         # Skip on PR events — changesets/action expects to run on a real branch
         # (main) so it can open/update the Version Packages PR with `base: main`.
@@ -114,20 +107,12 @@ jobs:
           version: pnpm changeset version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Classic npm token used as the auth source for `pnpm changeset publish`.
-          # Trusted Publishing (OIDC) is still wired up on the workflow side via
-          # `permissions.id-token: write` above, so npm provenance attestation is
-          # attached when publishing — best-of-both: classic auth + signed provenance.
-          # Remove this once Trusted Publisher entries exist on npmjs.com for
-          # `hookwarden`, `@hookwarden/engine`, `@hookwarden/rules` and pure OIDC works.
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          # setup-node@v6 writes a project-level .npmrc that interpolates
-          # ${NODE_AUTH_TOKEN}; without this env var that .npmrc resolves to
-          # empty and PUT /registry returns 404 (npm masks no-auth as 404).
-          # See git history of this file: this line existed pre-0a0ff4c and was
-          # the load-bearing variable for token auth — NPM_TOKEN alone is not
-          # enough when registry-url is set on the setup-node action.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # npm auth: OIDC via id-token: write (above) + Trusted Publisher
+          # bindings on npmjs.com for `hookwarden`, `@hookwarden/engine`,
+          # `@hookwarden/rules`. npm 11.5+ auto-detects the OIDC env and
+          # exchanges the JWT for a short-lived publish token — no NPM_TOKEN
+          # secret to rotate, immune to package-side 2FA-policy changes
+          # (bug 8 from issue #12, which forced multiple v0.3.1 re-runs).
 
       # ----- Phase 4.1 channel fan-out (only when the `hookwarden` CLI was published) -----
       #
