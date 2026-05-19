@@ -52,11 +52,14 @@ cd "$WORKDIR/tap"
 # 3. In-place edit Formula/hookwarden.rb
 FORMULA=Formula/hookwarden.rb
 
-# Bump version line
-sed -i.bak -E "s|^  version \"[^\"]+\"|  version \"${VER_NO_V}\"|" "$FORMULA"
+# Bump the version embedded in URLs (e.g. .../v0.3.0/... → .../v0.3.1/...).
+# Formula has no `version` line — it auto-derives from the top-level url, so
+# updating the URL substring is sufficient. Pattern is anchored to the GitHub
+# releases path to avoid touching unrelated `vX.Y.Z` strings.
+sed -i.bak -E "s|(releases/download/)v[0-9]+\.[0-9]+\.[0-9]+|\\1${VERSION}|g" "$FORMULA"
 
-# Replace the two sha256 lines IN ORDER (linux-arm, linux-x64).
-# Couples to the formula shape — see formula's on_linux blocks.
+# Replace the two sha256 lines IN ORDER (top-level linux-arm, on_intel linux-x64).
+# Couples to the formula shape — see formula's top-level url + on_linux block.
 python3 - "$FORMULA" "$SHA_LINUX_ARM" "$SHA_LINUX_X64" <<'PY'
 import re
 import sys
