@@ -82,8 +82,11 @@ rm -f "${FORMULA}.bak"
 git config user.email "release-bot@hookwarden.dev"
 git config user.name  "hookwarden-release-bot"
 git add "$FORMULA"
-git commit -m "chore: bump hookwarden to ${VERSION}"
-git push origin main
+# -q on commit+push: keeps stdout pristine so only `git rev-parse HEAD`
+# below reaches the caller (release.yml captures this as a step output;
+# any extra lines fail $GITHUB_OUTPUT parsing — see issue #12 bug 9).
+git commit -q -m "chore: bump hookwarden to ${VERSION}"
+git push -q origin main
 
 # Emit pushed commit SHA to stdout for Plan 07's parity gate
 git rev-parse HEAD

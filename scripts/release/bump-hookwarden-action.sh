@@ -41,15 +41,18 @@ git config user.email "release-bot@hookwarden.dev"
 git config user.name  "hookwarden-release-bot"
 
 git add -A
-git commit -m "chore: release ${VERSION}"
+# -q + redirect: keep stdout pristine so only `git rev-parse HEAD` below
+# reaches the caller (same $GITHUB_OUTPUT invariant as the other bump
+# scripts — issue #12 bug 9).
+git commit -q -m "chore: release ${VERSION}"
 
 # 4. Tags: moving v1 (force-pushed each release per D-79; standard Action convention)
 #    plus immutable per-release vX.Y.Z (users wanting reproducibility pin to it)
 git tag -f v1
 git tag "${VERSION}"
 
-git push origin main --force
-git push origin --tags --force
+git push -q origin main --force
+git push -q origin --tags --force
 
 # 5. Emit pushed commit SHA to stdout for release.yml's `action-sha` output
 git rev-parse HEAD

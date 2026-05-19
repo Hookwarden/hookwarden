@@ -57,8 +57,10 @@ jq empty "$MANIFEST"
 git config user.email "release-bot@hookwarden.dev"
 git config user.name  "hookwarden-release-bot"
 git add "$MANIFEST"
-git commit -m "chore: bump hookwarden to ${VERSION}"
-git push origin main
+# -q on commit+push: same $GITHUB_OUTPUT pristine-stdout invariant as
+# bump-homebrew.sh (issue #12 bug 9).
+git commit -q -m "chore: bump hookwarden to ${VERSION}"
+git push -q origin main
 
 # Emit pushed commit SHA
 git rev-parse HEAD
