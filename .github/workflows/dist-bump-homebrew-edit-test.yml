@@ -1,0 +1,27 @@
+name: DIST bump-homebrew-edit test
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/release/bump-homebrew-edit.sh'
+      - 'scripts/release/bump-homebrew.sh'
+      - 'scripts/release/test-bump-homebrew-edit.sh'
+      - '.github/workflows/dist-bump-homebrew-edit-test.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/release/bump-homebrew-edit.sh'
+      - 'scripts/release/bump-homebrew.sh'
+      - 'scripts/release/test-bump-homebrew-edit.sh'
+      - '.github/workflows/dist-bump-homebrew-edit-test.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run bump-homebrew-edit synthetic test
+        run: bash scripts/release/test-bump-homebrew-edit.sh
