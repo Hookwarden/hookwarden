@@ -73,8 +73,11 @@ fi
 echo "  PASS"
 
 # ---- Test 5: missing GITHUB_REPOSITORY → boundary rejection ----
+# `env -u GITHUB_REPOSITORY` explicitly unsets the var — GitHub Actions
+# runners pre-set GITHUB_REPOSITORY in the env, so omitting it from the
+# env-var prefix doesn't actually unset it.
 echo "Test 5: GITHUB_REPOSITORY unset → MUST exit non-zero"
-if MOCK_RELEASE_PRESENT_AFTER=1 SLEEP_SECONDS=0 TAG=v1.0.0 GH_TOKEN=fake bash "$WAIT" 2>/dev/null; then
+if env -u GITHUB_REPOSITORY MOCK_RELEASE_PRESENT_AFTER=1 SLEEP_SECONDS=0 TAG=v1.0.0 GH_TOKEN=fake bash "$WAIT" 2>/dev/null; then
   echo "FAIL: missing GITHUB_REPOSITORY should have failed"
   exit 1
 fi

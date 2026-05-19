@@ -39,13 +39,13 @@ jobs:
           set -euo pipefail
           OUT=$(mktemp -d)/bin
           bun build --compile packages/cli/test/fixtures/bun-compile/exit-code-explicit.ts --outfile "$OUT"
-          if "$OUT"; then
-            echo "FAIL: bug 1 regression — explicit process.exit(1) in compiled binary exited 0"
-            exit 1
-          fi
-          actual=$?
+          # Capture exit code without `if cond; then` (which resets $? to 0
+          # via the bash spec — "exit status of last command, or zero if no
+          # condition tested true"). `cmd || actual=$?` is the idiom.
+          actual=0
+          "$OUT" || actual=$?
           if [[ "$actual" != "1" ]]; then
-            echo "FAIL: expected exit 1, got exit $actual"
+            echo "FAIL: expected exit 1 (explicit process.exit(1)), got exit $actual"
             exit 1
           fi
           echo "PASS: explicit process.exit(1) → binary exits 1"
@@ -55,8 +55,8 @@ jobs:
           set -uo pipefail
           OUT=$(mktemp -d)/bin
           bun build --compile packages/cli/test/fixtures/bun-compile/exit-code-implicit.ts --outfile "$OUT"
-          "$OUT" || true
-          actual=$?
+          actual=0
+          "$OUT" || actual=$?
           if [[ "$actual" == "1" ]]; then
             echo "::notice::Bun honors process.exitCode in --compile output now. The explicit process.exit(code) workaround in packages/cli/src/index.ts can be removed."
           else
