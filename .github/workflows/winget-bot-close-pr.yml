@@ -1,0 +1,43 @@
+name: WinGet bot close PR (one-shot)
+# One-shot workflow to close a microsoft/winget-pkgs PR opened by
+# hookwarden-bot. Used because the bot account isn't browser-accessible;
+# the API call uses the bot's PAT (already in repo secrets).
+#
+# Trigger: workflow_dispatch only.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'microsoft/winget-pkgs PR number to close'
+        required: true
+      reason:
+        description: 'Optional closing comment'
+        required: false
+        default: 'Closing in favor of a re-submission with corrected manifest URLs.'
+
+permissions:
+  contents: read
+
+jobs:
+  close:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post closing comment
+        env:
+          GH_TOKEN: ${{ secrets.HOOKWARDEN_BOT_WINGET_PAT }}
+          PR: ${{ github.event.inputs.pr_number }}
+          REASON: ${{ github.event.inputs.reason }}
+        run: |
+          gh api -X POST \
+            "repos/microsoft/winget-pkgs/issues/$PR/comments" \
+            -f body="$REASON"
+
+      - name: Close PR
+        env:
+          GH_TOKEN: ${{ secrets.HOOKWARDEN_BOT_WINGET_PAT }}
+          PR: ${{ github.event.inputs.pr_number }}
+        run: |
+          gh api -X PATCH \
+            "repos/microsoft/winget-pkgs/pulls/$PR" \
+            -f state=closed
