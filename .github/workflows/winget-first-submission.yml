@@ -79,10 +79,10 @@ jobs:
           PackageVersion: $env:VERSION
           PackageLocale: en-US
           Publisher: Hookwarden
-          PublisherUrl: https://hookwarden.dev
+          PublisherUrl: https://github.com/Hookwarden
           PublisherSupportUrl: https://github.com/Hookwarden/hookwarden/issues
           PackageName: hookwarden
-          PackageUrl: https://hookwarden.dev
+          PackageUrl: https://github.com/Hookwarden/hookwarden
           License: Apache-2.0
           LicenseUrl: https://github.com/Hookwarden/hookwarden/blob/main/LICENSE
           ShortDescription: Webhook signature-verification audit tool
