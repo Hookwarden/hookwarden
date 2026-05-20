@@ -12,7 +12,9 @@
 # Couples to the formula shape (Linux-only, see Hookwarden/homebrew-tap):
 #   - 2 sha256 lines (top-level linux-arm64, on_intel linux-x64)
 #   - URL version embedded in `releases/download/vX.Y.Z` paths
-#   - No explicit `version` line — auto-derives from top-level url
+#   - Explicit `version "X.Y.Z"` line: auto-derive picks up "64" from the
+#     trailing "arm64" in the binary filename instead of the path version.
+#     The script inserts or updates this line on every bump.
 #
 # Exits non-zero on missing/malformed Linux SHAs or wrong sha256 count.
 
@@ -39,18 +41,41 @@ done
 
 sed -i.bak -E "s|(releases/download/)v[0-9]+\.[0-9]+\.[0-9]+|\\1${VERSION}|g" "$FORMULA"
 
-python3 - "$FORMULA" "$SHA_LINUX_ARM" "$SHA_LINUX_X64" <<'PY'
+# Strip leading 'v' for the version string written into the formula.
+VERSION_NUM="${VERSION#v}"
+
+python3 - "$FORMULA" "$SHA_LINUX_ARM" "$SHA_LINUX_X64" "$VERSION_NUM" <<'PY'
 import re
 import sys
 
-path, *shas = sys.argv[1:]
+path, sha_arm, sha_x64, version_num = sys.argv[1:]
 src = open(path).read()
+
+# 1. Pin the two sha256 lines (top-level arm, on_intel x64) in order.
 pattern = re.compile(r'sha256 "[a-f0-9]{64}"')
 matches = list(pattern.finditer(src))
 assert len(matches) == 2, f"expected 2 sha256 lines, found {len(matches)}"
+shas = [sha_arm, sha_x64]
 for i in range(1, -1, -1):
     m = matches[i]
-    src = src[: m.start()] + f'sha256 "{shas[i]}"' + src[m.end() :]
+    src = src[: m.start()] + f'sha256 "{shas[i]}"' + src[m.end():]
+
+# 2. Insert or update the explicit `version "X.Y.Z"` line. Homebrew's
+#    Version.detect picks up "64" from the trailing "arm64" in the URL
+#    instead of the path version — must be pinned explicitly.
+version_line = f'  version "{version_num}"'
+if re.search(r'^\s*version\s+"[^"]+"', src, re.MULTILINE):
+    src = re.sub(r'^\s*version\s+"[^"]+"', version_line, src, count=1, flags=re.MULTILINE)
+else:
+    # Insert immediately after the top-level (first) sha256 line.
+    src = re.sub(
+        r'(^  sha256 "[a-f0-9]{64}"\n)',
+        f'\\1{version_line}\n',
+        src,
+        count=1,
+        flags=re.MULTILINE,
+    )
+
 open(path, "w").write(src)
 PY
 

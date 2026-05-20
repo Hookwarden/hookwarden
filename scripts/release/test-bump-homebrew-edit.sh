@@ -19,15 +19,39 @@ SHA_DA=$(printf 'd%.0s' {1..64})  # darwin-arm fixture (regression scaffold)
 SHA_DX=$(printf 'e%.0s' {1..64})  # darwin-x64 fixture
 
 mk_formula_v030() {
-  # The current Linux-only formula shape (post-#1 merge): 2 sha256 lines
-  # (top-level linux-arm + on_linux.on_intel linux-x64), URLs hardcode
-  # `v0.3.0` (no `version` line — auto-derives from top-level url).
+  # Pre-fix shape (no `version` line, what v0.3.1 originally shipped with —
+  # bug: Homebrew's Version.detect picked up "64" from "arm64"). The bump
+  # script must INSERT an explicit `version` line on this shape.
   cat > "$1" <<EOF
 class Hookwarden < Formula
   desc "Webhook signature-verification audit tool"
   homepage "https://hookwarden.dev"
   url "https://github.com/Hookwarden/hookwarden/releases/download/v0.3.0/hookwarden-linux-arm64"
   sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  license "Apache-2.0"
+
+  depends_on :linux
+
+  on_linux do
+    on_intel do
+      url "https://github.com/Hookwarden/hookwarden/releases/download/v0.3.0/hookwarden-linux-x64"
+      sha256 "1111111111111111111111111111111111111111111111111111111111111111"
+    end
+  end
+end
+EOF
+}
+
+mk_formula_v030_with_version() {
+  # Post-fix shape: same as v030 but with an explicit `version` line. The
+  # bump script must UPDATE the version line, not insert a duplicate.
+  cat > "$1" <<EOF
+class Hookwarden < Formula
+  desc "Webhook signature-verification audit tool"
+  homepage "https://hookwarden.dev"
+  url "https://github.com/Hookwarden/hookwarden/releases/download/v0.3.0/hookwarden-linux-arm64"
+  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  version "0.3.0"
   license "Apache-2.0"
 
   depends_on :linux
@@ -95,6 +119,13 @@ if ! grep -q "sha256 \"${SHA_LA}\"" "$TMP/hookwarden.rb"; then
 fi
 if ! grep -q "sha256 \"${SHA_LX}\"" "$TMP/hookwarden.rb"; then
   echo "FAIL: linux-x64 sha not pinned"
+  cat "$TMP/hookwarden.rb"
+  exit 1
+fi
+# Explicit version line MUST be present (auto-derive picks up "64" from arm64)
+version_lines=$(grep -cE '^  version "0\.3\.1"$' "$TMP/hookwarden.rb" || true)
+if [[ "$version_lines" != "1" ]]; then
+  echo "FAIL: expected exactly 1 'version \"0.3.1\"' line, got $version_lines"
   cat "$TMP/hookwarden.rb"
   exit 1
 fi
@@ -188,5 +219,33 @@ if [[ "$checksum_first" != "$checksum_second" ]]; then
 fi
 echo "  PASS"
 
+# ---- Test 7: fixture already has a version line → script UPDATES it (no duplicate) ----
+echo "Test 7: formula already has 'version \"0.3.0\"' → script updates to '0.3.1', not duplicated"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+${SHA_WX}  hookwarden-windows-x64.exe
+EOF
+mk_formula_v030_with_version "$TMP/hookwarden.rb"
+bash "$EDIT" "$TMP/checksums.txt" "$TMP/hookwarden.rb" v0.3.1 > /dev/null
+version_lines=$(grep -cE '^  version "[0-9.]+"$' "$TMP/hookwarden.rb" || true)
+if [[ "$version_lines" != "1" ]]; then
+  echo "FAIL: expected exactly 1 version line after edit, got $version_lines"
+  cat "$TMP/hookwarden.rb"
+  exit 1
+fi
+if ! grep -q '^  version "0\.3\.1"$' "$TMP/hookwarden.rb"; then
+  echo "FAIL: version not updated to 0.3.1"
+  cat "$TMP/hookwarden.rb"
+  exit 1
+fi
+if grep -q '^  version "0\.3\.0"$' "$TMP/hookwarden.rb"; then
+  echo "FAIL: stale 0.3.0 version line still present"
+  cat "$TMP/hookwarden.rb"
+  exit 1
+fi
+echo "  PASS"
+
 echo
-echo "All 6 bump-homebrew-edit tests passed."
+echo "All 7 bump-homebrew-edit tests passed."
