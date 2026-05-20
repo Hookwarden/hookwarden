@@ -67,10 +67,11 @@ version_line = f'  version "{version_num}"'
 if re.search(r'^\s*version\s+"[^"]+"', src, re.MULTILINE):
     src = re.sub(r'^\s*version\s+"[^"]+"', version_line, src, count=1, flags=re.MULTILINE)
 else:
-    # Insert immediately after the top-level (first) sha256 line.
+    # Insert immediately BEFORE the top-level (first) sha256 line.
+    # brew audit enforces DSL order: url -> version -> sha256.
     src = re.sub(
         r'(^  sha256 "[a-f0-9]{64}"\n)',
-        f'\\1{version_line}\n',
+        f'{version_line}\n\\1',
         src,
         count=1,
         flags=re.MULTILINE,

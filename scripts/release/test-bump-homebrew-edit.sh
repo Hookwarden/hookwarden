@@ -43,15 +43,16 @@ EOF
 }
 
 mk_formula_v030_with_version() {
-  # Post-fix shape: same as v030 but with an explicit `version` line. The
-  # bump script must UPDATE the version line, not insert a duplicate.
+  # Post-fix shape: same as v030 but with an explicit `version` line in the
+  # brew-audit-correct position (url -> version -> sha256). The bump script
+  # must UPDATE the version line in place, not insert a duplicate.
   cat > "$1" <<EOF
 class Hookwarden < Formula
   desc "Webhook signature-verification audit tool"
   homepage "https://hookwarden.dev"
   url "https://github.com/Hookwarden/hookwarden/releases/download/v0.3.0/hookwarden-linux-arm64"
-  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
   version "0.3.0"
+  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
   license "Apache-2.0"
 
   depends_on :linux
@@ -126,6 +127,20 @@ fi
 version_lines=$(grep -cE '^  version "0\.3\.1"$' "$TMP/hookwarden.rb" || true)
 if [[ "$version_lines" != "1" ]]; then
   echo "FAIL: expected exactly 1 'version \"0.3.1\"' line, got $version_lines"
+  cat "$TMP/hookwarden.rb"
+  exit 1
+fi
+# brew audit DSL order: version MUST come BEFORE the top-level sha256
+top_url_line=$(grep -nE '^  url "https://github\.com/Hookwarden/hookwarden/releases/download/v0\.3\.1/hookwarden-linux-arm64"$' "$TMP/hookwarden.rb" | head -1 | cut -d: -f1)
+version_line_no=$(grep -nE '^  version "0\.3\.1"$' "$TMP/hookwarden.rb" | head -1 | cut -d: -f1)
+top_sha_line=$(grep -nE '^  sha256 "[a-f0-9]{64}"$' "$TMP/hookwarden.rb" | head -1 | cut -d: -f1)
+if [[ -z "$top_url_line" ]] || [[ -z "$version_line_no" ]] || [[ -z "$top_sha_line" ]]; then
+  echo "FAIL: couldn't locate one of url/version/sha256 lines"
+  cat "$TMP/hookwarden.rb"
+  exit 1
+fi
+if (( top_url_line >= version_line_no )) || (( version_line_no >= top_sha_line )); then
+  echo "FAIL: brew-audit DSL order violated — need url($top_url_line) < version($version_line_no) < sha256($top_sha_line)"
   cat "$TMP/hookwarden.rb"
   exit 1
 fi
