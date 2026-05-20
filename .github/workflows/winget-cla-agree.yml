@@ -1,0 +1,30 @@
+name: WinGet CLA agree (one-shot)
+# One-shot workflow to sign Microsoft's CLA on a microsoft/winget-pkgs PR
+# as hookwarden-bot. Used because the bot account is not browser-accessible;
+# the comment is posted via the bot's PAT (already in repo secrets), so the
+# CLA bot attributes the agreement to the PAT owner.
+#
+# Trigger: workflow_dispatch only.
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'microsoft/winget-pkgs PR number'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  agree:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post CLA agreement comment
+        env:
+          GH_TOKEN: ${{ secrets.HOOKWARDEN_BOT_WINGET_PAT }}
+          PR: ${{ github.event.inputs.pr_number }}
+        run: |
+          gh api -X POST \
+            "repos/microsoft/winget-pkgs/issues/$PR/comments" \
+            -f body='@microsoft-github-policy-service agree'
