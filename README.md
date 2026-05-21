@@ -417,7 +417,9 @@ pre-commit hook · Homebrew tap · Scoop/WinGet manifests · standalone binaries
 
 **v0.4 — More providers.** Adyen, Zendesk, Mailgun — each measured against the 200-repo OSS regression corpus before release, with a published false-positive rate.
 
-**v0.5 — Corpus integrity.** `verify-changeset-delta` — every PR's rule changes run against the full corpus and the `findings_delta` block must match the actual delta before merge.
+**v0.5 — PHP language support.** WooCommerce, Laravel (Cashier + custom), Symfony, raw PHP. The Packagist `stripe/stripe-php` ecosystem ships **4M+ monthly downloads** and `laravel/cashier` adds another 1.2M — both invisible to webhook-specific tooling today. Scope: `tree-sitter-php` WASM parser (mirrors the existing Python integration), framework adapters for the four runtimes above, PHP variants of all 45 rules (incl. `hash_equals` as the safe-compare predicate, `php://input` as the canonical raw-body path), and Composer/Packagist distribution. Tracking: [#22](https://github.com/Hookwarden/hookwarden/issues/22).
+
+**v0.6 — Corpus integrity.** `verify-changeset-delta` — every PR's rule changes run against the full corpus and the `findings_delta` block must match the actual delta before merge.
 
 ---
 
