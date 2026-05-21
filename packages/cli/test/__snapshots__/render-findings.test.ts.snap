@@ -1,40 +1,24 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`renderFindings > snapshot — mixed severities + manual-review + parse-error 1`] = `
-"CRITICAL
-────────
+"× critical  src/server.ts:42:3  stripe/missing-signature-verification  not-verified
+  Stripe webhook handler does not appear to verify the signature header.
+  docs › https://stripe.com/docs/webhooks
 
-  src/server.ts:42:3
-    stripe/missing-signature-verification  [not-verified]
-    Stripe webhook handler does not appear to verify the signature header.
-    ↳ https://stripe.com/docs/webhooks
+▲ medium    src/gh.ts:7:1  github/missing-timing-safe-equal  manual-review
+  Use crypto.timingSafeEqual to compare signatures.
+  docs › https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries
 
-MEDIUM
-────────
-
-  src/gh.ts:7:1
-    github/missing-timing-safe-equal  [manual-review]
-    Use crypto.timingSafeEqual to compare signatures.
-    ↳ https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries
-
-LOW
-────────
-
-  src/broken.ts:1:1
-    engine/parse-error  [manual-review]
-    Parse error: unexpected token
+· low       src/broken.ts:1:1  engine/parse-error  manual-review
+  Parse error: unexpected token
 
 "
 `;
 
 exports[`renderFindings > snapshot — one critical finding (canonical Stripe bug) 1`] = `
-"CRITICAL
-────────
-
-  src/server.ts:42:3
-    stripe/missing-signature-verification  [not-verified]
-    Stripe webhook handler does not appear to verify the signature header.
-    ↳ https://stripe.com/docs/webhooks
+"× critical  src/server.ts:42:3  stripe/missing-signature-verification  not-verified
+  Stripe webhook handler does not appear to verify the signature header.
+  docs › https://stripe.com/docs/webhooks
 
 "
 `;

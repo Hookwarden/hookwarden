@@ -57,18 +57,22 @@ describe("Phase 3 success criteria", () => {
       main(["scan", path.join(FIXTURE_ROOT, "canonical-stripe-bug")]),
     );
     expect(out.exitCode).toBe(1);
-    expect(out.stdout).toContain("CRITICAL");
+    // Compact rendering: `× critical` glyph + lowercase severity, bare
+    // state (no brackets — column spacing disambiguates), `docs ›` prefix.
+    expect(out.stdout).toContain("× critical");
     expect(out.stdout).toContain("stripe/missing-signature-verification");
-    expect(out.stdout).toContain("[not-verified]");
-    expect(out.stdout).toContain("You should always verify events");
-    expect(out.stdout).toContain("↳ https://stripe.com/docs/webhooks");
+    expect(out.stdout).toContain("not-verified");
+    // Tolerate wrap variance: substring chosen to be < 50 chars so it stays
+    // on a single line for any wrap width >= 80 cols.
+    expect(out.stdout).toContain("always verify events");
+    expect(out.stdout).toContain("docs › https://stripe.com/docs/webhooks");
   });
 
   it("Criterion #3 JS/TS: stripe.webhooks.constructEvent reachable → verified", async () => {
     const out = await captureStdout(() =>
       main(["scan", path.join(FIXTURE_ROOT, "stripe-construct-event-happy-path")]),
     );
-    expect(out.stdout).toContain("[verified]");
+    expect(out.stdout).toContain("verified");
     expect(out.stdout).toContain("stripe/library-verified");
   });
 
@@ -76,11 +80,11 @@ describe("Phase 3 success criteria", () => {
     const out = await captureStdout(() =>
       main(["scan", path.join(FIXTURE_ROOT, "python-flask-happy-path")]),
     );
-    expect(out.stdout).toContain("[verified]");
+    expect(out.stdout).toContain("verified");
     expect(out.stdout).toContain("stripe/library-verified");
   });
 
-  it("Criterion #4 RULES-05: hardcoded whsec_ inside __tests__/ → INFO severity, [not-verified] state, NOT CRITICAL (B-1)", async () => {
+  it("Criterion #4 RULES-05: hardcoded whsec_ inside __tests__/ → info severity, not-verified state, NOT critical (B-1)", async () => {
     // The fixture deliberately exercises a __tests__/ path to verify the
     // path_severity_overrides downgrade rule (D-57). Since test-path
     // exclusion now ships as a default, opt back in with --include-tests
@@ -89,22 +93,23 @@ describe("Phase 3 success criteria", () => {
       main(["scan", path.join(FIXTURE_ROOT, "seeded-secret"), "--include-tests"]),
     );
     expect(out.stdout).toContain("stripe/hardcoded-secret-prefix");
-    const infoIdx = out.stdout.indexOf("INFO");
-    const criticalIdx = out.stdout.indexOf("CRITICAL");
+    // Compact rendering: severity is on the same line as the finding header
+    // (`· info  file:line  rule_id  state`), not in a banner section above
+    // a group. Search anchor: the line that contains the rule_id has the
+    // severity glyph + label at column 0.
     const ruleIdx = out.stdout.indexOf("stripe/hardcoded-secret-prefix");
-    expect(infoIdx).toBeGreaterThanOrEqual(0);
-    expect(ruleIdx).toBeGreaterThan(infoIdx);
-    if (criticalIdx >= 0) {
-      // If a CRITICAL bucket exists (e.g. another rule fired), the hardcoded-secret rule
-      // must NOT be inside it — i.e. ruleIdx is in the INFO bucket, after CRITICAL ended.
-      expect(ruleIdx).toBeGreaterThan(criticalIdx);
-    }
+    expect(ruleIdx).toBeGreaterThanOrEqual(0);
+    // The line containing the rule_id starts with the severity column;
+    // walk back from ruleIdx to the start of that line and assert info.
+    const lineStart = out.stdout.lastIndexOf("\n", ruleIdx) + 1;
+    const headerLine = out.stdout.slice(lineStart, out.stdout.indexOf("\n", ruleIdx));
+    expect(headerLine).toContain("· info");
+    expect(headerLine).not.toContain("× critical");
     // D-57 contract: only severity is rewritten by path_severity_overrides; state stays.
-    const ruleLineSlice = out.stdout.slice(ruleIdx, ruleIdx + 200);
-    expect(ruleLineSlice).toContain("[not-verified]");
+    expect(headerLine).toContain("not-verified");
   });
 
-  it("Criterion #5 RULES-08: every non-engine rule finding is followed by a ↳ provider_docs_url line (W-1)", async () => {
+  it("Criterion #5 RULES-08: every non-engine rule finding is followed by a docs › provider_docs_url line (W-1)", async () => {
     const out = await captureStdout(() =>
       main(["scan", path.join(FIXTURE_ROOT, "canonical-stripe-bug")]),
     );
@@ -114,23 +119,28 @@ describe("Phase 3 success criteria", () => {
     let pendingIsEngine = false;
     let satisfied = 0;
     let total = 0;
+    // Compact rendering: each finding header is a single line containing
+    // `rule_id` (with provider/ prefix) and the state word. Body lines that
+    // follow are indented by two spaces, with the docs link rendered as
+    // `  docs › URL`.
     for (const line of lines) {
       if (
-        /^\s+(stripe|github|engine)\//.test(line) &&
-        /\[(verified|not-verified|manual-review)\]/.test(line)
+        /\s(stripe|github|engine)\//.test(line) &&
+        /\s(verified|not-verified|manual-review)\b/.test(line) &&
+        /^[\s·×!▲]/.test(line)
       ) {
         pendingDocLink = true;
         pendingLineCount = 0;
-        pendingIsEngine = /^\s+engine\//.test(line);
+        pendingIsEngine = /\sengine\//.test(line);
         if (!pendingIsEngine) total++;
       } else if (pendingDocLink) {
         pendingLineCount++;
-        if (line.includes("↳") && /https?:\/\//.test(line)) {
+        if (line.includes("docs ›") && /https?:\/\//.test(line)) {
           if (!pendingIsEngine) satisfied++;
           pendingDocLink = false;
           pendingLineCount = 0;
           pendingIsEngine = false;
-        } else if (pendingLineCount > 10) {
+        } else if (pendingLineCount > 12) {
           pendingDocLink = false;
           pendingLineCount = 0;
           pendingIsEngine = false;

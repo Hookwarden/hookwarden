@@ -109,55 +109,64 @@ describe("renderFindings", () => {
     expect(out).toBe("No findings.\n");
   });
 
-  it("renders one critical finding with file:line:col, rule_id, [not-verified] badge, message, ↳ docs", () => {
+  it("renders one critical finding with severity glyph + file:line:col + rule_id + state + message + docs › link", () => {
     const out = renderFindings(mkResult([stripeFinding]), RULE_SET, {
       useAnsi: false,
       cwd: "/tmp",
     });
-    expect(out).toContain("CRITICAL");
+    // Compact layout (post-redesign): `× critical  file:line:col  rule_id  state`
+    // on one line; severity is communicated by glyph + lowercase label (no
+    // banner section, no upper-case CRITICAL/MEDIUM/... title).
+    expect(out).toContain("× critical");
     expect(out).toContain("src/server.ts:42:3");
     expect(out).toContain("stripe/missing-signature-verification");
-    expect(out).toContain("[not-verified]");
+    expect(out).toContain("not-verified");
     expect(out).toContain("Stripe webhook handler does not appear to verify");
-    expect(out).toContain("↳ https://stripe.com/docs/webhooks");
+    expect(out).toContain("docs › https://stripe.com/docs/webhooks");
   });
 
-  it("groups findings by severity in fixed order: critical → high → medium → low → info", () => {
+  it("orders findings by severity desc (critical before medium) without a banner section header", () => {
     const out = renderFindings(mkResult([manualReviewFinding, stripeFinding]), RULE_SET, {
       useAnsi: false,
       cwd: "/tmp",
     });
-    const criticalIdx = out.indexOf("CRITICAL");
-    const mediumIdx = out.indexOf("MEDIUM");
+    // Severity-desc → file → line ordering; the critical header column lands
+    // before the medium header column regardless of input order.
+    const criticalIdx = out.indexOf("× critical");
+    const mediumIdx = out.indexOf("▲ medium");
     expect(criticalIdx).toBeGreaterThanOrEqual(0);
     expect(mediumIdx).toBeGreaterThanOrEqual(0);
     expect(criticalIdx).toBeLessThan(mediumIdx);
+    // And the prior "CRITICAL\n────" banner is gone — no more full-width
+    // severity-section separators dominating the output.
+    expect(out).not.toContain("────");
+    expect(out).not.toContain("CRITICAL");
   });
 
-  it("renders [manual-review] badge inside its severity bucket (three-state moat)", () => {
+  it("renders manual-review state in its severity row (three-state moat)", () => {
     const out = renderFindings(mkResult([manualReviewFinding]), RULE_SET, {
       useAnsi: false,
       cwd: "/tmp",
     });
-    expect(out).toContain("MEDIUM");
-    expect(out).toContain("[manual-review]");
+    expect(out).toContain("▲ medium");
+    expect(out).toContain("manual-review");
     expect(out).toContain("github/missing-timing-safe-equal");
   });
 
-  it("W-2: emits ↳ provider_docs_url line when finding's rule_id maps to a rule with provider_docs_url", () => {
+  it("W-2: emits docs › provider_docs_url line when finding's rule_id maps to a rule with provider_docs_url", () => {
     const out = renderFindings(mkResult([stripeFinding]), RULE_SET, {
       useAnsi: false,
       cwd: "/tmp",
     });
-    expect(out).toContain("↳ https://stripe.com/docs/webhooks");
+    expect(out).toContain("docs › https://stripe.com/docs/webhooks");
   });
 
-  it("W-2: omits ↳ line when rule is missing from ruleSet (engine/parse-error path)", () => {
+  it("W-2: omits docs › line when rule is missing from ruleSet (engine/parse-error path)", () => {
     const out = renderFindings(mkResult([parseErrorFinding]), RULE_SET, {
       useAnsi: false,
       cwd: "/tmp",
     });
-    expect(out).not.toContain("↳");
+    expect(out).not.toContain("docs ›");
   });
 
   it("emits OSC-8 file:// hyperlink when useAnsi is true", () => {
@@ -177,12 +186,12 @@ describe("renderFindings", () => {
     expect(out).not.toContain("]8;;");
   });
 
-  it("treats null ruleSet as empty rule index — omits all ↳ lines (parse-error path)", () => {
+  it("treats null ruleSet as empty rule index — omits all docs › lines (parse-error path)", () => {
     const out = renderFindings(mkResult([stripeFinding, parseErrorFinding]), null, {
       useAnsi: false,
       cwd: "/tmp",
     });
-    expect(out).not.toContain("↳");
+    expect(out).not.toContain("docs ›");
   });
 
   it("sorts findings deterministically within a severity bucket: file_path → line → col → rule_id", () => {
