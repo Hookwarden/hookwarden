@@ -236,3 +236,46 @@ describe("walkProject — default test-path exclusion (DEFAULT_TEST_GLOBS)", () 
     expect(r.files.length).toBe(1);
   });
 });
+
+describe("walkProject — single-file scan target", () => {
+  // Surfaced by the demo GIF re-recording (ENOTDIR on .hookwardenignore /
+  // .hookwarden.baseline.json lookups). `hookwarden scan ./handler.ts` is a
+  // documented usage and must not crash trying to read sibling config files
+  // as if the file were a directory.
+
+  it("returns the single file when rootPath is a file (not a directory)", async () => {
+    await writeFile("src/handler.ts", "// production handler");
+    const target = path.join(tmp, "src/handler.ts");
+    const r = await walkProject({ rootPath: target });
+    expect(r.files).toEqual([target]);
+    expect(r.total_files_count).toBe(1);
+    expect(r.parsed_files_count_estimate).toBe(1);
+  });
+
+  it("filters non-allowlisted single-file targets (e.g., README.md)", async () => {
+    await writeFile("docs/README.md", "# unrelated");
+    const target = path.join(tmp, "docs/README.md");
+    const r = await walkProject({ rootPath: target });
+    expect(r.files).toEqual([]);
+    expect(r.skipped_count).toBe(1);
+  });
+
+  it("filters oversized single-file targets", async () => {
+    await writeFile("src/huge.ts", "x".repeat(2048));
+    const target = path.join(tmp, "src/huge.ts");
+    const r = await walkProject({ rootPath: target, maxFileSize: 512 });
+    expect(r.files).toEqual([]);
+    expect(r.oversized_count).toBe(1);
+  });
+
+  it("respects test-path exclusion when single-file target is in a test path", async () => {
+    // The user explicitly named the file — scan it anyway. Single-file
+    // targets are explicit opt-in to that file. Test-path filter applies
+    // to discovery (directory walk), not to explicit file targets.
+    await writeFile("__tests__/handler.test.ts", "// fixture");
+    const target = path.join(tmp, "__tests__/handler.test.ts");
+    const r = await walkProject({ rootPath: target });
+    expect(r.files).toEqual([target]);
+    expect(r.test_excluded_count).toBe(0);
+  });
+});

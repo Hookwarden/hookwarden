@@ -12,12 +12,25 @@ export interface IgnoreFilter {
 }
 
 export async function loadHookwardenIgnore(rootPath: string): Promise<IgnoreFilter | null> {
-  const filePath = path.join(rootPath, ".hookwardenignore");
+  // Support both directory and single-file scan targets. For a single file
+  // (`hookwarden scan ./handler.ts`), look for the ignore-file in the parent
+  // directory rather than treating the file as a directory (which produces
+  // ENOTDIR on `<file>/.hookwardenignore`).
+  let ignoreRoot = rootPath;
+  try {
+    const st = await fs.lstat(rootPath);
+    if (st.isFile()) ignoreRoot = path.dirname(rootPath);
+  } catch {
+    // Path doesn't exist — let downstream produce the user-facing error.
+    return null;
+  }
+  const filePath = path.join(ignoreRoot, ".hookwardenignore");
   let content: string;
   try {
     content = await fs.readFile(filePath, "utf-8");
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
+    if ((err as NodeJS.ErrnoException).code === "ENOTDIR") return null;
     throw err;
   }
 

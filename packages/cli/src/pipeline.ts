@@ -107,6 +107,20 @@ function annotateOne(
 export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
   const t0 = performance.now();
   const root = path.resolve(input.rootPath);
+  // For single-file scan targets, anything resolved relative to "the scan
+  // root" (baseline path, .hookwardenignore lookup, diff-only base ref)
+  // must be anchored to the file's parent directory, not the file itself.
+  // Otherwise `path.resolve(root, ".hookwarden.baseline.json")` produces
+  // `<file>.ts/.hookwarden.baseline.json` and Node's fs throws ENOTDIR.
+  // The walker handles the file-vs-directory split internally.
+  let scanDir = root;
+  try {
+    const st = await fs.lstat(root);
+    if (st.isFile()) scanDir = path.dirname(root);
+  } catch {
+    // Non-existent path — let the walker / baseline reader surface the
+    // user-facing error in their own well-tested codepaths.
+  }
   let engineError: Error | null = null;
 
   // [INSERT 1] diff-only resolution → pre-walk file-set filter (Plan 03 + CLI-08)
@@ -131,7 +145,7 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
   // candidate set for THIS run — `parse_candidates_count` reflects that so the parse-coverage
   // gate's denominator is honest under --diff-only.
   const walkedFiles: ReadonlyArray<string> = diffFileSet
-    ? fullWalk.files.filter((abs) => diffFileSet.has(path.relative(root, abs)))
+    ? fullWalk.files.filter((abs) => diffFileSet.has(path.relative(scanDir, abs)))
     : fullWalk.files;
   const walkResult: WalkResult = {
     ...fullWalk,
@@ -160,7 +174,7 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
   const parsedFiles: ParsedFile[] = await Promise.all(
     walkResult.files.map((abs) =>
       limit(async () => {
-        const rel = path.relative(root, abs);
+        const rel = path.relative(scanDir, abs);
         const sourceText = await fs.readFile(abs, "utf-8");
         if (isPython(abs)) {
           if (pyRuntime === null) throw new Error("Python runtime not initialized");
@@ -214,9 +228,9 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
   // so a CLI invocation with `path` ≠ cwd reads/writes the baseline next to the scanned project.
   const baselineAbsPath = path.isAbsolute(input.resolvedConfig.baseline_path)
     ? input.resolvedConfig.baseline_path
-    : path.resolve(root, input.resolvedConfig.baseline_path);
+    : path.resolve(scanDir, input.resolvedConfig.baseline_path);
   const inline = extractInlineSuppressions(parsedFiles);
-  const ignoreFilter = await loadHookwardenIgnore(root);
+  const ignoreFilter = await loadHookwardenIgnore(scanDir);
   const baselineDoc = input.resolvedConfig.baseline_enabled
     ? await readBaseline(baselineAbsPath)
     : null;

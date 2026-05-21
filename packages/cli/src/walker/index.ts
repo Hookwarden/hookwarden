@@ -126,6 +126,36 @@ export async function walkProject(options: WalkOptions): Promise<WalkResult> {
   const followSymlinks = options.followSymlinks ?? false;
   const scanTests = options.scanTests ?? false;
 
+  // Single-file scan target (`hookwarden scan ./handler.ts`): short-circuit
+  // the glob walk. We still run the size + allowlist + symlink checks so
+  // the WalkResult counters stay honest. Directory-only invariants below
+  // (gitignore, test-path filter, glob) don't apply to an explicit file
+  // target — the user named it directly, scan it.
+  let rootStat: import("node:fs").Stats | undefined;
+  try {
+    rootStat = await fs.lstat(root);
+  } catch {
+    // Non-existent path — let glob produce the user-facing "no candidates" empty result below.
+  }
+  if (rootStat?.isFile()) {
+    const out: WalkResult = {
+      files: [],
+      skipped_count: 0,
+      total_files_count: 1,
+      parsed_files_count_estimate: 0,
+      oversized_count: 0,
+      symlink_count: 0,
+      test_excluded_count: 0,
+    };
+    if (rootStat.size > maxFileSize) {
+      return { ...out, oversized_count: 1, skipped_count: 1 };
+    }
+    if (!isAllowlistedFile(root)) {
+      return { ...out, skipped_count: 1 };
+    }
+    return { ...out, files: [root], parsed_files_count_estimate: 1 };
+  }
+
   const ctx = await buildRootIgnore(root);
   const limit = pLimit(concurrency);
 
