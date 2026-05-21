@@ -36,6 +36,7 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 ## Contents
 
 - [Why](#why)
+- [Install](#install)
 - [Quickstart](#quickstart)
 - [Real output](#real-output)
 - [Provider coverage](#provider-coverage)
@@ -61,6 +62,26 @@ Hookwarden does one thing. It walks your repo, parses every webhook handler acro
 
 ---
 
+## Install
+
+```bash
+npx hookwarden scan .   # works everywhere, no install
+```
+
+Or install natively via your OS package manager:
+
+| OS | Recommended | Alternates |
+|---|---|---|
+| **Linux** | `brew install Hookwarden/tap/hookwarden` | `npm i -g hookwarden` · `pip install hookwarden` · direct binary |
+| **macOS** | `npm i -g hookwarden` | `npx hookwarden` (no install) |
+| **Windows** | `scoop bucket add hookwarden https://github.com/Hookwarden/scoop-bucket && scoop install hookwarden` | `npm i -g hookwarden` · `pip install hookwarden` |
+
+> Windows users downloading the `.exe` directly from a GitHub release will see a SmartScreen warning on first launch — v0.3.1 ships unsigned; Authenticode signing lands in v0.3.2. The Scoop, npm, and pip paths are unaffected (each verifies the artifact by SHA-256 before exec). A WinGet manifest is also pending Microsoft validators.
+
+Node 22+ is required for the npm/`npx` path. The standalone binaries (Linux x64/arm64, Windows x64) bundle the Node runtime.
+
+---
+
 ## 🚀 Quickstart
 
 ```bash
@@ -78,14 +99,12 @@ npx hookwarden scan ./your-app --diff-only --diff-base origin/main
 
 # Snapshot pre-existing findings as a baseline (non-greenfield adoption)
 npx hookwarden scan ./your-app --baseline write
+
+# Scan test/fixture paths too (excluded by default — see Install)
+npx hookwarden scan ./your-app --include-tests
 ```
 
-Or install permanently:
-
-```bash
-npm install -g hookwarden          # global
-npm install --save-dev hookwarden  # dev dependency (CI-pinnable)
-```
+See [Install](#install) for permanent install via npm, Homebrew, Scoop, or PyPI.
 
 ---
 
