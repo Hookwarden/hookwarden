@@ -3,6 +3,43 @@
 Project-level release notes. Per-package Changesets entries (engine, rules,
 cli, github-action) live in each package's own `CHANGELOG.md`.
 
+## Unreleased
+
+### Engine improvements (surfaced by real-world OSS corpus smoke)
+
+Two behavior changes informed by running v0.3.1 against 11 production OSS
+repos containing webhook handlers (Stripe, GitHub, Slack, Shopify, Twilio,
+Square). Both eliminate OOTB noise that previously buried real findings.
+
+- **`pages/_app.js` / `pages/_document.js` (Next.js JSX-in-.js) now parse
+  cleanly.** The Babel `jsx` plugin is now enabled for `.js`, `.mjs`, and
+  `.cjs` extensions in addition to the previously-supported `.jsx` and
+  `.tsx`. Per Babel docs, the `jsx` plugin does not change parsing of
+  non-JSX code. Plain `.ts` files still parse without `jsx` (preserving
+  angle-bracket type assertions like `<number>(value)`, which would
+  conflict with JSX opening-tag syntax — TypeScript itself requires
+  the explicit `.tsx` extension to enable JSX).
+
+- **Test/fixture paths are now excluded by default.** Production webhook
+  routes almost never live under `test/`, `tests/`, `__tests__/`,
+  `spec/`, `fixtures/`, `mocks/`, `*.test.{ts,tsx,js,jsx,mjs,cjs}`,
+  `*.spec.{ts,tsx,js,jsx,mjs,cjs}`, `test_*.py`, or `*_test.py`. Their
+  handlers are typically deliberately-broken fixtures that exercise the
+  test harness and would otherwise dominate the findings list. Opt back
+  in with the new `--include-tests` flag, the `scan_tests: true` config
+  field, or the `HOOKWARDEN_SCAN_TESTS=1` env var. When auto-excluded
+  files are present, the text-output footer surfaces a `(N test/fixture
+  files auto-excluded; use --include-tests to scan)` hint so users
+  always know what was skipped.
+
+### Real-world corpus impact (11 popular OSS repos)
+
+| Repo | Before | After |
+|------|--------|-------|
+| `probot/probot` | 4 findings (3 critical) — all in `test/integration/*.test.ts` fixtures | 0 findings; 57 test files auto-excluded |
+| `kinngh/shopify-nextjs-prisma-app` | 2 manual-review parse-errors (`pages/_app.js`, `pages/_document.js`) | 0 findings; 49/49 candidates parsed |
+| 9 other repos | already clean | still clean |
+
 ## 0.3.0
 
 ### Distribution channels

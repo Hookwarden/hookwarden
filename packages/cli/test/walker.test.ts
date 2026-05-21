@@ -168,3 +168,71 @@ describe("walkProject (D-50, D-51, D-52, D-53)", () => {
     expect(r.parsed_files_count_estimate).toBe(0);
   });
 });
+
+describe("walkProject — default test-path exclusion (DEFAULT_TEST_GLOBS)", () => {
+  // Surfaced by the OSS corpus smoke (probot/probot): scanner returned 4
+  // findings from `test/integration/*.test.ts` — all intentional fixtures.
+  // Test paths are excluded by default to keep OOTB output focused on
+  // production routes; --include-tests opts back in.
+
+  it("excludes paths under test/, tests/, __tests__/, spec/, fixtures/, mocks/ by default", async () => {
+    await writeFile("src/handler.ts", "// production handler");
+    await writeFile("test/handler.test.ts", "// intentional fixture");
+    await writeFile("tests/handler.test.ts", "// intentional fixture");
+    await writeFile("__tests__/integration.test.ts", "// intentional fixture");
+    await writeFile("spec/handler.spec.ts", "// intentional fixture");
+    await writeFile("fixtures/not-verified.ts", "// intentional fixture");
+    await writeFile("mocks/stripe-mock.ts", "// mock");
+    const r = await walkProject({ rootPath: tmp });
+    const rels = r.files.map((f) => path.relative(tmp, f)).sort();
+    expect(rels).toEqual(["src/handler.ts"]);
+    expect(r.test_excluded_count).toBe(6);
+  });
+
+  it("excludes *.test.* and *.spec.* and Python test_* / *_test.py file conventions", async () => {
+    await writeFile("src/handler.ts", "// prod");
+    await writeFile("src/handler.test.ts", "// inline test");
+    await writeFile("src/handler.spec.tsx", "// inline test");
+    await writeFile("src/handler.test.js", "// inline test");
+    await writeFile("src/api.test.mjs", "// inline test");
+    await writeFile("src/test_api.py", "// pytest convention");
+    await writeFile("src/api_test.py", "// go-style convention");
+    const r = await walkProject({ rootPath: tmp });
+    const rels = r.files.map((f) => path.relative(tmp, f)).sort();
+    expect(rels).toEqual(["src/handler.ts"]);
+    expect(r.test_excluded_count).toBe(6);
+  });
+
+  it("INCLUDES test paths when scanTests: true (--include-tests semantics)", async () => {
+    await writeFile("src/handler.ts", "// prod");
+    await writeFile("test/handler.test.ts", "// fixture");
+    await writeFile("__tests__/integration.test.ts", "// fixture");
+    const r = await walkProject({ rootPath: tmp, scanTests: true });
+    const rels = r.files.map((f) => path.relative(tmp, f)).sort();
+    expect(rels).toEqual([
+      "__tests__/integration.test.ts",
+      "src/handler.ts",
+      "test/handler.test.ts",
+    ]);
+    expect(r.test_excluded_count).toBe(0);
+  });
+
+  it("does NOT confuse production paths that merely contain 'test' substrings", async () => {
+    // e.g., `src/contest.ts`, `src/testimonials.ts` — the glob is **/test/** not **/*test*/**
+    await writeFile("src/contest.ts", "// prod");
+    await writeFile("src/testimonials.ts", "// prod");
+    await writeFile("src/attestation.ts", "// prod");
+    const r = await walkProject({ rootPath: tmp });
+    const rels = r.files.map((f) => path.relative(tmp, f)).sort();
+    expect(rels).toEqual(["src/attestation.ts", "src/contest.ts", "src/testimonials.ts"]);
+    expect(r.test_excluded_count).toBe(0);
+  });
+
+  it("test_excluded_count is reported even when files survive the filter", async () => {
+    await writeFile("src/handler.ts", "// prod");
+    await writeFile("src/handler.test.ts", "// fixture");
+    const r = await walkProject({ rootPath: tmp });
+    expect(r.test_excluded_count).toBe(1);
+    expect(r.files.length).toBe(1);
+  });
+});

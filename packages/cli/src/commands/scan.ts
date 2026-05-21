@@ -32,6 +32,7 @@ export interface ScanArgs {
   readonly "no-config"?: boolean;
   readonly "strict-suppressions"?: boolean;
   readonly "min-parse-coverage"?: string;
+  readonly "include-tests"?: boolean;
 }
 
 const VALID_FAIL_ON: ReadonlySet<string> = new Set(["critical", "high", "medium", "low"]);
@@ -94,6 +95,7 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
     ...(args["no-baseline"] === true ? { baseline_enabled: false } : {}),
     ...(args["diff-base"] !== undefined ? { diff_base: args["diff-base"] } : {}),
     ...(args["rules-dir"] !== undefined ? { rules_dir: args["rules-dir"] } : {}),
+    ...(args["include-tests"] === true ? { scan_tests: true } : {}),
   };
 
   // Step 3 — Resolve via precedence (Plan 02). Env-var validation happens inside resolveConfig.
@@ -144,6 +146,7 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
           diffBase: scan.diffBase,
           rulePackDrift: scan.rulePackDrift,
           verbose,
+          testExcludedCount: scan.walkResult.test_excluded_count,
         }),
       );
       break;
@@ -231,6 +234,11 @@ export const scanCommand = defineCommand({
     "min-parse-coverage": {
       type: "string",
       description: "Minimum parse-coverage ratio 0..1 (default 0.95)",
+    },
+    "include-tests": {
+      type: "boolean",
+      description:
+        "Scan test/fixture/mock paths too. Excluded by default — production routes rarely live in test/, tests/, __tests__/, spec/, fixtures/, mocks/, *.test.*, *.spec.*, test_*.py, *_test.py.",
     },
   },
   run: async ({ args }) => runScanCommand(args as ScanArgs),

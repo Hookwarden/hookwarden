@@ -16,6 +16,7 @@ describe("resolveConfig", () => {
       baseline_path: ".hookwarden.baseline.json",
       diff_base: null,
       rules_dir: null,
+      scan_tests: false,
     });
   });
 

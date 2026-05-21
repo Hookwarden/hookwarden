@@ -81,7 +81,13 @@ describe("Phase 3 success criteria", () => {
   });
 
   it("Criterion #4 RULES-05: hardcoded whsec_ inside __tests__/ → INFO severity, [not-verified] state, NOT CRITICAL (B-1)", async () => {
-    const out = await captureStdout(() => main(["scan", path.join(FIXTURE_ROOT, "seeded-secret")]));
+    // The fixture deliberately exercises a __tests__/ path to verify the
+    // path_severity_overrides downgrade rule (D-57). Since test-path
+    // exclusion now ships as a default, opt back in with --include-tests
+    // so this fixture actually gets scanned.
+    const out = await captureStdout(() =>
+      main(["scan", path.join(FIXTURE_ROOT, "seeded-secret"), "--include-tests"]),
+    );
     expect(out.stdout).toContain("stripe/hardcoded-secret-prefix");
     const infoIdx = out.stdout.indexOf("INFO");
     const criticalIdx = out.stdout.indexOf("CRITICAL");

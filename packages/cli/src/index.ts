@@ -53,7 +53,8 @@ const HELP_TEXT =
   `      --config P               Path to hookwarden.config.yaml.\n` +
   `      --no-config              Bypass config-file discovery.\n` +
   `      --strict-suppressions    Promote stale suppressions to errors.\n` +
-  `      --min-parse-coverage N   Minimum parse-coverage ratio 0..1 (default 0.95).\n`;
+  `      --min-parse-coverage N   Minimum parse-coverage ratio 0..1 (default 0.95).\n` +
+  `      --include-tests          Scan test/fixture/mock paths too (excluded by default).\n`;
 
 interface ParsedFlags {
   path?: string;
@@ -71,6 +72,7 @@ interface ParsedFlags {
   "no-config"?: boolean;
   "strict-suppressions"?: boolean;
   "min-parse-coverage"?: string;
+  "include-tests"?: boolean;
   help?: boolean;
 }
 
@@ -101,6 +103,7 @@ const BOOLEAN_FLAGS: ReadonlyArray<{
   { long: "--diff-only", key: "diff-only" },
   { long: "--no-config", key: "no-config" },
   { long: "--strict-suppressions", key: "strict-suppressions" },
+  { long: "--include-tests", key: "include-tests" },
 ];
 
 function parseFlags(argv: ReadonlyArray<string>): ParseResult {

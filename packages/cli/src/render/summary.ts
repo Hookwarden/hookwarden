@@ -17,6 +17,10 @@ export interface RenderSummaryOptions {
   readonly diffBase?: string | null;
   readonly rulePackDrift?: { readonly from: string; readonly to: string } | null;
   readonly verbose?: boolean;
+  // Files auto-excluded by DEFAULT_TEST_GLOBS when `scan_tests` is false.
+  // Surfaced as a footer hint so users know what got skipped without having
+  // to re-run with --include-tests.
+  readonly testExcludedCount?: number;
 }
 
 const SEVERITY_ORDER: ReadonlyArray<Severity> = ["critical", "high", "medium", "low", "info"];
@@ -86,6 +90,9 @@ export function renderSummary(result: ScanResult, opts: RenderSummaryOptions): s
   let line2 = line2Parts.join(" · ");
   if (opts.rulePackDrift) {
     line2 += `\n(rule pack ${opts.rulePackDrift.from} → ${opts.rulePackDrift.to})`;
+  }
+  if ((opts.testExcludedCount ?? 0) > 0) {
+    line2 += `\n(${opts.testExcludedCount} test/fixture file${opts.testExcludedCount === 1 ? "" : "s"} auto-excluded; use --include-tests to scan)`;
   }
 
   const rule = "────────────";

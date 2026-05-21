@@ -123,7 +123,10 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
     diffFileSet = changedFiles(baseRef.ref, root);
   }
 
-  const fullWalk = await walkProject({ rootPath: root });
+  const fullWalk = await walkProject({
+    rootPath: root,
+    scanTests: input.resolvedConfig.scan_tests,
+  });
   // Filter walkResult.files by diffFileSet when diff-only is active. The narrowed set IS the
   // candidate set for THIS run — `parse_candidates_count` reflects that so the parse-coverage
   // gate's denominator is honest under --diff-only.

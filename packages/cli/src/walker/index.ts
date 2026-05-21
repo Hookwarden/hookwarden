@@ -30,11 +30,53 @@ const HARD_SKIP_DIRS: ReadonlySet<string> = new Set([
 
 const HARD_SKIP_GLOBS: ReadonlyArray<string> = [...HARD_SKIP_DIRS].map((d) => `**/${d}/**`);
 
+// Default test/fixture path globs — excluded by default unless `scanTests` is true.
+// Rationale: an OOTB hookwarden scan on a typical Node/Python project should not
+// drown the user in findings on intentional test fixtures (handlers deliberately
+// missing verification to exercise the test harness). Real production routes
+// almost never live under these paths. User can opt in with --include-tests
+// (CLI) or `scan_tests: true` (config) when they want to audit test code too.
+const DEFAULT_TEST_GLOBS: ReadonlyArray<string> = [
+  "**/test/**",
+  "**/tests/**",
+  "**/__tests__/**",
+  "**/__test__/**",
+  "**/spec/**",
+  "**/specs/**",
+  "**/__spec__/**",
+  "**/__specs__/**",
+  "**/e2e/**",
+  "**/fixtures/**",
+  "**/__fixtures__/**",
+  "**/mocks/**",
+  "**/__mocks__/**",
+  "**/*.test.ts",
+  "**/*.test.tsx",
+  "**/*.test.js",
+  "**/*.test.jsx",
+  "**/*.test.mjs",
+  "**/*.test.cjs",
+  "**/*.spec.ts",
+  "**/*.spec.tsx",
+  "**/*.spec.js",
+  "**/*.spec.jsx",
+  "**/*.spec.mjs",
+  "**/*.spec.cjs",
+  "**/test_*.py",
+  "**/*_test.py",
+];
+
 export interface WalkOptions {
   readonly rootPath: string;
   readonly concurrency?: number;
   readonly maxFileSize?: number; // bytes; default 1 MB per D-52
   readonly followSymlinks?: boolean; // default false per D-52
+  // When false (default), test/fixture/mock paths are excluded from scanning.
+  // Production routes almost never live under these paths; their handlers are
+  // typically deliberately-broken fixtures that would otherwise dominate the
+  // findings list. Set to true (via --include-tests / `scan_tests: true`) to
+  // also audit test code.
+  readonly scanTests?: boolean;
 }
 
 export interface WalkResult {
@@ -48,6 +90,9 @@ export interface WalkResult {
   readonly parsed_files_count_estimate: number;
   readonly oversized_count: number;
   readonly symlink_count: number;
+  // files excluded by DEFAULT_TEST_GLOBS when scanTests is false; surfaced so
+  // renderers can show "(N test files auto-excluded; use --include-tests)".
+  readonly test_excluded_count: number;
 }
 
 interface IgnoreContext {
@@ -79,13 +124,16 @@ export async function walkProject(options: WalkOptions): Promise<WalkResult> {
   const concurrency = options.concurrency ?? Math.min(8, os.availableParallelism?.() ?? 4);
   const maxFileSize = options.maxFileSize ?? 1_048_576;
   const followSymlinks = options.followSymlinks ?? false;
+  const scanTests = options.scanTests ?? false;
 
   const ctx = await buildRootIgnore(root);
   const limit = pLimit(concurrency);
 
   // tinyglobby honors gitignore-style ignore patterns via the `ignore` option. We layer:
   //  1. hard-skip globs (always)
-  //  2. .gitignore content (root only — nested .gitignore is honored by reading per-dir below)
+  //  2. default test globs (unless scanTests=true) — keep these as a separate filter
+  //     pass so we can count what was excluded for the renderer hint
+  //  3. .gitignore content (root only — nested .gitignore is honored by reading per-dir below)
   // For Phase 3 we accept root-only .gitignore reading; nested .gitignore handling can be
   // addressed in a Phase 6 follow-up if the OSS corpus exposes the gap. Hard-skip already
   // covers the most common deep-nesting case (node_modules at any depth).
@@ -98,11 +146,19 @@ export async function walkProject(options: WalkOptions): Promise<WalkResult> {
     followSymbolicLinks: followSymlinks,
   });
 
-  // Apply .gitignore to the candidate set (relative paths required by `ignore`).
+  // Apply test-path filter (counted) + .gitignore filter (silent).
   // T-03-23: reject any candidate that resolves outside the root.
+  // Build a separate `ignore` instance for the test-path filter so the existing
+  // root .gitignore semantics are preserved.
+  const testIgnore = ignore().add([...DEFAULT_TEST_GLOBS]);
+  let testExcludedCount = 0;
   const filtered = candidates.filter((abs) => {
     const rel = path.relative(root, abs);
     if (rel === "" || rel.startsWith("..")) return false;
+    if (!scanTests && testIgnore.ignores(rel)) {
+      testExcludedCount++;
+      return false;
+    }
     return !ctx.ig.ignores(rel);
   });
 
@@ -150,5 +206,6 @@ export async function walkProject(options: WalkOptions): Promise<WalkResult> {
     parsed_files_count_estimate: accepted.length,
     oversized_count: oversizedCount,
     symlink_count: symlinkCount,
+    test_excluded_count: testExcludedCount,
   };
 }

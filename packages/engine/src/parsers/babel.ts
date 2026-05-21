@@ -34,9 +34,17 @@ const JSX_FAMILY: ReadonlyArray<ParserPlugin> = ["jsx"];
 function pluginsFor(hint: ParseJsTsInput["hint"], filePath: string): ReadonlyArray<ParserPlugin> {
   const ext = (hint ?? filePath.split(".").pop() ?? "").toLowerCase();
   const isTs = ext === "ts" || ext === "tsx";
-  const isJsx = ext === "tsx" || ext === "jsx";
+  // Enable JSX for .jsx/.tsx (explicit) AND for .js/.mjs/.cjs (Next.js convention:
+  // pages/_app.js + pages/_document.js contain JSX in .js by framework default).
+  // Per Babel docs, the `jsx` plugin does not change parsing of non-JSX code, so
+  // enabling it for all JS-family extensions is safe. NOT enabled for plain .ts
+  // because it would conflict with angle-bracket type assertions like `<Type>(expr)`
+  // — TypeScript itself requires the explicit .tsx extension to enable JSX.
+  const isExplicitJsx = ext === "tsx" || ext === "jsx";
+  const isJsFamily = ext === "js" || ext === "mjs" || ext === "cjs";
+  const enableJsx = isExplicitJsx || (!isTs && isJsFamily);
   const out: ParserPlugin[] = isTs ? [...TS_FAMILY] : [...JS_FAMILY];
-  if (isJsx) out.push(...JSX_FAMILY);
+  if (enableJsx) out.push(...JSX_FAMILY);
   return out;
 }
 

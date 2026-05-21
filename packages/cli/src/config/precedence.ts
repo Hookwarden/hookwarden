@@ -12,6 +12,13 @@ export interface ResolvedConfig {
   readonly baseline_path: string;
   readonly diff_base: string | null;
   readonly rules_dir: string | null;
+  // When false (default), the walker excludes paths matching DEFAULT_TEST_GLOBS
+  // (test/, tests/, __tests__/, spec/, fixtures/, mocks/, *.test.*, *.spec.*,
+  // test_*.py, *_test.py). Production webhook routes almost never live in
+  // these paths; their handlers are typically deliberately-broken fixtures
+  // that dominate the findings list. Set to true via --include-tests (CLI)
+  // or `scan_tests: true` (config) to also audit test code.
+  readonly scan_tests: boolean;
 }
 
 export const CONFIG_DEFAULTS: ResolvedConfig = {
@@ -23,6 +30,7 @@ export const CONFIG_DEFAULTS: ResolvedConfig = {
   baseline_path: ".hookwarden.baseline.json",
   diff_base: null, // D-72 auto-detect
   rules_dir: null, // dev-only
+  scan_tests: false, // exclude test paths by default; --include-tests opts back in
 };
 
 const SEVERITIES: ReadonlySet<string> = new Set(["critical", "high", "medium", "low"]);
@@ -77,6 +85,7 @@ export function resolveConfig(
   const envBaselinePath = env["HOOKWARDEN_BASELINE_PATH"];
   const envDiffBase = env["HOOKWARDEN_DIFF_BASE"];
   const envRulesDir = env["HOOKWARDEN_RULES_DIR"];
+  const rawScanTests = env["HOOKWARDEN_SCAN_TESTS"];
 
   const envFailOn = rawFailOn ? parseSeverityEnv("HOOKWARDEN_FAIL_ON", rawFailOn) : undefined;
   const envFormat = rawFormat ? parseFormatEnv("HOOKWARDEN_FORMAT", rawFormat) : undefined;
@@ -88,6 +97,9 @@ export function resolveConfig(
     : undefined;
   const envBaselineEnabled = rawBaselineEnabled
     ? parseBoolEnv("HOOKWARDEN_BASELINE_ENABLED", rawBaselineEnabled)
+    : undefined;
+  const envScanTests = rawScanTests
+    ? parseBoolEnv("HOOKWARDEN_SCAN_TESTS", rawScanTests)
     : undefined;
 
   return {
@@ -128,6 +140,12 @@ export function resolveConfig(
       envRulesDir ?? undefined,
       fileConfig?.rules_dir ?? undefined,
       CONFIG_DEFAULTS.rules_dir,
+    ),
+    scan_tests: pick(
+      cliFlags.scan_tests,
+      envScanTests,
+      fileConfig?.scan_tests,
+      CONFIG_DEFAULTS.scan_tests,
     ),
   };
 }

@@ -39,6 +39,7 @@ const SCHEMA = {
       properties: { base: { type: ["string", "null"] } },
     },
     rules_dir: { type: ["string", "null"] },
+    scan_tests: { type: "boolean" },
     rules: { type: "object" },
     providers: { type: "object" },
   },
@@ -53,6 +54,7 @@ export interface ParsedConfigDocument {
   readonly baseline?: { readonly enabled?: boolean; readonly path?: string };
   readonly diff?: { readonly base?: string | null };
   readonly rules_dir?: string | null;
+  readonly scan_tests?: boolean;
 }
 
 const validate: ValidateFunction = ajv.compile(SCHEMA);

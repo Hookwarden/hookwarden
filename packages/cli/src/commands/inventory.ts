@@ -32,7 +32,13 @@ export async function runInventoryCommand(args: InventoryArgs): Promise<number> 
   });
 
   process.stdout.write(renderInventory(scan.result, { useAnsi, cwd }));
-  process.stdout.write(renderSummary(scan.result, { useAnsi, durationMs: scan.durationMs }));
+  process.stdout.write(
+    renderSummary(scan.result, {
+      useAnsi,
+      durationMs: scan.durationMs,
+      testExcludedCount: scan.walkResult.test_excluded_count,
+    }),
+  );
 
   return 0;
 }
