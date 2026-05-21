@@ -21,6 +21,15 @@ Type "export PS1='$ '" Enter
 Type "clear" Enter
 Show
 
+# ── Frame 0: brand mascot + wordmark ─────────────────────────
+Type "./hookwarden logo"
+Sleep 300ms
+Enter
+Sleep 2500ms
+Type "clear"
+Enter
+Sleep 300ms
+
 # ── Frame 1: clean scan ──────────────────────────────────────
 Type "# 1. Clean scan — exits 0, parses 100%, zero findings"
 Sleep 350ms
