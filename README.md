@@ -263,19 +263,19 @@ hookwarden is a pnpm monorepo with three load-bearing packages and a strict depe
 
 ```mermaid
 flowchart LR
-    A[Your repo source] --> B[Walker<br/>D-51 file allowlist<br/>+ test-path filter]
-    B --> C[@hookwarden/engine<br/>pure-functional<br/>no I/O]
-    D[@hookwarden/rules<br/>YAML rule packs<br/>parameterized predicates] --> C
-    C --> E{Three-state verdict}
-    E -->|reachable + safe| F[verified]
-    E -->|reachable + unsafe| G[not-verified]
-    E -->|unprovable| H[manual-review]
-    F --> I[CLI renderer]
+    A["Your repo source"] --> B["Walker<br/>D-51 file allowlist<br/>+ test-path filter"]
+    B --> C["@hookwarden/engine<br/>pure-functional<br/>no I/O"]
+    D["@hookwarden/rules<br/>YAML rule packs<br/>parameterized predicates"] --> C
+    C --> E{"Three-state verdict"}
+    E -->|reachable + safe| F["verified"]
+    E -->|reachable + unsafe| G["not-verified"]
+    E -->|unprovable| H["manual-review"]
+    F --> I["CLI renderer"]
     G --> I
     H --> I
-    I --> J[text]
-    I --> K[JSON]
-    I --> L[SARIF 2.1.0]
+    I --> J["text"]
+    I --> K["JSON"]
+    I --> L["SARIF 2.1.0"]
 ```
 
 The verdict-state machine is the architectural contract — every finding lives in exactly one of these states, and the false-positive rate stays honest by routing analysis-defeated cases to `manual-review` rather than guessing:
@@ -283,13 +283,13 @@ The verdict-state machine is the architectural contract — every finding lives 
 ```mermaid
 stateDiagram-v2
     [*] --> Discovered: handler reached by walker
-    Discovered --> Reachability_check
-    Reachability_check --> verified: signature-verify call<br/>reachable within 3 hops
-    Reachability_check --> not_verified: no verify call<br/>reachable
-    Reachability_check --> manual_review: analyzer<br/>defeated<br/>(dynamic dispatch,<br/>middleware unroll,<br/>parse error)
-    verified --> [*]
+    Discovered --> Reachability_check: collect evidence
+    Reachability_check --> verified: signature-verify call reachable within 3 hops
+    Reachability_check --> not_verified: no verify call reachable
+    Reachability_check --> manual_review: analyzer defeated — dynamic dispatch, middleware unroll, parse error
+    verified --> [*]: exit 0
     not_verified --> [*]: exit 1
-    manual_review --> [*]: exit 0<br/>(non-blocking)
+    manual_review --> [*]: exit 0 (non-blocking)
 ```
 
 | Package | Purpose | License |
