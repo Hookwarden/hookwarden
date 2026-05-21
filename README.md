@@ -3,27 +3,24 @@
 </p>
 
 <p align="center">
-  <video src="https://github.com/Hookwarden/hookwarden/raw/main/assets/brand/metal-hookwarden.mp4" autoplay loop muted playsinline width="320">
-    Your browser does not support inline video.
-  </video>
-</p>
-
-<p align="center">
   <strong>The only scanner laser-focused on webhook signature verification.</strong><br />
-  Local. Deterministic. Zero-network. JS/TS + Python. Five minutes from `npx` to fix.
+  Local. Deterministic. Zero-network. JS/TS + Python. Five minutes from <code>npx</code> to fix.
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/hookwarden"><img src="https://img.shields.io/npm/v/hookwarden?color=4F46E5&label=npm&style=flat-square" alt="npm version" /></a>
-  <a href="https://www.npmjs.com/package/hookwarden"><img src="https://img.shields.io/npm/dm/hookwarden?color=4F46E5&style=flat-square" alt="npm downloads" /></a>
-  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-4F46E5?style=flat-square" alt="License: Apache 2.0" /></a>
-  <img src="https://img.shields.io/badge/node-%E2%89%A522-4F46E5?style=flat-square" alt="Node 22+" />
-  <a href="https://github.com/Hookwarden/hookwarden/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Hookwarden/hookwarden/ci.yml?branch=main&color=4F46E5&label=CI&style=flat-square" alt="CI" /></a>
-  <a href="https://github.com/Hookwarden/hookwarden/stargazers"><img src="https://img.shields.io/github/stars/Hookwarden/hookwarden?color=4F46E5&style=flat-square" alt="GitHub stars" /></a>
-  <img src="https://img.shields.io/badge/TypeScript-strict-4F46E5?style=flat-square" alt="TypeScript strict" />
+  <a href="https://www.npmjs.com/package/hookwarden"><img src="https://img.shields.io/npm/v/hookwarden?color=6366F1&label=npm&style=flat-square" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/hookwarden"><img src="https://img.shields.io/npm/dm/hookwarden?color=6366F1&style=flat-square" alt="npm downloads" /></a>
+  <a href="https://pypi.org/project/hookwarden/"><img src="https://img.shields.io/pypi/v/hookwarden?color=6366F1&label=PyPI&style=flat-square" alt="PyPI version" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-6366F1?style=flat-square" alt="License: Apache 2.0" /></a>
+  <img src="https://img.shields.io/badge/node-%E2%89%A522-6366F1?style=flat-square" alt="Node 22+" />
+  <a href="https://github.com/Hookwarden/hookwarden/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Hookwarden/hookwarden/ci.yml?branch=main&color=6366F1&label=CI&style=flat-square" alt="CI" /></a>
+  <a href="https://github.com/Hookwarden/hookwarden/stargazers"><img src="https://img.shields.io/github/stars/Hookwarden/hookwarden?color=6366F1&style=flat-square" alt="GitHub stars" /></a>
+  <img src="https://img.shields.io/badge/SARIF-2.1.0-6366F1?style=flat-square" alt="SARIF 2.1.0" />
 </p>
 
-<br />
+<p align="center">
+  <img src="./assets/brand/demo.gif" alt="hookwarden scan demo — clean scan exits 0, buggy scan finds the Stripe middleware-ordering bug and prints the fix" width="100%" />
+</p>
 
 ```bash
 npx hookwarden scan ./your-app
@@ -33,24 +30,25 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
 ---
 
-## Contents
+## 📚 Contents
 
-- [Why](#why)
-- [Install](#install)
-- [Quickstart](#quickstart)
-- [Real output](#real-output)
-- [Provider coverage](#provider-coverage)
-- [CI integration](#ci-integration)
-- [Architecture](#architecture)
-- [vs. other tools](#vs-other-tools)
-- [Advanced usage](#advanced-usage)
-- [Roadmap](#roadmap)
-- [Contributing](#contributing)
-- [License](#license)
+- [💡 Why](#-why)
+- [📦 Install](#-install)
+- [🚀 Quickstart](#-quickstart)
+- [📺 Real output](#-real-output)
+- [🔐 Provider coverage](#-provider-coverage)
+- [🤖 CI integration](#-ci-integration)
+- [🏗 Architecture](#-architecture)
+- [🆚 vs. other tools](#-vs-other-tools)
+- [🛠 Advanced usage](#-advanced-usage)
+- [🗺 Roadmap](#-roadmap)
+- [🤝 Contributing](#-contributing)
+- [⭐ Star history](#-star-history)
+- [📄 License](#-license)
 
 ---
 
-## Why
+## 💡 Why
 
 **Snyk and Semgrep find everything. Hookwarden finds the one thing that lets attackers replay your Stripe webhooks.**
 
@@ -62,7 +60,7 @@ Hookwarden does one thing. It walks your repo, parses every webhook handler acro
 
 ---
 
-## Install
+## 📦 Install
 
 ```bash
 npx hookwarden scan .   # works everywhere, no install
@@ -108,7 +106,7 @@ See [Install](#install) for permanent install via npm, Homebrew, Scoop, or PyPI.
 
 ---
 
-## Real output
+## 📺 Real output
 
 **Clean scan — exits 0:**
 
@@ -197,6 +195,15 @@ Sorted keys, schema-versioned, byte-stable across runs (modulo `scanned_at`). SA
 
 45 rules across 6 providers. Every rule carries fix guidance quoted verbatim from the provider's canonical security documentation.
 
+<p align="center">
+  <a href="./packages/rules/rules/stripe"><img src="https://cdn.simpleicons.org/stripe/6366F1" alt="Stripe" height="36" /></a>&nbsp;&nbsp;&nbsp;
+  <a href="./packages/rules/rules/github"><img src="https://cdn.simpleicons.org/github/6366F1" alt="GitHub" height="36" /></a>&nbsp;&nbsp;&nbsp;
+  <a href="./packages/rules/rules/shopify"><img src="https://cdn.simpleicons.org/shopify/6366F1" alt="Shopify" height="36" /></a>&nbsp;&nbsp;&nbsp;
+  <a href="./packages/rules/rules/slack"><img src="https://cdn.simpleicons.org/slack/6366F1" alt="Slack" height="36" /></a>&nbsp;&nbsp;&nbsp;
+  <a href="./packages/rules/rules/twilio"><img src="https://cdn.simpleicons.org/twilio/6366F1" alt="Twilio" height="36" /></a>&nbsp;&nbsp;&nbsp;
+  <a href="./packages/rules/rules/square"><img src="https://cdn.simpleicons.org/square/6366F1" alt="Square" height="36" /></a>
+</p>
+
 | Provider | Rules | Detection types | Custom predicate |
 |---|---|---|---|
 | [**Stripe**](./packages/rules/rules/stripe) | 9 | missing-sig-verif, timing-unsafe, raw-body, missing-timestamp, wrong-hmac, unreachable-verif, hardcoded-secret (`whsec_`), library-verified | — |
@@ -210,7 +217,7 @@ Full per-rule applicability matrix: [`docs/rule-coverage.md`](./docs/rule-covera
 
 ---
 
-## CI integration
+## 🤖 CI integration
 
 ### GitHub Action (recommended)
 
@@ -250,13 +257,40 @@ SARIF severity mapping: `critical`/`high` → `error` · `medium` → `warning` 
 
 ---
 
-## Architecture
+## 🏗 Architecture
 
 hookwarden is a pnpm monorepo with three load-bearing packages and a strict dependency boundary enforced in CI.
 
-<p align="center">
-  <img src="./assets/brand/diagrams/architecture.svg" alt="hookwarden architecture: source AST and YAML rules feed the pure engine, which feeds the CLI; CLI emits text, JSON, and SARIF." width="100%" />
-</p>
+```mermaid
+flowchart LR
+    A[Your repo source] --> B[Walker<br/>D-51 file allowlist<br/>+ test-path filter]
+    B --> C[@hookwarden/engine<br/>pure-functional<br/>no I/O]
+    D[@hookwarden/rules<br/>YAML rule packs<br/>parameterized predicates] --> C
+    C --> E{Three-state verdict}
+    E -->|reachable + safe| F[verified]
+    E -->|reachable + unsafe| G[not-verified]
+    E -->|unprovable| H[manual-review]
+    F --> I[CLI renderer]
+    G --> I
+    H --> I
+    I --> J[text]
+    I --> K[JSON]
+    I --> L[SARIF 2.1.0]
+```
+
+The verdict-state machine is the architectural contract — every finding lives in exactly one of these states, and the false-positive rate stays honest by routing analysis-defeated cases to `manual-review` rather than guessing:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Discovered: handler reached by walker
+    Discovered --> Reachability_check
+    Reachability_check --> verified: signature-verify call<br/>reachable within 3 hops
+    Reachability_check --> not_verified: no verify call<br/>reachable
+    Reachability_check --> manual_review: analyzer<br/>defeated<br/>(dynamic dispatch,<br/>middleware unroll,<br/>parse error)
+    verified --> [*]
+    not_verified --> [*]: exit 1
+    manual_review --> [*]: exit 0<br/>(non-blocking)
+```
 
 | Package | Purpose | License |
 |---|---|---|
@@ -268,7 +302,7 @@ The engine's I/O boundary is the architectural load-bearing constraint. The same
 
 ---
 
-## vs. other tools
+## 🆚 vs. other tools
 
 Hookwarden is **specialized on purpose.** Webhook signature verification is the only thing it does, and that's why it does it better than tools whose surface area covers everything. The general-purpose scanners below are excellent at what they do — they're just not in this fight.
 
@@ -285,7 +319,7 @@ If you're already running semgrep or snyk: hookwarden is additive, not a replace
 
 ---
 
-## Advanced usage
+## 🛠 Advanced usage
 
 <details>
 <summary>Suppression — inline, .hookwardenignore, and baseline</summary>
@@ -376,7 +410,7 @@ Re-uploading the same scan deduplicates via SARIF `partialFingerprints`. Full ma
 
 ---
 
-## Roadmap
+## 🗺 Roadmap
 
 **Recently shipped (v0.3)**
 pre-commit hook · Homebrew tap · Scoop/WinGet manifests · standalone binaries (Linux x64/arm64, Windows x64). macOS users install via `npx hookwarden` or `npm i -g hookwarden`.
@@ -387,7 +421,7 @@ pre-commit hook · Homebrew tap · Scoop/WinGet manifests · standalone binaries
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
 Rule-pack PRs are the highest-value contribution. Adding a new provider is a catalog edit plus N rule YAMLs — the factory architecture means most providers ship without any new TypeScript. See the existing six providers in [`packages/rules/rules/`](./packages/rules/rules) as worked examples.
 
@@ -410,7 +444,19 @@ More: [hookwarden.dev](https://hookwarden.dev) · [rule coverage matrix](./docs/
 
 ---
 
-## License
+## ⭐ Star history
+
+<a href="https://star-history.com/#Hookwarden/hookwarden&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Hookwarden/hookwarden&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Hookwarden/hookwarden&type=Date" />
+    <img alt="Star history chart for Hookwarden/hookwarden" src="https://api.star-history.com/svg?repos=Hookwarden/hookwarden&type=Date" />
+  </picture>
+</a>
+
+---
+
+## 📄 License
 
 Apache 2.0 — see [`LICENSE`](./LICENSE). The CLI, engine, and rule packs in this repo are open source and will remain so. A separate closed-source SaaS tier handles continuous monitoring, secret leak scanning, automated rotation, and SOC 2 evidence export — [hookwarden.dev](https://hookwarden.dev).
 
