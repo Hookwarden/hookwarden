@@ -53,7 +53,7 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
 **Snyk and Semgrep find everything. Hookwarden finds the one thing that lets attackers replay your Stripe webhooks.**
 
-Most webhook bugs are not in delivery — they're in verification. A handler that accepts an unsigned payload, compares HMACs with `==`, or skips the signature check on a `?test=true` path will silently route attacker traffic into your business logic. The attack surface is real, the bugs are common, and general-purpose SAST tools weren't built for this — they bury the high-signal webhook bug under hundreds of medium-priority generic findings.
+Most webhook bugs are not in delivery — they're in verification. A handler that accepts an unsigned payload, compares HMACs with `==`, or skips the signature check on a `?test=true` path will silently route attacker traffic into your business logic — and general-purpose SAST tools weren't built to find it. They bury the high-signal webhook bug under hundreds of medium-priority generic findings.
 
 Hookwarden does one thing. It walks your repo, parses every webhook handler across Express, Hono, Fastify, Next.js, Flask, FastAPI, and Django, and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix drawn verbatim from provider documentation. That focus is the entire point. The provider catalog (Stripe, GitHub, Shopify, Slack, Twilio, Square — and growing) encodes signature-format quirks no generic scanner has the surface area to know: that Stripe uses HMAC-SHA256 with a 5-minute timestamp tolerance, that Slack uses `v0:${ts}:${body}` not raw-body, that Twilio is the SHA1 outlier the rest of the catalog has to accommodate.
 
@@ -90,8 +90,6 @@ npm install --save-dev hookwarden  # dev dependency (CI-pinnable)
 ---
 
 ## Real output
-
-<!-- TODO: replace this block with demo.gif recorded via vhs/charmbracelet once assets are ready -->
 
 **Clean scan — exits 0:**
 
@@ -142,8 +140,8 @@ Scanned in 0.3 s · 24 / 24 candidates parsed (100.0% coverage)
 ```json
 {
   "schema_version": "1.0",
-  "engine": { "version": "0.2.0", "commit_sha": null },
-  "rule_pack": { "version": "0.2.0", "content_hash": "51c219..." },
+  "engine": { "version": "0.3.1", "commit_sha": null },
+  "rule_pack": { "version": "0.3.1", "content_hash": "51c219..." },
   "scan": {
     "counts": {
       "active":     { "critical": 1, "high": 1, "medium": 0, "low": 0, "info": 0 },
@@ -178,7 +176,7 @@ Sorted keys, schema-versioned, byte-stable across runs (modulo `scanned_at`). SA
 
 ## 🔐 Provider coverage
 
-45 rules across 6 providers as of v0.2. Every rule carries fix guidance quoted verbatim from the provider's canonical security documentation.
+45 rules across 6 providers. Every rule carries fix guidance quoted verbatim from the provider's canonical security documentation.
 
 | Provider | Rules | Detection types | Custom predicate |
 |---|---|---|---|
@@ -261,8 +259,8 @@ Hookwarden is **specialized on purpose.** Webhook signature verification is the 
 | **snyk Code** | Broad vulnerability detection in paid SaaS | No webhook-specific rules; doesn't model HMAC reachability |
 | **GitGuardian** | Secret leak detection in git history and CI | Finds hardcoded secrets; does not audit whether verification logic is correct |
 | **TruffleHog** | Secret scanning across sources | Same as GitGuardian — leak focus, not logic focus |
-| **Datadog Static Analysis** | Broad SAST; good AWS/cloud signal | No webhook verification specialization; high false-positive rate for this class of bug |
-| **hookwarden** | Webhook verification logic only | 45 rules, 6 providers, three-state verdicts, <5% FP target measured against a 200-repo OSS corpus |
+| **Datadog Static Analysis** | Broad SAST; good AWS/cloud signal | No webhook verification specialization; generic SAST rules produce low-signal findings for this class of bug |
+| **hookwarden** | Webhook verification logic only | 45 rules, 6 providers, three-state verdicts, <5% FP rate measured against a 200-repo OSS corpus |
 
 If you're already running semgrep or snyk: hookwarden is additive, not a replacement. It finds the class of bug those tools were not built to find.
 
@@ -361,9 +359,10 @@ Re-uploading the same scan deduplicates via SARIF `partialFingerprints`. Full ma
 
 ## Roadmap
 
-**v0.3 — Distribution.** pre-commit hook, Homebrew tap, Scoop/WinGet manifests, standalone binaries (macOS arm64/x64, Linux x64/arm64, Windows x64).
+**Recently shipped (v0.3)**
+pre-commit hook · Homebrew tap · Scoop/WinGet manifests · standalone binaries (Linux x64/arm64, Windows x64). macOS users install via `npx hookwarden` or `npm i -g hookwarden`.
 
-**v0.4 — More providers.** Adyen, Zendesk, Mailgun, SendGrid — each measured against the 200-repo OSS regression corpus before release, with a published false-positive rate.
+**v0.4 — More providers.** Adyen, Zendesk, Mailgun — each measured against the 200-repo OSS regression corpus before release, with a published false-positive rate.
 
 **v0.5 — Corpus integrity.** `verify-changeset-delta` — every PR's rule changes run against the full corpus and the `findings_delta` block must match the actual delta before merge.
 
