@@ -1,11 +1,16 @@
 #!/usr/bin/env node
-// Bundles two .wasm artifacts into the CLI's stable wasm/ path:
+// Bundles three .wasm artifacts into the CLI's stable wasm/ path:
 //   1. tree-sitter-python.wasm — the Python grammar. Sourced from the
 //      tree-sitter-python npm package (devDep). The native binding from
 //      tree-sitter-python is dead weight (node-gyp-build fails on musl,
 //      needs a C++ toolchain otherwise); hookwarden only uses the WASM,
 //      so we stay on web-tree-sitter and ship the .wasm directly.
-//   2. web-tree-sitter.wasm — the tree-sitter runtime itself. Bun's bundler
+//   2. tree-sitter-php.wasm — the PHP grammar (Phase 8.1 DIST-05). Same
+//      reasoning as Python: shipped as WASM only, no native binding. The
+//      tarball also ships tree-sitter-php_only.wasm (pure-PHP, no <?php
+//      opener) — we use the full grammar since real webhook handlers
+//      always have <?php opening tags.
+//   3. web-tree-sitter.wasm — the tree-sitter runtime itself. Bun's bundler
 //      can't resolve `web-tree-sitter/web-tree-sitter.wasm` through pnpm's
 //      hoisted node_modules layout (`error: Could not resolve... maybe you
 //      need to bun install`), so we mirror the file into the same wasm/
@@ -52,6 +57,10 @@ function copyAsset(packageDir, fileName) {
 // tree-sitter-python's package.json IS exported (no `exports` map at all
 // → all subpaths public), so we can use that as the resolution anchor.
 copyAsset(dirname(require.resolve("tree-sitter-python/package.json")), "tree-sitter-python.wasm");
+// tree-sitter-php also has no `exports` map (verified via `npm view tree-sitter-php@0.24.2`
+// — exports field unset → all subpaths public), so package.json resolution works
+// the same way as Python.
+copyAsset(dirname(require.resolve("tree-sitter-php/package.json")), "tree-sitter-php.wasm");
 // web-tree-sitter has an `exports` map that whitelists ./web-tree-sitter.wasm;
 // resolve via that subpath to find the package directory.
 copyAsset(resolvePackageDir("web-tree-sitter", "web-tree-sitter.wasm"), "web-tree-sitter.wasm");
