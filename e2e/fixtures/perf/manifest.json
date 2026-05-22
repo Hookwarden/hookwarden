@@ -1,6 +1,6 @@
 {
-  "total_files": 384,
-  "total_lines": 46376,
+  "total_files": 925,
+  "total_lines": 88506,
   "files": [
     {
       "relPath": "express-app/handlers/handler-0.ts",
@@ -2680,6 +2680,3793 @@
       "relPath": "express-app/handlers/verified-github.ts",
       "framework": "express",
       "language": "typescript",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-0.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController0.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-1.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController1.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-2.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController2.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-3.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController3.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-4.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController4.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-5.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController5.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-6.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController6.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-7.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController7.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-8.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController8.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-9.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController9.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-10.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController10.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-11.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController11.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-12.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController12.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-13.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController13.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-14.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController14.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-15.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController15.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-16.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController16.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-17.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController17.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-18.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController18.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-19.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController19.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-20.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController20.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-21.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController21.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-22.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController22.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-23.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController23.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-24.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController24.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-25.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController25.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-26.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController26.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-27.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController27.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-28.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController28.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-29.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController29.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-30.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController30.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-31.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController31.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-32.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController32.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-33.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController33.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-34.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController34.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-35.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController35.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-36.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController36.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-37.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController37.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-38.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController38.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-39.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController39.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-40.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController40.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-41.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController41.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-42.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController42.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-43.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController43.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-44.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController44.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-45.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController45.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-46.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController46.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-47.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController47.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-48.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController48.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-49.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController49.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-50.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController50.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-51.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController51.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-52.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController52.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-53.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController53.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-54.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController54.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-55.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController55.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-56.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController56.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-57.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController57.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-58.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController58.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-59.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController59.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-60.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController60.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-61.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController61.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-62.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController62.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-63.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController63.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-64.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController64.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-65.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController65.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-66.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController66.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-67.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController67.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-68.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController68.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-69.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController69.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-70.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController70.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-71.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController71.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-72.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController72.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-73.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController73.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-74.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController74.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-75.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController75.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-76.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController76.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-77.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController77.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-78.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController78.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-79.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController79.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-80.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController80.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-81.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController81.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-82.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController82.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-83.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController83.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-84.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/app/Http/Controllers/WebhookController84.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/routes/api-85.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-github/app/Http/Controllers/WebhookController85.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/routes/api-86.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-shopify/app/Http/Controllers/WebhookController86.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/routes/api-87.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-slack/app/Http/Controllers/WebhookController87.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/routes/api-88.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-twilio/app/Http/Controllers/WebhookController88.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/routes/api-89.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-square/app/Http/Controllers/WebhookController89.php",
+      "framework": "laravel",
+      "language": "php",
+      "expected_handlers": 0,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController0.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController1.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController2.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController3.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController4.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController5.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController6.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController7.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController8.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController9.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController10.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController11.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController12.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController13.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController14.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController15.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController16.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController17.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController18.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController19.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController20.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController21.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController22.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController23.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController24.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController25.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController26.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController27.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController28.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController29.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController30.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController31.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController32.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController33.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController34.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController35.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController36.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController37.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController38.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController39.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController40.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController41.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController42.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController43.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController44.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController45.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController46.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController47.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController48.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController49.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController50.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController51.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController52.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController53.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController54.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController55.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController56.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController57.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController58.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController59.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController60.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController61.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController62.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController63.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController64.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController65.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController66.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController67.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController68.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController69.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController70.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController71.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController72.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController73.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController74.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController75.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController76.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController77.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController78.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController79.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController80.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController81.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController82.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController83.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-stripe/src/Controller/WebhookController84.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-github/src/Controller/WebhookController85.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-shopify/src/Controller/WebhookController86.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-slack/src/Controller/WebhookController87.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-twilio/src/Controller/WebhookController88.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/symfony-square/src/Controller/WebhookController89.php",
+      "framework": "symfony",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-0.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-1.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-2.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-3.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-4.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-5.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-6.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-7.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-8.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-9.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-10.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-11.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-12.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-13.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-14.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-15.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-16.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-17.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-18.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-19.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-20.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-21.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-22.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-23.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-24.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-25.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-26.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-27.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-28.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-29.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-30.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-31.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-32.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-33.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-34.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-35.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-36.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-37.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-38.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-39.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-40.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-41.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-42.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-43.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-44.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-45.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-46.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-47.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-48.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-49.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-50.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-51.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-52.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-53.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-54.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-55.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-56.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-57.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-58.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-59.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-60.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-61.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-62.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-63.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-64.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-65.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-66.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-67.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-68.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-69.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-70.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-71.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-72.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-73.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-74.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-75.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-76.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-77.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-78.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-79.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-80.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-81.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-82.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-83.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-stripe/public/index-84.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-github/public/index-85.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-shopify/public/index-86.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-slack/public/index-87.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-twilio/public/index-88.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/slim-square/public/index-89.php",
+      "framework": "slim",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-0.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-1.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-2.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-3.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-4.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-5.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-6.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-7.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-8.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-9.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-10.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-11.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-12.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-13.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-14.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-15.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-16.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-17.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-18.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-19.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-20.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-21.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-22.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-23.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-24.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-25.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-26.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-27.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-28.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-29.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-30.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-31.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-32.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-33.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-34.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-35.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-36.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-37.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-38.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-39.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-40.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-41.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-42.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-43.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-44.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-45.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-46.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-47.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-48.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-49.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-50.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-51.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-52.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-53.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-54.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-55.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-56.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-57.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-58.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-59.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-60.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-61.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-62.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-63.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-64.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-65.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-66.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-67.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-68.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-69.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-70.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-71.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-72.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-73.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-74.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-75.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-76.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-77.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-78.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-79.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-80.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-81.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-82.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-83.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-84.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-85.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-86.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-87.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-88.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-89.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-90.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-91.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-92.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-93.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-94.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-95.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-96.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-97.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-98.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-99.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-100.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-101.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-102.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-103.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-104.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-105.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-106.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-107.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-108.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-109.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-110.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-111.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-112.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-113.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-114.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-115.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-116.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-117.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-118.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-119.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-120.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-121.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-122.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-123.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-124.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-125.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-126.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-127.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-128.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-129.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-130.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-131.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-132.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-133.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-134.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-135.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-136.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-137.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-138.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-139.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-140.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-141.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-142.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-143.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-144.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-145.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-146.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-147.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-148.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-149.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-150.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-151.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-152.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-153.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-154.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-155.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-156.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-157.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-158.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-159.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-160.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-161.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-162.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-163.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-164.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-165.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-166.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-167.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-168.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-169.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-170.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-171.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-172.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-173.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-stripe/webhook-174.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-github/webhook-175.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-shopify/webhook-176.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-slack/webhook-177.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-twilio/webhook-178.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/vanilla-square/webhook-179.php",
+      "framework": "vanilla-php",
+      "language": "php",
+      "expected_handlers": 1,
+      "parse_error_expected": false
+    },
+    {
+      "relPath": "php/laravel-stripe/routes/api-verified.php",
+      "framework": "laravel",
+      "language": "php",
       "expected_handlers": 1,
       "parse_error_expected": false
     },

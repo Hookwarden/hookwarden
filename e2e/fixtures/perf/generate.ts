@@ -11,7 +11,7 @@ const OUT = join(HERE, "generated");
 interface FixtureFile {
   readonly relPath: string;
   readonly framework: string;
-  readonly language: "javascript" | "typescript" | "python";
+  readonly language: "javascript" | "typescript" | "python" | "php";
   readonly expected_handlers: number;
   readonly parse_error_expected: boolean;
   readonly contents: string;
@@ -136,6 +136,116 @@ FILES.push({
     "});\n",
 });
 
+// Phase 8.1 — PHP synthetic corpus (~10K LOC). Mix of frameworks (Laravel / Symfony / Slim /
+// vanilla-PHP) across the 6 v1 providers. Webhook handler shapes cycle through verified +
+// not-verified patterns so the engine exercises both branches of the catalog walker + rule
+// evaluator.
+const PHP_PROVIDERS = ["stripe", "github", "shopify", "slack", "twilio", "square"] as const;
+type PhpProvider = (typeof PHP_PROVIDERS)[number];
+
+const PHP_PROVIDER_META: Record<
+  PhpProvider,
+  {
+    readonly header: string; // SignatureHeader name in $_SERVER form (HTTP_*)
+    readonly envVar: string; // canonical env var name
+    readonly algo: string; // hash_hmac algo
+  }
+> = {
+  stripe: { header: "HTTP_STRIPE_SIGNATURE", envVar: "STRIPE_WEBHOOK_SECRET", algo: "sha256" },
+  github: { header: "HTTP_X_HUB_SIGNATURE_256", envVar: "GITHUB_WEBHOOK_SECRET", algo: "sha256" },
+  shopify: {
+    header: "HTTP_X_SHOPIFY_HMAC_SHA256",
+    envVar: "SHOPIFY_WEBHOOK_SECRET",
+    algo: "sha256",
+  },
+  slack: { header: "HTTP_X_SLACK_SIGNATURE", envVar: "SLACK_SIGNING_SECRET", algo: "sha256" },
+  twilio: { header: "HTTP_X_TWILIO_SIGNATURE", envVar: "TWILIO_AUTH_TOKEN", algo: "sha1" },
+  square: {
+    header: "HTTP_X_SQUARE_HMACSHA256_SIGNATURE",
+    envVar: "SQUARE_WEBHOOK_SECRET",
+    algo: "sha256",
+  },
+};
+
+// Laravel route + controller pairs (route file declares the route; controller has the handler).
+for (let i = 0; i < 90; i++) {
+  const provider = PHP_PROVIDERS[i % PHP_PROVIDERS.length] as PhpProvider;
+  FILES.push({
+    relPath: `php/laravel-${provider}/routes/api-${i}.php`,
+    framework: "laravel",
+    language: "php" as const,
+    expected_handlers: 1,
+    parse_error_expected: false,
+    contents: laravelRouteFile(provider, i),
+  });
+  FILES.push({
+    relPath: `php/laravel-${provider}/app/Http/Controllers/WebhookController${i}.php`,
+    framework: "laravel",
+    language: "php" as const,
+    expected_handlers: 0, // controller-only file — route file owns the handler
+    parse_error_expected: false,
+    contents: laravelController(provider, i),
+  });
+}
+
+// Symfony attribute-routed controllers.
+for (let i = 0; i < 90; i++) {
+  const provider = PHP_PROVIDERS[i % PHP_PROVIDERS.length] as PhpProvider;
+  FILES.push({
+    relPath: `php/symfony-${provider}/src/Controller/WebhookController${i}.php`,
+    framework: "symfony",
+    language: "php" as const,
+    expected_handlers: 1,
+    parse_error_expected: false,
+    contents: symfonyController(provider, i),
+  });
+}
+
+// Slim app definitions.
+for (let i = 0; i < 90; i++) {
+  const provider = PHP_PROVIDERS[i % PHP_PROVIDERS.length] as PhpProvider;
+  FILES.push({
+    relPath: `php/slim-${provider}/public/index-${i}.php`,
+    framework: "slim",
+    language: "php" as const,
+    expected_handlers: 1,
+    parse_error_expected: false,
+    contents: slimHandler(provider, i),
+  });
+}
+
+// vanilla-PHP single-file handlers.
+for (let i = 0; i < 180; i++) {
+  const provider = PHP_PROVIDERS[i % PHP_PROVIDERS.length] as PhpProvider;
+  FILES.push({
+    relPath: `php/vanilla-${provider}/webhook-${i}.php`,
+    framework: "vanilla-php",
+    language: "php" as const,
+    expected_handlers: 1,
+    parse_error_expected: false,
+    contents: vanillaPhpHandler(provider, i),
+  });
+}
+
+// One verified-via-SDK PHP file (ensures at least one PHP Finding ends up `verified`).
+FILES.push({
+  relPath: "php/laravel-stripe/routes/api-verified.php",
+  framework: "laravel",
+  language: "php" as const,
+  expected_handlers: 1,
+  parse_error_expected: false,
+  contents:
+    "<?php\n" +
+    "use Illuminate\\Support\\Facades\\Route;\n" +
+    "use Stripe\\Webhook;\n" +
+    "Route::post('/webhooks/stripe', function ($request) {\n" +
+    "  $sig = $_SERVER['HTTP_STRIPE_SIGNATURE'];\n" +
+    "  $secret = getenv('STRIPE_WEBHOOK_SECRET');\n" +
+    "  $event = \\Stripe\\Webhook::constructEvent($request->getContent(), $sig, $secret);\n" +
+    "  return response()->json(['received' => true]);\n" +
+    "});\n",
+});
+
 // One parse-error file (ENGINE-07 coverage).
 FILES.push({
   relPath: "express-app/broken.ts",
@@ -251,6 +361,108 @@ function djangoUrls(viewCount: number): string {
 
 function padding(commentLine: string, n: number): string {
   return Array.from({ length: n }, () => commentLine).join("\n");
+}
+
+// ===== PHP templates (Phase 8.1) =====
+
+function laravelRouteFile(provider: PhpProvider, i: number): string {
+  const meta = PHP_PROVIDER_META[provider];
+  // Even-indexed: not-verified shape (manual hash_hmac + ===). Odd: not-verified shape (no
+  // verification). Verified-via-SDK shape lives in the one explicit file declared above.
+  const unsafeCompare = i % 2 === 0;
+  return [
+    "<?php",
+    "use Illuminate\\Support\\Facades\\Route;",
+    `Route::post('/webhooks/${provider}-${i}', function (\\Illuminate\\Http\\Request $request) {`,
+    `  $sig = $_SERVER['${meta.header}'] ?? '';`,
+    `  $secret = getenv('${meta.envVar}');`,
+    unsafeCompare
+      ? `  $expected = hash_hmac('${meta.algo}', $request->getContent(), $secret);\n  if ($expected === $sig) { return response('ok'); }\n  return response('forbidden', 403);`
+      : `  return response('ok');`,
+    "});",
+    padding("// noop padding for perf-corpus density", 100),
+  ].join("\n");
+}
+
+function laravelController(provider: PhpProvider, i: number): string {
+  return [
+    "<?php",
+    "namespace App\\Http\\Controllers;",
+    "use Illuminate\\Http\\Request;",
+    `class WebhookController${i} extends Controller {`,
+    `  public function handle${i}(Request $request) {`,
+    `    return response()->json(['provider' => '${provider}']);`,
+    "  }",
+    "}",
+    padding("// noop", 60),
+  ].join("\n");
+}
+
+function symfonyController(provider: PhpProvider, i: number): string {
+  const meta = PHP_PROVIDER_META[provider];
+  const unsafeCompare = i % 2 === 0;
+  return [
+    "<?php",
+    "namespace App\\Controller;",
+    "use Symfony\\Component\\Routing\\Attribute\\Route;",
+    "use Symfony\\Component\\HttpFoundation\\Request;",
+    "use Symfony\\Component\\HttpFoundation\\JsonResponse;",
+    `class WebhookController${i} {`,
+    `  #[Route('/webhooks/${provider}-${i}', methods: ['POST'])]`,
+    `  public function handle(Request $request): JsonResponse {`,
+    `    $sig = $_SERVER['${meta.header}'] ?? '';`,
+    `    $secret = getenv('${meta.envVar}');`,
+    unsafeCompare
+      ? `    $expected = hash_hmac('${meta.algo}', $request->getContent(), $secret);\n    if ($expected === $sig) { return new JsonResponse(['ok' => true]); }\n    return new JsonResponse(['error' => 'forbidden'], 403);`
+      : `    return new JsonResponse(['ok' => true]);`,
+    "  }",
+    "}",
+    padding("// noop", 50),
+  ].join("\n");
+}
+
+function slimHandler(provider: PhpProvider, i: number): string {
+  const meta = PHP_PROVIDER_META[provider];
+  return [
+    "<?php",
+    "use Slim\\Factory\\AppFactory;",
+    "use Psr\\Http\\Message\\ServerRequestInterface;",
+    "use Psr\\Http\\Message\\ResponseInterface;",
+    "$app = AppFactory::create();",
+    `$app->post('/webhooks/${provider}-${i}', function (ServerRequestInterface $req, ResponseInterface $res) {`,
+    `  $sig = $_SERVER['${meta.header}'] ?? '';`,
+    `  $secret = getenv('${meta.envVar}');`,
+    `  $body = (string) $req->getBody();`,
+    `  $expected = hash_hmac('${meta.algo}', $body, $secret);`,
+    "  if (hash_equals($expected, $sig)) {",
+    "    $res->getBody()->write('ok');",
+    "  }",
+    "  return $res;",
+    "});",
+    "$app->run();",
+    padding("// noop", 50),
+  ].join("\n");
+}
+
+function vanillaPhpHandler(provider: PhpProvider, i: number): string {
+  const meta = PHP_PROVIDER_META[provider];
+  const unsafeCompare = i % 3 === 0;
+  return [
+    "<?php",
+    "// Vanilla PHP webhook handler (no framework).",
+    `if ($_SERVER['REQUEST_METHOD'] !== 'POST') {`,
+    "  http_response_code(405);",
+    "  exit;",
+    "}",
+    `$body = file_get_contents('php://input');`,
+    `$sig = $_SERVER['${meta.header}'] ?? '';`,
+    `$secret = getenv('${meta.envVar}');`,
+    `$expected = hash_hmac('${meta.algo}', $body, $secret);`,
+    unsafeCompare
+      ? "if ($expected === $sig) { echo 'ok'; } else { http_response_code(403); }"
+      : "if (hash_equals($expected, $sig)) { echo 'ok'; } else { http_response_code(403); }",
+    padding("// noop", 70),
+  ].join("\n");
 }
 
 export async function generate(): Promise<void> {

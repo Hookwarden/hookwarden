@@ -8,18 +8,21 @@ import {
   buildProjectModel,
   type Config,
   evaluate,
+  initPhpRuntime,
   initPythonRuntime,
   type ParsedFile,
+  type PhpRuntime,
   type ProjectModel,
   type ProviderCatalog,
   type PythonRuntime,
   parseJsTs,
+  parsePhp,
   parsePython,
   type RulePredicate,
   type RuleSet,
   type WebhookHandler,
 } from "../../src/index.js";
-import { resolvePythonWasmPath } from "../wasm.js";
+import { resolvePhpWasmPath, resolvePythonWasmPath } from "../wasm.js";
 
 // Resolve the fixture from this file's location, then walk to the workspace root.
 // test/integration/perf-50k.test.ts → up 3 to packages/engine, up 2 more to workspace root.
@@ -92,6 +95,7 @@ function listFiles(root: string): ReadonlyArray<string> {
 }
 
 let runtime: PythonRuntime;
+let phpRuntime: PhpRuntime;
 
 beforeAll(async () => {
   // Auto-generate the fixture if missing — the generated tree is gitignored, so CI runners
@@ -102,6 +106,9 @@ beforeAll(async () => {
   }
   runtime = await initPythonRuntime({
     wasmBytes: new Uint8Array(readFileSync(resolvePythonWasmPath())),
+  });
+  phpRuntime = await initPhpRuntime({
+    wasmBytes: new Uint8Array(readFileSync(resolvePhpWasmPath())),
   });
 }, 60_000);
 
@@ -125,6 +132,8 @@ describe("Phase 2 perf + coverage on the 50K-LOC fixture (ENGINE-06 + ENGINE-09 
         parsedFiles.push(await parseJsTs({ file_path: rel, source_text: text }));
       } else if (abs.endsWith(".py")) {
         parsedFiles.push(await parsePython({ file_path: rel, source_text: text }, runtime));
+      } else if (abs.endsWith(".php")) {
+        parsedFiles.push(await parsePhp({ file_path: rel, source_text: text }, phpRuntime));
       }
     }
 
@@ -149,7 +158,7 @@ describe("Phase 2 perf + coverage on the 50K-LOC fixture (ENGINE-06 + ENGINE-09 
     // ENGINE-06: under 30 seconds.
     expect(elapsedMs).toBeLessThan(30_000);
 
-    // ENGINE-09: every framework appears in inventory.
+    // ENGINE-09: every framework appears in inventory. Phase 8.1 adds laravel/symfony/slim/vanilla-php.
     const frameworksInInventory = new Set(result.inventory.map((h) => h.framework));
     for (const fw of [
       "express",
@@ -159,6 +168,10 @@ describe("Phase 2 perf + coverage on the 50K-LOC fixture (ENGINE-06 + ENGINE-09 
       "flask",
       "fastapi",
       "django",
+      "laravel",
+      "symfony",
+      "slim",
+      "vanilla-php",
     ] as const) {
       expect(frameworksInInventory.has(fw), `framework ${fw} missing from inventory`).toBe(true);
     }
