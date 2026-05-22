@@ -46,9 +46,19 @@ export function computeEvidence(input: ComputeEvidenceInput): ComputeEvidenceOut
   }
 
   // Signal B — sdk_import (catalog sdk_packages).
+  // JS / Python: exact module match (e.g. import "stripe" → `to_module === "stripe"`).
+  // PHP: namespace-prefix match (e.g. `use Stripe\Webhook;` → `to_module = "Stripe\\Webhook"`,
+  //      which startsWith the catalog prefix `Stripe\`). Catalog entries containing `\` are
+  //      treated as PHP prefixes; everything else uses exact match. The prefix path also tests
+  //      the case where the catalog entry IS the full namespace (no trailing `\`) — covers both
+  //      `Stripe\` and `Stripe\Webhook` forms gracefully.
   for (const [providerName, entry] of Object.entries(input.providerCatalog)) {
     for (const pkg of entry.sdk_packages) {
-      if (input.imports.some((i) => i.to_module === pkg)) {
+      const isPhpNamespace = pkg.includes("\\");
+      const matched = input.imports.some((i) =>
+        isPhpNamespace ? i.to_module.startsWith(pkg) : i.to_module === pkg,
+      );
+      if (matched) {
         out.push({
           kind: "sdk_import",
           provider: providerName,
@@ -88,10 +98,17 @@ export function computeEvidence(input: ComputeEvidenceInput): ComputeEvidenceOut
     }
   }
 
-  // Signal E — signature_header_read (catalog signature_header). Substring match on handler text.
+  // Signal E — signature_header_read (catalog signature_header).
+  // JS / Python source uses hyphenated form (`req.headers['stripe-signature']`); PHP source
+  // uses underscored uppercase form (`$_SERVER['HTTP_STRIPE_SIGNATURE']`). The catalog stores
+  // the canonical hyphen form; we additionally check the PHP-normalized underscore form so a
+  // single catalog entry covers both source dialects.
+  const handlerLower = handlerText.toLowerCase();
   for (const [providerName, entry] of Object.entries(input.providerCatalog)) {
     for (const header of entry.signature_header) {
-      if (handlerText.toLowerCase().includes(header.toLowerCase())) {
+      const hyphen = header.toLowerCase();
+      const underscore = hyphen.replace(/-/g, "_");
+      if (handlerLower.includes(hyphen) || handlerLower.includes(underscore)) {
         out.push({
           kind: "signature_header_read",
           provider: providerName,
@@ -103,8 +120,11 @@ export function computeEvidence(input: ComputeEvidenceInput): ComputeEvidenceOut
   }
 
   // Signal F — body_as_bytes_or_buffer. Heuristic token search inside the handler.
+  // PHP additions: file_get_contents('php://input') (vanilla); $request->getContent() (Laravel,
+  // Symfony); $request->getBody() (Slim / PSR-7). The php://input fragment is the strongest
+  // signal — its appearance alone in the handler range qualifies.
   if (
-    /(Buffer|Uint8Array|\braw\b|\bbytes\b|c\.req\.raw|request\.get_data\(\)|request\.body)/i.test(
+    /(Buffer|Uint8Array|\braw\b|\bbytes\b|c\.req\.raw|request\.get_data\(\)|request\.body|php:\/\/input|->getContent\(\)|->getBody\(\))/i.test(
       handlerText,
     )
   ) {

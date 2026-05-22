@@ -113,10 +113,15 @@ async function assembleHandler(
   // (or bodyParser.raw) is registered as an inline route middleware argument. The handler text
   // search in evidence.ts only sees the arrow function body, not outer route arguments.
   const rawBodyMwEvidence = collectRawBodyMiddlewareEvidence(cand, middlewareChain);
+  // PHP sdk_verify_call overlay — the reachability pass only handles babel + tree-sitter-python,
+  // so PHP scoped-call / member-call verify shapes never surface in reachable_symbols. Walk the
+  // handler-bearing file's PHP tree for matching call shapes against catalog sdk_verify_calls.
+  const phpVerifyEvidence = collectPhpSdkVerifyEvidence(cand, file, input.ruleSet);
   const evidence: ReadonlyArray<WebhookEvidence> = [
     ...baseEvidence.evidence,
     ...sdkVerifyEvidence,
     ...rawBodyMwEvidence,
+    ...phpVerifyEvidence,
   ];
   // Recompute provider attribution since sdk_verify_call evidence may shift the count.
   const provider = recomputeProvider(evidence, baseEvidence.provider);
@@ -176,6 +181,81 @@ const RAW_BODY_MIDDLEWARE_NAMES: ReadonlySet<string> = new Set([
 ]);
 
 const RAW_BODY_IMPORT_SOURCES: ReadonlySet<string> = new Set(["express", "body-parser"]);
+
+// PHP sdk_verify_call detection — substring-matches catalog `sdk_verify_calls` against the
+// handler's source-text range. The match is intentionally textual (not AST-based): tree-sitter
+// reachability doesn't traverse PHP, and PHP webhook handlers almost always include the verify
+// call inline (`\Stripe\Webhook::constructEvent($payload, $sig, $secret)`). A future revision
+// can layer cross-file reachability for PHP — out of scope for Phase 8.1 (D-34 v1 cap).
+function collectPhpSdkVerifyEvidence(
+  cand: CandidateHandler,
+  file: ParsedFile,
+  ruleSet: RuleSet,
+): ReadonlyArray<WebhookEvidence> {
+  if (file.dialect !== "tree-sitter-php") return [];
+  if (file.raw_ast === null) return [];
+
+  // Walk only the handler's text range to keep evidence scoped to the handler body. Two match
+  // shapes: (a) static FQN appears in the body (e.g. `\Stripe\Webhook::constructEvent(...)`),
+  // (b) method name appears as instance call (e.g. `$validator->validate(...)`) AND the catalog
+  // entry's namespace was imported by the file. Shape (b) covers Twilio's instance-only API.
+  const handlerText = file.source_text.slice(
+    cand.handler_source_start,
+    cand.handler_source_end,
+  );
+  const imports = file.imports;
+  const out: WebhookEvidence[] = [];
+  const seen = new Set<string>();
+
+  for (const [providerName, entry] of Object.entries(ruleSet.providers)) {
+    for (const verifyCall of entry.sdk_verify_calls) {
+      // Only consider PHP-shaped entries (contain `\` or `::`) for PHP overlay. JS-shaped
+      // dotted entries fall through to the reachability path.
+      const isPhpShape = verifyCall.includes("::") || verifyCall.includes("\\");
+      if (!isPhpShape) continue;
+
+      const key = `${providerName}|${verifyCall}`;
+      if (seen.has(key)) continue;
+
+      // Shape (a) — static FQN substring match. Tolerate a leading `\` prefix at the call site.
+      const stripped = verifyCall.startsWith("\\") ? verifyCall.slice(1) : verifyCall;
+      if (handlerText.includes(stripped)) {
+        seen.add(key);
+        out.push({
+          kind: "sdk_verify_call",
+          provider: providerName,
+          location: cand.location,
+          detail: verifyCall,
+        });
+        continue;
+      }
+
+      // Shape (b) — instance-call form. Extract namespace + method from the catalog entry
+      // (`Twilio\Security\RequestValidator::validate` → ns `Twilio\Security\RequestValidator`,
+      // method `validate`), then check: namespace prefix was imported AND `->method(` appears
+      // in handler body. The namespace-import check anchors the match to the right provider.
+      const sepIdx = stripped.indexOf("::");
+      if (sepIdx === -1) continue;
+      const nsClass = stripped.slice(0, sepIdx); // e.g. "Twilio\\Security\\RequestValidator"
+      const methodName = stripped.slice(sepIdx + 2); // e.g. "validate"
+      if (methodName === "") continue;
+      const nsImported = imports.some(
+        (i) => i.to_module === nsClass || i.to_module.startsWith(`${nsClass}\\`),
+      );
+      if (!nsImported) continue;
+      if (handlerText.includes(`->${methodName}(`)) {
+        seen.add(key);
+        out.push({
+          kind: "sdk_verify_call",
+          provider: providerName,
+          location: cand.location,
+          detail: verifyCall,
+        });
+      }
+    }
+  }
+  return out;
+}
 
 function collectRawBodyMiddlewareEvidence(
   cand: CandidateHandler,
