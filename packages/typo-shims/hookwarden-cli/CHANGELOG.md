@@ -1,5 +1,13 @@
 # hookwarden-cli
 
+## 0.4.0
+
+### Patch Changes
+
+- Updated dependencies [13b7438]
+- Updated dependencies
+  - hookwarden@0.4.0
+
 ## 0.3.1
 
 ### Patch Changes

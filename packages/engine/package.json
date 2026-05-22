@@ -1,6 +1,6 @@
 {
   "name": "@hookwarden/engine",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "hookwarden audit engine — browser-safe, pure-functional. Performs zero I/O.",
   "license": "Apache-2.0",
   "type": "module",
