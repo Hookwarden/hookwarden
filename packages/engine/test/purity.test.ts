@@ -7,7 +7,10 @@ import { beforeAll, describe, expect, it } from "vitest";
 const PKG_ROOT = join(__dirname, "..");
 const ENGINE_DIST = join(PKG_ROOT, "dist");
 
-const FORBIDDEN_PATTERNS: Array<[string, RegExp]> = [
+// Each forbidden-symbol entry is its own test row. A single big loop hides
+// which symbol leaked when the gate fires — splitting by pattern means a
+// failing CI line says "fs leaked into engine dist", not "violations: [...]".
+const FORBIDDEN_PATTERNS: Array<readonly [string, RegExp]> = [
   ["node:fs", /["']node:fs(?:\/promises)?["']/],
   ["fs", /\brequire\(\s*["']fs(?:\/promises)?["']\s*\)|from\s+["']fs(?:\/promises)?["']/],
   ["http", /["']node:http["']|require\(\s*["']http["']\s*\)|from\s+["']http["']/],
@@ -52,6 +55,91 @@ const FORBIDDEN_RUNTIME_DEPS: ReadonlyArray<string> = [
   "tinyglobby",
 ];
 
+// Anti-false-positive cases: legitimate code shapes that look superficially like
+// a forbidden symbol but must NOT trip the regex. If a future broadening makes
+// one of these match, a test fails before users see noise.
+const REGEX_NARROWNESS_CASES: Array<readonly [string, RegExp, string, boolean]> = [
+  // [pattern_name, regex, sample_code, expected_to_match]
+
+  // crypto: bare globalThis.crypto.subtle / webcrypto.js imports must NOT match.
+  [
+    "crypto vs webcrypto property access",
+    /["']node:crypto["']|require\(\s*["']crypto["']\s*\)|from\s+["']crypto["']/,
+    "globalThis.crypto.subtle.digest('SHA-256', bytes)",
+    false,
+  ],
+  [
+    "crypto vs local webcrypto helper",
+    /["']node:crypto["']|require\(\s*["']crypto["']\s*\)|from\s+["']crypto["']/,
+    "import { sha256Hex } from './webcrypto.js';",
+    false,
+  ],
+  [
+    "crypto matches real node:crypto",
+    /["']node:crypto["']|require\(\s*["']crypto["']\s*\)|from\s+["']crypto["']/,
+    "import { createHash } from 'node:crypto';",
+    true,
+  ],
+
+  // path: a getPath() function call or `path.subPath` property must NOT match the
+  // module-import regex (which only matches string-quoted module specifiers).
+  [
+    "path vs getPath() method",
+    /["']node:path["']|require\(\s*["']path["']\s*\)|from\s+["']path["']/,
+    "const p = getPath();",
+    false,
+  ],
+  [
+    "path vs local path utility",
+    /["']node:path["']|require\(\s*["']path["']\s*\)|from\s+["']path["']/,
+    "import { resolve } from './path-utils.js';",
+    false,
+  ],
+  [
+    "path matches real node:path",
+    /["']node:path["']|require\(\s*["']path["']\s*\)|from\s+["']path["']/,
+    "import * as path from 'node:path';",
+    true,
+  ],
+
+  // url: a URL constructor / WHATWG URL global must NOT match the import regex.
+  [
+    "url vs WHATWG URL global",
+    /["']node:url["']|require\(\s*["']url["']\s*\)|from\s+["']url["']/,
+    "const u = new URL('https://example.com');",
+    false,
+  ],
+  [
+    "url matches real node:url import",
+    /["']node:url["']|require\(\s*["']url["']\s*\)|from\s+["']url["']/,
+    "import { fileURLToPath } from 'node:url';",
+    true,
+  ],
+
+  // process.env: legitimate `process.envelope` (hypothetical naming) must NOT match.
+  ["process.env vs process.envelope", /\bprocess\.env\b/, "ctx.process.envelope = payload;", false],
+  [
+    "process.env matches real env read",
+    /\bprocess\.env\b/,
+    "const x = process.env.NODE_ENV;",
+    true,
+  ],
+
+  // globalThis.fetch: `globalThis.fetcher` custom property must NOT match.
+  [
+    "globalThis.fetch vs custom fetcher",
+    /\bglobalThis\.fetch\b/,
+    "globalThis.fetcher.get(url);",
+    false,
+  ],
+  [
+    "globalThis.fetch matches real fetch global",
+    /\bglobalThis\.fetch\b/,
+    "const r = await globalThis.fetch(url);",
+    true,
+  ],
+];
+
 beforeAll(() => {
   // Pitfall #3 mitigation: force a fresh build so we never grep stale output.
   execSync("pnpm exec tsc --build --force", { cwd: join(PKG_ROOT, "..", "..") });
@@ -66,44 +154,46 @@ describe("engine purity (compiled output grep)", () => {
     expect(files.length).toBeGreaterThan(0);
   });
 
-  it("every compiled .js file is free of forbidden symbols", () => {
-    const files = globSync("**/*.js", { cwd: ENGINE_DIST, absolute: true });
-    const violations: string[] = [];
-    for (const file of files) {
-      const source = readFileSync(file, "utf8");
-      // Strip block and line comments first so doc text doesn't false-positive.
-      const stripped = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-      for (const [name, pattern] of FORBIDDEN_PATTERNS) {
+  // One named test per forbidden symbol — failure pinpoints which one leaked.
+  describe("per-symbol forbidden-import gate", () => {
+    it.each(
+      FORBIDDEN_PATTERNS,
+    )("no compiled .js file imports %s", (name: string, pattern: RegExp) => {
+      const files = globSync("**/*.js", { cwd: ENGINE_DIST, absolute: true });
+      const violations: string[] = [];
+      for (const file of files) {
+        const source = readFileSync(file, "utf8");
+        const stripped = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
         if (pattern.test(stripped)) {
-          violations.push(
-            `${file.replace(`${ENGINE_DIST}/`, "")} contains forbidden symbol: ${name}`,
-          );
+          violations.push(`${file.replace(`${ENGINE_DIST}/`, "")} contains forbidden ${name}`);
         }
       }
-    }
-    expect(violations, violations.join("\n")).toEqual([]);
+      expect(violations, violations.join("\n")).toEqual([]);
+    });
   });
 
-  it("engine package.json declares no forbidden runtime dependencies", () => {
-    const pkg = JSON.parse(readFileSync(join(PKG_ROOT, "package.json"), "utf8")) as {
-      readonly dependencies?: Record<string, string>;
-    };
-    const deps = pkg.dependencies ?? {};
-    const present = Object.keys(deps).filter((d) => FORBIDDEN_RUNTIME_DEPS.includes(d));
-    expect(present, `forbidden runtime deps present: ${present.join(", ")}`).toEqual([]);
+  // One named test per forbidden runtime dep — failure pinpoints which dep
+  // snuck into the engine's package.json.
+  describe("per-dep package.json gate", () => {
+    it.each(
+      FORBIDDEN_RUNTIME_DEPS,
+    )("engine package.json does not declare %s as a runtime dep", (dep: string) => {
+      const pkg = JSON.parse(readFileSync(join(PKG_ROOT, "package.json"), "utf8")) as {
+        readonly dependencies?: Record<string, string>;
+      };
+      const deps = pkg.dependencies ?? {};
+      expect(deps[dep], `dependency '${dep}' must not be in engine runtime deps`).toBeUndefined();
+    });
   });
 
-  it("extended FORBIDDEN_PATTERNS regex does not false-trigger on globalThis.crypto.subtle (issue #10)", () => {
-    // Plan 02 ships /src/findings/webcrypto.ts which uses `globalThis.crypto.subtle.digest(...)`.
-    // The crypto pattern intentionally matches only string-quoted module references; this test
-    // asserts the regex is narrow enough that the WebCrypto API usage in the engine source does
-    // not get flagged. If this test fails after the regex is broadened, narrow it again.
-    const cryptoPattern =
-      /["']node:crypto["']|require\(\s*["']crypto["']\s*\)|from\s+["']crypto["']/;
-    expect(cryptoPattern.test("globalThis.crypto.subtle.digest('SHA-256', bytes)")).toBe(false);
-    expect(cryptoPattern.test("import { sha256Hex } from './webcrypto.js';")).toBe(false);
-    // And it DOES still match real Node-crypto imports.
-    expect(cryptoPattern.test("import { createHash } from 'node:crypto';")).toBe(true);
-    expect(cryptoPattern.test("const c = require('crypto');")).toBe(true);
+  // Regex narrowness — assert each pattern doesn't false-positive on legitimate
+  // code shapes. Stops "broaden the regex" PRs from accidentally re-introducing
+  // noise the engine team already fixed (e.g. issue #10 for globalThis.crypto).
+  describe("regex narrowness (anti-false-positive)", () => {
+    it.each(
+      REGEX_NARROWNESS_CASES,
+    )("%s", (_name: string, pattern: RegExp, sample: string, expectedMatch: boolean) => {
+      expect(pattern.test(sample)).toBe(expectedMatch);
+    });
   });
 });
