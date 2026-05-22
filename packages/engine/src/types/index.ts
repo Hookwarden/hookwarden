@@ -28,6 +28,7 @@ export type {
 } from "./project-model.ts";
 export type {
   DeclarativeMatcher,
+  FixMetadata,
   MatcherName,
   PathSeverityOverride,
   ProviderCatalog,

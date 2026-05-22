@@ -28,6 +28,7 @@ export type {
   DeclarativeMatcher,
   Finding,
   FindingId,
+  FixMetadata,
   Framework,
   ImportEdge,
   MatcherName,

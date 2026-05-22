@@ -55,6 +55,9 @@ function toRuleDefinition(doc: ParsedRuleDocument): RuleDefinition {
     applies_to: doc.applies_to as RuleDefinition["applies_to"],
     provider_docs_url: doc.provider_docs_url,
     path_severity_overrides: doc.path_severity_overrides,
+    // Phase 8.2 D-04: fix metadata flows through ParsedRuleDocument → RuleDefinition.
+    // validateRuleDocument normalizes undefined → null, so doc.fix is always set here.
+    fix: doc.fix ?? null,
   };
 }
 

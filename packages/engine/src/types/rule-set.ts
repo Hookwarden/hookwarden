@@ -60,6 +60,15 @@ export interface PathSeverityOverride {
   readonly severity: Severity; // replacement severity when any pattern matches
 }
 
+// Phase 8.2 D-01: per-rule auto-fix metadata. Engine ignores this; consumed by
+// @hookwarden/fix (codegen registry + applyFixes) and the CLI fix subcommand.
+// D-15: `codegen` MUST be null when safety is manual-only, non-empty string otherwise.
+export interface FixMetadata {
+  readonly safety: "safe" | "unsafe" | "manual-only";
+  readonly description: string;
+  readonly codegen: string | null;
+}
+
 // A single rule definition (already parsed from YAML by the caller per D-03).
 export interface RuleDefinition {
   readonly rule_id: string; // e.g. "stripe/missing-verification"
@@ -75,6 +84,10 @@ export interface RuleDefinition {
   readonly provider_docs_url: string;
   // D-57 RULES-05: optional path-glob-based severity downgrade applied by the engine post-emit.
   readonly path_severity_overrides: ReadonlyArray<PathSeverityOverride> | null;
+  // Phase 8.2 D-01/D-04: per-rule auto-fix metadata. `null` is the explicit-binary signal
+  // (rule has no fixable variant); a populated object is consumed by @hookwarden/fix.
+  // Optional in Plan 02 (B4 — Plan 11 wave 7 tightens once every YAML has been populated).
+  readonly fix?: FixMetadata | null;
 }
 
 export interface RuleSet {

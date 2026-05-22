@@ -40,12 +40,25 @@ export interface ParsedRuleDocument {
     readonly patterns: ReadonlyArray<string>;
     readonly severity: "critical" | "high" | "medium" | "low" | "info";
   }> | null;
+  // Phase 8.2 D-01 / D-04 / D-15: per-rule auto-fix metadata.
+  // Optional in Plan 02 wave 1 (B4 — Plan 11 wave 7 tightens to required after
+  // every YAML in packages/rules/rules/ has been populated with a fix: block).
+  readonly fix?: {
+    readonly safety: "safe" | "unsafe" | "manual-only";
+    readonly description: string;
+    readonly codegen: string | null;
+  } | null;
 }
 
 const SCHEMA = {
   $id: "hookwarden-rule-document-v1",
   type: "object",
   additionalProperties: false,
+  // TODO(Plan-11-wave-7): add "fix" to required[] per D-04 explicit-binary.
+  // B4 — Plan 02 wave 1 ships fix as optional; Plan 11 wave 7's final task tightens
+  // after every YAML in packages/rules/rules/ has been populated with a fix: block.
+  // Splitting the tightening across waves keeps main green through waves 2-6 builds
+  // (which would otherwise fail the existing rule-pack vitest with a missing-required-property error).
   required: [
     "schema_version",
     "rule_id",
@@ -141,6 +154,25 @@ const SCHEMA = {
         },
       ],
     },
+    // Phase 8.2 D-01: per-rule auto-fix metadata. Discriminated union mirrors the matcher: shape.
+    // D-15 cross-field rule (codegen-null-when-manual-only) is enforced post-Ajv in validateRuleDocument.
+    fix: {
+      anyOf: [
+        { type: "null" },
+        {
+          type: "object",
+          additionalProperties: false,
+          required: ["safety", "description", "codegen"],
+          properties: {
+            safety: { enum: ["safe", "unsafe", "manual-only"] },
+            description: { type: "string", minLength: 1 },
+            codegen: {
+              anyOf: [{ type: "null" }, { type: "string", minLength: 1 }],
+            },
+          },
+        },
+      ],
+    },
   },
 } as const;
 
@@ -156,18 +188,41 @@ export function validateRuleDocument(input: unknown): ParsedRuleDocument {
     throw new Error(`invalid rule document: ${errs}`);
   }
   // path_severity_overrides is optional in YAML; normalize undefined → null so downstream code
-  // can rely on a closed two-state value (D-57).
-  const raw = input as ParsedRuleDocument & { path_severity_overrides?: unknown };
+  // can rely on a closed two-state value (D-57). Same normalization applied to `fix` per
+  // Phase 8.2 D-04 — RuleSet consumers can rely on `fix !== undefined` (either FixMetadata or null).
+  const raw = input as ParsedRuleDocument & {
+    path_severity_overrides?: unknown;
+    fix?: unknown;
+  };
   const doc: ParsedRuleDocument = {
     ...(raw as ParsedRuleDocument),
     path_severity_overrides:
       raw.path_severity_overrides === undefined
         ? null
         : (raw.path_severity_overrides as ParsedRuleDocument["path_severity_overrides"]),
+    fix: raw.fix === undefined ? null : (raw.fix as ParsedRuleDocument["fix"]),
   };
   // A rule must have at least one of matcher or predicate.
   if (doc.matcher === null && (doc.predicate === null || doc.predicate === "")) {
     throw new Error(`rule ${doc.rule_id}: must declare either 'matcher' or 'predicate'`);
+  }
+  // Phase 8.2 D-15: cross-field check on fix.safety vs fix.codegen.
+  // safety == "manual-only" → codegen MUST be null.
+  // safety in ("safe","unsafe") → codegen MUST be a non-empty string.
+  if (doc.fix !== null && doc.fix !== undefined) {
+    if (doc.fix.safety === "manual-only" && doc.fix.codegen !== null) {
+      throw new Error(
+        `rule ${doc.rule_id}: fix.codegen MUST be null when fix.safety is manual-only (D-15)`,
+      );
+    }
+    if (
+      (doc.fix.safety === "safe" || doc.fix.safety === "unsafe") &&
+      doc.fix.codegen === null
+    ) {
+      throw new Error(
+        `rule ${doc.rule_id}: fix.codegen MUST be a non-empty string when fix.safety is safe or unsafe (D-15)`,
+      );
+    }
   }
   return doc;
 }
