@@ -106,4 +106,59 @@ describe("library-verified-recognition (RULES-04 D-56)", () => {
       expect(await predicate(handler, {} as never)).toBe("verified");
     });
   });
+
+  // Phase 8.1 Plan 08 — PHP path via handler.evidence (sdk_verify_call evidence kind).
+  describe("PHP evidence-based path (Phase 8.1)", () => {
+    it("returns 'verified' for stripe handler with sdk_verify_call evidence", async () => {
+      const handler: WebhookHandler = {
+        ...baseHandler,
+        framework: "laravel",
+        // No reachable_symbols (PHP reach is bounded in v1).
+        reachable_symbols: [],
+        evidence: [
+          {
+            kind: "sdk_verify_call",
+            provider: "stripe",
+            location: { line: 1, col: 1, end_line: 1, end_col: 1 },
+            detail: "Stripe\\Webhook::constructEvent",
+          },
+        ],
+      };
+      expect(await stripeLibraryVerifiedPredicate(handler, {} as never)).toBe("verified");
+    });
+
+    it("returns null when sdk_verify_call evidence is for a different provider", async () => {
+      const handler: WebhookHandler = {
+        ...baseHandler,
+        framework: "laravel",
+        reachable_symbols: [],
+        evidence: [
+          {
+            kind: "sdk_verify_call",
+            provider: "shopify",
+            location: { line: 1, col: 1, end_line: 1, end_col: 1 },
+            detail: "Shopify\\Utils::validateHmac",
+          },
+        ],
+      };
+      expect(await stripeLibraryVerifiedPredicate(handler, {} as never)).toBeNull();
+    });
+
+    it("returns null when handler.evidence has no sdk_verify_call entries", async () => {
+      const handler: WebhookHandler = {
+        ...baseHandler,
+        framework: "laravel",
+        reachable_symbols: [],
+        evidence: [
+          {
+            kind: "signature_header_read",
+            provider: "stripe",
+            location: { line: 1, col: 1, end_line: 1, end_col: 1 },
+            detail: "stripe-signature",
+          },
+        ],
+      };
+      expect(await stripeLibraryVerifiedPredicate(handler, {} as never)).toBeNull();
+    });
+  });
 });

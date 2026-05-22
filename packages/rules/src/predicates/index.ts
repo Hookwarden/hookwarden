@@ -24,6 +24,7 @@ import "./custom/twilio-signing.js";
 
 import type { RulePredicate } from "@hookwarden/engine";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
+import { githubPhpTimingSafeEqualPredicate } from "./github-php-timing-safe-equal.js";
 import { githubTimingSafeEqualPredicate } from "./github-timing-safe-equal.js";
 import {
   githubLibraryVerifiedPredicate,
@@ -56,6 +57,7 @@ import {
   stripeRawBodyMisusePredicate,
   twilioRawBodyMisusePredicate,
 } from "./raw-body-misuse.js";
+import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-unsafe-comparison.js";
 import {
   shopifyTimingUnsafeComparisonPredicate,
   slackTimingUnsafeComparisonPredicate,
@@ -132,4 +134,9 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "square-raw-body-misuse": squareRawBodyMisusePredicate,
   "square-wrong-hmac-algorithm": squareWrongHmacAlgorithmPredicate,
   "square-unreachable-verification": squareUnreachableVerificationPredicate,
+  // Phase 8.1 Plan 08 PHP-specific predicates (D-04 layer 2 — per-provider PHP anchors that
+  // can't be expressed via the language-agnostic reachable_symbols path because engine
+  // reachability is bounded to babel + tree-sitter-python in v1).
+  "stripe-php-timing-unsafe-comparison": stripePhpTimingUnsafeComparisonPredicate,
+  "github-php-timing-safe-equal": githubPhpTimingSafeEqualPredicate,
 };

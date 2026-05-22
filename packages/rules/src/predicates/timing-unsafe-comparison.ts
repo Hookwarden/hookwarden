@@ -5,6 +5,11 @@
 // SDK path is exempt — the SDK handles comparison internally.
 //
 // Pure: no fs / http / network / process / node:* (D-28).
+//
+// Phase 8.1 Plan 08: dispatch to PHP-specific AST inspection when the handler's source file is
+// tree-sitter-php. Engine reachability is bounded to babel + tree-sitter-python in v1, so PHP
+// handlers' reachable_symbols are empty — the JS/Py path would always return null. PHP path
+// walks the handler's source range for the D-09 dangerous comparisons.
 
 import type {
   ProjectModel,
@@ -13,20 +18,81 @@ import type {
   WebhookHandler,
 } from "@hookwarden/engine";
 import { PROVIDER_CATALOG } from "../catalog.js";
+import {
+  findInsecureStringComparisons,
+  isPhpHashEqualsCall,
+  type PhpSyntaxNode,
+  type PhpTree,
+  walkPhpCalls,
+} from "./_helpers-php.js";
 import { isConstantTimeCompare, isManualHmacEntry, reachesSdkVerifyCall } from "./_helpers.js";
 
 export function createTimingUnsafeComparisonPredicate(
   provider: string,
   catalog: ProviderCatalogEntry,
 ): RulePredicate {
-  return async (handler: WebhookHandler, _model: ProjectModel) => {
+  return async (handler: WebhookHandler, model: ProjectModel) => {
     if (handler.provider !== provider) return null;
+
+    // Path B (PHP) — direct AST inspection when the handler's source file is PHP.
+    // Defensive: existing tests cast model as never; tolerate missing parsed_files.
+    const parsedFile = model?.parsed_files?.find((f) => f.file_path === handler.file_path);
+    if (parsedFile?.dialect === "tree-sitter-php") {
+      return evaluatePhpTimingUnsafe(handler, parsedFile, catalog);
+    }
+
+    // Path A (JS / Python) — reachable_symbols populated by engine reachability D-34.
     const symbols = handler.reachable_symbols;
     if (reachesSdkVerifyCall(symbols, catalog.sdk_verify_calls, catalog.sdk_packages)) return null;
     if (!symbols.some((s) => isManualHmacEntry(s.qualified_name))) return null;
     if (symbols.some((s) => isConstantTimeCompare(s.qualified_name))) return null;
     return "not-verified";
   };
+}
+
+function evaluatePhpTimingUnsafe(
+  handler: WebhookHandler,
+  parsedFile: { readonly dialect: string; readonly parse_error: unknown; readonly raw_ast: unknown },
+  catalog: ProviderCatalogEntry,
+): "not-verified" | null {
+  if (parsedFile.parse_error !== null || parsedFile.raw_ast === null) return null;
+  // SDK path exemption — if the catalog's sdk_verify_call evidence overlay (Phase 8.1 Plan 07
+  // PHP build.ts overlay) emitted a verify entry, the SDK handles comparison internally.
+  if (
+    catalog.sdk_verify_calls.length > 0 &&
+    handler.evidence.some((e) => e.kind === "sdk_verify_call" && e.provider === handler.provider)
+  ) {
+    return null;
+  }
+
+  const tree = parsedFile.raw_ast as PhpTree;
+  const scopeNode = (handler as unknown as { handler_body_node?: PhpSyntaxNode }).handler_body_node;
+  const root: PhpSyntaxNode = scopeNode ?? tree.rootNode;
+
+  const calls = walkPhpCalls(root);
+  // Safe path — hash_equals present → emit nothing.
+  const usesHashEquals = calls.some((c) => {
+    if (c.kind !== "function") return false;
+    const fnNode = c.node.childForFieldName("function");
+    return fnNode !== null && isPhpHashEqualsCall(fnNode.text);
+  });
+  if (usesHashEquals) return null;
+
+  // Manual HMAC must be present — otherwise rule does not apply (other rules cover
+  // missing-verification cases).
+  const usesHashHmac = calls.some((c) => {
+    if (c.kind !== "function") return false;
+    const fnNode = c.node.childForFieldName("function");
+    if (!fnNode) return false;
+    const t = fnNode.text;
+    return t === "hash_hmac" || t === "\\hash_hmac";
+  });
+  if (!usesHashHmac) return null;
+
+  // Insecure comparison present → not-verified.
+  const insecure = findInsecureStringComparisons(root);
+  if (insecure.length === 0) return null;
+  return "not-verified";
 }
 
 export const stripeTimingUnsafeComparisonPredicate: RulePredicate =

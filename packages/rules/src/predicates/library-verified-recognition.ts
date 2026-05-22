@@ -11,6 +11,12 @@
 // already-bounded. D-33 catalog ships sdk_verify_calls per provider; we close over the list at
 // predicate-creation time so adding a new verify call is a catalog edit + minor bump (no engine
 // release required).
+//
+// Phase 8.1 Plan 08 — PHP support. The engine reach pass is bounded to babel + tree-sitter-python
+// in v1; PHP handlers never accumulate reachable_symbols. PHP verify-call signal comes from the
+// `build.ts` PHP overlay (Phase 8.1 Plan 07) which emits a `sdk_verify_call` evidence entry.
+// The predicate now ALSO consults `handler.evidence` for matching `sdk_verify_call` entries
+// — preserves the existing JS/Python reachable_symbols path while adding the PHP signal source.
 
 import type { ProjectModel, RulePredicate, WebhookHandler } from "@hookwarden/engine";
 import { PROVIDER_CATALOG } from "../catalog.js";
@@ -22,6 +28,7 @@ export function createLibraryVerifiedPredicate(
   return async (handler: WebhookHandler, _model: ProjectModel) => {
     if (handler.provider !== provider) return null;
     if (sdkVerifyCalls.length === 0) return null;
+    // Path A — reachable_symbols (JS/Python; populated by engine reachability D-34).
     const reachable = handler.reachable_symbols;
     for (const sym of reachable) {
       for (const call of sdkVerifyCalls) {
@@ -29,6 +36,11 @@ export function createLibraryVerifiedPredicate(
           return "verified";
         }
       }
+    }
+    // Path B — evidence-emitted sdk_verify_call entries (PHP; populated by the build.ts PHP
+    // overlay in Phase 8.1 Plan 07). Provider attribution is already set on the evidence entry.
+    for (const ev of handler.evidence) {
+      if (ev.kind === "sdk_verify_call" && ev.provider === provider) return "verified";
     }
     return null;
   };
