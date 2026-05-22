@@ -8,7 +8,9 @@
 #   3. JS/TS parsing works in compiled-Bun context (Babel loaded)
 #   4. Python parsing works in compiled-Bun context (DC-13 dual-path WASM
 #      loader resolves the embedded asset, not the source-tree path)
-#   5. Exit-code matrix is correct (CLI-04 contract preserved through compile)
+#   5. PHP parsing works in compiled-Bun context (same dual-path WASM loader
+#      pattern, applied to tree-sitter-php @ 0.24.2)
+#   6. Exit-code matrix is correct (CLI-04 contract preserved through compile)
 #
 # Cross-arch: this script runs on any host with Docker installed. linux-x64
 # binaries run via Rosetta on macOS arm64 hosts; linux-arm64 binaries run
@@ -178,6 +180,33 @@ test_scan_clean_python() {
   return 0
 }
 
+# T7: scan PHP bug → finds timing-unsafe-comparison (proves tree-sitter-php WASM
+# loader resolves the embedded asset, not the source-tree path). No symmetric
+# "clean PHP" row yet — the PHP call-graph analyzer currently flags every
+# library-verified handler with `stripe/unreachable-verification` at high, so a
+# clean-path exit-0 assertion would be testing engine maturity rather than
+# WASM loader correctness. Re-add once PHP reachability matures.
+test_scan_php_bug() {
+  local cmd="$1"
+  local fixtures="$2"
+  local out
+  local code=0
+  out=$("$cmd" scan "$fixtures/php-vanilla-bug" 2>&1) || code=$?
+  if [ "$code" != "1" ]; then
+    echo "  scan php-vanilla-bug exited $code (expected 1)"
+    return 1
+  fi
+  echo "$out" | grep -q "stripe/timing-unsafe-comparison" || {
+    echo "  scan php-vanilla-bug missed stripe/timing-unsafe-comparison (PHP WASM loader broken?)"
+    return 1
+  }
+  echo "$out" | grep -qi "critical\|not-verified" || {
+    echo "  scan php-vanilla-bug emitted no critical/not-verified marker"
+    return 1
+  }
+  return 0
+}
+
 TESTS=(
   "test_help          T1 --help_works"
   "test_scan_help     T2 scan_--help"
@@ -185,6 +214,7 @@ TESTS=(
   "test_scan_python_bug T4 scan_python_bug_finds_stripe"
   "test_scan_clean_js   T5 scan_clean_js_exit0"
   "test_scan_clean_python T6 scan_clean_python_exit0"
+  "test_scan_php_bug   T7 scan_php_bug_finds_stripe"
 )
 
 # ─── runner ──────────────────────────────────────────────────────────────────
