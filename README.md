@@ -99,11 +99,11 @@ npx hookwarden scan ./your-app --diff-only --diff-base origin/main
 # Snapshot pre-existing findings as a baseline (non-greenfield adoption)
 npx hookwarden scan ./your-app --baseline write
 
-# Scan test/fixture paths too (excluded by default — see Install)
+# Scan test/fixture paths too (excluded by default — `*/test/*`, `*/__tests__/*`, etc.)
 npx hookwarden scan ./your-app --include-tests
 ```
 
-See [Install](#install) for permanent install via npm, Homebrew, Scoop, or PyPI.
+See [Install](#-install) for permanent install via npm, Homebrew, Scoop, or PyPI.
 
 ---
 
