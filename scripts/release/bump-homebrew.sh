@@ -30,16 +30,25 @@ gh release download "$VERSION" \
 # 2. Clone tap using GitHub App token (https-with-token URL)
 git clone "https://x-access-token:${GH_TOKEN}@github.com/Hookwarden/homebrew-tap.git" "$WORKDIR/tap"
 
-# 3. In-place edit Formula/hookwarden.rb — delegates to the testable edit core
+# 3. Download the npm tarball for this release and compute its sha256.
+#    The macOS path of the formula installs from this tarball, so the SHA
+#    must be pinned alongside the Linux binary SHAs. Tarballs are immutable
+#    once published, so this SHA is stable for a given version.
+NPM_TARBALL_URL="https://registry.npmjs.org/hookwarden/-/hookwarden-${VER_NO_V}.tgz"
+curl -fsSL "$NPM_TARBALL_URL" -o "$WORKDIR/hookwarden.tgz"
+SHA_NPM=$(sha256sum "$WORKDIR/hookwarden.tgz" | awk '{print $1}')
+
+# 4. In-place edit Formula/hookwarden.rb — delegates to the testable edit core
 FORMULA=Formula/hookwarden.rb
 bash "$(dirname "$0")/bump-homebrew-edit.sh" \
   "$WORKDIR/checksums.txt" \
   "$WORKDIR/tap/$FORMULA" \
-  "$VERSION"
+  "$VERSION" \
+  "$SHA_NPM"
 
 cd "$WORKDIR/tap"
 
-# 4. Commit + push
+# 5. Commit + push
 git config user.email "release-bot@hookwarden.dev"
 git config user.name  "hookwarden-release-bot"
 git add "$FORMULA"

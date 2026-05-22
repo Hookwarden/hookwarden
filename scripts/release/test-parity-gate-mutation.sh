@@ -11,12 +11,15 @@ CORE=scripts/release/verify-channel-parity-core.sh
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
-# Canonical SHAs (5 fake-but-valid 64-hex values)
+# Canonical SHAs (5 fake-but-valid 64-hex values) + 1 non-canonical (npm tarball)
 SHA_DA=$(printf 'a%.0s' {1..64})
 SHA_DX=$(printf 'b%.0s' {1..64})
 SHA_LA=$(printf 'c%.0s' {1..64})
 SHA_LX=$(printf 'd%.0s' {1..64})
 SHA_W=$(printf  'e%.0s' {1..64})
+# NPM tarball SHA — NOT in canonical checksums.txt. The npm-wrapper macOS
+# formula path pins this independently; parity gate must ignore it.
+SHA_NM=$(printf 'f%.0s' {1..64})
 
 # 1. Canonical checksums.txt
 cat > "$TMP/checksums.txt" <<EOF
@@ -38,22 +41,24 @@ cat > "$TMP/shim.json" <<EOF
 }
 EOF
 
-# 3. Homebrew formula
+# 3. Homebrew formula — current shape: top-level npm tarball + on_linux binaries.
+#    The npm tarball SHA is NOT in canonical (its integrity is verified via
+#    the npm registry's own publish chain), so parity gate must skip it and
+#    only validate the Linux binary SHAs that pair with releases/download/ URLs.
 cat > "$TMP/formula.rb" <<EOF
 class Hookwarden < Formula
+  url "https://registry.npmjs.org/hookwarden/-/hookwarden-0.4.0.tgz"
+  sha256 "${SHA_NM}"
   on_macos do
-    on_arm do
-      sha256 "${SHA_DA}"
-    end
-    on_intel do
-      sha256 "${SHA_DX}"
-    end
+    depends_on "node"
   end
   on_linux do
     on_arm do
+      url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-arm64"
       sha256 "${SHA_LA}"
     end
     on_intel do
+      url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-x64"
       sha256 "${SHA_LX}"
     end
   end
@@ -77,14 +82,25 @@ if ! bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/
 fi
 echo "  PASS"
 
-# Test 2: mutate one Homebrew SHA — expect FAIL
-echo "Test 2: mutated Homebrew SHA MUST fail"
-sed -i.bak "s|${SHA_DA}|$(printf 'f%.0s' {1..64})|" "$TMP/formula.rb"
+# Test 2: mutate a Linux-binary Homebrew SHA — expect FAIL
+echo "Test 2: mutated Homebrew Linux-binary SHA MUST fail"
+sed -i.bak "s|${SHA_LA}|$(printf '9%.0s' {1..64})|" "$TMP/formula.rb"
 if bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" 2>/dev/null; then
-  echo "FAIL: mutated Homebrew SHA should have triggered gate failure"
+  echo "FAIL: mutated Homebrew Linux SHA should have triggered gate failure"
   exit 1
 fi
-echo "  PASS (gate correctly rejected mutated Homebrew SHA)"
+echo "  PASS (gate correctly rejected mutated Homebrew Linux SHA)"
+mv "$TMP/formula.rb.bak" "$TMP/formula.rb"
+
+# Test 2b: mutate the npm-tarball SHA — must NOT fail (npm SHA is non-canonical)
+echo "Test 2b: mutated Homebrew npm-tarball SHA must NOT fail (it's not in canonical set)"
+sed -i.bak "s|${SHA_NM}|$(printf '9%.0s' {1..64})|" "$TMP/formula.rb"
+if ! bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" 2>/dev/null; then
+  echo "FAIL: parity gate failed on npm-tarball SHA mutation, but npm SHA is intentionally non-canonical"
+  bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" || true
+  exit 1
+fi
+echo "  PASS (gate correctly skipped the npm-tarball SHA)"
 mv "$TMP/formula.rb.bak" "$TMP/formula.rb"
 
 # Test 3: mutate one Scoop SHA — expect FAIL
@@ -118,4 +134,4 @@ fi
 echo "  PASS (gate correctly rejected malformed SHA)"
 
 echo
-echo "All 5 mutation tests passed — channel-parity gate correctly identifies divergence."
+echo "All 6 mutation tests passed — channel-parity gate correctly identifies divergence."

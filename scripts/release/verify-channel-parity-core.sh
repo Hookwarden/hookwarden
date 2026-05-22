@@ -27,7 +27,21 @@ if [[ ${#CANONICAL_VALUES[@]} -eq 0 ]]; then
 fi
 
 PYPI_PAIRS=$(jq -r 'to_entries[] | "\(.value) \(.key)"' "$PYPI_FILE")
-HOMEBREW_SHAS=$(grep -E 'sha256 "[a-f0-9]{64}"' "$FORMULA_FILE" | sed -E 's/.*sha256 "([a-f0-9]{64})".*/\1/')
+# Extract only the sha256 lines paired with a GH-release URL (Linux binaries).
+# The formula's top-level url+sha256 is the npm tarball, which is not in the
+# canonical checksums.txt — its integrity is verified through the npm
+# registry's own publish chain + bump-homebrew.sh's own download-and-pin step.
+HOMEBREW_SHAS=$(awk '
+  /url "/ {
+    url_is_gh_release = ($0 ~ /releases\/download\//)
+    next
+  }
+  /sha256 "[a-f0-9]{64}"/ && url_is_gh_release {
+    match($0, /[a-f0-9]{64}/)
+    print substr($0, RSTART, RLENGTH)
+    url_is_gh_release = 0
+  }
+' "$FORMULA_FILE")
 SCOOP_SHAS=$(jq -r '.architecture | to_entries[] | .value.hash' "$SCOOP_FILE")
 
 fail=0
