@@ -1,5 +1,12 @@
 # @hookwarden/rules
 
+## 0.5.0
+
+### Patch Changes
+
+- @hookwarden/engine@0.5.0
+- @hookwarden/fix@0.0.1
+
 ## 0.4.0
 
 ### Minor Changes
