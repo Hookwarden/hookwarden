@@ -49,6 +49,18 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
   const useAnsi = noColor ? false : shouldUseAnsi(process.stdout);
   const verbose = args.verbose === true;
 
+  // Phase 8.2 D-16: `hookwarden scan --fix` is rejected. Auto-fix lives in the
+  // `hookwarden fix` subcommand. Conflating scan (read) + fix (write) is the
+  // failure mode that produces data loss; the explicit subcommand split is the
+  // safety boundary.
+  if ((args as unknown as { fix?: unknown }).fix !== undefined) {
+    process.stderr.write(
+      "error: --fix is not a scan flag. Use 'hookwarden fix [<path>]' to apply fixes.\n" +
+        "       Run 'hookwarden scan' then 'hookwarden fix' for explicit separation.\n",
+    );
+    return 3;
+  }
+
   // Step 0 — Blocker 4: VALUE validation gate runs BEFORE resolveConfig / before the pipeline.
   // Per D-65, malformed CLI input is a CONFIG ERROR (exit 3), not an engine error (exit 2).
   if (args["fail-on"] !== undefined && !VALID_FAIL_ON.has(args["fail-on"])) {

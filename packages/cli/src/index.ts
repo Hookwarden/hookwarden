@@ -4,6 +4,7 @@
 import { defineCommand } from "citty";
 import { renderBanner, shouldShowBanner } from "./banner.js";
 import { explainCommand, runExplainCommand } from "./commands/explain.js";
+import { type FixArgs, fixCommand, runFixCommand } from "./commands/fix.js";
 import { type InventoryArgs, inventoryCommand, runInventoryCommand } from "./commands/inventory.js";
 import { runScanCommand, type ScanArgs, scanCommand } from "./commands/scan.js";
 import { renderLogo } from "./logo.js";
@@ -30,6 +31,7 @@ export const root = defineCommand({
     scan: scanCommand,
     inventory: inventoryCommand,
     explain: explainCommand,
+    fix: fixCommand,
   },
 });
 
@@ -40,6 +42,7 @@ const HELP_TEXT =
   `  hookwarden scan [path]       Scan a project for verification bugs.\n` +
   `  hookwarden inventory [path]  List every detected webhook handler.\n` +
   `  hookwarden explain <rule>    Print full documentation for a single rule.\n` +
+  `  hookwarden fix [path]        Apply mechanical fixes for safety:safe findings (dry-run by default).\n` +
   `  hookwarden logo              Print the hookwarden mascot + wordmark.\n\n` +
   `Common flags:\n` +
   `  -v, --verbose                Verbose output (scan only).\n` +
@@ -58,7 +61,12 @@ const HELP_TEXT =
   `      --no-config              Bypass config-file discovery.\n` +
   `      --strict-suppressions    Promote stale suppressions to errors.\n` +
   `      --min-parse-coverage N   Minimum parse-coverage ratio 0..1 (default 0.95).\n` +
-  `      --include-tests          Scan test/fixture/mock paths too (excluded by default).\n`;
+  `      --include-tests          Scan test/fixture/mock paths too (excluded by default).\n\n` +
+  `Fix-only flags (Phase 8.2):\n` +
+  `      --write                  Write fixes to disk via atomic staging. Default: dry-run.\n` +
+  `      --mode M                 safe | all | manual-only-explain (default: safe).\n` +
+  `      --only IDS               Comma-separated rule IDs to filter.\n` +
+  `      --accept-unsafe          Required for --mode all in non-TTY (D-12).\n`;
 
 interface ParsedFlags {
   path?: string;
@@ -81,6 +89,11 @@ interface ParsedFlags {
   exclude?: string;
   include?: string;
   help?: boolean;
+  // Phase 8.2 — `hookwarden fix`
+  write?: boolean;
+  mode?: string;
+  only?: string;
+  "accept-unsafe"?: boolean;
 }
 
 interface ParseResult {
@@ -90,7 +103,7 @@ interface ParseResult {
 
 const STRING_FLAGS: ReadonlyArray<{
   readonly long: string;
-  readonly key: keyof ParsedFlags;
+  readonly key: string;
 }> = [
   { long: "--rules-dir", key: "rules-dir" },
   { long: "--format", key: "format" },
@@ -102,11 +115,14 @@ const STRING_FLAGS: ReadonlyArray<{
   { long: "--provider", key: "provider" },
   { long: "--exclude", key: "exclude" },
   { long: "--include", key: "include" },
+  // Phase 8.2 — `hookwarden fix` flags.
+  { long: "--mode", key: "mode" },
+  { long: "--only", key: "only" },
 ];
 
 const BOOLEAN_FLAGS: ReadonlyArray<{
   readonly long: string;
-  readonly key: keyof ParsedFlags;
+  readonly key: string;
 }> = [
   { long: "--no-color", key: "no-color" },
   { long: "--no-baseline", key: "no-baseline" },
@@ -114,6 +130,9 @@ const BOOLEAN_FLAGS: ReadonlyArray<{
   { long: "--no-config", key: "no-config" },
   { long: "--strict-suppressions", key: "strict-suppressions" },
   { long: "--include-tests", key: "include-tests" },
+  // Phase 8.2 — `hookwarden fix` flags.
+  { long: "--write", key: "write" },
+  { long: "--accept-unsafe", key: "accept-unsafe" },
 ];
 
 function parseFlags(argv: ReadonlyArray<string>): ParseResult {
@@ -252,6 +271,20 @@ export async function main(argv: ReadonlyArray<string>): Promise<number> {
         ...(flags["no-color"] !== undefined ? { "no-color": flags["no-color"] } : {}),
         ...(flags["rules-dir"] !== undefined ? { "rules-dir": flags["rules-dir"] } : {}),
       });
+    }
+    if (sub === "fix") {
+      const { flags, error } = parseFlags(argv.slice(1));
+      if (error !== null) {
+        process.stderr.write(`error: ${error}\n`);
+        return 3;
+      }
+      if (flags.help === true) {
+        process.stdout.write(
+          `Usage: hookwarden fix [path] [--write] [--mode M] [--only IDS] [--format F] [--accept-unsafe]\n`,
+        );
+        return 0;
+      }
+      return await runFixCommand(flags as FixArgs);
     }
     if (sub === "logo") {
       const noColor = argv.includes("--no-color");

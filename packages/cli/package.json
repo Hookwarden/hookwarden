@@ -61,6 +61,7 @@
   },
   "dependencies": {
     "@hookwarden/engine": "workspace:*",
+    "@hookwarden/fix": "workspace:*",
     "@hookwarden/rules": "workspace:*",
     "ajv": "^8.17.1",
     "citty": "^0.2.2",

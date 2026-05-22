@@ -50,6 +50,9 @@ importers:
       '@hookwarden/engine':
         specifier: workspace:*
         version: link:../engine
+      '@hookwarden/fix':
+        specifier: workspace:*
+        version: link:../fix
       '@hookwarden/rules':
         specifier: workspace:*
         version: link:../rules
