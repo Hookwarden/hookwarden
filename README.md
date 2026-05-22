@@ -83,27 +83,76 @@ Node 22+ is required for the npm/`npx` path. The standalone binaries (Linux x64/
 
 ## 🚀 Quickstart
 
+**First use — no install required:**
 ```bash
-# First use — no install required
 npx hookwarden scan ./your-app
-
-# JSON envelope for CI pipelines
-npx hookwarden scan ./your-app --format json
-
-# SARIF for GitHub Code Scanning
-npx hookwarden scan ./your-app --format sarif > findings.sarif
-
-# Scope to files changed in a PR
-npx hookwarden scan ./your-app --diff-only --diff-base origin/main
-
-# Snapshot pre-existing findings as a baseline (non-greenfield adoption)
-npx hookwarden scan ./your-app --baseline write
-
-# Scan test/fixture paths too (excluded by default — `*/test/*`, `*/__tests__/*`, etc.)
-npx hookwarden scan ./your-app --include-tests
 ```
 
-See [Install](#-install) for permanent install via npm, Homebrew, Scoop, or PyPI.
+**Make CI fail on high+ findings:**
+```bash
+npx hookwarden scan ./your-app --fail-on high --format json
+# Exit codes: 0 clean · 1 findings at threshold · 2 engine error · 3 config error · 4 parse coverage below floor.
+# JSON envelope is byte-stable — diff-safe between PRs.
+```
+
+**PR-scoped scan + CI gate (default branch = origin/main):**
+```bash
+npx hookwarden scan ./your-app \
+  --diff-only \
+  --diff-base origin/main \
+  --fail-on high
+```
+
+**Upload to GitHub Code Scanning (findings show in the Security tab):**
+```bash
+npx hookwarden scan ./your-app --format sarif > findings.sarif
+gh api -X POST /repos/$REPO/code-scanning/sarifs \
+  -F sarif=@findings.sarif -F ref=$GITHUB_REF
+# SARIF round-trips through GitHub Code Scanning; re-upload deduplicates
+# via `partialFingerprints` so the same finding doesn't surface twice.
+```
+
+**Non-greenfield adoption — accept existing findings, gate only NEW ones:**
+```bash
+# One-time: capture the current state as a baseline (written to .hookwarden.baseline.json).
+npx hookwarden scan ./your-app --baseline write
+git add .hookwarden.baseline.json && git commit -m "chore: hookwarden baseline"
+
+# All subsequent scans auto-read the baseline; only new findings are reported.
+npx hookwarden scan ./your-app --fail-on high
+```
+
+**List every detected webhook handler (no rule evaluation):**
+```bash
+npx hookwarden inventory ./your-app
+# Useful for compliance audits — "what webhook handlers exist in this codebase
+# and which provider/framework does each route to?". No rules run; just inventory.
+```
+
+**Repo-level config via `hookwarden.config.yaml`:**
+```bash
+# Auto-discovered when placed at the repo root; or pass explicitly:
+npx hookwarden scan ./your-app --config ./hookwarden.config.yaml
+
+# Precedence: CLI flag > HOOKWARDEN_<KEY> env var > config file > built-in default.
+```
+
+**Strict suppressions (compliance teams):**
+```bash
+npx hookwarden scan ./your-app --strict-suppressions
+# Stale inline `// hookwarden-ignore-next-line` suppressions promote to ERRORS
+# instead of warnings. Forces audit hygiene: a fix that removes the bug must also
+# remove its suppression — otherwise CI breaks.
+```
+
+**Tune parse-coverage floor (for noisy / generated-code repos):**
+```bash
+npx hookwarden scan ./your-app --min-parse-coverage 0.85
+# Default 0.95. Lower for monorepos with generated TS / JSX edge cases where
+# the parser occasionally bails. Below this floor, the scanner exits 4 — by design.
+```
+
+See [Install](#-install) for permanent install via npm, Homebrew, Scoop, or PyPI. Full flag reference: `npx hookwarden --help`.
 
 ---
 
