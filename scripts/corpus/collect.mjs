@@ -123,7 +123,7 @@ function searchProvider(provider, queries, limitPerQuery) {
     );
     for (const item of items) {
       const repo = item.repository;
-      if (!repo || !repo.fullName) continue;
+      if (!repo?.fullName) continue;
       if (seen.has(repo.fullName)) continue;
       seen.set(repo.fullName, {
         provider,
