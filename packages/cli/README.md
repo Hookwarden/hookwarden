@@ -63,7 +63,7 @@ Hookwarden does one thing. It walks your repo, parses every webhook handler acro
 |---|---|---|
 | **JavaScript / TypeScript** | Express · Hono · Fastify · Next.js | `@babel/parser` |
 | **Python** | Flask · FastAPI · Django | `tree-sitter-python` |
-| **PHP** (v0.4) | Laravel · Symfony · Slim · vanilla-PHP single-file | `tree-sitter-php` |
+| **PHP** | Laravel · Symfony · Slim · vanilla-PHP single-file | `tree-sitter-php` |
 
 PHP 8.0+ syntax floor. Python 3.10+ recommended.
 
@@ -223,7 +223,7 @@ Sorted keys, schema-versioned, byte-stable across runs (modulo `scanned_at`). SA
 
 ## 🔐 Provider coverage
 
-45 rules across 6 providers as of v0.2. Every rule carries fix guidance quoted verbatim from the provider's canonical security documentation.
+45 rules across 6 providers as of v0.3. Every rule carries fix guidance quoted verbatim from the provider's canonical security documentation.
 
 | Provider | Rules | Detection types | Custom predicate |
 |---|---|---|---|
@@ -408,11 +408,11 @@ Re-uploading the same scan deduplicates via SARIF `partialFingerprints`. Full ma
 
 ## Roadmap
 
-**v0.3 — Distribution.** pre-commit hook, Homebrew tap, Scoop/WinGet manifests, standalone binaries (macOS arm64/x64, Linux x64/arm64, Windows x64).
+**v0.3 — Distribution.** ✓ Shipped. pre-commit hook, Homebrew tap, Scoop/WinGet manifests, standalone binaries (macOS arm64/x64, Linux x64/arm64, Windows x64), PHP language support.
 
 **v0.4 — More providers.** Adyen, Zendesk, Mailgun, SendGrid — each measured against the 200-repo OSS regression corpus before release, with a published false-positive rate.
 
-**v0.5 — Corpus integrity.** `verify-changeset-delta` — every PR's rule changes run against the full corpus and the `findings_delta` block must match the actual delta before merge.
+**v0.5 — Auto-remediation engine.** `hookwarden fix` — mechanically rewrites `safety: safe` findings across JS/TS, Python, and PHP. Dry-run is the default; `--write` opts into atomic-staging writes with re-scan verification. Three-tier safety gate (`safe` / `all` / `manual-only-explain`). The largest extension of the correctness moat in v1 — hookwarden goes from "tells you the fix" to "applies it."
 
 ---
 
