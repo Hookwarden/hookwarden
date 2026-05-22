@@ -18,6 +18,7 @@ Set Theme { "name": "hookwarden", "black": "#0B0F14", "red": "#F43F5E", "green":
 
 Hide
 Type "export PS1='$ '" Enter
+Type "cd demo-fixtures" Enter
 Type "clear" Enter
 Show
 

@@ -12,6 +12,7 @@
       "**/*.json",
       "!e2e/fixtures",
       "!**/test/fixtures",
+      "!assets/brand/demo-fixtures",
       "!**/*.fix-positive.expected.*",
       "!**/fp-measurement-*-result.json"
     ]

@@ -1,0 +1,7 @@
+{
+  "name": "canonical-stripe-bug",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Phase 3 fixture: canonical Express middleware-ordering Stripe webhook bug.",
+  "license": "Apache-2.0"
+}
