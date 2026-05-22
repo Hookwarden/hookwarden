@@ -68,6 +68,11 @@ export interface RunScanInput {
   // in commands/scan.ts; empty arrays = no-op.
   readonly excludeGlobs?: ReadonlyArray<string>;
   readonly includeGlobs?: ReadonlyArray<string>;
+  // Phase 8.2 D-11 condition 5: fileList override unblocks the rescan loop.
+  // When provided (non-empty), the file walker is BYPASSED and only these
+  // paths are parsed + analysed. Each path is resolved relative to rootPath
+  // and rejected if it escapes the repo root (path-traversal defense).
+  readonly fileList?: ReadonlyArray<string>;
 }
 
 export interface RunScanOutput {
@@ -159,23 +164,50 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
     diffFileSet = changedFiles(baseRef.ref, root);
   }
 
-  const fullWalk = await walkProject({
-    rootPath: root,
-    scanTests: input.resolvedConfig.scan_tests,
-    ...(input.excludeGlobs !== undefined ? { excludeGlobs: input.excludeGlobs } : {}),
-    ...(input.includeGlobs !== undefined ? { includeGlobs: input.includeGlobs } : {}),
-  });
-  // Filter walkResult.files by diffFileSet when diff-only is active. The narrowed set IS the
-  // candidate set for THIS run — `parse_candidates_count` reflects that so the parse-coverage
-  // gate's denominator is honest under --diff-only.
-  const walkedFiles: ReadonlyArray<string> = diffFileSet
-    ? fullWalk.files.filter((abs) => diffFileSet.has(path.relative(scanDir, abs)))
-    : fullWalk.files;
-  const walkResult: WalkResult = {
-    ...fullWalk,
-    files: walkedFiles,
-    parsed_files_count_estimate: walkedFiles.length,
-  };
+  // fileList override: bypass the full walker when caller provides an explicit
+  // list of paths to scan (Phase 8.2 rescan path). All paths must resolve inside
+  // the repoRoot — path traversal is rejected loudly.
+  let walkResult: WalkResult;
+  if (input.fileList !== undefined && input.fileList.length > 0) {
+    const absFiles: string[] = [];
+    for (const entry of input.fileList) {
+      const abs = path.resolve(scanDir, entry);
+      const rel = path.relative(scanDir, abs);
+      if (rel.startsWith("..") || path.isAbsolute(rel)) {
+        throw new Error(
+          `runScan: fileList entry "${entry}" escapes repoRoot (resolved to ${abs}); refusing`,
+        );
+      }
+      absFiles.push(abs);
+    }
+    walkResult = {
+      files: absFiles,
+      skipped_count: 0,
+      total_files_count: absFiles.length,
+      parsed_files_count_estimate: absFiles.length,
+      oversized_count: 0,
+      symlink_count: 0,
+      test_excluded_count: 0,
+    };
+  } else {
+    const fullWalk = await walkProject({
+      rootPath: root,
+      scanTests: input.resolvedConfig.scan_tests,
+      ...(input.excludeGlobs !== undefined ? { excludeGlobs: input.excludeGlobs } : {}),
+      ...(input.includeGlobs !== undefined ? { includeGlobs: input.includeGlobs } : {}),
+    });
+    // Filter walkResult.files by diffFileSet when diff-only is active. The narrowed set IS the
+    // candidate set for THIS run — `parse_candidates_count` reflects that so the parse-coverage
+    // gate's denominator is honest under --diff-only.
+    const walkedFiles: ReadonlyArray<string> = diffFileSet
+      ? fullWalk.files.filter((abs) => diffFileSet.has(path.relative(scanDir, abs)))
+      : fullWalk.files;
+    walkResult = {
+      ...fullWalk,
+      files: walkedFiles,
+      parsed_files_count_estimate: walkedFiles.length,
+    };
+  }
 
   // Initialize tree-sitter runtimes once per scan, only when files of that language are present.
   // The web-tree-sitter runtime .wasm (when needed for Bun --compile) is shared across all
