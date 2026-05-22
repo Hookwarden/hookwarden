@@ -1,6 +1,6 @@
-// D-61 inline disable comments: 3 forms × JS/TS+Python × multi-rule comma-separated. CLI-side (engine purity).
+// D-61 inline disable comments: 3 forms × JS/TS+Python+PHP × multi-rule comma-separated. CLI-side (engine purity).
 // Rule-id REQUIRED — no silent global suppression. Comment extraction consumes ParsedFile.raw_ast and
-// switches on dialect ("babel" | "tree-sitter-python"); never re-initializes a parser.
+// switches on dialect ("babel" | "tree-sitter-python" | "tree-sitter-php"); never re-initializes a parser.
 
 import type { ParsedFile } from "@hookwarden/engine";
 
@@ -65,12 +65,16 @@ interface TreeSitterTreeShape {
   readonly rootNode: TreeSitterNodeShape;
 }
 
-// tree-sitter-python (web-tree-sitter WASM) API surface (matches packages/engine/src/parsers/python.ts):
+// tree-sitter (web-tree-sitter WASM) API surface — shared across Python + PHP grammars:
 //   tree.rootNode               — root node
-//   node.type === "comment"     — comment selector
-//   node.text                   — raw source slice including the leading "#"
+//   node.type === "comment"     — comment selector (both tree-sitter-python AND tree-sitter-php
+//                                  use the same "comment" node type for // and # prefixes)
+//   node.text                   — raw source slice including the comment prefix
 //   node.startPosition.row      — 0-based row (we add 1 for 1-based line)
 //   node.childCount + node.child(i) — child iteration
+// Prefix-strip regex covers Python's `#` AND PHP's `//` and `#` (both are valid PHP single-line
+// comment styles; tree-sitter-php parses both as `comment` nodes). Python source never contains
+// `//`, so the union remains backwards-compatible.
 function extractCommentsFromTreeSitter(raw: unknown): CommentLike[] {
   const tree = raw as TreeSitterTreeShape | null | undefined;
   if (!tree?.rootNode) return [];
@@ -78,7 +82,7 @@ function extractCommentsFromTreeSitter(raw: unknown): CommentLike[] {
   const visit = (node: TreeSitterNodeShape | null): void => {
     if (node === null) return;
     if (node.type === "comment") {
-      const text = (node.text ?? "").replace(/^#\s?/, "");
+      const text = (node.text ?? "").replace(/^(\/\/|#)\s?/, "");
       out.push({ value: text, line: node.startPosition.row + 1 });
     }
     for (let i = 0; i < node.childCount; i += 1) {
@@ -90,7 +94,7 @@ function extractCommentsFromTreeSitter(raw: unknown): CommentLike[] {
 }
 
 function extractComments(file: ParsedFile): CommentLike[] {
-  if (file.dialect === "tree-sitter-python") {
+  if (file.dialect === "tree-sitter-python" || file.dialect === "tree-sitter-php") {
     return extractCommentsFromTreeSitter(file.raw_ast);
   }
   return extractCommentsFromBabel(file.raw_ast);
