@@ -56,18 +56,20 @@ describe("PROVIDER_CATALOG — PHP additions (Phase 8.1 Plan 07)", () => {
     // No "Octokit\\" or similar prefix; no PHP FQN verify call.
     const phpPrefixes = PROVIDER_CATALOG.github?.sdk_packages.filter((p) => p.includes("\\")) ?? [];
     expect(phpPrefixes).toEqual([]);
-    const phpVerifyCalls = PROVIDER_CATALOG.github?.sdk_verify_calls.filter(
-      (c) => c.includes("\\") || c.includes("::"),
-    ) ?? [];
+    const phpVerifyCalls =
+      PROVIDER_CATALOG.github?.sdk_verify_calls.filter(
+        (c) => c.includes("\\") || c.includes("::"),
+      ) ?? [];
     expect(phpVerifyCalls).toEqual([]);
   });
 
   it("slack intentionally has NO PHP additions — no canonical PHP webhook SDK", () => {
     const phpPrefixes = PROVIDER_CATALOG.slack?.sdk_packages.filter((p) => p.includes("\\")) ?? [];
     expect(phpPrefixes).toEqual([]);
-    const phpVerifyCalls = PROVIDER_CATALOG.slack?.sdk_verify_calls.filter(
-      (c) => c.includes("\\") || c.includes("::"),
-    ) ?? [];
+    const phpVerifyCalls =
+      PROVIDER_CATALOG.slack?.sdk_verify_calls.filter(
+        (c) => c.includes("\\") || c.includes("::"),
+      ) ?? [];
     expect(phpVerifyCalls).toEqual([]);
   });
 

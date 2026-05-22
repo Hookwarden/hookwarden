@@ -14,9 +14,9 @@
 // the FP-01 measurement corpus (Plan 10).
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { createRequire } from "node:module";
 import {
   ALL_ADAPTERS,
   buildProjectModel,

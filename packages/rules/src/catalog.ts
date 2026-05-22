@@ -84,11 +84,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
   },
   shopify: {
     signature_header: ["x-shopify-hmac-sha256"],
-    sdk_packages: [
-      "@shopify/shopify-api",
-      "@shopify/shopify-app-express",
-      "Shopify\\",
-    ],
+    sdk_packages: ["@shopify/shopify-api", "@shopify/shopify-app-express", "Shopify\\"],
     sdk_verify_calls: [
       "verifyHmac",
       "webhookRegistry.process",

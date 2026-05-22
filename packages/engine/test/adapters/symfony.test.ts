@@ -75,10 +75,7 @@ describe("symfonyAdapter — PHP attribute routing", () => {
   it("returns zero candidates for a non-Symfony PHP file outside src/Controller/", async () => {
     const file = await parse(
       "lib/Helpers.php",
-      "<?php\n" +
-        "class Helpers {\n" +
-        "  public function format() { return 'ok'; }\n" +
-        "}\n",
+      "<?php\n" + "class Helpers {\n" + "  public function format() { return 'ok'; }\n" + "}\n",
     );
     const handlers = symfonyAdapter(file, [file]);
     expect(handlers).toEqual([]);

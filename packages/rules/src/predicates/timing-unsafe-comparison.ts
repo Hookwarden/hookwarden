@@ -18,6 +18,7 @@ import type {
   WebhookHandler,
 } from "@hookwarden/engine";
 import { PROVIDER_CATALOG } from "../catalog.js";
+import { isConstantTimeCompare, isManualHmacEntry, reachesSdkVerifyCall } from "./_helpers.js";
 import {
   findInsecureStringComparisons,
   isPhpHashEqualsCall,
@@ -25,7 +26,6 @@ import {
   type PhpTree,
   walkPhpCalls,
 } from "./_helpers-php.js";
-import { isConstantTimeCompare, isManualHmacEntry, reachesSdkVerifyCall } from "./_helpers.js";
 
 export function createTimingUnsafeComparisonPredicate(
   provider: string,
@@ -52,7 +52,11 @@ export function createTimingUnsafeComparisonPredicate(
 
 function evaluatePhpTimingUnsafe(
   handler: WebhookHandler,
-  parsedFile: { readonly dialect: string; readonly parse_error: unknown; readonly raw_ast: unknown },
+  parsedFile: {
+    readonly dialect: string;
+    readonly parse_error: unknown;
+    readonly raw_ast: unknown;
+  },
   catalog: ProviderCatalogEntry,
 ): "not-verified" | null {
   if (parsedFile.parse_error !== null || parsedFile.raw_ast === null) return null;

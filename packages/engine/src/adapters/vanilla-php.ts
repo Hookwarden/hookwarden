@@ -27,11 +27,7 @@ interface PhpSyntaxNode {
 
 // Namespaces that disqualify a file from the vanilla classification — if any framework is
 // imported, that framework's adapter (catalog or bespoke) owns detection.
-const FRAMEWORK_PREFIXES: ReadonlyArray<string> = [
-  "Illuminate\\",
-  "Symfony\\",
-  "Slim\\",
-];
+const FRAMEWORK_PREFIXES: ReadonlyArray<string> = ["Illuminate\\", "Symfony\\", "Slim\\"];
 
 export function vanillaPhpAdapter(
   file: ParsedFile,

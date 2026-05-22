@@ -95,8 +95,7 @@ function matchAttributeRoutedMethod(
         http_methods: route.methods,
         file_path: file.file_path,
         location: locOf(attr),
-        handler_function_name:
-          className && methodName ? `${className}::${methodName}` : methodName,
+        handler_function_name: className && methodName ? `${className}::${methodName}` : methodName,
         handler_body_node: body ?? method,
         handler_source_start: span.start,
         handler_source_end: span.end,

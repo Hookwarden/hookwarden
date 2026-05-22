@@ -20,8 +20,8 @@ import type {
   WebhookHandler,
 } from "@hookwarden/engine";
 import { PROVIDER_CATALOG } from "../catalog.js";
-import { type PhpSyntaxNode, type PhpTree, walkPhpCalls } from "./_helpers-php.js";
 import { isManualHmacEntry, reachesSdkVerifyCall } from "./_helpers.js";
+import { type PhpSyntaxNode, type PhpTree, walkPhpCalls } from "./_helpers-php.js";
 
 // D-92 registry. Custom-signing predicate files under predicates/custom/<provider>-signing.ts
 // register their predicate here at module-load time. Side-effect imports of custom predicate
@@ -76,9 +76,7 @@ function evaluatePhpMissingVerification(
   // are sufficient for the v1 PHP shape regardless of signing_input_format.
 
   // Path A — SDK verify call surfaces as evidence via the build.ts PHP overlay (Plan 07).
-  if (
-    handler.evidence.some((e) => e.kind === "sdk_verify_call" && e.provider === provider)
-  ) {
+  if (handler.evidence.some((e) => e.kind === "sdk_verify_call" && e.provider === provider)) {
     return null;
   }
 

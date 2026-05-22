@@ -36,10 +36,7 @@ const TEST_CATALOG: ProviderCatalog = {
   twilio: {
     signature_header: ["x-twilio-signature"],
     sdk_packages: ["twilio", "Twilio\\"],
-    sdk_verify_calls: [
-      "validate",
-      "Twilio\\Security\\RequestValidator::validate",
-    ],
+    sdk_verify_calls: ["validate", "Twilio\\Security\\RequestValidator::validate"],
     secret_env_prefix: ["TWILIO_AUTH"],
     secret_literal_prefix: [],
     conventional_paths: ["/webhooks/twilio"],

@@ -104,9 +104,9 @@ describe("computeEvidence — PHP (Phase 8.1 Plan 07)", () => {
       providerCatalog: PHP_CATALOG,
       imports: file.imports,
     });
-    expect(evidence.some((e) => e.kind === "signature_header_read" && e.provider === "stripe")).toBe(
-      true,
-    );
+    expect(
+      evidence.some((e) => e.kind === "signature_header_read" && e.provider === "stripe"),
+    ).toBe(true);
   });
 
   it("emits sdk_import for `use Stripe\\Webhook` via namespace-prefix match on catalog `Stripe\\`", async () => {
@@ -229,9 +229,9 @@ describe("computeEvidence — PHP (Phase 8.1 Plan 07)", () => {
       providerCatalog: PHP_CATALOG,
       imports: file.imports,
     });
-    expect(
-      evidence.some((e) => e.kind === "secret_literal_match" && e.provider === "stripe"),
-    ).toBe(true);
+    expect(evidence.some((e) => e.kind === "secret_literal_match" && e.provider === "stripe")).toBe(
+      true,
+    );
   });
 
   it("emits path_pattern_match for /webhooks/stripe Laravel route", async () => {
@@ -251,9 +251,9 @@ describe("computeEvidence — PHP (Phase 8.1 Plan 07)", () => {
       providerCatalog: PHP_CATALOG,
       imports: file.imports,
     });
-    expect(
-      evidence.some((e) => e.kind === "path_pattern_match" && e.provider === "stripe"),
-    ).toBe(true);
+    expect(evidence.some((e) => e.kind === "path_pattern_match" && e.provider === "stripe")).toBe(
+      true,
+    );
   });
 
   it("recognises Shopify, Twilio, and Square PHP namespace imports", async () => {

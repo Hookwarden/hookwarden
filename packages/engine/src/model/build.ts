@@ -199,10 +199,7 @@ function collectPhpSdkVerifyEvidence(
   // shapes: (a) static FQN appears in the body (e.g. `\Stripe\Webhook::constructEvent(...)`),
   // (b) method name appears as instance call (e.g. `$validator->validate(...)`) AND the catalog
   // entry's namespace was imported by the file. Shape (b) covers Twilio's instance-only API.
-  const handlerText = file.source_text.slice(
-    cand.handler_source_start,
-    cand.handler_source_end,
-  );
+  const handlerText = file.source_text.slice(cand.handler_source_start, cand.handler_source_end);
   const imports = file.imports;
   const out: WebhookEvidence[] = [];
   const seen = new Set<string>();

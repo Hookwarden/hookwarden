@@ -5,10 +5,10 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import {
   initPhpRuntime,
-  parsePhp,
   type ParsedFile,
   type PhpRuntime,
   type ProjectModel,
+  parsePhp,
   type WebhookHandler,
 } from "@hookwarden/engine";
 import { beforeAll, describe, expect, it } from "vitest";

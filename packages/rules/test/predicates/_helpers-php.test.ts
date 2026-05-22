@@ -3,15 +3,15 @@
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
-import { initPhpRuntime, parsePhp, type PhpRuntime } from "@hookwarden/engine";
+import { initPhpRuntime, type PhpRuntime, parsePhp } from "@hookwarden/engine";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   findInsecureStringComparisons,
   isPhpHashEqualsCall,
   isPhpManualHmacEntry,
   isPhpStrcmpCall,
-  walkPhpCalls,
   type PhpTree,
+  walkPhpCalls,
 } from "../../src/predicates/_helpers-php.js";
 
 const require = createRequire(import.meta.url);
@@ -83,9 +83,7 @@ describe("_helpers-php — findInsecureStringComparisons", () => {
   });
 
   it("does NOT flag hash_equals($expected, $sig)", async () => {
-    const tree = await parse(
-      "<?php\nif (hash_equals($expected, $sig)) { echo 'ok'; }\n",
-    );
+    const tree = await parse("<?php\nif (hash_equals($expected, $sig)) { echo 'ok'; }\n");
     const results = findInsecureStringComparisons(tree.rootNode);
     // hash_equals call lives inside an if condition; the condition node is not a
     // binary_expression so findInsecureStringComparisons emits nothing.
@@ -93,9 +91,7 @@ describe("_helpers-php — findInsecureStringComparisons", () => {
   });
 
   it("does NOT flag arbitrary $x === 'yes' where neither side resembles signature material", async () => {
-    const tree = await parse(
-      "<?php\n$status = 'yes';\nif ($status === 'yes') { echo 'ok'; }\n",
-    );
+    const tree = await parse("<?php\n$status = 'yes';\nif ($status === 'yes') { echo 'ok'; }\n");
     expect(findInsecureStringComparisons(tree.rootNode)).toEqual([]);
   });
 });

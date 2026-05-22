@@ -22,10 +22,4 @@ export const ALL_ADAPTERS: ReadonlyArray<FrameworkAdapter> = [
   vanillaPhpAdapter,
 ];
 
-export {
-  djangoAdapter,
-  fastapiAdapter,
-  nextjsAdapter,
-  symfonyAdapter,
-  vanillaPhpAdapter,
-};
+export { djangoAdapter, fastapiAdapter, nextjsAdapter, symfonyAdapter, vanillaPhpAdapter };

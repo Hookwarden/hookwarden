@@ -97,4 +97,3 @@ describe("runScan — PHP language support (Plan 08.1-04)", () => {
     expect(result.metadata.parse_errors_count).toBeGreaterThan(0);
   });
 });
-

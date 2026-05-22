@@ -393,10 +393,7 @@ function detectPhpCatalog(parsedFile: ParsedFile): ReadonlyArray<CandidateHandle
   return out;
 }
 
-function matchLaravelRouteCall(
-  call: PySyntaxNode,
-  filePath: string,
-): CandidateHandler | null {
+function matchLaravelRouteCall(call: PySyntaxNode, filePath: string): CandidateHandler | null {
   const scope = call.childForFieldName("scope");
   const nameNode = call.childForFieldName("name");
   if (scope === null || nameNode === null) return null;
@@ -451,9 +448,10 @@ function buildPhpCandidate(
 
   const handlerNode = argExprs[1] ?? null;
   const handlerName = handlerNode === null ? null : extractPhpHandlerName(handlerNode);
-  const span = handlerNode === null
-    ? { start: call.startIndex, end: call.endIndex }
-    : { start: handlerNode.startIndex, end: handlerNode.endIndex };
+  const span =
+    handlerNode === null
+      ? { start: call.startIndex, end: call.endIndex }
+      : { start: handlerNode.startIndex, end: handlerNode.endIndex };
 
   return {
     framework,

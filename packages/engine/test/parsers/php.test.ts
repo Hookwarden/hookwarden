@@ -30,7 +30,8 @@ describe("parsePhp — happy path", () => {
     const result = await parsePhp(
       {
         file_path: "imports.php",
-        source_text: "<?php\nuse Stripe\\Webhook;\nuse Symfony\\Component\\HttpFoundation\\Request;\n",
+        source_text:
+          "<?php\nuse Stripe\\Webhook;\nuse Symfony\\Component\\HttpFoundation\\Request;\n",
       },
       runtime,
     );
@@ -66,7 +67,8 @@ describe("parsePhp — happy path", () => {
     const result = await parsePhp(
       {
         file_path: "group.php",
-        source_text: "<?php\nuse Symfony\\Component\\HttpFoundation\\{Request, Response, JsonResponse};\n",
+        source_text:
+          "<?php\nuse Symfony\\Component\\HttpFoundation\\{Request, Response, JsonResponse};\n",
       },
       runtime,
     );

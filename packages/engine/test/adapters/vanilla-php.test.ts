@@ -93,9 +93,7 @@ describe("vanillaPhpAdapter — heuristic single-file webhook detection", () => 
   it("rejects a file with no framework imports AND no vanilla signals", async () => {
     const file = await parse(
       "helpers.php",
-      "<?php\n" +
-        "function format($x) { return strtoupper($x); }\n" +
-        "echo format('hello');\n",
+      "<?php\n" + "function format($x) { return strtoupper($x); }\n" + "echo format('hello');\n",
     );
     expect(vanillaPhpAdapter(file, [file])).toEqual([]);
   });
