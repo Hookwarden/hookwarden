@@ -9,16 +9,13 @@
 //   4. No new imports: YES (ValueError is a Python builtin)
 //   5. No type errors: YES
 
-import type { Node as TsNode } from "web-tree-sitter";
 import type { Finding, ParsedFile } from "@hookwarden/engine";
 import type { FixEdit } from "@hookwarden/fix";
+import type { Node as TsNode } from "web-tree-sitter";
 
 const ROUTINE_ID = "python-insert-nullish-guard";
 
-export function pythonInsertNullishGuard(
-  parsedFile: ParsedFile,
-  finding: Finding,
-): FixEdit | null {
+export function pythonInsertNullishGuard(parsedFile: ParsedFile, finding: Finding): FixEdit | null {
   if (parsedFile.dialect !== "tree-sitter-python") return null;
   if (parsedFile.parse_error !== null) return null;
   if (parsedFile.raw_ast === null || parsedFile.raw_ast === undefined) return null;

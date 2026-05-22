@@ -6,10 +6,7 @@
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it } from "vitest";
-import {
-  buildD19Suggestion,
-  resolveConflicts,
-} from "../src/conflict-resolver.js";
+import { buildD19Suggestion, resolveConflicts } from "../src/conflict-resolver.js";
 import type { FixEdit } from "../src/index.js";
 
 function mkEdit(overrides: Partial<FixEdit> & Pick<FixEdit, "startByte" | "endByte">): FixEdit {
@@ -109,8 +106,13 @@ describe("D-19 format-drift guard (SOC2 evidence)", () => {
   it("conflict-resolver.ts source contains the canonical format string literally", () => {
     const sourcePath = path.resolve(__dirname, "../src/conflict-resolver.ts");
     const source = readFileSync(sourcePath, "utf-8");
+    // Asserts the literal template-literal placeholder syntax — `${file}` and
+    // `${id}` — appears in the source file. This catches accidental refactor
+    // that breaks the D-19 user-trust format contract.
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: literal-string contract check
     expect(source).toContain("findings in ${file} have overlapping fix ranges.");
     expect(source).toContain("Apply fixes one at a time:");
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: literal-string contract check
     expect(source).toContain("--only ${id} --write");
   });
 });

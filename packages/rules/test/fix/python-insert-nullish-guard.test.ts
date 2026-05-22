@@ -1,7 +1,12 @@
-import { beforeAll, describe, expect, it } from "vitest";
-import { initPythonRuntime, parsePython, type Finding, type PythonRuntime } from "@hookwarden/engine";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
+import {
+  type Finding,
+  initPythonRuntime,
+  type PythonRuntime,
+  parsePython,
+} from "@hookwarden/engine";
+import { beforeAll, describe, expect, it } from "vitest";
 import { pythonInsertNullishGuard } from "../../src/fix/python-insert-nullish-guard.js";
 
 let pythonRuntime: PythonRuntime;

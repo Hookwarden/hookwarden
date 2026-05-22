@@ -14,8 +14,8 @@
 // Pure: no fs / http / network / process / node:* (D-28).
 
 import type { ParsedFile } from "@hookwarden/engine";
-import type { FixEdit } from "../index.js";
 import { type ForbiddenRange, intersects } from "../forbidden-ranges.js";
+import type { FixEdit } from "../index.js";
 import { applyEdits } from "../text-range-applier.js";
 
 export interface RewriteJsInput {
@@ -35,9 +35,7 @@ export interface RewriteJsResult {
 export function rewriteJavascript(input: RewriteJsInput): RewriteJsResult {
   const { parsedFile, edits, forbiddenRanges } = input;
   if (parsedFile.dialect !== "babel") {
-    throw new TypeError(
-      `rewriteJavascript: expected dialect "babel", got "${parsedFile.dialect}"`,
-    );
+    throw new TypeError(`rewriteJavascript: expected dialect "babel", got "${parsedFile.dialect}"`);
   }
   if (parsedFile.parse_error !== null) {
     throw new Error(

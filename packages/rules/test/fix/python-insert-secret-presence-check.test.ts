@@ -1,7 +1,12 @@
-import { beforeAll, describe, expect, it } from "vitest";
-import { initPythonRuntime, parsePython, type Finding, type PythonRuntime } from "@hookwarden/engine";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
+import {
+  type Finding,
+  initPythonRuntime,
+  type PythonRuntime,
+  parsePython,
+} from "@hookwarden/engine";
+import { beforeAll, describe, expect, it } from "vitest";
 import { pythonInsertSecretPresenceCheck } from "../../src/fix/python-insert-secret-presence-check.js";
 
 let pythonRuntime: PythonRuntime;
@@ -29,7 +34,7 @@ const mkFinding = (line: number): Finding => ({
 
 describe("pythonInsertSecretPresenceCheck", () => {
   it("inserts a guard above os.environ.get('WEBHOOK_SECRET')", async () => {
-    const src = "def h():\n    sig = os.environ.get(\"WEBHOOK_SECRET\")\n";
+    const src = 'def h():\n    sig = os.environ.get("WEBHOOK_SECRET")\n';
     const parsed = await parsePython({ file_path: "f.py", source_text: src }, pythonRuntime);
     const fix = pythonInsertSecretPresenceCheck(parsed, mkFinding(2));
     expect(fix).not.toBeNull();

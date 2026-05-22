@@ -11,17 +11,12 @@ export interface TextEdit {
   readonly rule_id?: string; // optional — surfaced in overlap-error message
 }
 
-export function applyEdits(
-  sourceText: string,
-  edits: ReadonlyArray<TextEdit>,
-): string {
+export function applyEdits(sourceText: string, edits: ReadonlyArray<TextEdit>): string {
   if (edits.length === 0) return sourceText;
   // 1. Validate every edit's range invariants.
   for (const edit of edits) {
     if (edit.start < 0) {
-      throw new RangeError(
-        `applyEdits: edit start ${edit.start} is negative${formatRule(edit)}`,
-      );
+      throw new RangeError(`applyEdits: edit start ${edit.start} is negative${formatRule(edit)}`);
     }
     if (edit.start > edit.end) {
       throw new RangeError(

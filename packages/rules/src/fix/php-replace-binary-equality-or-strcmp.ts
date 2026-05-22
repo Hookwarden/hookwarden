@@ -13,9 +13,9 @@
 //   $expected === $sig                  → hash_equals($expected, $sig)
 //   strcmp($expected, $sig) === 0       → hash_equals($expected, $sig)
 
-import type { Node as TsNode } from "web-tree-sitter";
 import type { Finding, ParsedFile } from "@hookwarden/engine";
 import type { FixEdit } from "@hookwarden/fix";
+import type { Node as TsNode } from "web-tree-sitter";
 
 const ROUTINE_ID = "php-replace-binary-equality-or-strcmp";
 const VALID_OPERATORS: ReadonlySet<string> = new Set(["==", "===", "!=", "!=="]);
@@ -92,8 +92,8 @@ function extractStrcmpArgs(
   }
   if (namedArgs.length !== 2) return null;
   return {
-    a: _source.slice(namedArgs[0]!.startIndex, namedArgs[0]!.endIndex),
-    b: _source.slice(namedArgs[1]!.startIndex, namedArgs[1]!.endIndex),
+    a: _source.slice(namedArgs[0]?.startIndex, namedArgs[0]?.endIndex),
+    b: _source.slice(namedArgs[1]?.startIndex, namedArgs[1]?.endIndex),
   };
 }
 

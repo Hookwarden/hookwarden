@@ -12,9 +12,9 @@
 // v0.5 conservative scope: only `==` operator. `!=` would require `not hmac.compare_digest(...)`
 // which is a 2-byte INSERT in addition to the replacement — defer to v0.6+ per [[feedback_recommend_correct_not_cheap]].
 
-import type { Node as TsNode } from "web-tree-sitter";
 import type { Finding, ParsedFile } from "@hookwarden/engine";
 import type { FixEdit } from "@hookwarden/fix";
+import type { Node as TsNode } from "web-tree-sitter";
 
 const ROUTINE_ID = "python-replace-binary-equality";
 
@@ -41,9 +41,7 @@ export function pythonReplaceBinaryEquality(
   const leftSrc = source.slice(leftChild.startIndex, leftChild.endIndex);
   const rightSrc = source.slice(rightChild.startIndex, rightChild.endIndex);
   const after = `hmac.compare_digest(${leftSrc}, ${rightSrc})`;
-  const importsToAdd = hasHmacImport(parsedFile)
-    ? undefined
-    : ([{ module: "hmac" }] as const);
+  const importsToAdd = hasHmacImport(parsedFile) ? undefined : ([{ module: "hmac" }] as const);
   return {
     ruleId: finding.rule_id,
     routineId: ROUTINE_ID,

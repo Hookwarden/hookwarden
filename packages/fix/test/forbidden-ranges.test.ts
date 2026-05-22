@@ -3,23 +3,19 @@
 // Per [[feedback_negative_tests_required]] — negative tests prove the mask
 // does NOT swallow safe-to-rewrite ranges (plain strings, regular code).
 
-import { beforeAll, describe, expect, it } from "vitest";
-import {
-  initPhpRuntime,
-  initPythonRuntime,
-  parseJsTs,
-  parsePhp,
-  parsePython,
-  type PhpRuntime,
-  type PythonRuntime,
-} from "@hookwarden/engine";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import {
-  buildForbiddenRanges,
-  type ForbiddenRange,
-  intersects,
-} from "../src/forbidden-ranges.js";
+  initPhpRuntime,
+  initPythonRuntime,
+  type PhpRuntime,
+  type PythonRuntime,
+  parseJsTs,
+  parsePhp,
+  parsePython,
+} from "@hookwarden/engine";
+import { beforeAll, describe, expect, it } from "vitest";
+import { buildForbiddenRanges, type ForbiddenRange, intersects } from "../src/forbidden-ranges.js";
 
 const CLI_WASM_DIR = path.resolve(__dirname, "../../cli/wasm");
 
@@ -35,11 +31,13 @@ beforeAll(async () => {
 
 describe("buildForbiddenRanges — JS/TS (babel)", () => {
   it("masks template literals", async () => {
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: fixture is a literal JS template-literal source string
     const src = "const x = `hello ${name}`;\n";
     const parsed = await parseJsTs({ file_path: "x.ts", source_text: src });
     const mask = buildForbiddenRanges(parsed);
     const tl = mask.find((r) => r.kind === "template-literal");
     expect(tl).toBeDefined();
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: asserting the fixture's template-literal text appears verbatim
     expect(src.slice(tl?.start, tl?.end)).toBe("`hello ${name}`");
   });
 
@@ -70,9 +68,7 @@ describe("buildForbiddenRanges — JS/TS (babel)", () => {
     const stringStart = src.indexOf('"hello');
     const stringEnd = stringStart + '"hello world"'.length;
     // Assert no range contains the plain string's bytes.
-    expect(
-      mask.some((r) => r.start <= stringStart && stringEnd <= r.end),
-    ).toBe(false);
+    expect(mask.some((r) => r.start <= stringStart && stringEnd <= r.end)).toBe(false);
   });
 
   it("does NOT mask ordinary code (negative — empty mask for code-only source)", async () => {
@@ -103,7 +99,7 @@ describe("buildForbiddenRanges — Python (tree-sitter-python)", () => {
   });
 
   it("does NOT mask single-line strings (negative — only triple-quoted per D-08)", async () => {
-    const src = 'x = "hello"\ny = \'world\'\n';
+    const src = "x = \"hello\"\ny = 'world'\n";
     const parsed = await parsePython({ file_path: "f.py", source_text: src }, pythonRuntime);
     const mask = buildForbiddenRanges(parsed);
     expect(mask.filter((r) => r.kind === "triple-quoted")).toHaveLength(0);
@@ -157,9 +153,7 @@ describe("buildForbiddenRanges — PHP (tree-sitter-php)", () => {
     const mask = buildForbiddenRanges(parsed);
     const literalStart = src.indexOf("'literal");
     const literalEnd = literalStart + "'literal value'".length;
-    expect(
-      mask.every((r) => !(r.start <= literalStart && literalEnd <= r.end)),
-    ).toBe(true);
+    expect(mask.every((r) => !(r.start <= literalStart && literalEnd <= r.end))).toBe(true);
   });
 });
 

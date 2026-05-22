@@ -201,7 +201,7 @@ export async function walkProject(options: WalkOptions): Promise<WalkResult> {
     }
     if (ctx.ig.ignores(rel)) return false;
     // User --exclude: drop if matches.
-    if (userExclude !== null && userExclude.ignores(rel)) return false;
+    if (userExclude?.ignores(rel)) return false;
     // User --include: when set, drop unless matches (scope-limit semantics per
     // .planning/cli-flag-expansion-v0.5.md decision).
     if (userInclude !== null && !userInclude.ignores(rel)) return false;

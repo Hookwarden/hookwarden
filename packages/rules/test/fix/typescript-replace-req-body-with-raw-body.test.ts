@@ -1,5 +1,5 @@
+import { type Finding, parseJsTs } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
-import { parseJsTs, type Finding } from "@hookwarden/engine";
 import { typescriptReplaceReqBodyWithRawBody } from "../../src/fix/typescript-replace-req-body-with-raw-body.js";
 
 const mkFinding = (line: number): Finding => ({

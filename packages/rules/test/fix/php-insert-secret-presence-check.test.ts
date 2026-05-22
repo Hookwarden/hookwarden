@@ -1,7 +1,7 @@
-import { beforeAll, describe, expect, it } from "vitest";
-import { initPhpRuntime, parsePhp, type Finding, type PhpRuntime } from "@hookwarden/engine";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
+import { type Finding, initPhpRuntime, type PhpRuntime, parsePhp } from "@hookwarden/engine";
+import { beforeAll, describe, expect, it } from "vitest";
 import { phpInsertSecretPresenceCheck } from "../../src/fix/php-insert-secret-presence-check.js";
 
 let phpRuntime: PhpRuntime;
@@ -29,7 +29,7 @@ const mkFinding = (line: number): Finding => ({
 
 describe("phpInsertSecretPresenceCheck", () => {
   it("inserts a guard above getenv('WEBHOOK_SECRET')", async () => {
-    const src = "<?php\n$sig = getenv(\"WEBHOOK_SECRET\");\n";
+    const src = '<?php\n$sig = getenv("WEBHOOK_SECRET");\n';
     const parsed = await parsePhp({ file_path: "x.php", source_text: src }, phpRuntime);
     const fix = phpInsertSecretPresenceCheck(parsed, mkFinding(2));
     expect(fix).not.toBeNull();

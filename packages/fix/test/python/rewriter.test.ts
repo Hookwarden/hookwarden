@@ -1,11 +1,11 @@
 // Phase 8.2 Plan 04 Task 1: Python rewriter tests.
 
-import { beforeAll, describe, expect, it } from "vitest";
-import { initPythonRuntime, parsePython, type PythonRuntime } from "@hookwarden/engine";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
-import type { FixEdit } from "../../src/index.js";
+import { initPythonRuntime, type PythonRuntime, parsePython } from "@hookwarden/engine";
+import { beforeAll, describe, expect, it } from "vitest";
 import { buildForbiddenRanges } from "../../src/forbidden-ranges.js";
+import type { FixEdit } from "../../src/index.js";
 import { rewritePython } from "../../src/python/rewriter.js";
 
 const CLI_WASM_DIR = path.resolve(__dirname, "../../../cli/wasm");
@@ -16,7 +16,9 @@ beforeAll(async () => {
   pythonRuntime = await initPythonRuntime({ wasmBytes: bytes });
 }, 30_000);
 
-function mkEdit(overrides: Partial<FixEdit> & Pick<FixEdit, "startByte" | "endByte" | "after">): FixEdit {
+function mkEdit(
+  overrides: Partial<FixEdit> & Pick<FixEdit, "startByte" | "endByte" | "after">,
+): FixEdit {
   return {
     ruleId: "test/rule",
     routineId: "test-routine",
@@ -139,17 +141,17 @@ describe("rewritePython — pre-condition violations", () => {
     const src = "x = 1\n";
     const parsed = await parsePython({ file_path: "x.py", source_text: src }, pythonRuntime);
     const fake = { ...parsed, dialect: "babel" as const };
-    expect(() =>
-      rewritePython({ parsedFile: fake, edits: [], forbiddenRanges: [] }),
-    ).toThrow(TypeError);
+    expect(() => rewritePython({ parsedFile: fake, edits: [], forbiddenRanges: [] })).toThrow(
+      TypeError,
+    );
   });
 
   it("throws when parse_error is non-null", async () => {
     const src = "def )(:\n"; // invalid syntax
     const parsed = await parsePython({ file_path: "x.py", source_text: src }, pythonRuntime);
     expect(parsed.parse_error).not.toBeNull();
-    expect(() =>
-      rewritePython({ parsedFile: parsed, edits: [], forbiddenRanges: [] }),
-    ).toThrow(/refusing to rewrite.*parse error/);
+    expect(() => rewritePython({ parsedFile: parsed, edits: [], forbiddenRanges: [] })).toThrow(
+      /refusing to rewrite.*parse error/,
+    );
   });
 });

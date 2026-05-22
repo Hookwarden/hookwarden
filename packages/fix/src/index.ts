@@ -53,14 +53,14 @@ export interface FixResult {
   readonly suggestion: string | null;
 }
 
-export { FixModeNonTtyRejectedError } from "./errors.js";
 export { buildD19Suggestion, resolveConflicts } from "./conflict-resolver.js";
-export { insertImports } from "./import-inserter.js";
+export { FixModeNonTtyRejectedError } from "./errors.js";
 export {
   buildForbiddenRanges,
   type ForbiddenRange,
   intersects,
 } from "./forbidden-ranges.js";
+export { insertImports } from "./import-inserter.js";
 
 const ALL_SAFETY_FOR_MODE: Readonly<Record<FixMode, ReadonlySet<FixEdit["safety"]>>> = {
   safe: new Set(["safe"]),

@@ -51,21 +51,21 @@ describe("applyEdits — negative cases (per feedback_negative_tests_required)",
   });
 
   it("throws when start > end (degenerate range)", () => {
-    expect(() =>
-      applyEdits("hello", [{ start: 4, end: 2, replacement: "X" }]),
-    ).toThrow(/start.*4.* >.* end.*2/);
+    expect(() => applyEdits("hello", [{ start: 4, end: 2, replacement: "X" }])).toThrow(
+      /start.*4.* >.* end.*2/,
+    );
   });
 
   it("throws when end > sourceText.length (out of bounds)", () => {
-    expect(() =>
-      applyEdits("hello", [{ start: 2, end: 100, replacement: "X" }]),
-    ).toThrow(/end.*100.*exceeds sourceText\.length.*5/);
+    expect(() => applyEdits("hello", [{ start: 2, end: 100, replacement: "X" }])).toThrow(
+      /end.*100.*exceeds sourceText\.length.*5/,
+    );
   });
 
   it("throws when start is negative", () => {
-    expect(() =>
-      applyEdits("hello", [{ start: -1, end: 2, replacement: "X" }]),
-    ).toThrow(/start.*-1.*negative/);
+    expect(() => applyEdits("hello", [{ start: -1, end: 2, replacement: "X" }])).toThrow(
+      /start.*-1.*negative/,
+    );
   });
 
   it("throws when sourceText is empty and edit has end > 0", () => {

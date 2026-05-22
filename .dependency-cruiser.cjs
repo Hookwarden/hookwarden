@@ -77,8 +77,7 @@ module.exports = {
     {
       name: "fix-no-network-libs",
       severity: "error",
-      comment:
-        "packages/fix must not perform network I/O (CLI determinism contract).",
+      comment: "packages/fix must not perform network I/O (CLI determinism contract).",
       from: { path: "^packages/fix/(src|dist)" },
       to: {
         path: "node_modules/(node-fetch|axios|got|undici|cross-fetch|isomorphic-fetch|ky|wretch|phin|needle|request)/",

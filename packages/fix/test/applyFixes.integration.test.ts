@@ -2,13 +2,13 @@
 // Focused on the load-bearing safety contracts: D-12 typed-error throw + the
 // three-mode dispatch + happy-path codegen invocation.
 
+import { type Finding, parseJsTs, type RuleSet, type ScanResult } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
-import { parseJsTs, type Finding, type RuleSet, type ScanResult } from "@hookwarden/engine";
 import {
   applyFixes,
+  type CodegenRoutine,
   dryRunFixes,
   FixModeNonTtyRejectedError,
-  type CodegenRoutine,
 } from "../src/index.js";
 
 const STRIPE_RULE_ID = "stripe/timing-unsafe-comparison";

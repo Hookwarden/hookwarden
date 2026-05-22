@@ -2,16 +2,15 @@
 // The "failure-preserves-staging" test is the SOC2-auditor-facing evidence
 // that the D-20 inspection contract holds.
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { promises as fs } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   commitStaging,
   createStagingRun,
   ensureGitignoreEntry,
   stageFile,
-  type StagingRun,
 } from "../src/staging.js";
 
 let tempRepo: string;
@@ -78,9 +77,7 @@ describe("stageFile + commitStaging — atomic rename", () => {
 
   it("stageFile throws TypeError on non-string newContents", async () => {
     const run = await createStagingRun(tempRepo);
-    await expect(
-      stageFile(run, "foo.ts", 123 as unknown as string),
-    ).rejects.toThrow(TypeError);
+    await expect(stageFile(run, "foo.ts", 123 as unknown as string)).rejects.toThrow(TypeError);
   });
 });
 
@@ -92,8 +89,11 @@ describe("commitStaging — D-20 inspection contract on failure", () => {
     // We never wrote the original file. fs.rename will succeed on POSIX (rename
     // doesn't require target to exist). To force a failure, point `from` at a
     // path inside a non-existent directory.
-    (run.stagedFiles as Array<{ from: string; staged: string; rel: string }>)[0]!.from =
-      path.join(tempRepo, "non-existent-dir", "x.ts");
+    (run.stagedFiles as Array<{ from: string; staged: string; rel: string }>)[0]!.from = path.join(
+      tempRepo,
+      "non-existent-dir",
+      "x.ts",
+    );
     await expect(commitStaging(run)).rejects.toThrow();
     // D-20: staging dir survives so the user can inspect.
     await expect(fs.access(run.stagingDir)).resolves.not.toThrow();

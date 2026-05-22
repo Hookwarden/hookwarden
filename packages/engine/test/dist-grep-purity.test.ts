@@ -4,7 +4,7 @@
 // but the dist artifact is what users actually consume. This test greps the built
 // engine output to catch any transitive or string-based leak.
 
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import * as path from "node:path";
 import { describe, expect, it } from "vitest";
 

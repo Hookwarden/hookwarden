@@ -4,8 +4,18 @@
 // --write opt-in mutates files via the atomic-staging path. --format json
 // forces dry-run (D-17).
 
-import * as path from "node:path";
 import { promises as fs } from "node:fs";
+import * as path from "node:path";
+import {
+  initPhpRuntime,
+  initPythonRuntime,
+  type ParsedFile,
+  type PhpRuntime,
+  type PythonRuntime,
+  parseJsTs,
+  parsePhp,
+  parsePython,
+} from "@hookwarden/engine";
 import {
   applyFixes,
   dryRunFixes,
@@ -19,26 +29,13 @@ import {
   ensureGitignoreEntry,
   stageFile,
 } from "@hookwarden/fix/staging";
-import {
-  initPhpRuntime,
-  initPythonRuntime,
-  parseJsTs,
-  parsePhp,
-  parsePython,
-  type ParsedFile,
-  type PhpRuntime,
-  type PythonRuntime,
-} from "@hookwarden/engine";
 import { ALL_CODEGEN_ROUTINES } from "@hookwarden/rules";
 import { defineCommand } from "citty";
 import { ConfigError, loadConfigFromCwd } from "../config/loader.js";
-import { resolveConfig } from "../config/precedence.js";
+import { type ResolvedConfig, resolveConfig } from "../config/precedence.js";
 import { runScan } from "../pipeline.js";
-import {
-  loadPhpWasmBytes,
-  loadPythonWasmBytes,
-} from "../wasm/loader.js";
 import { shouldUseAnsi } from "../walker/tty.js";
+import { loadPhpWasmBytes, loadPythonWasmBytes } from "../wasm/loader.js";
 
 export interface FixArgs {
   readonly path?: string;
@@ -79,7 +76,7 @@ export async function runFixCommand(args: FixArgs): Promise<number> {
 
   // Step 1 — Config + scan target.
   const cwd = path.resolve(args.path ?? ".");
-  let resolvedConfig;
+  let resolvedConfig: ResolvedConfig;
   try {
     const configResult = await loadConfigFromCwd({ cwd, disabled: false });
     resolvedConfig = resolveConfig(
@@ -135,9 +132,7 @@ export async function runFixCommand(args: FixArgs): Promise<number> {
   } catch (e) {
     if (e instanceof FixModeNonTtyRejectedError) {
       // D-12 verbatim user-visible message — lives in the CLI handler only.
-      process.stderr.write(
-        "error: --mode all in non-TTY requires --accept-unsafe (D-12)\n",
-      );
+      process.stderr.write("error: --mode all in non-TTY requires --accept-unsafe (D-12)\n");
       return 3;
     }
     process.stderr.write(`error: ${(e as Error).message}\n`);
@@ -171,7 +166,7 @@ export async function runFixCommand(args: FixArgs): Promise<number> {
 
   // Step 7 — Render output.
   if (format === "json") {
-    process.stdout.write(JSON.stringify(buildJsonSchema(result), null, 2) + "\n");
+    process.stdout.write(`${JSON.stringify(buildJsonSchema(result), null, 2)}\n`);
   } else {
     renderTextResult(result, useAnsi);
   }
@@ -281,10 +276,16 @@ export const fixCommand = defineCommand({
   },
   args: {
     path: { type: "positional", required: false, default: "." },
-    write: { type: "boolean", description: "Write fixes to disk via atomic staging. Default: dry-run." },
+    write: {
+      type: "boolean",
+      description: "Write fixes to disk via atomic staging. Default: dry-run.",
+    },
     mode: { type: "string", description: "safe | all | manual-only-explain (default: safe)" },
     only: { type: "string", description: "Comma-separated rule IDs to filter." },
-    format: { type: "string", description: "Output format: text | json. --format json forces dry-run." },
+    format: {
+      type: "string",
+      description: "Output format: text | json. --format json forces dry-run.",
+    },
     "accept-unsafe": { type: "boolean", description: "Required for --mode all in non-TTY (D-12)." },
     "no-color": { type: "boolean" },
     "rules-dir": { type: "string", description: "Override the bundled rule pack (dev-only)." },

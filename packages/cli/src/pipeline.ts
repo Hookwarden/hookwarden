@@ -103,6 +103,32 @@ function isPhp(filePath: string): boolean {
   return PHP_EXTS.has(filePath.slice(idx).toLowerCase());
 }
 
+// Phase 8.2 fileList override: bypass the full walker when caller provides an
+// explicit list of paths. All paths must resolve inside the repoRoot — path
+// traversal is rejected loudly.
+function buildFileListWalkResult(scanDir: string, fileList: ReadonlyArray<string>): WalkResult {
+  const absFiles: string[] = [];
+  for (const entry of fileList) {
+    const abs = path.resolve(scanDir, entry);
+    const rel = path.relative(scanDir, abs);
+    if (rel.startsWith("..") || path.isAbsolute(rel)) {
+      throw new Error(
+        `runScan: fileList entry "${entry}" escapes repoRoot (resolved to ${abs}); refusing`,
+      );
+    }
+    absFiles.push(abs);
+  }
+  return {
+    files: absFiles,
+    skipped_count: 0,
+    total_files_count: absFiles.length,
+    parsed_files_count_estimate: absFiles.length,
+    oversized_count: 0,
+    symlink_count: 0,
+    test_excluded_count: 0,
+  };
+}
+
 // Per-finding suppression annotator. Inline > ignore > baseline (D-63 precedence).
 // Returns a sibling drift_note when baseline matched on hash but file_path drifted (D-68).
 function annotateOne(
@@ -164,31 +190,10 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
     diffFileSet = changedFiles(baseRef.ref, root);
   }
 
-  // fileList override: bypass the full walker when caller provides an explicit
-  // list of paths to scan (Phase 8.2 rescan path). All paths must resolve inside
-  // the repoRoot — path traversal is rejected loudly.
+  // fileList override: Phase 8.2 rescan path. Helper at top of file.
   let walkResult: WalkResult;
   if (input.fileList !== undefined && input.fileList.length > 0) {
-    const absFiles: string[] = [];
-    for (const entry of input.fileList) {
-      const abs = path.resolve(scanDir, entry);
-      const rel = path.relative(scanDir, abs);
-      if (rel.startsWith("..") || path.isAbsolute(rel)) {
-        throw new Error(
-          `runScan: fileList entry "${entry}" escapes repoRoot (resolved to ${abs}); refusing`,
-        );
-      }
-      absFiles.push(abs);
-    }
-    walkResult = {
-      files: absFiles,
-      skipped_count: 0,
-      total_files_count: absFiles.length,
-      parsed_files_count_estimate: absFiles.length,
-      oversized_count: 0,
-      symlink_count: 0,
-      test_excluded_count: 0,
-    };
+    walkResult = buildFileListWalkResult(scanDir, input.fileList);
   } else {
     const fullWalk = await walkProject({
       rootPath: root,

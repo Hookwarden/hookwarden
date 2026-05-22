@@ -1,14 +1,9 @@
 // Phase 8.2 Plan 06 Task 3: PHP timing-unsafe-comparison codegen tests.
 
-import { beforeAll, describe, expect, it } from "vitest";
-import {
-  initPhpRuntime,
-  parsePhp,
-  type Finding,
-  type PhpRuntime,
-} from "@hookwarden/engine";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
+import { type Finding, initPhpRuntime, type PhpRuntime, parsePhp } from "@hookwarden/engine";
+import { beforeAll, describe, expect, it } from "vitest";
 import { phpReplaceBinaryEqualityOrStrcmp } from "../../src/fix/php-replace-binary-equality-or-strcmp.js";
 
 const CLI_WASM_DIR = path.resolve(__dirname, "../../../cli/wasm");

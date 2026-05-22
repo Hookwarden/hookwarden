@@ -1,7 +1,7 @@
 // Phase 8.2 Plan 06 Task 1: JS/TS timing-unsafe-comparison codegen tests.
 
+import { type Finding, parseJsTs } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
-import { parseJsTs, type Finding } from "@hookwarden/engine";
 import { typescriptReplaceBinaryEquality } from "../../src/fix/typescript-replace-binary-equality.js";
 
 function mkFinding(line: number, ruleId = "stripe/timing-unsafe-comparison"): Finding {
@@ -28,9 +28,7 @@ describe("typescriptReplaceBinaryEquality — positive cases", () => {
     const fix = typescriptReplaceBinaryEquality(parsed, mkFinding(2));
     expect(fix).not.toBeNull();
     expect(fix!.before).toBe("expected === sig");
-    expect(fix!.after).toBe(
-      "crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(sig))",
-    );
+    expect(fix!.after).toBe("crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(sig))");
     expect(fix!.safety).toBe("safe");
     expect(fix!.importsToAdd).toBeUndefined();
   });
@@ -48,9 +46,7 @@ describe("typescriptReplaceBinaryEquality — positive cases", () => {
     const parsed = await parseJsTs({ file_path: "x.ts", source_text: src });
     const fix = typescriptReplaceBinaryEquality(parsed, mkFinding(1));
     expect(fix).not.toBeNull();
-    expect(fix!.importsToAdd).toEqual([
-      { specifier: "node:crypto", default_name: "crypto" },
-    ]);
+    expect(fix!.importsToAdd).toEqual([{ specifier: "node:crypto", default_name: "crypto" }]);
   });
 
   it("preserves verbatim left/right source slices (computed buffers)", async () => {

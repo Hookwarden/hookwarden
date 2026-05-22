@@ -3,13 +3,15 @@
 // Includes the W9 byte-equal-outside-applied-range invariant test — the empirical
 // proof that text-range substitution preserves formatting outside the rewrite.
 
-import { describe, expect, it } from "vitest";
 import { parseJsTs } from "@hookwarden/engine";
-import type { FixEdit } from "../../src/index.js";
+import { describe, expect, it } from "vitest";
 import { buildForbiddenRanges } from "../../src/forbidden-ranges.js";
+import type { FixEdit } from "../../src/index.js";
 import { rewriteJavascript } from "../../src/javascript/rewriter.js";
 
-function mkEdit(overrides: Partial<FixEdit> & Pick<FixEdit, "startByte" | "endByte" | "after">): FixEdit {
+function mkEdit(
+  overrides: Partial<FixEdit> & Pick<FixEdit, "startByte" | "endByte" | "after">,
+): FixEdit {
   return {
     ruleId: "test/rule",
     routineId: "test-routine",
@@ -43,9 +45,7 @@ describe("rewriteJavascript — positive cases", () => {
     });
     expect(result.applied).toHaveLength(1);
     expect(result.rejected).toHaveLength(0);
-    expect(result.newSource).toBe(
-      "const a = timingSafeEqual(Buffer.from(b), Buffer.from(c));\n",
-    );
+    expect(result.newSource).toBe("const a = timingSafeEqual(Buffer.from(b), Buffer.from(c));\n");
   });
 
   it("applies 3 valid edits on distinct lines (right-to-left preserves offsets)", async () => {
@@ -170,18 +170,18 @@ describe("rewriteJavascript — pre-condition violations", () => {
     const parsed = await parseJsTs({ file_path: "x.ts", source_text: src });
     // Construct a fake non-babel parsedFile.
     const fake = { ...parsed, dialect: "tree-sitter-python" as const };
-    expect(() =>
-      rewriteJavascript({ parsedFile: fake, edits: [], forbiddenRanges: [] }),
-    ).toThrow(TypeError);
+    expect(() => rewriteJavascript({ parsedFile: fake, edits: [], forbiddenRanges: [] })).toThrow(
+      TypeError,
+    );
   });
 
   it("throws when parse_error is non-null", async () => {
     const src = "const x = ;\n"; // invalid syntax
     const parsed = await parseJsTs({ file_path: "x.ts", source_text: src });
     expect(parsed.parse_error).not.toBeNull();
-    expect(() =>
-      rewriteJavascript({ parsedFile: parsed, edits: [], forbiddenRanges: [] }),
-    ).toThrow(/refusing to rewrite.*parse error/);
+    expect(() => rewriteJavascript({ parsedFile: parsed, edits: [], forbiddenRanges: [] })).toThrow(
+      /refusing to rewrite.*parse error/,
+    );
   });
 });
 
@@ -258,8 +258,6 @@ describe("rewriteJavascript — W9 byte-equal outside applied range", () => {
       prevInputCursor = edit.endByte;
     }
     // Trailing segment after the last edit's input end → input EOF.
-    expect(result.newSource.slice(prevInputCursor + runningShift)).toBe(
-      src.slice(prevInputCursor),
-    );
+    expect(result.newSource.slice(prevInputCursor + runningShift)).toBe(src.slice(prevInputCursor));
   });
 });

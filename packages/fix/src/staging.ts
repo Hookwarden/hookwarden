@@ -3,9 +3,9 @@
 // Atomic-write staging at `.hookwarden-fix-staging/<run-id>/` (D-20).
 // Gitignore auto-add is loud-not-silent — stderr print line (D-21).
 
+import { randomBytes } from "node:crypto";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
-import { randomBytes } from "node:crypto";
 
 export interface StagedFile {
   readonly from: string; // absolute path of the original file
@@ -42,9 +42,7 @@ export async function stageFile(
   newContents: string,
 ): Promise<void> {
   if (typeof newContents !== "string") {
-    throw new TypeError(
-      `stageFile: newContents must be a string (got ${typeof newContents})`,
-    );
+    throw new TypeError(`stageFile: newContents must be a string (got ${typeof newContents})`);
   }
   const staged = path.join(run.stagingDir, repoRelPath);
   await fs.mkdir(path.dirname(staged), { recursive: true });
@@ -74,9 +72,7 @@ export async function commitStaging(run: StagingRun): Promise<void> {
   await fs.rm(run.stagingDir, { recursive: true, force: true });
 }
 
-export async function ensureGitignoreEntry(
-  repoRoot: string,
-): Promise<{ added: boolean }> {
+export async function ensureGitignoreEntry(repoRoot: string): Promise<{ added: boolean }> {
   const gitignorePath = path.join(repoRoot, ".gitignore");
   let existing = "";
   try {
@@ -89,7 +85,7 @@ export async function ensureGitignoreEntry(
     return { added: false };
   }
   const needsLeadingNewline = existing.length > 0 && !existing.endsWith("\n");
-  const appended = (needsLeadingNewline ? "\n" : "") + GITIGNORE_LINE + "\n";
+  const appended = `${(needsLeadingNewline ? "\n" : "") + GITIGNORE_LINE}\n`;
   await fs.writeFile(gitignorePath, existing + appended, "utf-8");
   // D-21 loud-not-silent: write to stderr so the user sees the modification.
   // Cyan ANSI (matching the explain.ts finding-header color) when stderr is a TTY;

@@ -218,10 +218,7 @@ export function validateRuleDocument(input: unknown): ParsedRuleDocument {
         `rule ${doc.rule_id}: fix.codegen MUST be null when fix.safety is manual-only (D-15)`,
       );
     }
-    if (
-      (doc.fix.safety === "safe" || doc.fix.safety === "unsafe") &&
-      doc.fix.codegen === null
-    ) {
+    if ((doc.fix.safety === "safe" || doc.fix.safety === "unsafe") && doc.fix.codegen === null) {
       throw new Error(
         `rule ${doc.rule_id}: fix.codegen MUST be a non-empty string when fix.safety is safe or unsafe (D-15)`,
       );

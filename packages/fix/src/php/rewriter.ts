@@ -8,10 +8,10 @@
 // Pure: no fs / http / network / process / node:* (D-28).
 
 import type { ParsedFile } from "@hookwarden/engine";
-import type { FixEdit } from "../index.js";
 import { type ForbiddenRange, intersects } from "../forbidden-ranges.js";
-import { applyEdits } from "../text-range-applier.js";
+import type { FixEdit } from "../index.js";
 import type { RejectionReason } from "../javascript/rewriter.js";
+import { applyEdits } from "../text-range-applier.js";
 
 export interface RewritePhpInput {
   readonly parsedFile: ParsedFile;

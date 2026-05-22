@@ -8,21 +8,21 @@
 // This corpus tests the end-to-end FixEdit → text-range-applier round trip with
 // the production codegen registry, byte-comparing against expected siblings.
 
-import { beforeAll, describe, expect, it } from "vitest";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import {
+  type Finding,
   initPhpRuntime,
   initPythonRuntime,
-  parseJsTs,
-  parsePhp,
-  parsePython,
-  type Finding,
   type ParsedFile,
   type PhpRuntime,
   type PythonRuntime,
+  parseJsTs,
+  parsePhp,
+  parsePython,
 } from "@hookwarden/engine";
 import { buildForbiddenRanges, intersects } from "@hookwarden/fix";
+import { beforeAll, describe, expect, it } from "vitest";
 import { ALL_CODEGEN_ROUTINES } from "../src/fix/index.js";
 
 const CLI_WASM_DIR = path.resolve(__dirname, "../../cli/wasm");
@@ -153,7 +153,7 @@ const NEGATIVE_FIXTURES: ReadonlyArray<NegativeFixture> = [
 
 function mkFinding(ruleId: string, file_path: string, line: number): Finding {
   return {
-    id: ("corpus:" + ruleId + ":" + line) as Finding["id"],
+    id: `corpus:${ruleId}:${line}` as Finding["id"],
     rule_id: ruleId,
     provider: ruleId.split("/")[0] ?? "",
     severity: "critical",
@@ -168,7 +168,11 @@ function mkFinding(ruleId: string, file_path: string, line: number): Finding {
   };
 }
 
-async function parseFor(lang: "js" | "py" | "php", filePath: string, src: string): Promise<ParsedFile> {
+async function parseFor(
+  lang: "js" | "py" | "php",
+  filePath: string,
+  src: string,
+): Promise<ParsedFile> {
   if (lang === "js") return parseJsTs({ file_path: filePath, source_text: src });
   if (lang === "py") return parsePython({ file_path: filePath, source_text: src }, pythonRuntime);
   return parsePhp({ file_path: filePath, source_text: src }, phpRuntime);
@@ -203,7 +207,9 @@ describe("fix corpus — positive (byte-exact round trip)", () => {
 });
 
 describe("fix corpus — negative (no observable modification on safe-to-skip inputs)", () => {
-  it.each(NEGATIVE_FIXTURES)("$name → no edit applied (or edit lands in forbidden range)", async (fx) => {
+  it.each(
+    NEGATIVE_FIXTURES,
+  )("$name → no edit applied (or edit lands in forbidden range)", async (fx) => {
     const filePath = `corpus.${fx.lang === "js" ? "ts" : fx.lang}`;
     const parsed = await parseFor(fx.lang, filePath, fx.source);
     const routine = ALL_CODEGEN_ROUTINES[fx.codegenId];

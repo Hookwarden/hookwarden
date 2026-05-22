@@ -1,12 +1,12 @@
 // Phase 8.2 Plan 04 Task 2: PHP rewriter tests.
 // Includes the explicit heredoc-safety test that closes the D-08 PHP concern.
 
-import { beforeAll, describe, expect, it } from "vitest";
-import { initPhpRuntime, parsePhp, type PhpRuntime } from "@hookwarden/engine";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
-import type { FixEdit } from "../../src/index.js";
+import { initPhpRuntime, type PhpRuntime, parsePhp } from "@hookwarden/engine";
+import { beforeAll, describe, expect, it } from "vitest";
 import { buildForbiddenRanges } from "../../src/forbidden-ranges.js";
+import type { FixEdit } from "../../src/index.js";
 import { rewritePhp } from "../../src/php/rewriter.js";
 
 const CLI_WASM_DIR = path.resolve(__dirname, "../../../cli/wasm");
@@ -17,7 +17,9 @@ beforeAll(async () => {
   phpRuntime = await initPhpRuntime({ wasmBytes: bytes });
 }, 30_000);
 
-function mkEdit(overrides: Partial<FixEdit> & Pick<FixEdit, "startByte" | "endByte" | "after">): FixEdit {
+function mkEdit(
+  overrides: Partial<FixEdit> & Pick<FixEdit, "startByte" | "endByte" | "after">,
+): FixEdit {
   return {
     ruleId: "test/rule",
     routineId: "test-routine",
@@ -64,8 +66,7 @@ describe("rewritePhp — positive cases", () => {
 
 describe("rewritePhp — negative cases (D-08 PHP safety)", () => {
   it("refuses to touch code embedded in a heredoc", async () => {
-    const src =
-      "<?php\n$snippet = <<<EOT\nif (\\$a == \\$b) {\n    return true;\n}\nEOT;\n";
+    const src = "<?php\n$snippet = <<<EOT\nif (\\$a == \\$b) {\n    return true;\n}\nEOT;\n";
     const parsed = await parsePhp({ file_path: "x.php", source_text: src }, phpRuntime);
     const mask = buildForbiddenRanges(parsed);
     const target = "\\$a == \\$b";
@@ -193,9 +194,9 @@ describe("rewritePhp — pre-condition violations", () => {
     const src = "<?php\n$x = 1;\n";
     const parsed = await parsePhp({ file_path: "x.php", source_text: src }, phpRuntime);
     const fake = { ...parsed, dialect: "babel" as const };
-    expect(() =>
-      rewritePhp({ parsedFile: fake, edits: [], forbiddenRanges: [] }),
-    ).toThrow(TypeError);
+    expect(() => rewritePhp({ parsedFile: fake, edits: [], forbiddenRanges: [] })).toThrow(
+      TypeError,
+    );
   });
 
   it("throws when parse_error is non-null", async () => {
@@ -205,15 +206,19 @@ describe("rewritePhp — pre-condition violations", () => {
       // Some PHP parser builds tolerate this; force a parse_error to exercise the gate.
       const forced = {
         ...parsed,
-        parse_error: { message: "forced parse error for test", location: { line: 1, col: 1 }, source: "tree-sitter" as const },
+        parse_error: {
+          message: "forced parse error for test",
+          location: { line: 1, col: 1 },
+          source: "tree-sitter" as const,
+        },
       };
-      expect(() =>
-        rewritePhp({ parsedFile: forced, edits: [], forbiddenRanges: [] }),
-      ).toThrow(/refusing to rewrite.*parse error/);
+      expect(() => rewritePhp({ parsedFile: forced, edits: [], forbiddenRanges: [] })).toThrow(
+        /refusing to rewrite.*parse error/,
+      );
       return;
     }
-    expect(() =>
-      rewritePhp({ parsedFile: parsed, edits: [], forbiddenRanges: [] }),
-    ).toThrow(/refusing to rewrite.*parse error/);
+    expect(() => rewritePhp({ parsedFile: parsed, edits: [], forbiddenRanges: [] })).toThrow(
+      /refusing to rewrite.*parse error/,
+    );
   });
 });

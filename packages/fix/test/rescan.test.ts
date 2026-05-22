@@ -3,9 +3,9 @@
 // (pipeline.fileList override). This test verifies the rescan wrapper
 // correctly threads files through the injected runner.
 
-import { describe, expect, it } from "vitest";
 import type { ScanResult } from "@hookwarden/engine";
-import { rescanFiles, type RescanRunner } from "../src/rescan.js";
+import { describe, expect, it } from "vitest";
+import { type RescanRunner, rescanFiles } from "../src/rescan.js";
 
 const STUB_SCAN_RESULT: ScanResult = {
   findings: [],
@@ -25,7 +25,11 @@ const STUB_SCAN_RESULT: ScanResult = {
 
 describe("rescanFiles", () => {
   it("threads the file list through to the runner with diffOnly:false + baselineWrite:false", async () => {
-    let observed: { fileList: ReadonlyArray<string>; diffOnly: boolean; baselineWrite: boolean } | null = null;
+    let observed: {
+      fileList: ReadonlyArray<string>;
+      diffOnly: boolean;
+      baselineWrite: boolean;
+    } | null = null;
     const runner: RescanRunner = async (input) => {
       observed = {
         fileList: input.fileList,
@@ -59,9 +63,7 @@ describe("rescanFiles", () => {
 
   it("propagates runner errors (e.g., path-traversal rejection from pipeline)", async () => {
     const runner: RescanRunner = async () => {
-      throw new Error(
-        'runScan: fileList entry "../etc/passwd" escapes repoRoot; refusing',
-      );
+      throw new Error('runScan: fileList entry "../etc/passwd" escapes repoRoot; refusing');
     };
     await expect(
       rescanFiles({

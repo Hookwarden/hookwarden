@@ -1,5 +1,5 @@
+import { type Finding, parseJsTs } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
-import { parseJsTs, type Finding } from "@hookwarden/engine";
 import { typescriptInsertSecretPresenceCheck } from "../../src/fix/typescript-insert-secret-presence-check.js";
 
 const mkFinding = (line: number): Finding => ({

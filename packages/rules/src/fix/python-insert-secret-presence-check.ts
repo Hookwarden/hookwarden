@@ -20,10 +20,7 @@ export function pythonInsertSecretPresenceCheck(
   const targetLine = finding.location.line;
   const lineSource = sliceLine(source, targetLine);
   const prevLineSource = targetLine > 1 ? sliceLine(source, targetLine - 1) : "";
-  if (
-    /if\s+not\s+os\.environ/.test(prevLineSource) ||
-    /if\s+not\s+os\.environ/.test(lineSource)
-  ) {
+  if (/if\s+not\s+os\.environ/.test(prevLineSource) || /if\s+not\s+os\.environ/.test(lineSource)) {
     return null;
   }
   const envVar = extractEnvVar(lineSource);

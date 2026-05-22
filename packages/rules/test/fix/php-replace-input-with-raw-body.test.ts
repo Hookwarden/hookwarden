@@ -1,7 +1,7 @@
-import { beforeAll, describe, expect, it } from "vitest";
-import { initPhpRuntime, parsePhp, type Finding, type PhpRuntime } from "@hookwarden/engine";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
+import { type Finding, initPhpRuntime, type PhpRuntime, parsePhp } from "@hookwarden/engine";
+import { beforeAll, describe, expect, it } from "vitest";
 import { phpReplaceInputWithRawBody } from "../../src/fix/php-replace-input-with-raw-body.js";
 
 let phpRuntime: PhpRuntime;

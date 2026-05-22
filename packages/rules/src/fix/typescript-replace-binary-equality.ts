@@ -108,7 +108,12 @@ function findBinaryAtLine(root: unknown, targetLine: number): BabelNodeLike | nu
       return n;
     }
     for (const key of Object.keys(n)) {
-      if (key === "loc" || key === "extra" || key === "leadingComments" || key === "trailingComments") {
+      if (
+        key === "loc" ||
+        key === "extra" ||
+        key === "leadingComments" ||
+        key === "trailingComments"
+      ) {
         continue;
       }
       const child = n[key];

@@ -2,7 +2,7 @@
 // Full e2e flow is covered by the corpus runner in Plan 10.
 
 import { describe, expect, it, vi } from "vitest";
-import { runFixCommand, type FixArgs } from "../../src/commands/fix.js";
+import { type FixArgs, runFixCommand } from "../../src/commands/fix.js";
 
 function captureStderr(): { writes: string[]; restore: () => void } {
   const writes: string[] = [];
@@ -44,7 +44,9 @@ describe("hookwarden fix — value-validation gate (D-17 + D-12)", () => {
     cap.restore();
     // Either 0 (no findings → exit 0) or 2/3 (engine/config error on a non-existent path).
     // The point is: NOT 3 from the value-validation gate.
-    const gateRejection = cap.writes.join("").match(/--mode must be one of|--format must be one of/);
+    const gateRejection = cap.writes
+      .join("")
+      .match(/--mode must be one of|--format must be one of/);
     expect(gateRejection).toBeNull();
     // Sanity: exit code is finite.
     expect(typeof exit).toBe("number");

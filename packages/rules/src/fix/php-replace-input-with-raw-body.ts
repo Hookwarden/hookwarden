@@ -12,9 +12,9 @@
 //   4. No new imports: YES (file_get_contents is core PHP)
 //   5. No type errors: YES (PHP weak typing)
 
-import type { Node as TsNode } from "web-tree-sitter";
 import type { Finding, ParsedFile } from "@hookwarden/engine";
 import type { FixEdit } from "@hookwarden/fix";
+import type { Node as TsNode } from "web-tree-sitter";
 
 const ROUTINE_ID = "php-replace-input-with-raw-body";
 

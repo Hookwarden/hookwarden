@@ -13,8 +13,8 @@
 //
 // Pure: no fs / http / network / process / node:* (D-28).
 
-import type { Node as TsNode, Tree as TsTree } from "web-tree-sitter";
 import type { ParsedFile } from "@hookwarden/engine";
+import type { Node as TsNode, Tree as TsTree } from "web-tree-sitter";
 
 export interface ForbiddenRange {
   readonly start: number; // byte offset, inclusive
@@ -106,11 +106,7 @@ function walkBabel(root: unknown, out: ForbiddenRange[]): void {
     const n = node as BabelNodeLike & Record<string, unknown>;
     if (typeof n.type === "string") {
       const kind = BABEL_KIND_FOR_TYPE[n.type];
-      if (
-        kind !== undefined &&
-        typeof n.start === "number" &&
-        typeof n.end === "number"
-      ) {
+      if (kind !== undefined && typeof n.start === "number" && typeof n.end === "number") {
         out.push({ start: n.start, end: n.end, kind });
       }
       // Comments are attached as side properties on the parent node by @babel/parser
