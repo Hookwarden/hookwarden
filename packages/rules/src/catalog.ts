@@ -1,17 +1,31 @@
 // D-33 provider evidence catalog. Single source of truth across engine routing, rule matchers,
 // and Phase 11 leak-scanner (which reuses secret_literal_prefix). Adding a provider = minor bump
 // of @hookwarden/rules; engine release not required (the catalog is data, not engine code).
+//
+// PHP entry convention (Phase 8.1):
+//   - `sdk_packages` holds BOTH JS package names (e.g. "stripe") AND PHP namespace prefixes
+//     (e.g. "Stripe\\" — note trailing backslash). The engine matches PHP imports via
+//     startsWith() so namespace prefixes catch every nested `use Stripe\Webhook;` etc.
+//     The doubled backslash here is the TypeScript-source escape; at runtime each entry is
+//     the literal string `Stripe\` (one backslash).
+//   - `sdk_verify_calls` holds BOTH JS/Python dotted forms AND PHP FQN call shapes (e.g.
+//     "Stripe\\Webhook::constructEvent"). The engine PHP overlay matches via exact-text
+//     equality against `scoped_call_expression` and `member_call_expression` call sites.
 
 import type { ProviderCatalog } from "@hookwarden/engine";
 
 export const PROVIDER_CATALOG: ProviderCatalog = {
   stripe: {
     signature_header: ["stripe-signature"],
-    sdk_packages: ["stripe", "@stripe/stripe-js"],
+    sdk_packages: ["stripe", "@stripe/stripe-js", "Stripe\\"],
     sdk_verify_calls: [
       "webhooks.constructEvent",
       "Webhook.constructEvent",
       "Webhook.construct_event",
+      "Stripe\\Webhook::constructEvent",
+      "Webhook::constructEvent",
+      "Stripe\\WebhookSignature::verifyHeader",
+      "WebhookSignature::verifyHeader",
     ],
     secret_env_prefix: ["STRIPE_WEBHOOK", "STRIPE_SIGNING"],
     secret_literal_prefix: ["whsec_"],
@@ -39,6 +53,9 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
   },
   github: {
     signature_header: ["x-hub-signature-256", "x-hub-signature"],
+    // GitHub has no canonical PHP webhook SDK (knplabs/github-api ships no webhook verifier).
+    // PHP detections rely on language-agnostic hash_hmac + hash_equals shapes caught by
+    // the github-timing-safe-equal rule (Plan 08). No PHP namespace prefix appended here.
     sdk_packages: ["@octokit/webhooks", "@octokit/webhooks-methods"],
     sdk_verify_calls: ["verify", "verifyRequest"],
     secret_env_prefix: ["GITHUB_WEBHOOK", "GH_WEBHOOK"],
@@ -67,12 +84,20 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
   },
   shopify: {
     signature_header: ["x-shopify-hmac-sha256"],
-    sdk_packages: ["@shopify/shopify-api", "@shopify/shopify-app-express"],
+    sdk_packages: [
+      "@shopify/shopify-api",
+      "@shopify/shopify-app-express",
+      "Shopify\\",
+    ],
     sdk_verify_calls: [
       "verifyHmac",
       "webhookRegistry.process",
       "shopify.webhooks.validate",
       "verify",
+      "Shopify\\Utils::validateHmac",
+      "Utils::validateHmac",
+      "Shopify\\Webhooks\\Validator::validate",
+      "Webhooks\\Validator::validate",
     ],
     secret_env_prefix: ["SHOPIFY_WEBHOOK", "SHOPIFY_API_SECRET", "SHOPIFY_SIGNING"],
     secret_literal_prefix: [],
@@ -100,6 +125,10 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
   },
   slack: {
     signature_header: ["x-slack-signature"],
+    // Slack PHP webhook verification is overwhelmingly done by hand (raw hash_hmac +
+    // hash_equals against the v0 signing scheme). slack-php/slack-block-kit and similar
+    // packages don't ship a webhook verifier. No PHP namespace prefix appended; manual
+    // detection is caught by the timing-unsafe-comparison rule (Plan 08).
     sdk_packages: ["@slack/bolt", "@slack/events-api", "@slack/webhook"],
     sdk_verify_calls: [
       "verifyRequestSignature",
@@ -134,7 +163,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
   },
   square: {
     signature_header: ["x-square-hmacsha256-signature"],
-    sdk_packages: ["square", "squareup"],
+    sdk_packages: ["square", "squareup", "Square\\"],
     sdk_verify_calls: [
       "WebhooksHelper.verifySignature",
       "verifySignature",
@@ -142,6 +171,8 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "isValidWebhookEventSignature",
       "WebhooksHelper.is_valid_webhook_event_signature",
       "is_valid_webhook_event_signature",
+      "Square\\Utils\\WebhooksHelper::isValidWebhookEventSignature",
+      "WebhooksHelper::isValidWebhookEventSignature",
     ],
     secret_env_prefix: ["SQUARE_WEBHOOK", "SQUARE_SIGNATURE_KEY"],
     secret_literal_prefix: [],
@@ -166,8 +197,15 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
   },
   twilio: {
     signature_header: ["x-twilio-signature"],
-    sdk_packages: ["twilio"],
-    sdk_verify_calls: ["validateRequest", "RequestValidator.validate", "validate"],
+    sdk_packages: ["twilio", "Twilio\\"],
+    sdk_verify_calls: [
+      "validateRequest",
+      "RequestValidator.validate",
+      "validate",
+      "Twilio\\Security\\RequestValidator::validate",
+      "Security\\RequestValidator::validate",
+      "RequestValidator::validate",
+    ],
     secret_env_prefix: ["TWILIO_AUTH", "TWILIO_SIGNING"],
     secret_literal_prefix: [],
     conventional_paths: [
