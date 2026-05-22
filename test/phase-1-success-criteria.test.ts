@@ -35,12 +35,14 @@ describe("Phase 1 — Foundation & Defensive Registration: Success Criteria", ()
     // pr-renderer added in phase 8 (08-02) as the canonical home of the PR
     // sticky-comment renderer — shared between @hookwarden/github-action (this
     // repo) and the SaaS continuous-scanning worker (private repo via npm).
-    for (const name of ["engine", "cli", "github-action", "rules", "pr-renderer"]) {
+    // fix added in phase 8.2 — bounded location for @babel/traverse +
+    // @babel/generator (D-05); engine stays pure.
+    for (const name of ["engine", "cli", "github-action", "rules", "pr-renderer", "fix"]) {
       const path = join(ROOT, "packages", name, "package.json");
       expect(existsSync(path), `packages/${name}/package.json missing`).toBe(true);
     }
     const root = JSON.parse(readFileSync(join(ROOT, "tsconfig.json"), "utf8"));
-    expect(root.references.length).toBe(5);
+    expect(root.references.length).toBe(6);
   });
 
   it("Success Criterion 2: dep-cruiser blocks fs import in packages/engine", () => {
