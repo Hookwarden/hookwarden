@@ -9,6 +9,13 @@ export { ALL_ADAPTERS, type FrameworkAdapter } from "./adapters/index.js";
 export { evaluate } from "./evaluate.js";
 export { type BuildProjectModelInput, buildProjectModel } from "./model/index.js";
 export { type ParseJsTsInput, parseJsTs } from "./parsers/babel.js";
+export { type ParsePhpInput, parsePhp } from "./parsers/php.js";
+export { extractPhpLiterals } from "./parsers/php-literals.js";
+export {
+  type InitPhpRuntimeInput,
+  initPhpRuntime,
+  type PhpRuntime,
+} from "./parsers/php-loader.js";
 export { type ParsePythonInput, parsePython } from "./parsers/python.js";
 export {
   type InitPythonRuntimeInput,
