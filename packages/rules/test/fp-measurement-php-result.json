@@ -1,0 +1,85 @@
+{
+  "measured_at": "2026-05-22T00:00:00Z",
+  "total_negative_fixtures": 11,
+  "false_positives": 0,
+  "false_positive_rate": 0,
+  "pass_threshold": 0.05,
+  "pass": true,
+  "per_rule_breakdown": [],
+  "per_fixture": [
+    {
+      "relPath": "github/php/missing-signature-verification.negative.vanilla-php.php",
+      "provider": "github",
+      "false_positive_findings": [],
+      "is_false_positive": false
+    },
+    {
+      "relPath": "github/php/timing-unsafe-comparison.negative.symfony.php",
+      "provider": "github",
+      "false_positive_findings": [],
+      "is_false_positive": false
+    },
+    {
+      "relPath": "shopify/php/missing-signature-verification.negative.vanilla-php.php",
+      "provider": "shopify",
+      "false_positive_findings": [],
+      "is_false_positive": false
+    },
+    {
+      "relPath": "shopify/php/timing-unsafe-comparison.negative.laravel.php",
+      "provider": "shopify",
+      "false_positive_findings": [],
+      "is_false_positive": false
+    },
+    {
+      "relPath": "slack/php/missing-signature-verification.negative.slim.php",
+      "provider": "slack",
+      "false_positive_findings": [],
+      "is_false_positive": false
+    },
+    {
+      "relPath": "slack/php/timing-unsafe-comparison.negative.vanilla-php.php",
+      "provider": "slack",
+      "false_positive_findings": [],
+      "is_false_positive": false
+    },
+    {
+      "relPath": "square/php/missing-signature-verification.negative.vanilla-php.php",
+      "provider": "square",
+      "false_positive_findings": [],
+      "is_false_positive": false
+    },
+    {
+      "relPath": "square/php/timing-unsafe-comparison.negative.symfony.php",
+      "provider": "square",
+      "false_positive_findings": [],
+      "is_false_positive": false
+    },
+    {
+      "relPath": "stripe/php/timing-unsafe-comparison.negative.laravel.php",
+      "provider": "stripe",
+      "false_positive_findings": [],
+      "is_false_positive": false
+    },
+    {
+      "relPath": "twilio/php/missing-signature-verification.negative.vanilla-php.php",
+      "provider": "twilio",
+      "false_positive_findings": [],
+      "is_false_positive": false
+    },
+    {
+      "relPath": "twilio/php/timing-unsafe-comparison.negative.laravel.php",
+      "provider": "twilio",
+      "false_positive_findings": [],
+      "is_false_positive": false
+    }
+  ],
+  "severity_filter": [
+    "high",
+    "critical"
+  ],
+  "excluded_verdicts": [
+    "verified",
+    "manual-review"
+  ]
+}
