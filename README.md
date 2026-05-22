@@ -146,6 +146,17 @@ npx hookwarden scan ./your-app --provider stripe --fail-on high
 # adopters don't get a 100-finding PR on day one.
 ```
 
+**Monorepo scoping — exclude / include paths from the command line:**
+```bash
+# Skip legacy + vendor trees (layered on top of .gitignore + default test exclusions):
+npx hookwarden scan ./your-app --exclude 'packages/legacy/**,vendor/**'
+
+# Scope to one workspace only:
+npx hookwarden scan ./your-app --include 'packages/api/**'
+
+# Both flags compose — include narrows first, then exclude removes. Gitignore-style globs.
+```
+
 **Strict suppressions (compliance teams):**
 ```bash
 npx hookwarden scan ./your-app --strict-suppressions

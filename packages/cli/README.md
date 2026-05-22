@@ -113,6 +113,13 @@ npx hookwarden scan ./your-app --provider stripe --fail-on high
 # Comma-separated for multiple: --provider stripe,github
 ```
 
+**Monorepo scoping — exclude / include paths from the command line:**
+```bash
+npx hookwarden scan ./your-app --exclude 'packages/legacy/**,vendor/**'
+npx hookwarden scan ./your-app --include 'packages/api/**'
+# Both compose: --include narrows first, --exclude removes after.
+```
+
 **Strict suppressions (compliance teams):**
 ```bash
 npx hookwarden scan ./your-app --strict-suppressions
