@@ -1,4 +1,4 @@
-// Dual-path WASM loader for tree-sitter-python.wasm. Phase 4.2 DC-13.
+// Dual-path WASM loader for tree-sitter grammar .wasm artefacts. Phase 4.2 DC-13.
 //
 // Bun branch (compiled `bun build --compile` binary):
 //   Dynamically imports ./bun-asset.js, which holds the Bun-only asset import.
@@ -6,12 +6,12 @@
 //   from trying to resolve the `.wasm` import attribute it doesn't support.
 //
 // Node branch (vitest + pnpm dev):
-//   Reads from packages/cli/wasm/tree-sitter-python.wasm (populated by
+//   Reads from packages/cli/wasm/tree-sitter-{python,php}.wasm (populated by
 //   scripts/sync-wasm.mjs at pnpm install time).
 //
 // Both branches resolve to the same physical artifact — single source of truth.
-// Engine purity (Phase 1 D-01) preserved: engine/parsers/python-loader.ts is
-// unmodified.
+// Engine purity (Phase 1 D-01) preserved: engine/parsers/{python,php}-loader.ts
+// is unmodified.
 
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
@@ -35,6 +35,21 @@ export async function loadPythonWasmBytes(): Promise<Uint8Array> {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
   const wasmPath = path.join(__dirname, "..", "..", "wasm", "tree-sitter-python.wasm");
+  const buf = await fs.readFile(wasmPath);
+  return new Uint8Array(buf);
+}
+
+// Mirrors loadPythonWasmBytes — same dual-path shape for tree-sitter-php.wasm.
+// Phase 8.1 D-10 + Phase 4.2 DC-13. The PHP grammar artefact is populated by
+// the same scripts/sync-wasm.mjs invocation that populates the Python one.
+export async function loadPhpWasmBytes(): Promise<Uint8Array> {
+  if (isBunRuntime()) {
+    const { loadBunEmbeddedPhpWasm } = await import("./bun-asset.js");
+    return await loadBunEmbeddedPhpWasm();
+  }
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const wasmPath = path.join(__dirname, "..", "..", "wasm", "tree-sitter-php.wasm");
   const buf = await fs.readFile(wasmPath);
   return new Uint8Array(buf);
 }

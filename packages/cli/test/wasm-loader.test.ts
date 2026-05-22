@@ -113,3 +113,57 @@ describe("loadPythonWasmBytes — runtime detection", () => {
     await expect(loadPythonWasmBytes()).rejects.toThrow(/ENOENT/);
   });
 });
+
+describe("loadPhpWasmBytes — runtime detection (Phase 8.1 D-10 + DC-13)", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    // Clear any node:fs / bun-asset mocks that leaked from the previous describe
+    // block — vi.resetModules() reloads modules but does not clear doMock state.
+    vi.doUnmock("node:fs");
+    vi.doUnmock("../src/wasm/bun-asset.js");
+    unsetBunRuntime();
+  });
+
+  afterEach(() => {
+    if (ORIGINAL_BUN !== undefined) {
+      (globalThis as { Bun?: unknown }).Bun = ORIGINAL_BUN;
+    } else {
+      delete (globalThis as { Bun?: unknown }).Bun;
+    }
+    Object.defineProperty(process.versions, "bun", {
+      configurable: true,
+      value: ORIGINAL_PROCESS_VERSIONS_BUN,
+    });
+  });
+
+  it("Node branch: returns a WASM binary (magic '\\0asm', >1000 bytes)", async () => {
+    const { loadPhpWasmBytes } = await import("../src/wasm/loader.js");
+    const bytes = await loadPhpWasmBytes();
+    expect(bytes).toBeInstanceOf(Uint8Array);
+    expect(bytes.byteLength).toBeGreaterThan(1000);
+    // WASM magic: 0x00 0x61 0x73 0x6d
+    expect(bytes[0]).toBe(0x00);
+    expect(bytes[1]).toBe(0x61);
+    expect(bytes[2]).toBe(0x73);
+    expect(bytes[3]).toBe(0x6d);
+  });
+
+  it("Bun branch: delegates to bun-asset.loadBunEmbeddedPhpWasm()", async () => {
+    const fakeBytes = new Uint8Array([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]);
+    setBunRuntime();
+    vi.doMock("../src/wasm/bun-asset.js", () => ({
+      loadBunEmbeddedPhpWasm: async () => fakeBytes,
+    }));
+
+    const { loadPhpWasmBytes } = await import("../src/wasm/loader.js");
+    const bytes = await loadPhpWasmBytes();
+    expect(bytes).toEqual(fakeBytes);
+  });
+
+  it("PHP and Python wasm artefacts are distinct (no cross-wire)", async () => {
+    const { loadPhpWasmBytes, loadPythonWasmBytes } = await import("../src/wasm/loader.js");
+    const phpBytes = await loadPhpWasmBytes();
+    const pyBytes = await loadPythonWasmBytes();
+    expect(phpBytes.byteLength).not.toBe(pyBytes.byteLength);
+  });
+});

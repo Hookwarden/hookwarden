@@ -1,8 +1,10 @@
-// Bun-only asset imports for the two .wasm files that ship as embedded assets
+// Bun-only asset imports for the three .wasm files that ship as embedded assets
 // in the compiled binary:
 //   1. tree-sitter-python.wasm — the Python grammar (sourced from the
 //      tree-sitter-python npm package via packages/cli/scripts/sync-wasm.mjs).
-//   2. web-tree-sitter.wasm — the tree-sitter runtime itself, normally loaded
+//   2. tree-sitter-php.wasm — the PHP grammar (Phase 8.1; sourced from the
+//      tree-sitter-php npm package by the same sync-wasm script).
+//   3. web-tree-sitter.wasm — the tree-sitter runtime itself, normally loaded
 //      by web-tree-sitter via emscripten's filesystem-based locateFile mechanism.
 //      In a Bun --compile binary, the runtime can't read its own .wasm off
 //      disk because /$bunfs/ is virtual, so we embed it here and pass the
@@ -19,6 +21,16 @@ export async function loadBunEmbeddedWasm(): Promise<Uint8Array> {
   const mod = await import(
     // @ts-expect-error — Bun-only import attribute, resolved at compile time
     "../../wasm/tree-sitter-python.wasm",
+    { with: { type: "file" } }
+  );
+  const wasmPath: string = mod.default ?? mod;
+  return await Bun.file(wasmPath).bytes();
+}
+
+export async function loadBunEmbeddedPhpWasm(): Promise<Uint8Array> {
+  const mod = await import(
+    // @ts-expect-error — Bun-only import attribute, resolved at compile time
+    "../../wasm/tree-sitter-php.wasm",
     { with: { type: "file" } }
   );
   const wasmPath: string = mod.default ?? mod;
