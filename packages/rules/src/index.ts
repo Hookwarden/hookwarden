@@ -8,6 +8,7 @@ export {
 export { PROVIDER_CATALOG } from "./catalog.js";
 export { computeContentHash, type LoadRuleSetInput, loadRuleSet } from "./loader.js";
 export { ALL_PREDICATES } from "./predicates/index.js";
+export { ALL_CODEGEN_ROUTINES, type CodegenRoutine } from "./fix/index.js";
 export { type ParsedMatcher, type ParsedRuleDocument, validateRuleDocument } from "./schema.js";
 
 // RULES_PACK_VERSION is generated from package.json by scripts/sync-version.mjs

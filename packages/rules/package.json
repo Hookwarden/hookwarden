@@ -6,6 +6,16 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./fix": {
+      "import": "./dist/fix/index.js",
+      "types": "./dist/fix/index.d.ts"
+    }
+  },
   "files": [
     "dist",
     "rules",
@@ -32,6 +42,7 @@
   },
   "dependencies": {
     "@hookwarden/engine": "workspace:*",
+    "@hookwarden/fix": "workspace:*",
     "ajv": "^8.17.1"
   },
   "devDependencies": {

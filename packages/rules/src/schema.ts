@@ -194,14 +194,16 @@ export function validateRuleDocument(input: unknown): ParsedRuleDocument {
     path_severity_overrides?: unknown;
     fix?: unknown;
   };
+  const normalizedFix: ParsedRuleDocument["fix"] =
+    raw.fix === undefined ? null : (raw.fix as ParsedRuleDocument["fix"]);
   const doc: ParsedRuleDocument = {
     ...(raw as ParsedRuleDocument),
     path_severity_overrides:
       raw.path_severity_overrides === undefined
         ? null
         : (raw.path_severity_overrides as ParsedRuleDocument["path_severity_overrides"]),
-    fix: raw.fix === undefined ? null : (raw.fix as ParsedRuleDocument["fix"]),
-  };
+    ...(normalizedFix !== undefined ? { fix: normalizedFix } : {}),
+  } as ParsedRuleDocument;
   // A rule must have at least one of matcher or predicate.
   if (doc.matcher === null && (doc.predicate === null || doc.predicate === "")) {
     throw new Error(`rule ${doc.rule_id}: must declare either 'matcher' or 'predicate'`);

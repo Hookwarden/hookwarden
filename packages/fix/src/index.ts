@@ -7,6 +7,15 @@
 
 import type { RuleSet, ScanResult } from "@hookwarden/engine";
 
+export interface ImportToAdd {
+  // JS/TS: `import { default_name } from "specifier";` or `const default_name = require("specifier");`
+  // Python: `import module`
+  // PHP: not used (hash_equals, hmac, etc. are core).
+  readonly specifier?: string;
+  readonly default_name?: string;
+  readonly module?: string;
+}
+
 export interface FixEdit {
   readonly ruleId: string;
   readonly routineId: string;
@@ -18,6 +27,9 @@ export interface FixEdit {
   readonly before: string;
   readonly after: string;
   readonly safety: "safe" | "unsafe" | "manual-only";
+  // Phase 8.2 D-11 condition 4: codegen can declare imports it needs.
+  // Plan 08 orchestrator inserts these atomically with the edit.
+  readonly importsToAdd?: ReadonlyArray<ImportToAdd>;
 }
 
 export interface FixOptions {

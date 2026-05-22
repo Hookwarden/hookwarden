@@ -5,6 +5,7 @@ import { promises as fs } from "node:fs";
 import * as path from "node:path";
 import type { RuleSet } from "@hookwarden/engine";
 import {
+  ALL_CODEGEN_ROUTINES,
   ALL_PREDICATES,
   BUNDLED_RULE_DOCUMENTS,
   loadRuleSet,
@@ -22,15 +23,10 @@ export interface LoadRulesOptions {
   readonly rulesDir?: string;
 }
 
-// Phase 8.2 D-02: codegen routine registry placeholder.
-// Plan 02 wave 1 wires the lookup; Plan 06 (wave 3) replaces this with an
-// import from `@hookwarden/rules` exposing ALL_CODEGEN_ROUTINES.
-//
-// Empty set short-circuits the check: when the set is empty the codegen
-// reference passes through unvalidated, so this plan does not block any
-// YAML that declares a codegen ID. Once Plan 06 populates the set, every
-// rule that references an unknown codegen routine fails to load.
-export const KNOWN_CODEGEN_IDS_PLACEHOLDER: ReadonlySet<string> = new Set();
+// Phase 8.2 D-02 / D-04: known-codegen-id set, sourced from the live registry.
+// Plan 06 replaced the empty-set placeholder with ALL_CODEGEN_ROUTINES keys.
+// Every rule that references an unknown codegen routine fails to load.
+const KNOWN_CODEGEN_IDS: ReadonlySet<string> = new Set(Object.keys(ALL_CODEGEN_ROUTINES));
 
 async function findYamlFiles(dir: string): Promise<string[]> {
   const out: string[] = [];
@@ -96,19 +92,19 @@ export async function loadRulesFromDir(options: LoadRulesOptions = {}): Promise<
           });
         })();
 
-  // Phase 8.2 D-02: validate codegen references against the known-routine set.
-  // The placeholder set is empty in this plan; Plan 06 swaps it for ALL_CODEGEN_ROUTINES.
-  if (KNOWN_CODEGEN_IDS_PLACEHOLDER.size > 0) {
-    const unknown: string[] = [];
-    for (const rule of ruleSet.rules) {
-      const codegen = rule.fix?.codegen;
-      if (codegen !== undefined && codegen !== null && !KNOWN_CODEGEN_IDS_PLACEHOLDER.has(codegen)) {
-        unknown.push(`${rule.rule_id}: codegen '${codegen}'`);
-      }
+  // Phase 8.2 D-02 / D-04: validate codegen references against the live registry.
+  // Plan 06 replaced the empty-set placeholder with ALL_CODEGEN_ROUTINES.
+  const unknown: string[] = [];
+  for (const rule of ruleSet.rules) {
+    const codegen = rule.fix?.codegen;
+    if (codegen !== undefined && codegen !== null && !KNOWN_CODEGEN_IDS.has(codegen)) {
+      unknown.push(`${rule.rule_id}: codegen '${codegen}'`);
     }
-    if (unknown.length > 0) {
-      throw new Error(`unknown codegen routine(s): ${unknown.join("; ")}`);
-    }
+  }
+  if (unknown.length > 0) {
+    throw new Error(
+      `Rule(s) reference unknown codegen routine(s): ${unknown.join("; ")}. Known: ${Object.keys(ALL_CODEGEN_ROUTINES).sort().join(", ")}`,
+    );
   }
 
   return ruleSet;
