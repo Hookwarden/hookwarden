@@ -269,12 +269,12 @@ PHP 8.0+ syntax floor. Python 3.10+ recommended. TypeScript: strict + non-strict
 45 rules across 6 providers, each applicable across the relevant subset of the 11 frameworks above. Every rule carries fix guidance quoted verbatim from the provider's canonical security documentation.
 
 <p align="center">
-  <a href="./packages/rules/rules/stripe"><img src="https://cdn.simpleicons.org/stripe/6366F1" alt="Stripe" height="36" /></a>&nbsp;&nbsp;&nbsp;
-  <a href="./packages/rules/rules/github"><img src="https://cdn.simpleicons.org/github/6366F1" alt="GitHub" height="36" /></a>&nbsp;&nbsp;&nbsp;
-  <a href="./packages/rules/rules/shopify"><img src="https://cdn.simpleicons.org/shopify/6366F1" alt="Shopify" height="36" /></a>&nbsp;&nbsp;&nbsp;
-  <a href="./packages/rules/rules/slack"><img src="https://cdn.simpleicons.org/slack/6366F1" alt="Slack" height="36" /></a>&nbsp;&nbsp;&nbsp;
-  <a href="./packages/rules/rules/twilio"><img src="https://cdn.simpleicons.org/twilio/6366F1" alt="Twilio" height="36" /></a>&nbsp;&nbsp;&nbsp;
-  <a href="./packages/rules/rules/square"><img src="https://cdn.simpleicons.org/square/6366F1" alt="Square" height="36" /></a>
+  <a href="./packages/rules/rules/stripe"><img src="https://img.shields.io/badge/Stripe-6366F1?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe" /></a>
+  <a href="./packages/rules/rules/github"><img src="https://img.shields.io/badge/GitHub-6366F1?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" /></a>
+  <a href="./packages/rules/rules/shopify"><img src="https://img.shields.io/badge/Shopify-6366F1?style=for-the-badge&logo=shopify&logoColor=white" alt="Shopify" /></a>
+  <a href="./packages/rules/rules/slack"><img src="https://img.shields.io/badge/Slack-6366F1?style=for-the-badge&logo=slack&logoColor=white" alt="Slack" /></a>
+  <a href="./packages/rules/rules/twilio"><img src="https://img.shields.io/badge/Twilio-6366F1?style=for-the-badge&logo=twilio&logoColor=white" alt="Twilio" /></a>
+  <a href="./packages/rules/rules/square"><img src="https://img.shields.io/badge/Square-6366F1?style=for-the-badge&logo=square&logoColor=white" alt="Square" /></a>
 </p>
 
 | Provider | Rules | Detection types | Custom predicate |
@@ -488,11 +488,17 @@ Re-uploading the same scan deduplicates via SARIF `partialFingerprints`. Full ma
 **Recently shipped (v0.3)**
 pre-commit hook · Homebrew tap · Scoop/WinGet manifests · standalone binaries (Linux x64/arm64, Windows x64). macOS users install via `npx hookwarden` or `npm i -g hookwarden`.
 
-**Recently shipped (v0.4) — PHP language support.** Laravel, Symfony, Slim, and vanilla-PHP single-file handlers. `tree-sitter-php` WASM parser (mirrors the existing Python integration) embedded in the compiled binaries. PHP variants of every applicable rule across the six v1 providers (`hash_equals` as the safe-compare predicate, `php://input` / `->getContent()` / `$_POST` as recognised raw-body shapes, `\Stripe\Webhook::constructEvent` and equivalent FQNs in the SDK-reach catalog).
+**Recently shipped (v0.4) — PHP language support + `--provider` filter.** Laravel, Symfony, Slim, and vanilla-PHP single-file handlers via `tree-sitter-php` WASM. PHP variants of every applicable rule across the six v1 providers (`hash_equals` as the safe-compare predicate, `php://input` / `->getContent()` / `$_POST` as recognised raw-body shapes, `\Stripe\Webhook::constructEvent` and equivalent FQNs in the SDK-reach catalog). New `--provider stripe,github` flag for phased rollout — security teams adopt one provider at a time without flooding PRs.
 
-**v0.5 — More providers.** Adyen, Zendesk, Mailgun — each measured against the 200-repo OSS regression corpus before release, with a published false-positive rate.
+**v0.4.1 — monorepo scoping.** `--exclude GLOB` / `--include GLOB` CLI flags so monorepos can skip `apps/legacy/**`, vendor trees, etc. from the command line (today only the YAML config supports this).
 
-**v0.6 — Corpus integrity.** `verify-changeset-delta` — every PR's rule changes run against the full corpus and the `findings_delta` block must match the actual delta before merge.
+**v0.4.2 — `hookwarden explain <rule-id>`.** Terminal-side rule documentation: rationale, catalog entry, positive/negative fixture excerpts. Lowers the support burden on the rule-pack maintainer; deepens developer trust without leaving the terminal.
+
+**v0.5 — `--fix` auto-remediation.** The mechanical fixes (`===` → `crypto.timingSafeEqual`, `==` → `hash_equals`, etc.) applied with a real AST-rewrite engine. Safe / unsafe / manual-only classification per rule. Three-state verdicts already classify which fixes are safe to auto-apply — `--fix` makes that machine-actionable.
+
+**v0.6 — More providers.** Adyen, Zendesk, Mailgun — each measured against the 200-repo OSS regression corpus before release, with a published false-positive rate.
+
+**v0.7 — Corpus integrity.** `verify-changeset-delta` — every PR's rule changes run against the full corpus and the `findings_delta` block must match the actual delta before merge.
 
 ---
 

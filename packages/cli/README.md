@@ -55,23 +55,67 @@ Hookwarden does one thing. It walks your repo, parses every webhook handler acro
 
 ---
 
+## 🌐 Languages & frameworks
+
+3 languages, 11 frameworks. PHP and Python use `tree-sitter` (WASM); JS/TS use Babel.
+
+| Language | Frameworks | Parser |
+|---|---|---|
+| **JavaScript / TypeScript** | Express · Hono · Fastify · Next.js | `@babel/parser` |
+| **Python** | Flask · FastAPI · Django | `tree-sitter-python` |
+| **PHP** (v0.4) | Laravel · Symfony · Slim · vanilla-PHP single-file | `tree-sitter-php` |
+
+PHP 8.0+ syntax floor. Python 3.10+ recommended.
+
+---
+
 ## 🚀 Quickstart
 
+**First use — no install required:**
 ```bash
-# First use — no install required
 npx hookwarden scan ./your-app
+```
 
-# JSON envelope for CI pipelines
-npx hookwarden scan ./your-app --format json
+**Make CI fail on high+ findings:**
+```bash
+npx hookwarden scan ./your-app --fail-on high --format json
+# Exit codes: 0 clean · 1 findings at threshold · 2 engine error · 3 config error · 4 parse coverage below floor
+```
 
-# SARIF for GitHub Code Scanning
+**PR-scoped scan + CI gate:**
+```bash
+npx hookwarden scan ./your-app --diff-only --diff-base origin/main --fail-on high
+```
+
+**Upload to GitHub Code Scanning:**
+```bash
 npx hookwarden scan ./your-app --format sarif > findings.sarif
+gh api -X POST /repos/$REPO/code-scanning/sarifs \
+  -F sarif=@findings.sarif -F ref=$GITHUB_REF
+```
 
-# Scope to files changed in a PR
-npx hookwarden scan ./your-app --diff-only --diff-base origin/main
-
-# Snapshot pre-existing findings as a baseline (non-greenfield adoption)
+**Non-greenfield adoption — accept existing findings, gate only NEW ones:**
+```bash
 npx hookwarden scan ./your-app --baseline write
+git add .hookwarden.baseline.json && git commit -m "chore: hookwarden baseline"
+# Subsequent scans auto-read the baseline; only new findings are reported.
+npx hookwarden scan ./your-app --fail-on high
+```
+
+**List every detected handler (no rule evaluation):**
+```bash
+npx hookwarden inventory ./your-app
+```
+
+**Phased rollout — gate CI on one provider at a time:**
+```bash
+npx hookwarden scan ./your-app --provider stripe --fail-on high
+# Comma-separated for multiple: --provider stripe,github
+```
+
+**Strict suppressions (compliance teams):**
+```bash
+npx hookwarden scan ./your-app --strict-suppressions
 ```
 
 Or install permanently:
@@ -80,6 +124,8 @@ Or install permanently:
 npm install -g hookwarden          # global
 npm install --save-dev hookwarden  # dev dependency (CI-pinnable)
 ```
+
+Full flag reference: `npx hookwarden --help`.
 
 ---
 
