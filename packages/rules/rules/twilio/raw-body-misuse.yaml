@@ -26,4 +26,8 @@ applies_to:
   - flask
   - fastapi
   - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
 provider_docs_url: https://www.twilio.com/docs/usage/webhooks/webhooks-security

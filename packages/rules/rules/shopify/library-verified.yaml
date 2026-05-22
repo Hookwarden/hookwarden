@@ -18,4 +18,8 @@ applies_to:
   - flask
   - fastapi
   - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
 provider_docs_url: https://shopify.dev/docs/api/shopify-api-node

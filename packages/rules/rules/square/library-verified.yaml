@@ -19,4 +19,8 @@ applies_to:
   - flask
   - fastapi
   - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
 provider_docs_url: https://developer.squareup.com/docs/webhooks/overview
