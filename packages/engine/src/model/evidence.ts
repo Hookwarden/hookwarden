@@ -121,10 +121,16 @@ export function computeEvidence(input: ComputeEvidenceInput): ComputeEvidenceOut
 
   // Signal F — body_as_bytes_or_buffer. Heuristic token search inside the handler.
   // PHP additions: file_get_contents('php://input') (vanilla); $request->getContent() (Laravel,
-  // Symfony); $request->getBody() (Slim / PSR-7). The php://input fragment is the strongest
-  // signal — its appearance alone in the handler range qualifies.
+  // Symfony); $request->getBody() (Slim / PSR-7); $_POST access (form-encoded webhooks like
+  // Twilio's default content type). The php://input fragment is the strongest signal — its
+  // appearance alone in the handler range qualifies.
+  //
+  // "body_as_bytes_or_buffer" is a misnomer for the $_POST case (which is parsed form params,
+  // not raw bytes) but the rule's intent — "did you read body data in a shape compatible with
+  // the provider's HMAC scheme?" — matches: Twilio HMACs the URL + sorted form params, so
+  // $_POST is the correct read for Twilio webhooks.
   if (
-    /(Buffer|Uint8Array|\braw\b|\bbytes\b|c\.req\.raw|request\.get_data\(\)|request\.body|php:\/\/input|->getContent\(\)|->getBody\(\))/i.test(
+    /(Buffer|Uint8Array|\braw\b|\bbytes\b|c\.req\.raw|request\.get_data\(\)|request\.body|php:\/\/input|->getContent\(\)|->getBody\(\)|\$_POST|->all\(\)|->input\(\))/i.test(
       handlerText,
     )
   ) {
