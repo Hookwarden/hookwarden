@@ -61,6 +61,9 @@ export interface RunScanInput {
   readonly diffBase: string | null;
   readonly baselineWrite: boolean;
   readonly verbose: boolean;
+  // Phased-rollout filter — when non-null, only rules whose `provider` is in this set run.
+  // Validated against PROVIDER_CATALOG at flag-parse time (commands/scan.ts).
+  readonly providerFilter?: ReadonlySet<string> | null;
 }
 
 export interface RunScanOutput {
@@ -226,6 +229,14 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
   } catch (e) {
     engineError = e instanceof Error ? e : new Error(String(e));
     return emptyOutput(walkResult, t0, engineError);
+  }
+  // Provider filter — phased rollout. Filters BOTH which findings emit AND which contribute
+  // to --fail-on, because evaluate() only runs rules in ruleSet.rules.
+  if (input.providerFilter !== null && input.providerFilter !== undefined) {
+    ruleSet = {
+      ...ruleSet,
+      rules: ruleSet.rules.filter((r) => input.providerFilter!.has(r.provider)),
+    };
   }
 
   const config: Config = {

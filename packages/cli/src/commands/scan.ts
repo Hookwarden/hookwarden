@@ -6,6 +6,7 @@
 
 import * as path from "node:path";
 import type { Severity } from "@hookwarden/engine";
+import { PROVIDER_CATALOG } from "@hookwarden/rules";
 import { defineCommand } from "citty";
 import { ConfigError, loadConfigFromCwd } from "../config/loader.js";
 import { type ResolvedConfig, resolveConfig } from "../config/precedence.js";
@@ -33,10 +34,12 @@ export interface ScanArgs {
   readonly "strict-suppressions"?: boolean;
   readonly "min-parse-coverage"?: string;
   readonly "include-tests"?: boolean;
+  readonly provider?: string;
 }
 
 const VALID_FAIL_ON: ReadonlySet<string> = new Set(["critical", "high", "medium", "low"]);
 const VALID_FORMAT: ReadonlySet<string> = new Set(["text", "json", "sarif"]);
+const VALID_PROVIDERS: ReadonlySet<string> = new Set(Object.keys(PROVIDER_CATALOG));
 
 export async function runScanCommand(args: ScanArgs): Promise<number> {
   const cwd = path.resolve(args.path ?? ".");
@@ -55,6 +58,18 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
   if (args.format !== undefined && !VALID_FORMAT.has(args.format)) {
     process.stderr.write(`error: --format must be one of text|json|sarif (got "${args.format}")\n`);
     return 3;
+  }
+  let providerFilter: ReadonlySet<string> | null = null;
+  if (args.provider !== undefined && args.provider.trim() !== "") {
+    const raw = args.provider.split(",").map((s) => s.trim()).filter((s) => s !== "");
+    const invalid = raw.filter((p) => !VALID_PROVIDERS.has(p));
+    if (invalid.length > 0) {
+      process.stderr.write(
+        `error: --provider unknown value(s): ${invalid.join(", ")}. Valid: ${[...VALID_PROVIDERS].sort().join(", ")}\n`,
+      );
+      return 3;
+    }
+    providerFilter = new Set(raw);
   }
   let parsedMinCoverage: number | undefined;
   if (args["min-parse-coverage"] !== undefined) {
@@ -117,6 +132,7 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
     diffBase: args["diff-base"] ?? null,
     baselineWrite,
     verbose,
+    providerFilter,
   });
 
   if (scan.engineError !== null) {
@@ -239,6 +255,11 @@ export const scanCommand = defineCommand({
       type: "boolean",
       description:
         "Scan test/fixture/mock paths too. Excluded by default — production routes rarely live in test/, tests/, __tests__/, spec/, fixtures/, mocks/, *.test.*, *.spec.*, test_*.py, *_test.py.",
+    },
+    provider: {
+      type: "string",
+      description:
+        "Comma-separated provider filter (e.g., 'stripe' or 'stripe,github'). When set, only rules for the listed providers run — useful for phased rollout. Valid: stripe, github, shopify, slack, twilio, square.",
     },
   },
   run: async ({ args }) => runScanCommand(args as ScanArgs),

@@ -137,6 +137,15 @@ npx hookwarden scan ./your-app --config ./hookwarden.config.yaml
 # Precedence: CLI flag > HOOKWARDEN_<KEY> env var > config file > built-in default.
 ```
 
+**Phased rollout — gate CI on one provider at a time:**
+```bash
+npx hookwarden scan ./your-app --provider stripe --fail-on high
+# Only Stripe rules run; GitHub / Shopify / Slack / Twilio / Square findings stay quiet.
+# Comma-separated for multiple: --provider stripe,github
+# Useful when a security team rolls out coverage stage-by-stage across teams —
+# adopters don't get a 100-finding PR on day one.
+```
+
 **Strict suppressions (compliance teams):**
 ```bash
 npx hookwarden scan ./your-app --strict-suppressions
