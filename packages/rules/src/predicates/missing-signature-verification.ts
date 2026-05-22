@@ -20,6 +20,7 @@ import type {
   WebhookHandler,
 } from "@hookwarden/engine";
 import { PROVIDER_CATALOG } from "../catalog.js";
+import { type PhpSyntaxNode, type PhpTree, walkPhpCalls } from "./_helpers-php.js";
 import { isManualHmacEntry, reachesSdkVerifyCall } from "./_helpers.js";
 
 // D-92 registry. Custom-signing predicate files under predicates/custom/<provider>-signing.ts
@@ -35,6 +36,15 @@ export function createMissingSignatureVerificationPredicate(
 ): RulePredicate {
   return async (handler: WebhookHandler, model: ProjectModel) => {
     if (handler.provider !== provider) return null;
+
+    // Phase 8.1 Plan 10 — PHP dispatch. Engine reach pass is bounded to babel + tree-sitter-python;
+    // PHP handlers have empty reachable_symbols. Use the handler's source-text scope to detect
+    // manual hash_hmac OR the build.ts PHP overlay's sdk_verify_call evidence (Plan 07).
+    const parsedFile = model?.parsed_files?.find((f) => f.file_path === handler.file_path);
+    if (parsedFile?.dialect === "tree-sitter-php") {
+      return evaluatePhpMissingVerification(handler, parsedFile, catalog, provider, model);
+    }
+
     const symbols = handler.reachable_symbols;
 
     if (catalog.signing_input_format === "custom") {
@@ -49,6 +59,44 @@ export function createMissingSignatureVerificationPredicate(
     if (symbols.some((s) => isManualHmacEntry(s.qualified_name))) return null;
     return "not-verified";
   };
+}
+
+function evaluatePhpMissingVerification(
+  handler: WebhookHandler,
+  parsedFile: { readonly parse_error: unknown; readonly raw_ast: unknown },
+  _catalog: ProviderCatalogEntry,
+  provider: string,
+  _model: ProjectModel,
+): "not-verified" | null {
+  if (parsedFile.parse_error !== null || parsedFile.raw_ast === null) return null;
+
+  // Note: PHP path intentionally does NOT dispatch to CUSTOM_SIGNING_PREDICATES. Custom
+  // predicates (e.g. twilio-signing) use reachable_symbols which is empty for PHP. The
+  // PHP-aware checks below — evidence-based SDK detection AND direct hash_hmac walk —
+  // are sufficient for the v1 PHP shape regardless of signing_input_format.
+
+  // Path A — SDK verify call surfaces as evidence via the build.ts PHP overlay (Plan 07).
+  if (
+    handler.evidence.some((e) => e.kind === "sdk_verify_call" && e.provider === provider)
+  ) {
+    return null;
+  }
+
+  // Path B — manual HMAC: walk the handler scope for hash_hmac calls.
+  const tree = parsedFile.raw_ast as PhpTree;
+  const scopeNode = (handler as unknown as { handler_body_node?: PhpSyntaxNode }).handler_body_node;
+  const root: PhpSyntaxNode = scopeNode ?? tree.rootNode;
+  const calls = walkPhpCalls(root);
+  const usesHashHmac = calls.some((c) => {
+    if (c.kind !== "function") return false;
+    const fnNode = c.node.childForFieldName("function");
+    if (!fnNode) return false;
+    const t = fnNode.text;
+    return t === "hash_hmac" || t === "\\hash_hmac";
+  });
+  if (usesHashHmac) return null;
+
+  return "not-verified";
 }
 
 export const stripeMissingSignatureVerificationPredicate: RulePredicate =
