@@ -72,12 +72,14 @@ Or install natively via your OS package manager:
 | OS | Recommended | Alternates |
 |---|---|---|
 | **Linux** | `brew install Hookwarden/tap/hookwarden` | `npm i -g hookwarden` · `pip install hookwarden` · direct binary |
-| **macOS** | `npm i -g hookwarden` | `npx hookwarden` (no install) |
+| **macOS** | `brew install Hookwarden/tap/hookwarden` | `npm i -g hookwarden` · `npx hookwarden` (no install) |
 | **Windows** | `scoop bucket add hookwarden https://github.com/Hookwarden/scoop-bucket && scoop install hookwarden` | `npm i -g hookwarden` · `pip install hookwarden` |
 
-> Windows users downloading the `.exe` directly from a GitHub release will see a SmartScreen "Windows protected your PC" warning on first launch — hookwarden binaries ship intentionally unsigned. Click `More info → Run anyway`, or use **Scoop / WinGet / npm / pip** instead — each verifies the artifact by SHA-256 before exec, no SmartScreen friction. macOS users: use Homebrew or `npx`; no signed macOS binary ships.
+> Same `brew install` on macOS and Linux. The Linux formula pulls the bun-compiled standalone binary; the macOS formula installs the published npm tarball under `libexec` and symlinks the `hookwarden` command into your `PATH` — same scan engine, same rule pack, same outputs. The macOS path adds `node` as a runtime dep (brew handles transparently); no signed darwin binary ships, so direct-download from a GitHub release will trigger Gatekeeper — install via `brew` or `npx` instead.
+>
+> Windows users downloading the `.exe` directly from a GitHub release will see a SmartScreen "Windows protected your PC" warning on first launch — hookwarden binaries ship intentionally unsigned. Click `More info → Run anyway`, or use **Scoop / WinGet / npm / pip** instead — each verifies the artifact by SHA-256 before exec, no SmartScreen friction.
 
-Node 22+ is required for the npm/`npx` path. The standalone binaries (Linux x64/arm64, Windows x64) bundle the Node runtime.
+Node 22+ is required for the npm/`npx` path and for the macOS brew install. The standalone binaries (Linux x64/arm64, Windows x64) bundle the Node runtime.
 
 ---
 
@@ -212,57 +214,93 @@ Use `hookwarden scan` for the read path, `hookwarden fix` for the write path —
 
 ## 📺 Real output
 
+Output below is captured verbatim from `hookwarden v0.4.0` — each line is what
+you'll see in your terminal, not a stylised mockup.
+
 **Clean scan — exits 0:**
 
 ```
-hookwarden scan ./your-app
-
-✓  Scanned 24 candidates · 24 parsed (100.0% coverage) · 0 findings
+$ hookwarden scan ./your-app
+No findings.
+────────────
+Found 0 critical · 0 high · 0 medium · 0 low · 0 info · 0 manual-review — 0 webhook handlers across 0 files
+Scanned in 0.0 s · 1 / 1 candidates parsed (100.0% coverage) · engine v0.4.0 · rules v0.4.0
 ```
 
-**Scan with a bug — exits 1:**
+**Scan with the canonical Express middleware-ordering bug — exits 1:**
 
 ```
-hookwarden scan ./your-app
+$ hookwarden scan ./your-app
+× critical  server.js:10:1  stripe/express-middleware-ordering  not-verified
+  Express webhook handler for Stripe has `express.json()` (or `body-parser.json()`) registered before the
+  webhook route. JSON middleware consumes the request body; by the time the Stripe handler runs, the raw bytes
+  used for HMAC are gone and `stripe.webhooks.constructEvent` cannot reproduce the signature.
+  fix › register `express.json()` AFTER the webhook route, OR mount `express.raw({ type: 'application/json' })`
+        only on the webhook path.
+  docs › https://stripe.com/docs/webhooks/signatures
 
-CRITICAL
-────────
+× critical  server.js:10:1  stripe/missing-signature-verification  not-verified
+  Stripe webhook handler does not appear to verify the signature header before processing the event. Neither
+  `stripe.webhooks.constructEvent` (Node SDK) nor `stripe.Webhook.construct_event` (Python SDK) is reachable
+  from this handler within 3 hops, and no manual HMAC path was detected either. Stripe docs: "You should
+  always verify events by checking the signature".
+  fix › pass the raw request body, the `Stripe-Signature` header, and your `STRIPE_WEBHOOK_SECRET` to
+        `stripe.webhooks.constructEvent` (Node) or `stripe.Webhook.construct_event` (Python) at the very top
+        of the handler.
+  docs › https://stripe.com/docs/webhooks
 
-  server.js:10:1
-    stripe/express-middleware-ordering  [not-verified]
-    Express webhook handler for Stripe has `express.json()` registered before
-    the webhook route. JSON middleware consumes the request body; by the time
-    the Stripe handler runs, the raw bytes used for HMAC are gone.
-
-    Fix: register `express.json()` AFTER the webhook route, OR mount
-    `express.raw({ type: 'application/json' })` only on the webhook path.
-    ↳ https://stripe.com/docs/webhooks/signatures
-
-HIGH
-────
-
-  handlers/slack.ts:34:1
-    slack/missing-timestamp-validation  [not-verified]
-    Slack handler does not enforce the 5-minute replay window. The
-    `X-Slack-Request-Timestamp` header is present but not compared against
-    the current time before signature verification proceeds.
-
-    Fix: reject requests where abs(Date.now()/1000 - ts) > 300 before
-    computing the `v0:${ts}:${body}` signing string.
-    ↳ https://api.slack.com/authentication/verifying-requests-from-slack
+× critical  server.js:10:1  stripe/raw-body-misuse  not-verified
+  Stripe webhook handler reads the signature header (or calls the SDK verify) but does not appear to receive
+  the request body as raw bytes. Stripe's HMAC is computed over the raw payload — once `express.json()` (or
+  any other JSON middleware) parses the body, the bytes used for the HMAC differ from what was sent and
+  verification fails on every webhook.
+  docs › https://stripe.com/docs/webhooks/signatures
 
 ────────────
-Found 1 critical · 1 high · 0 medium · 0 low · 0 info · 0 manual-review
-Scanned in 0.3 s · 24 / 24 candidates parsed (100.0% coverage)
+Found 3 critical · 0 high · 0 medium · 0 low · 0 info · 0 manual-review — 1 webhook handler across 1 file
+Scanned in 0.0 s · 1 / 1 candidates parsed (100.0% coverage) · engine v0.4.0 · rules v0.4.0
 ```
+
+Notice: one Express middleware bug produces **three** findings — middleware-ordering, missing-signature-verification, and raw-body-misuse — because that single mistake violates three distinct invariants. Fixing one (re-ordering the middleware) clears all three at once. The rule-pack isn't double-counting; it's giving you three lenses on the same root cause so any one of them can be the entry point in code review.
+
+**PHP scan (v0.4 third-language support) — `strcmp()` instead of `hash_equals()`:**
+
+```
+$ hookwarden scan ./your-php-app
+× critical  index.php:10:9  stripe/timing-unsafe-comparison  not-verified
+  Stripe webhook handler computes an HMAC manually but does not call `crypto.timingSafeEqual` (Node) or
+  `hmac.compare_digest` (Python) for signature comparison. Plain `==` / `===` against an HMAC buffer leaks
+  timing information and is exploitable on a fast network.
+  fix › replace `expected === provided` with `crypto.timingSafeEqual(Buffer.from(expected),
+        Buffer.from(provided))` in Node, or `hmac.compare_digest(expected, provided)` in Python.
+  docs › https://stripe.com/docs/webhooks/signatures
+
+────────────
+Found 1 critical · 0 high · 0 medium · 0 low · 0 info · 0 manual-review — 1 webhook handler across 1 file
+Scanned in 0.0 s · 1 / 1 candidates parsed (100.0% coverage) · engine v0.4.0 · rules v0.4.0
+```
+
+PHP's `strcmp()` (and `===` / `==`) are not constant-time; the equivalent safe call is `hash_equals($expected, $sig)`. The fix prose currently quotes the Node/Python equivalents — PHP-specific copy lands in a follow-up.
+
+**Output legend:**
+
+| Glyph | Severity | SARIF level | Exit-code contribution |
+|---|---|---|---|
+| `×` | `critical` | `error` | counted toward `--fail-on` threshold |
+| `×` | `high` | `error` | counted toward `--fail-on` threshold |
+| `!` | `medium` | `warning` | counted toward `--fail-on` threshold |
+| `·` | `low` | `note` | counted toward `--fail-on` threshold |
+| `·` | `info` | `note` | informational (e.g. `library-verified`) — does not fail CI |
+
+The `state` column (right of the rule id) is the architectural three-state verdict: `not-verified`, `verified`, or `manual-review`. The footer surfaces total counts plus parse-coverage so you can spot a `--min-parse-coverage` regression at a glance.
 
 **JSON envelope shape:**
 
 ```json
 {
   "schema_version": "1.0",
-  "engine": { "version": "0.3.1", "commit_sha": null },
-  "rule_pack": { "version": "0.3.1", "content_hash": "51c219..." },
+  "engine": { "version": "0.4.0", "commit_sha": null },
+  "rule_pack": { "version": "0.4.0", "content_hash": "51c219..." },
   "scan": {
     "counts": {
       "active":     { "critical": 1, "high": 1, "medium": 0, "low": 0, "info": 0 },

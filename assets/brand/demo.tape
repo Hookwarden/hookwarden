@@ -48,8 +48,17 @@ Sleep 250ms
 Enter
 Sleep 4500ms
 
-# ── Frame 3: JSON envelope (CI-friendly) ─────────────────────
-Type "# 3. JSON envelope shape — CI parses this"
+# ── Frame 3: PHP scan — proves v0.4 third-language support ───
+Type "# 3. PHP scan — Laravel === comparison flagged as timing-unsafe"
+Sleep 350ms
+Enter
+Type "./hookwarden scan buggy-php/"
+Sleep 250ms
+Enter
+Sleep 4500ms
+
+# ── Frame 4: JSON envelope (CI-friendly) ─────────────────────
+Type "# 4. JSON envelope shape — CI parses this"
 Sleep 350ms
 Enter
 Type "./hookwarden scan buggy/ --format json | jq '.scan.counts.active'"

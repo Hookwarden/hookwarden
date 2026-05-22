@@ -5,6 +5,47 @@ cli, github-action) live in each package's own `CHANGELOG.md`.
 
 ## 0.5.0
 
+### macOS now installs via Homebrew
+
+`brew install Hookwarden/tap/hookwarden` works on macOS for the first time
+in the project's history. The Linux formula continues to pull the bun-compiled
+standalone binary; the macOS formula installs the published npm tarball under
+`libexec` and symlinks the `hookwarden` command — same engine, same rules, same
+outputs. macOS adds `node` as a runtime dep (brew handles transparently); no
+darwin bun-compiled binary ships, since Apple Developer Program enrollment for
+notarisation is still unfunded.
+
+**Brew bump pipeline updated for the new shape:**
+
+- `scripts/release/bump-homebrew.sh` now downloads the published npm tarball
+  alongside `checksums.txt` and computes its sha256 before invoking the edit
+  core. The 3 sha256 lines (npm + linux-arm64 + linux-x64) are pinned in source
+  order; both the GH `releases/download/` URLs and the npm `hookwarden-X.Y.Z.tgz`
+  URL get version-bumped in one pass.
+- `scripts/release/verify-channel-parity-core.sh` extracts only sha256 lines
+  paired with a `releases/download/` URL — the top-level npm-tarball SHA is
+  intentionally non-canonical (its integrity is verified through the npm
+  registry's own publish chain + the bump script's own download-and-pin step).
+
+### Release-tooling test depth
+
+The release pipeline now ships ~180 named test cases across three layers, up
+from ~14 in v0.4.x. Each forbidden symbol, forbidden runtime dep, dep-cruiser
+rule, and parity-gate divergence pattern has its own named test row — a CI
+failure pinpoints exactly which invariant broke instead of "violations: [...]".
+
+| Layer | v0.4.x | v0.5.0 | Coverage |
+|---|---|---|---|
+| `bump-homebrew-edit` | 7 | 20 | + pre-release tags (v1.0.0-rc.1), sequential bumps, missing-input errors, DOS line endings, comment-injected sha256 evasion, malformed-VERSION rejection |
+| `verify-channel-parity` | 6 | 15 | + reordered SHAs, on_macos-regrowth attacker scenarios, malformed JSON inputs, multi-channel divergence pinpointing, off-by-one truncated SHAs |
+| `docker-smoke-binaries` | 7 × 6 distros | 10 × 6 distros = 60 | + Laravel-shaped PHP fixture (namespace use + Route closure + `===`), `inventory` subcommand, `explain` subcommand |
+| **Engine purity gates** | 10 | **85** | per-symbol forbidden-import tests (16), per-dep package.json gate (15), regex-narrowness anti-false-positive cases (12), per-dep-cruiser-rule fixture tests (10), config-presence + severity assertions (5), carve-out verification at package.json layer (6), dynamic-require evasion guard (3) |
+
+The 85 purity cases are the auditor-facing evidence that D-01 (engine purity)
+and D-05 (AST mutation bounded to `packages/fix/`) hold. The dist-grep gate
+now also catches `require.resolve("@babel/traverse")` string-based escape
+hatches, not just static imports.
+
 ### Auto-remediation engine — `hookwarden fix`
 
 hookwarden goes from "tells you the fix" to "applies it on the safe subset".
