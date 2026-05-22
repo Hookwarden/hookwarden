@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>The only scanner laser-focused on webhook signature verification.</strong><br />
-  Local. Deterministic. Zero-network. JS/TS + Python. Five minutes from <code>npx</code> to fix.
+  Local. Deterministic. Zero-network. JS/TS + Python + PHP. Five minutes from <code>npx</code> to fix.
 </p>
 
 <p align="center">
@@ -54,7 +54,7 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
 Most webhook bugs are not in delivery — they're in verification. A handler that accepts an unsigned payload, compares HMACs with `==`, or skips the signature check on a `?test=true` path will silently route attacker traffic into your business logic — and general-purpose SAST tools weren't built to find it. They bury the high-signal webhook bug under hundreds of medium-priority generic findings.
 
-Hookwarden does one thing. It walks your repo, parses every webhook handler across Express, Hono, Fastify, Next.js, Flask, FastAPI, and Django, and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix drawn verbatim from provider documentation. That focus is the entire point. The provider catalog (Stripe, GitHub, Shopify, Slack, Twilio, Square — and growing) encodes signature-format quirks no generic scanner has the surface area to know: that Stripe uses HMAC-SHA256 with a 5-minute timestamp tolerance, that Slack uses `v0:${ts}:${body}` not raw-body, that Twilio is the SHA1 outlier the rest of the catalog has to accommodate.
+Hookwarden does one thing. It walks your repo, parses every webhook handler across Express, Hono, Fastify, Next.js, Flask, FastAPI, Django, Laravel, Symfony, Slim, and vanilla-PHP single-file handlers, and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix drawn verbatim from provider documentation. That focus is the entire point. The provider catalog (Stripe, GitHub, Shopify, Slack, Twilio, Square — and growing) encodes signature-format quirks no generic scanner has the surface area to know: that Stripe uses HMAC-SHA256 with a 5-minute timestamp tolerance, that Slack uses `v0:${ts}:${body}` not raw-body, that Twilio is the SHA1 outlier the rest of the catalog has to accommodate.
 
 **The three-state verdict is not a hedge.** `manual-review` is what you get when hookwarden can't prove safety or unsafety from the source alone — a handler inside a middleware chain that the analyzer couldn't fully unroll, for example. It's how the false-positive rate stays honest. A tool that reports every gray area as a bug is not a security tool; it's noise.
 
@@ -415,9 +415,9 @@ Re-uploading the same scan deduplicates via SARIF `partialFingerprints`. Full ma
 **Recently shipped (v0.3)**
 pre-commit hook · Homebrew tap · Scoop/WinGet manifests · standalone binaries (Linux x64/arm64, Windows x64). macOS users install via `npx hookwarden` or `npm i -g hookwarden`.
 
-**v0.4 — More providers.** Adyen, Zendesk, Mailgun — each measured against the 200-repo OSS regression corpus before release, with a published false-positive rate.
+**Recently shipped (v0.4) — PHP language support.** Laravel, Symfony, Slim, and vanilla-PHP single-file handlers. `tree-sitter-php` WASM parser (mirrors the existing Python integration) embedded in the compiled binaries. PHP variants of every applicable rule across the six v1 providers (`hash_equals` as the safe-compare predicate, `php://input` / `->getContent()` / `$_POST` as recognised raw-body shapes, `\Stripe\Webhook::constructEvent` and equivalent FQNs in the SDK-reach catalog).
 
-**v0.5 — PHP language support.** WooCommerce, Laravel (Cashier + custom), Symfony, raw PHP. The Packagist `stripe/stripe-php` ecosystem ships **4M+ monthly downloads** and `laravel/cashier` adds another 1.2M — both invisible to webhook-specific tooling today. Scope: `tree-sitter-php` WASM parser (mirrors the existing Python integration), framework adapters for the four runtimes above, PHP variants of all 45 rules (incl. `hash_equals` as the safe-compare predicate, `php://input` as the canonical raw-body path), and Composer/Packagist distribution. Tracking: [#22](https://github.com/Hookwarden/hookwarden/issues/22).
+**v0.5 — More providers.** Adyen, Zendesk, Mailgun — each measured against the 200-repo OSS regression corpus before release, with a published false-positive rate.
 
 **v0.6 — Corpus integrity.** `verify-changeset-delta` — every PR's rule changes run against the full corpus and the `findings_delta` block must match the actual delta before merge.
 

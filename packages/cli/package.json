@@ -1,7 +1,7 @@
 {
   "name": "hookwarden",
   "version": "0.3.1",
-  "description": "Webhook security audit CLI — finds signature-verification bugs in JavaScript, TypeScript, and Python codebases. Local, deterministic, zero-network. Ships rules for Stripe, GitHub, Shopify, Slack, Twilio, and Square; JSON / SARIF 2.1.0 output for CI and GitHub Code Scanning.",
+  "description": "Webhook security audit CLI — finds signature-verification bugs in JavaScript, TypeScript, Python, and PHP codebases. Local, deterministic, zero-network. Ships rules for Stripe, GitHub, Shopify, Slack, Twilio, and Square; JSON / SARIF 2.1.0 output for CI and GitHub Code Scanning.",
   "keywords": [
     "webhook",
     "webhooks",
@@ -18,6 +18,9 @@
     "slack",
     "twilio",
     "square",
+    "php",
+    "laravel",
+    "symfony",
     "hmac",
     "signature-verification",
     "cli"

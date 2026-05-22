@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>The only scanner laser-focused on webhook signature verification.</strong><br />
-  Local. Deterministic. Zero-network. JS/TS + Python. Five minutes from `npx` to fix.
+  Local. Deterministic. Zero-network. JS/TS + Python + PHP. Five minutes from `npx` to fix.
 </p>
 
 <p align="center">
@@ -49,7 +49,7 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
 Most webhook bugs are not in delivery — they're in verification. A handler that accepts an unsigned payload, compares HMACs with `==`, or skips the signature check on a `?test=true` path will silently route attacker traffic into your business logic. The attack surface is real, the bugs are common, and general-purpose SAST tools weren't built for this — they bury the high-signal webhook bug under hundreds of medium-priority generic findings.
 
-Hookwarden does one thing. It walks your repo, parses every webhook handler across Express, Hono, Fastify, Next.js, Flask, FastAPI, and Django, and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix drawn verbatim from provider documentation. That focus is the entire point. The provider catalog (Stripe, GitHub, Shopify, Slack, Twilio, Square — and growing) encodes signature-format quirks no generic scanner has the surface area to know: that Stripe uses HMAC-SHA256 with a 5-minute timestamp tolerance, that Slack uses `v0:${ts}:${body}` not raw-body, that Twilio is the SHA1 outlier the rest of the catalog has to accommodate.
+Hookwarden does one thing. It walks your repo, parses every webhook handler across Express, Hono, Fastify, Next.js, Flask, FastAPI, Django, Laravel, Symfony, Slim, and vanilla-PHP single-file handlers, and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix drawn verbatim from provider documentation. That focus is the entire point. The provider catalog (Stripe, GitHub, Shopify, Slack, Twilio, Square — and growing) encodes signature-format quirks no generic scanner has the surface area to know: that Stripe uses HMAC-SHA256 with a 5-minute timestamp tolerance, that Slack uses `v0:${ts}:${body}` not raw-body, that Twilio is the SHA1 outlier the rest of the catalog has to accommodate.
 
 **The three-state verdict is not a hedge.** `manual-review` is what you get when hookwarden can't prove safety or unsafety from the source alone — a handler inside a middleware chain that the analyzer couldn't fully unroll, for example. It's how the false-positive rate stays honest. A tool that reports every gray area as a bug is not a security tool; it's noise.
 

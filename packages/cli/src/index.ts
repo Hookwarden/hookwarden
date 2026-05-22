@@ -23,7 +23,7 @@ export const root = defineCommand({
     name: "hookwarden",
     version: VERSION,
     description:
-      "Webhook security audit CLI. Find signature-verification bugs in JS/TS and Python.",
+      "Webhook security audit CLI. Find signature-verification bugs in JS/TS, Python, and PHP.",
   },
   subCommands: {
     scan: scanCommand,
@@ -32,7 +32,8 @@ export const root = defineCommand({
 });
 
 const HELP_TEXT =
-  `hookwarden v${VERSION} — webhook security audit CLI\n\n` +
+  `hookwarden v${VERSION} — webhook security audit CLI\n` +
+  `Scans JS/TS, Python, and PHP webhook handlers for signature-verification bugs.\n\n` +
   `Usage:\n` +
   `  hookwarden scan [path]       Scan a project for verification bugs.\n` +
   `  hookwarden inventory [path]  List every detected webhook handler.\n` +
