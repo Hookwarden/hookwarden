@@ -74,7 +74,7 @@ Or install natively via your OS package manager:
 | **macOS** | `npm i -g hookwarden` | `npx hookwarden` (no install) |
 | **Windows** | `scoop bucket add hookwarden https://github.com/Hookwarden/scoop-bucket && scoop install hookwarden` | `npm i -g hookwarden` · `pip install hookwarden` |
 
-> Windows users downloading the `.exe` directly from a GitHub release will see a SmartScreen warning on first launch — v0.3.1 ships unsigned; Authenticode signing lands in v0.3.2. The Scoop, npm, and pip paths are unaffected (each verifies the artifact by SHA-256 before exec). A WinGet manifest is also pending Microsoft validators.
+> Windows users downloading the `.exe` directly from a GitHub release will see a SmartScreen "Windows protected your PC" warning on first launch — hookwarden binaries ship intentionally unsigned. Click `More info → Run anyway`, or use **Scoop / WinGet / npm / pip** instead — each verifies the artifact by SHA-256 before exec, no SmartScreen friction. macOS users: use Homebrew or `npx`; no signed macOS binary ships.
 
 Node 22+ is required for the npm/`npx` path. The standalone binaries (Linux x64/arm64, Windows x64) bundle the Node runtime.
 
