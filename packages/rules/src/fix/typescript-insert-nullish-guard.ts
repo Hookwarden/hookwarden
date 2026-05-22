@@ -34,8 +34,11 @@ export function typescriptInsertNullishGuard(
   const source = parsedFile.source_text;
   const targetLine = finding.location.line;
   const lineSource = sliceLine(source, targetLine);
-  // Defense in depth: if a null/undefined guard already exists nearby, skip.
+  const prevLineSource = targetLine > 1 ? sliceLine(source, targetLine - 1) : "";
+  // Defense in depth: if a null/undefined guard already exists on the target
+  // line OR the line immediately above, skip — the user already has the check.
   if (lineSource.match(/\bif\b\s*\(\s*!/) !== null) return null;
+  if (prevLineSource.match(/\bif\b\s*\(\s*!/) !== null) return null;
   // Find the start byte of the finding's line — insertion point.
   const insertionByte = lineStartByte(source, targetLine);
   if (insertionByte === null) return null;
