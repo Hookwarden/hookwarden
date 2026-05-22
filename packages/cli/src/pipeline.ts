@@ -16,11 +16,14 @@ import {
   type Config,
   evaluate,
   type Finding,
+  initPhpRuntime,
   initPythonRuntime,
   type ParsedFile,
+  type PhpRuntime,
   type ProjectModel,
   type PythonRuntime,
   parseJsTs,
+  parsePhp,
   parsePython,
   type RuleSet,
   type ScanResult,
@@ -44,7 +47,11 @@ import type { InlineSuppressions } from "./suppress/inline-comments.js";
 import { extractInlineSuppressions } from "./suppress/inline-comments.js";
 import { detectStale, type StaleSuppression } from "./suppress/stale.js";
 import { type WalkResult, walkProject } from "./walker/index.js";
-import { loadPythonWasmBytes, loadTreeSitterRuntimeWasmBytes } from "./wasm/loader.js";
+import {
+  loadPhpWasmBytes,
+  loadPythonWasmBytes,
+  loadTreeSitterRuntimeWasmBytes,
+} from "./wasm/loader.js";
 
 export interface RunScanInput {
   readonly rootPath: string;
@@ -69,11 +76,18 @@ export interface RunScanOutput {
 }
 
 const PYTHON_EXTS: ReadonlySet<string> = new Set([".py", ".pyi"]);
+const PHP_EXTS: ReadonlySet<string> = new Set([".php"]);
 
 function isPython(filePath: string): boolean {
   const idx = filePath.lastIndexOf(".");
   if (idx < 0) return false;
   return PYTHON_EXTS.has(filePath.slice(idx).toLowerCase());
+}
+
+function isPhp(filePath: string): boolean {
+  const idx = filePath.lastIndexOf(".");
+  if (idx < 0) return false;
+  return PHP_EXTS.has(filePath.slice(idx).toLowerCase());
 }
 
 // Per-finding suppression annotator. Inline > ignore > baseline (D-63 precedence).
@@ -153,19 +167,33 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
     parsed_files_count_estimate: walkedFiles.length,
   };
 
-  // Initialize Python runtime once, only if any Python files are present.
+  // Initialize tree-sitter runtimes once per scan, only when files of that language are present.
+  // The web-tree-sitter runtime .wasm (when needed for Bun --compile) is shared across all
+  // grammars, so it loads once even if both Python and PHP files appear in the same scan.
   const hasPython = walkResult.files.some(isPython);
+  const hasPhp = walkResult.files.some(isPhp);
   let pyRuntime: PythonRuntime | null = null;
-  if (hasPython) {
-    const [wasmBytes, treeSitterRuntimeWasmBytes] = await Promise.all([
-      loadPythonWasmBytes(),
+  let phpRuntime: PhpRuntime | null = null;
+  if (hasPython || hasPhp) {
+    const [pythonWasmBytes, phpWasmBytes, treeSitterRuntimeWasmBytes] = await Promise.all([
+      hasPython ? loadPythonWasmBytes() : Promise.resolve(null),
+      hasPhp ? loadPhpWasmBytes() : Promise.resolve(null),
       loadTreeSitterRuntimeWasmBytes(),
     ]);
-    pyRuntime = await initPythonRuntime(
-      treeSitterRuntimeWasmBytes !== undefined
-        ? { wasmBytes, treeSitterRuntimeWasmBytes }
-        : { wasmBytes },
-    );
+    if (hasPython && pythonWasmBytes !== null) {
+      pyRuntime = await initPythonRuntime(
+        treeSitterRuntimeWasmBytes !== undefined
+          ? { wasmBytes: pythonWasmBytes, treeSitterRuntimeWasmBytes }
+          : { wasmBytes: pythonWasmBytes },
+      );
+    }
+    if (hasPhp && phpWasmBytes !== null) {
+      phpRuntime = await initPhpRuntime(
+        treeSitterRuntimeWasmBytes !== undefined
+          ? { wasmBytes: phpWasmBytes, treeSitterRuntimeWasmBytes }
+          : { wasmBytes: phpWasmBytes },
+      );
+    }
   }
 
   const concurrency = Math.min(8, os.availableParallelism?.() ?? 4);
@@ -176,6 +204,10 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
       limit(async () => {
         const rel = path.relative(scanDir, abs);
         const sourceText = await fs.readFile(abs, "utf-8");
+        if (isPhp(abs)) {
+          if (phpRuntime === null) throw new Error("PHP runtime not initialized");
+          return parsePhp({ file_path: rel, source_text: sourceText }, phpRuntime);
+        }
         if (isPython(abs)) {
           if (pyRuntime === null) throw new Error("Python runtime not initialized");
           return parsePython({ file_path: rel, source_text: sourceText }, pyRuntime);

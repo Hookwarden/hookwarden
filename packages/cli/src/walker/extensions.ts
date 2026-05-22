@@ -14,6 +14,7 @@ export const EXTENSION_ALLOWLIST: ReadonlySet<string> = new Set([
   ".tsx",
   ".py",
   ".pyi",
+  ".php",
 ]);
 
 export function isAllowlistedFile(filePath: string): boolean {
