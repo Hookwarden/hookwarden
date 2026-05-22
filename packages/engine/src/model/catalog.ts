@@ -56,6 +56,7 @@ export function detectCatalogHandlers(parsedFile: ParsedFile): ReadonlyArray<Can
   if (parsedFile.parse_error !== null || parsedFile.raw_ast === null) return [];
   if (parsedFile.dialect === "babel") return detectJsTsCatalog(parsedFile);
   if (parsedFile.dialect === "tree-sitter-python") return detectPythonCatalog(parsedFile);
+  if (parsedFile.dialect === "tree-sitter-php") return detectPhpCatalog(parsedFile);
   return [];
 }
 
@@ -351,4 +352,155 @@ function stripPyString(raw: string): string {
     return quoted.slice(1, quoted.length - 1);
   }
   return quoted;
+}
+
+// ---- PHP: Laravel + Slim (Phase 8.1 D-03 declarative-routing detection) ----
+
+const LARAVEL_ROUTES_FILE_RE = /(^|\/)routes\/(web|api|console|channels)\.php$/;
+
+function detectPhpCatalog(parsedFile: ParsedFile): ReadonlyArray<CandidateHandler> {
+  const tree = parsedFile.raw_ast as { rootNode: PySyntaxNode };
+  const imports = parsedFile.imports;
+
+  const isLaravelCandidate =
+    imports.some((i) => i.to_module.startsWith("Illuminate\\")) ||
+    LARAVEL_ROUTES_FILE_RE.test(parsedFile.file_path);
+  const isSlimCandidate = imports.some((i) => i.to_module.startsWith("Slim\\"));
+
+  // Both gates can be false (e.g. a Composer autoloader file with no webhook handlers).
+  if (!isLaravelCandidate && !isSlimCandidate) return [];
+
+  const out: CandidateHandler[] = [];
+
+  if (isLaravelCandidate) {
+    // Laravel: `Route::post('/webhooks/stripe', [Controller::class, 'method'])` →
+    // scoped_call_expression with scope=name("Route") + name=name(method) + arguments.
+    for (const call of tree.rootNode.descendantsOfType(["scoped_call_expression"])) {
+      const handler = matchLaravelRouteCall(call, parsedFile.file_path);
+      if (handler !== null) out.push(handler);
+    }
+  }
+
+  if (isSlimCandidate) {
+    // Slim: `$app->post('/webhooks/stripe', fn ($req, $res) => ...)` →
+    // member_call_expression with object=variable_name("$app") + name=name(method).
+    for (const call of tree.rootNode.descendantsOfType(["member_call_expression"])) {
+      const handler = matchSlimRouteCall(call, parsedFile.file_path);
+      if (handler !== null) out.push(handler);
+    }
+  }
+
+  return out;
+}
+
+function matchLaravelRouteCall(
+  call: PySyntaxNode,
+  filePath: string,
+): CandidateHandler | null {
+  const scope = call.childForFieldName("scope");
+  const nameNode = call.childForFieldName("name");
+  if (scope === null || nameNode === null) return null;
+  if (scope.text !== "Route") return null;
+  const method = nameNode.text.toLowerCase();
+  if (!ALL_METHODS.has(method)) return null;
+  return buildPhpCandidate(call, filePath, "laravel", method);
+}
+
+function matchSlimRouteCall(call: PySyntaxNode, filePath: string): CandidateHandler | null {
+  const object = call.childForFieldName("object");
+  const nameNode = call.childForFieldName("name");
+  if (object === null || nameNode === null) return null;
+  // Slim's app object is conventionally `$app`. Reject member calls on anything else
+  // (e.g. `$request->getBody()`) to keep the gate tight.
+  if (object.type !== "variable_name" || object.text !== "$app") return null;
+  const method = nameNode.text.toLowerCase();
+  // Slim v4 supports get/post/put/delete/patch (+ "map" with method array — not handled in v1).
+  if (!BODY_METHODS.has(method) && method !== "get") return null;
+  return buildPhpCandidate(call, filePath, "slim", method);
+}
+
+function buildPhpCandidate(
+  call: PySyntaxNode,
+  filePath: string,
+  framework: Framework,
+  method: string,
+): CandidateHandler | null {
+  const argsNode = call.childForFieldName("arguments");
+  if (argsNode === null) return null;
+  // `arguments.namedChildren` = `argument` wrappers; each wraps the actual expression as
+  // its first namedChild. Some grammars expose `argument` as a transparent wrapper —
+  // unwrap once to get the real expression.
+  const argExprs = argsNode.namedChildren
+    .filter((c) => c.type === "argument")
+    .map((arg) => arg.namedChildren[0] ?? arg);
+  if (argExprs.length < 1) return null;
+
+  const pathNode = argExprs[0];
+  if (!pathNode || (pathNode.type !== "string" && pathNode.type !== "encapsed_string")) {
+    return null;
+  }
+  const path = stripPhpString(pathNode.text);
+  if (!isWebhookishPath(path)) return null;
+
+  // Filter on body-method semantics for Laravel too — GET on a webhook path is fine for
+  // path enumeration but the rule pack only fires on body-bearing methods (POST/PUT/PATCH/DELETE).
+  if (!BODY_METHODS.has(method)) {
+    // For Laravel's `Route::get('/webhooks/foo', ...)` we still emit (rules choose what to do).
+    // Slim already gated above; this is consistent with the JS/Hono pattern.
+  }
+
+  const handlerNode = argExprs[1] ?? null;
+  const handlerName = handlerNode === null ? null : extractPhpHandlerName(handlerNode);
+  const span = handlerNode === null
+    ? { start: call.startIndex, end: call.endIndex }
+    : { start: handlerNode.startIndex, end: handlerNode.endIndex };
+
+  return {
+    framework,
+    framework_version: null,
+    route_pattern: path,
+    http_methods: [method.toUpperCase()],
+    file_path: filePath,
+    location: {
+      line: call.startPosition.row + 1,
+      col: call.startPosition.column + 1,
+      end_line: call.endPosition.row + 1,
+      end_col: call.endPosition.column + 1,
+    },
+    handler_function_name: handlerName,
+    handler_body_node: handlerNode,
+    handler_source_start: span.start,
+    handler_source_end: span.end,
+  };
+}
+
+function extractPhpHandlerName(node: PySyntaxNode): string | null {
+  // [Controller::class, 'method'] — array_creation_expression with two array_element_initializer
+  // children, where the second contains a string literal naming the method.
+  if (node.type === "array_creation_expression") {
+    const elems = node.namedChildren.filter((c) => c.type === "array_element_initializer");
+    if (elems.length >= 2) {
+      const methodElem = elems[1];
+      const methodLiteral = methodElem?.namedChildren.find(
+        (c) => c.type === "string" || c.type === "encapsed_string",
+      );
+      if (methodLiteral) return stripPhpString(methodLiteral.text);
+    }
+    return null;
+  }
+  // 'Controller@method' string-callable form (Laravel).
+  if (node.type === "string" || node.type === "encapsed_string") {
+    const inner = stripPhpString(node.text);
+    const at = inner.indexOf("@");
+    return at >= 0 ? inner.slice(at + 1) : null;
+  }
+  // Controller::class — a class_constant_access_expression. No method name available.
+  // arrow_function / anonymous_function_creation_expression — anonymous, no name.
+  return null;
+}
+
+function stripPhpString(raw: string): string {
+  if (raw.startsWith("'") && raw.endsWith("'")) return raw.slice(1, -1);
+  if (raw.startsWith('"') && raw.endsWith('"')) return raw.slice(1, -1);
+  return raw;
 }
