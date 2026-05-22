@@ -64,6 +64,10 @@ export interface RunScanInput {
   // Phased-rollout filter — when non-null, only rules whose `provider` is in this set run.
   // Validated against PROVIDER_CATALOG at flag-parse time (commands/scan.ts).
   readonly providerFilter?: ReadonlySet<string> | null;
+  // User-supplied gitignore-style globs from --exclude / --include. Comma-split + trimmed
+  // in commands/scan.ts; empty arrays = no-op.
+  readonly excludeGlobs?: ReadonlyArray<string>;
+  readonly includeGlobs?: ReadonlyArray<string>;
 }
 
 export interface RunScanOutput {
@@ -158,6 +162,8 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
   const fullWalk = await walkProject({
     rootPath: root,
     scanTests: input.resolvedConfig.scan_tests,
+    ...(input.excludeGlobs !== undefined ? { excludeGlobs: input.excludeGlobs } : {}),
+    ...(input.includeGlobs !== undefined ? { includeGlobs: input.includeGlobs } : {}),
   });
   // Filter walkResult.files by diffFileSet when diff-only is active. The narrowed set IS the
   // candidate set for THIS run — `parse_candidates_count` reflects that so the parse-coverage

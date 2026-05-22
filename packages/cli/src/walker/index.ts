@@ -77,6 +77,12 @@ export interface WalkOptions {
   // findings list. Set to true (via --include-tests / `scan_tests: true`) to
   // also audit test code.
   readonly scanTests?: boolean;
+  // User-supplied gitignore-style globs (CLI: --exclude pkg/legacy/**). Applied
+  // on top of .gitignore + HARD_SKIP_DIRS + DEFAULT_TEST_GLOBS. Empty = no-op.
+  readonly excludeGlobs?: ReadonlyArray<string>;
+  // User-supplied gitignore-style globs (CLI: --include pkg/api/**). When non-empty,
+  // only files matching at least one pattern are accepted. Empty = no scope-limit.
+  readonly includeGlobs?: ReadonlyArray<string>;
 }
 
 export interface WalkResult {
@@ -181,6 +187,10 @@ export async function walkProject(options: WalkOptions): Promise<WalkResult> {
   // Build a separate `ignore` instance for the test-path filter so the existing
   // root .gitignore semantics are preserved.
   const testIgnore = ignore().add([...DEFAULT_TEST_GLOBS]);
+  const excludeGlobs = options.excludeGlobs ?? [];
+  const includeGlobs = options.includeGlobs ?? [];
+  const userExclude = excludeGlobs.length > 0 ? ignore().add([...excludeGlobs]) : null;
+  const userInclude = includeGlobs.length > 0 ? ignore().add([...includeGlobs]) : null;
   let testExcludedCount = 0;
   const filtered = candidates.filter((abs) => {
     const rel = path.relative(root, abs);
@@ -189,7 +199,13 @@ export async function walkProject(options: WalkOptions): Promise<WalkResult> {
       testExcludedCount++;
       return false;
     }
-    return !ctx.ig.ignores(rel);
+    if (ctx.ig.ignores(rel)) return false;
+    // User --exclude: drop if matches.
+    if (userExclude !== null && userExclude.ignores(rel)) return false;
+    // User --include: when set, drop unless matches (scope-limit semantics per
+    // .planning/cli-flag-expansion-v0.5.md decision).
+    if (userInclude !== null && !userInclude.ignores(rel)) return false;
+    return true;
   });
 
   let symlinkCount = 0;

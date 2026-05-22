@@ -75,6 +75,8 @@ interface ParsedFlags {
   "min-parse-coverage"?: string;
   "include-tests"?: boolean;
   provider?: string;
+  exclude?: string;
+  include?: string;
   help?: boolean;
 }
 
@@ -95,6 +97,8 @@ const STRING_FLAGS: ReadonlyArray<{
   { long: "--config", key: "config" },
   { long: "--min-parse-coverage", key: "min-parse-coverage" },
   { long: "--provider", key: "provider" },
+  { long: "--exclude", key: "exclude" },
+  { long: "--include", key: "include" },
 ];
 
 const BOOLEAN_FLAGS: ReadonlyArray<{

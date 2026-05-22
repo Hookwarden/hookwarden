@@ -35,6 +35,8 @@ export interface ScanArgs {
   readonly "min-parse-coverage"?: string;
   readonly "include-tests"?: boolean;
   readonly provider?: string;
+  readonly exclude?: string;
+  readonly include?: string;
 }
 
 const VALID_FAIL_ON: ReadonlySet<string> = new Set(["critical", "high", "medium", "low"]);
@@ -133,6 +135,12 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
     baselineWrite,
     verbose,
     providerFilter,
+    excludeGlobs: args.exclude !== undefined && args.exclude.trim() !== ""
+      ? args.exclude.split(",").map((s) => s.trim()).filter((s) => s !== "")
+      : [],
+    includeGlobs: args.include !== undefined && args.include.trim() !== ""
+      ? args.include.split(",").map((s) => s.trim()).filter((s) => s !== "")
+      : [],
   });
 
   if (scan.engineError !== null) {
@@ -260,6 +268,16 @@ export const scanCommand = defineCommand({
       type: "string",
       description:
         "Comma-separated provider filter (e.g., 'stripe' or 'stripe,github'). When set, only rules for the listed providers run — useful for phased rollout. Valid: stripe, github, shopify, slack, twilio, square.",
+    },
+    exclude: {
+      type: "string",
+      description:
+        "Comma-separated gitignore-style globs to exclude from the scan (e.g., 'packages/legacy/**,vendor/**'). Applied on top of .gitignore + default test-fixture exclusions.",
+    },
+    include: {
+      type: "string",
+      description:
+        "Comma-separated gitignore-style globs to scope the scan to (e.g., 'packages/api/**'). When set, only matching files are scanned.",
     },
   },
   run: async ({ args }) => runScanCommand(args as ScanArgs),
