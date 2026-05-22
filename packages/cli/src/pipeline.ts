@@ -12,6 +12,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { performance } from "node:perf_hooks";
 import {
+  ALL_ADAPTERS,
   buildProjectModel,
   type Config,
   evaluate,
@@ -236,7 +237,12 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
 
   let rawResult: ScanResult;
   try {
-    const model: ProjectModel = await buildProjectModel({ parsedFiles, ruleSet, config });
+    const model: ProjectModel = await buildProjectModel({
+      parsedFiles,
+      ruleSet,
+      config,
+      bespokeAdapters: ALL_ADAPTERS,
+    });
     rawResult = await evaluate(model, ruleSet, config);
   } catch (e) {
     engineError = e instanceof Error ? e : new Error(String(e));
