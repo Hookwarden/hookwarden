@@ -56,6 +56,34 @@ module.exports = {
         path: "node_modules/(node-fetch|axios|got|undici|cross-fetch|isomorphic-fetch|ky|wretch|phin|needle|request|graceful-fs|fs-extra|chokidar|glob|fast-glob|tinyglobby)/",
       },
     },
+    {
+      name: "engine-no-babel-traverse",
+      severity: "error",
+      comment:
+        "@hookwarden/engine must NOT depend on @babel/traverse or @babel/generator. " +
+        "Those land in packages/fix/ only. See Phase 8.2 D-05.",
+      from: { path: "^packages/engine/(src|dist)" },
+      to: { path: "node_modules/(@babel/traverse|@babel/generator)/" },
+    },
+    {
+      name: "rules-no-babel-traverse",
+      severity: "error",
+      comment:
+        "@hookwarden/rules predicates must remain engine-pure. " +
+        "Codegen routines under packages/rules/src/fix/ MAY import @babel/types only.",
+      from: { path: "^packages/rules/src/predicates/" },
+      to: { path: "node_modules/(@babel/traverse|@babel/generator)/" },
+    },
+    {
+      name: "fix-no-network-libs",
+      severity: "error",
+      comment:
+        "packages/fix must not perform network I/O (CLI determinism contract).",
+      from: { path: "^packages/fix/(src|dist)" },
+      to: {
+        path: "node_modules/(node-fetch|axios|got|undici|cross-fetch|isomorphic-fetch|ky|wretch|phin|needle|request)/",
+      },
+    },
   ],
   options: {
     tsConfig: { fileName: "tsconfig.base.json" },
