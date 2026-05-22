@@ -1,12 +1,11 @@
-// Phase 8.2 Plan 02: schema validation for the new `fix:` discriminated-union block.
+// Phase 8.2 Plan 02 + Plan 11: schema validation for the `fix:` discriminated-union block.
 //
-// B4 — schema_required tightening deferred to Plan 11 wave 7.
-// In this plan: Test 1 asserts ACCEPTED for the missing-key case (fix is optional).
-// In Plan 11 wave 7's task: Test 1 is REWRITTEN to assert REJECTED after `fix` is added to required[].
-// The earlier "option (a) atomic merge" path is withdrawn per checker B4.
+// B4 stage 2 — Plan 11 wave 8 tightened the schema to require the `fix` key.
+// Test 1 now asserts REJECTED for the missing-key case (flipped from ACCEPTED
+// in Plan 02 wave 1, when the schema kept fix optional through waves 1-7).
 //
-// Per [[feedback_negative_tests_required]] — 4 of the 8 cases are negative
-// (Tests 4, 5, 7, 8). The negative tests are the explicit-binary contract:
+// Per [[feedback_negative_tests_required]] — 5 of the 8 cases are negative
+// (Tests 1, 4, 5, 7, 8). The negative tests are the explicit-binary contract:
 // they prove the schema closes the door on the failure modes that produce
 // half-supported `--fix` rule pack metadata.
 
@@ -28,12 +27,9 @@ const BASE_DOC = {
 } as const;
 
 describe("schema fix: block (Phase 8.2 D-01 + D-15)", () => {
-  // Test 1 — B4 — `fix:` is OPTIONAL in this plan. Plan 11 wave 7 tightens.
-  it("Test 1 — ACCEPTS rule with `fix:` key omitted (B4 — tightening deferred to Plan 11)", () => {
-    const doc = validateRuleDocument({ ...BASE_DOC });
-    // validateRuleDocument normalizes undefined → null at the boundary so downstream
-    // consumers can rely on `fix !== undefined`.
-    expect(doc.fix).toBeNull();
+  // Test 1 — Plan 11 wave 8 tightened: `fix` is REQUIRED. Missing-key is rejected.
+  it("Test 1 — REJECTS rule with `fix:` key omitted (D-04 explicit-binary after Plan 11)", () => {
+    expect(() => validateRuleDocument({ ...BASE_DOC })).toThrow(/invalid rule document/);
   });
 
   // Test 2 — explicit-binary signal: fix is null.

@@ -17,3 +17,7 @@ predicate: express-middleware-ordering
 applies_to:
   - express
 provider_docs_url: https://stripe.com/docs/webhooks/signatures
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

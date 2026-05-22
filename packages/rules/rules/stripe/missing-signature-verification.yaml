@@ -29,3 +29,7 @@ applies_to:
   - slim
   - vanilla-php
 provider_docs_url: https://stripe.com/docs/webhooks
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

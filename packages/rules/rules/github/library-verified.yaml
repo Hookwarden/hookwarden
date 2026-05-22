@@ -22,3 +22,7 @@ applies_to:
   - slim
   - vanilla-php
 provider_docs_url: https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

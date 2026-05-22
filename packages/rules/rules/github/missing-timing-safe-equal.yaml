@@ -16,3 +16,7 @@ applies_to:
   - fastify
   - nextjs
 provider_docs_url: https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries
+fix:
+  safety: safe
+  description: "Replace insecure equality with a constant-time comparison (crypto.timingSafeEqual / hmac.compare_digest / hash_equals)"
+  codegen: dispatch-timing-unsafe-comparison

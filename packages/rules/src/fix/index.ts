@@ -16,6 +16,12 @@ import { phpReplaceInputWithRawBody } from "./php-replace-input-with-raw-body.js
 import { typescriptInsertSecretPresenceCheck } from "./typescript-insert-secret-presence-check.js";
 import { pythonInsertSecretPresenceCheck } from "./python-insert-secret-presence-check.js";
 import { phpInsertSecretPresenceCheck } from "./php-insert-secret-presence-check.js";
+import {
+  dispatchInsertNullishGuard,
+  dispatchInsertSecretPresenceCheck,
+  dispatchReplaceRawBodyMisuse,
+  dispatchTimingUnsafeComparison,
+} from "./dispatchers.js";
 
 export type CodegenRoutine = (parsedFile: ParsedFile, finding: Finding) => FixEdit | null;
 
@@ -23,6 +29,7 @@ export type CodegenRoutine = (parsedFile: ParsedFile, finding: Finding) => FixEd
 // - python-replace-request-data-with-raw-body: manual-only in v0.5 (B3 — D-11 cond. 2)
 // - php-insert-nullish-guard: PHP's `??` / `isset()` idioms make a 1-line rewrite too invasive for v0.5
 export const ALL_CODEGEN_ROUTINES: Readonly<Record<string, CodegenRoutine>> = {
+  // Per-language codegen routines (called directly by the YAML codegen value)
   "typescript-replace-binary-equality": typescriptReplaceBinaryEquality,
   "python-replace-binary-equality": pythonReplaceBinaryEquality,
   "php-replace-binary-equality-or-strcmp": phpReplaceBinaryEqualityOrStrcmp,
@@ -33,4 +40,11 @@ export const ALL_CODEGEN_ROUTINES: Readonly<Record<string, CodegenRoutine>> = {
   "typescript-insert-secret-presence-check": typescriptInsertSecretPresenceCheck,
   "python-insert-secret-presence-check": pythonInsertSecretPresenceCheck,
   "php-insert-secret-presence-check": phpInsertSecretPresenceCheck,
+  // Family-level dispatchers — one YAML codegen value covers all v1 languages,
+  // routing internally by parsedFile.dialect. Plan 11 YAML population uses
+  // these dispatcher IDs so a single rule covers JS + Python + PHP findings.
+  "dispatch-timing-unsafe-comparison": dispatchTimingUnsafeComparison,
+  "dispatch-insert-nullish-guard": dispatchInsertNullishGuard,
+  "dispatch-replace-raw-body-misuse": dispatchReplaceRawBodyMisuse,
+  "dispatch-insert-secret-presence-check": dispatchInsertSecretPresenceCheck,
 };

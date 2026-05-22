@@ -26,3 +26,7 @@ applies_to:
   - slim
   - vanilla-php
 provider_docs_url: https://shopify.dev/docs/apps/webhooks/configuration/https#step-5-verify-the-webhook
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

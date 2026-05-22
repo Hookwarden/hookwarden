@@ -41,9 +41,10 @@ export interface ParsedRuleDocument {
     readonly severity: "critical" | "high" | "medium" | "low" | "info";
   }> | null;
   // Phase 8.2 D-01 / D-04 / D-15: per-rule auto-fix metadata.
-  // Optional in Plan 02 wave 1 (B4 — Plan 11 wave 7 tightens to required after
-  // every YAML in packages/rules/rules/ has been populated with a fix: block).
-  readonly fix?: {
+  // Required in Plan 11 wave 8 (B4 stage 2 — schema tightened after every YAML
+  // gained a fix: block). Every rule declares either a populated FixMetadata
+  // OR null; missing-key is rejected by the schema.
+  readonly fix: {
     readonly safety: "safe" | "unsafe" | "manual-only";
     readonly description: string;
     readonly codegen: string | null;
@@ -54,11 +55,10 @@ const SCHEMA = {
   $id: "hookwarden-rule-document-v1",
   type: "object",
   additionalProperties: false,
-  // TODO(Plan-11-wave-7): add "fix" to required[] per D-04 explicit-binary.
-  // B4 — Plan 02 wave 1 ships fix as optional; Plan 11 wave 7's final task tightens
-  // after every YAML in packages/rules/rules/ has been populated with a fix: block.
-  // Splitting the tightening across waves keeps main green through waves 2-6 builds
-  // (which would otherwise fail the existing rule-pack vitest with a missing-required-property error).
+  // Phase 8.2 D-04 explicit-binary tightened in Plan 11 wave 8 (B4 stage 2).
+  // Every rule MUST declare either a populated `fix:` block OR `fix: null`.
+  // The optional-stage existed across waves 1-7 to keep main green while the
+  // codegen registry was being assembled.
   required: [
     "schema_version",
     "rule_id",
@@ -68,6 +68,7 @@ const SCHEMA = {
     "message",
     "applies_to",
     "provider_docs_url", // D-58 RULES-08
+    "fix", // Phase 8.2 D-04
   ],
   properties: {
     schema_version: { type: "integer", const: 1 },

@@ -86,8 +86,8 @@ export interface RuleDefinition {
   readonly path_severity_overrides: ReadonlyArray<PathSeverityOverride> | null;
   // Phase 8.2 D-01/D-04: per-rule auto-fix metadata. `null` is the explicit-binary signal
   // (rule has no fixable variant); a populated object is consumed by @hookwarden/fix.
-  // Optional in Plan 02 (B4 — Plan 11 wave 7 tightens once every YAML has been populated).
-  readonly fix?: FixMetadata | null;
+  // Required in Plan 11 (B4 stage 2 — schema tightened after every YAML carries the key).
+  readonly fix: FixMetadata | null;
 }
 
 export interface RuleSet {

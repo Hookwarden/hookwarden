@@ -16,6 +16,8 @@ const VALID_DOC = {
   provider_docs_url:
     "https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries",
   path_severity_overrides: null,
+  // Phase 8.2 Plan 11: fix is required in the schema; null is the explicit-binary signal.
+  fix: null,
 } as const;
 
 describe("loadRuleSet (D-03 + ENGINE-08 content hash)", () => {

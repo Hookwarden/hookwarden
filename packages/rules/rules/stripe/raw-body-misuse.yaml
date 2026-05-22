@@ -29,3 +29,7 @@ applies_to:
   - slim
   - vanilla-php
 provider_docs_url: https://stripe.com/docs/webhooks/signatures
+fix:
+  safety: safe
+  description: "Read the raw request body (req.rawBody in Express; php://input in PHP) instead of the parsed body"
+  codegen: dispatch-replace-raw-body-misuse
