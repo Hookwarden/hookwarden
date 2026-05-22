@@ -238,10 +238,11 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
   }
   // Provider filter — phased rollout. Filters BOTH which findings emit AND which contribute
   // to --fail-on, because evaluate() only runs rules in ruleSet.rules.
-  if (input.providerFilter !== null && input.providerFilter !== undefined) {
+  const providerFilter = input.providerFilter ?? null;
+  if (providerFilter !== null) {
     ruleSet = {
       ...ruleSet,
-      rules: ruleSet.rules.filter((r) => input.providerFilter!.has(r.provider)),
+      rules: ruleSet.rules.filter((r) => providerFilter.has(r.provider)),
     };
   }
 

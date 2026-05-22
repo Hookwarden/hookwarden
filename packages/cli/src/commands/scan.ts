@@ -63,7 +63,10 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
   }
   let providerFilter: ReadonlySet<string> | null = null;
   if (args.provider !== undefined && args.provider.trim() !== "") {
-    const raw = args.provider.split(",").map((s) => s.trim()).filter((s) => s !== "");
+    const raw = args.provider
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s !== "");
     const invalid = raw.filter((p) => !VALID_PROVIDERS.has(p));
     if (invalid.length > 0) {
       process.stderr.write(
@@ -135,12 +138,20 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
     baselineWrite,
     verbose,
     providerFilter,
-    excludeGlobs: args.exclude !== undefined && args.exclude.trim() !== ""
-      ? args.exclude.split(",").map((s) => s.trim()).filter((s) => s !== "")
-      : [],
-    includeGlobs: args.include !== undefined && args.include.trim() !== ""
-      ? args.include.split(",").map((s) => s.trim()).filter((s) => s !== "")
-      : [],
+    excludeGlobs:
+      args.exclude !== undefined && args.exclude.trim() !== ""
+        ? args.exclude
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s !== "")
+        : [],
+    includeGlobs:
+      args.include !== undefined && args.include.trim() !== ""
+        ? args.include
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s !== "")
+        : [],
   });
 
   if (scan.engineError !== null) {
