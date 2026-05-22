@@ -4,12 +4,12 @@
 
 import type { WebhookHandler } from "./handler.ts";
 
-// Opaque to consumers. Each parser stamps its own dialect ("babel" | "tree-sitter-python").
+// Opaque to consumers. Each parser stamps its own dialect ("babel" | "tree-sitter-python" | "tree-sitter-php").
 // Engine internals down-cast based on `dialect`. Public surface keeps the type opaque.
 export interface ParsedFile {
   readonly file_path: string; // repo-relative
-  readonly language: "javascript" | "typescript" | "python";
-  readonly dialect: "babel" | "tree-sitter-python";
+  readonly language: "javascript" | "typescript" | "python" | "php";
+  readonly dialect: "babel" | "tree-sitter-python" | "tree-sitter-php";
   readonly source_text: string; // raw source; redaction happens later
   readonly raw_ast: unknown; // dialect-specific AST root; engine parsers cast internally
   readonly imports: ReadonlyArray<ImportEdge>;

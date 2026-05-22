@@ -6,7 +6,18 @@
 
 import type { FindingId, SourceLocation, Verdict } from "./finding.ts";
 
-export type Framework = "express" | "hono" | "fastify" | "nextjs" | "flask" | "fastapi" | "django";
+export type Framework =
+  | "express"
+  | "hono"
+  | "fastify"
+  | "nextjs"
+  | "flask"
+  | "fastapi"
+  | "django"
+  | "laravel"
+  | "symfony"
+  | "slim"
+  | "vanilla-php";
 
 // D-32 multi-signal evidence. Engine computes; rules query thresholds.
 export type WebhookEvidenceKind =
