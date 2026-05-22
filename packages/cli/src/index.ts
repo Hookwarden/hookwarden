@@ -3,6 +3,7 @@
 
 import { defineCommand } from "citty";
 import { renderBanner, shouldShowBanner } from "./banner.js";
+import { explainCommand, runExplainCommand } from "./commands/explain.js";
 import { type InventoryArgs, inventoryCommand, runInventoryCommand } from "./commands/inventory.js";
 import { runScanCommand, type ScanArgs, scanCommand } from "./commands/scan.js";
 import { renderLogo } from "./logo.js";
@@ -28,6 +29,7 @@ export const root = defineCommand({
   subCommands: {
     scan: scanCommand,
     inventory: inventoryCommand,
+    explain: explainCommand,
   },
 });
 
@@ -37,6 +39,7 @@ const HELP_TEXT =
   `Usage:\n` +
   `  hookwarden scan [path]       Scan a project for verification bugs.\n` +
   `  hookwarden inventory [path]  List every detected webhook handler.\n` +
+  `  hookwarden explain <rule>    Print full documentation for a single rule.\n` +
   `  hookwarden logo              Print the hookwarden mascot + wordmark.\n\n` +
   `Common flags:\n` +
   `  -v, --verbose                Verbose output (scan only).\n` +
@@ -229,6 +232,26 @@ export async function main(argv: ReadonlyArray<string>): Promise<number> {
         return 0;
       }
       return await runInventoryCommand(flags as InventoryArgs);
+    }
+    if (sub === "explain") {
+      // explain takes a positional rule-id; reuse the custom parser for --no-color / --rules-dir,
+      // then extract the first non-flag positional from the original argv tail.
+      const tail = argv.slice(1);
+      const positional = tail.find((t) => !t.startsWith("--"));
+      const { flags, error } = parseFlags(tail);
+      if (error !== null) {
+        process.stderr.write(`error: ${error}\n`);
+        return 3;
+      }
+      if (flags.help === true) {
+        process.stdout.write(`Usage: hookwarden explain <rule-id> [--no-color] [--rules-dir D]\n`);
+        return 0;
+      }
+      return await runExplainCommand({
+        ...(positional !== undefined ? { "rule-id": positional } : {}),
+        ...(flags["no-color"] !== undefined ? { "no-color": flags["no-color"] } : {}),
+        ...(flags["rules-dir"] !== undefined ? { "rules-dir": flags["rules-dir"] } : {}),
+      });
     }
     if (sub === "logo") {
       const noColor = argv.includes("--no-color");
