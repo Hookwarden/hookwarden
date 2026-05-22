@@ -36,6 +36,7 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 - [📦 Install](#-install)
 - [🚀 Quickstart](#-quickstart)
 - [📺 Real output](#-real-output)
+- [🌐 Languages & frameworks](#-languages--frameworks)
 - [🔐 Provider coverage](#-provider-coverage)
 - [🤖 CI integration](#-ci-integration)
 - [🏗 Architecture](#-architecture)
@@ -191,9 +192,23 @@ Sorted keys, schema-versioned, byte-stable across runs (modulo `scanned_at`). SA
 
 ---
 
+## 🌐 Languages & frameworks
+
+3 languages, 11 frameworks, 1 codebase walker. PHP and Python use `tree-sitter`; JS/TS use Babel. Single-file vanilla-PHP handlers are detected heuristically; everything else routes through framework-specific adapters.
+
+| Language | Frameworks | Parser |
+|---|---|---|
+| **JavaScript / TypeScript** | Express · Hono · Fastify · Next.js | `@babel/parser` |
+| **Python** | Flask · FastAPI · Django | `tree-sitter-python` (WASM) |
+| **PHP** (v0.4) | Laravel · Symfony · Slim · vanilla-PHP single-file | `tree-sitter-php` (WASM) |
+
+PHP 8.0+ syntax floor. Python 3.10+ recommended. TypeScript: strict + non-strict both supported.
+
+---
+
 ## 🔐 Provider coverage
 
-45 rules across 6 providers. Every rule carries fix guidance quoted verbatim from the provider's canonical security documentation.
+45 rules across 6 providers, each applicable across the relevant subset of the 11 frameworks above. Every rule carries fix guidance quoted verbatim from the provider's canonical security documentation.
 
 <p align="center">
   <a href="./packages/rules/rules/stripe"><img src="https://cdn.simpleicons.org/stripe/6366F1" alt="Stripe" height="36" /></a>&nbsp;&nbsp;&nbsp;
