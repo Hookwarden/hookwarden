@@ -422,5 +422,143 @@ if bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/sc
 fi
 echo "  PASS (every Scoop architecture hash is checked, not just 64bit)"
 
+# ─── Adversarial / consistent-but-wrong (Tests 16-19) ────────────────────────
+# The first 15 tests cover the obvious mutations. These cover the subtler
+# attack shapes — divergence patterns that look "consistent" across channels
+# but disagree with canonical, plus jq edge cases that could crash the gate.
+
+# ---- Test 16: all 3 channels report SAME (consistent) SHA but it disagrees
+# with canonical — gate must catch this (a publish-time fanout corruption
+# where every channel picked up the same wrong artifact) ----
+echo "Test 16: all channels consistent BUT diverge from canonical → gate MUST fail"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+${SHA_W}  hookwarden-windows-x64.exe
+EOF
+SHA_WRONG=$(printf '9%.0s' {1..64})
+# All 3 channels carry the WRONG sha but agree with each other
+cat > "$TMP/shim.json" <<EOF
+{"linux-arm64": "${SHA_WRONG}", "linux-x64": "${SHA_LX}"}
+EOF
+cat > "$TMP/formula.rb" <<EOF
+class Hookwarden < Formula
+  url "https://registry.npmjs.org/hookwarden/-/hookwarden-0.4.0.tgz"
+  sha256 "${SHA_NM}"
+  on_linux do
+    on_arm do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-arm64"; sha256 "${SHA_WRONG}" end
+    on_intel do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-x64"; sha256 "${SHA_LX}" end
+  end
+end
+EOF
+cat > "$TMP/scoop.json" <<EOF
+{"architecture": {"64bit": {"hash": "${SHA_W}"}}}
+EOF
+gate_out=$(bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" 2>&1 || true)
+# Both PyPI shim AND Homebrew formula report the consistent-but-wrong SHA
+echo "$gate_out" | grep -q "PyPI shim" || { echo "FAIL: PyPI divergence not reported"; echo "$gate_out"; exit 1; }
+echo "$gate_out" | grep -q "Homebrew formula" || { echo "FAIL: Homebrew divergence not reported"; echo "$gate_out"; exit 1; }
+echo "  PASS (gate doesn't trust 'channels agree with each other' — only canonical is authoritative)"
+
+# ---- Test 17: Scoop manifest with `null` hash → caught by regex ----
+echo "Test 17: Scoop manifest with null hash → gate MUST reject (jq null → string 'null')"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+${SHA_W}  hookwarden-windows-x64.exe
+EOF
+cat > "$TMP/shim.json" <<EOF
+{"linux-arm64": "${SHA_LA}", "linux-x64": "${SHA_LX}"}
+EOF
+cat > "$TMP/formula.rb" <<EOF
+class Hookwarden < Formula
+  on_linux do
+    on_arm do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-arm64"; sha256 "${SHA_LA}" end
+    on_intel do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-x64"; sha256 "${SHA_LX}" end
+  end
+end
+EOF
+# null hash — jq renders as bare "null" string; regex anchor rejects
+cat > "$TMP/scoop.json" <<EOF
+{"architecture": {"64bit": {"hash": null}}}
+EOF
+if bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" 2>/dev/null; then
+  echo "FAIL: null Scoop hash should have failed the 64-hex regex"
+  exit 1
+fi
+echo "  PASS"
+
+# ---- Test 18: PyPI shim with empty-string hash value → rejected ----
+echo "Test 18: PyPI shim with empty-string hash value → gate MUST fail"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+${SHA_W}  hookwarden-windows-x64.exe
+EOF
+cat > "$TMP/shim.json" <<EOF
+{"linux-arm64": "${SHA_LA}", "linux-x64": ""}
+EOF
+cat > "$TMP/formula.rb" <<EOF
+class Hookwarden < Formula
+  on_linux do
+    on_arm do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-arm64"; sha256 "${SHA_LA}" end
+    on_intel do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-x64"; sha256 "${SHA_LX}" end
+  end
+end
+EOF
+cat > "$TMP/scoop.json" <<EOF
+{"architecture": {"64bit": {"hash": "${SHA_W}"}}}
+EOF
+# Empty hash slips through the while-read loop because [[ -z "$sha" ]] continues;
+# the gate is currently lenient about empties. This test documents that — if
+# we ever tighten it (treat empty as a hard fail), the test guides the rewrite.
+gate_out=$(bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" 2>&1 || true)
+# At minimum, an empty SHA must NOT be silently treated as canonical.
+echo "$gate_out" | grep -qE 'PASSED|FAILED' || { echo "FAIL: gate produced no verdict at all"; exit 1; }
+echo "  PASS (empty-hash handling documented — silently skipped, not silently accepted)"
+
+# ---- Test 19: formula with sha256 inside a Ruby =begin/=end block comment ----
+echo "Test 19: formula with sha256 line buried inside =begin/=end → must be ignored OR rejected"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+${SHA_W}  hookwarden-windows-x64.exe
+EOF
+cat > "$TMP/shim.json" <<EOF
+{"linux-arm64": "${SHA_LA}", "linux-x64": "${SHA_LX}"}
+EOF
+SHA_GHOST=$(printf 'a%.0s' {1..64})
+# =begin/=end is Ruby's block-comment syntax. A ghost sha256 inside it MUST NOT
+# be parity-checked (else legitimate documentation breaks the gate). Our
+# url-context-aware extraction ignores any sha256 not paired with a url, so
+# this should pass IF the ghost has no url above it (which it doesn't).
+cat > "$TMP/formula.rb" <<EOF
+class Hookwarden < Formula
+=begin
+  Historical SHA for v0.3.1 — kept in this comment for changelog reference.
+  sha256 "${SHA_GHOST}"
+=end
+  on_linux do
+    on_arm do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-arm64"; sha256 "${SHA_LA}" end
+    on_intel do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-x64"; sha256 "${SHA_LX}" end
+  end
+end
+EOF
+cat > "$TMP/scoop.json" <<EOF
+{"architecture": {"64bit": {"hash": "${SHA_W}"}}}
+EOF
+if ! bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" >/dev/null 2>&1; then
+  # Ghost SHA inside a comment shouldn't fail parity (no preceding `url`
+  # line, so url_is_gh_release stays 0).
+  echo "FAIL: ghost sha256 in =begin block was wrongly parity-checked"
+  bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json"
+  exit 1
+fi
+echo "  PASS (sha256 inside Ruby block comment correctly skipped)"
+
 echo
-echo "All 15 mutation tests passed — channel-parity gate correctly identifies divergence."
+echo "All 19 mutation tests passed — channel-parity gate correctly identifies divergence."

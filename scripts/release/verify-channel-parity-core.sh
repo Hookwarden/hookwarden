@@ -32,9 +32,11 @@ PYPI_PAIRS=$(jq -r 'to_entries[] | "\(.value) \(.key)"' "$PYPI_FILE")
 # canonical checksums.txt — its integrity is verified through the npm
 # registry's own publish chain + bump-homebrew.sh's own download-and-pin step.
 HOMEBREW_SHAS=$(awk '
+  # Toggle url context whenever a url line is seen. NO `next` — a single line
+  # may legitimately contain both `url "..."` and `sha256 "..."` separated by
+  # `;` (valid Ruby), and we need both rules to evaluate on that same line.
   /url "/ {
     url_is_gh_release = ($0 ~ /releases\/download\//)
-    next
   }
   /sha256 "[a-f0-9]{64}"/ && url_is_gh_release {
     match($0, /[a-f0-9]{64}/)

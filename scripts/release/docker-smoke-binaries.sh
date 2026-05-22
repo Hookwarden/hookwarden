@@ -249,6 +249,38 @@ test_inventory_php() {
   return 0
 }
 
+# T11: scan PHP edge-case fixtures (UTF-8 BOM + namespaced class method).
+# Each case is a real-world PHP shape that exercises tree-sitter-php beyond
+# the vanilla top-level script. Combined into one scan so the matrix doesn't
+# multiply: scanned directory contains 2 .php files, both must yield the
+# `stripe/timing-unsafe-comparison` finding.
+test_scan_php_edge_cases() {
+  local cmd="$1"
+  local fixtures="$2"
+  local out
+  local code=0
+  out=$("$cmd" scan "$fixtures/php-edge-cases" 2>&1) || code=$?
+  if [ "$code" != "1" ]; then
+    echo "  scan php-edge-cases exited $code (expected 1)"
+    return 1
+  fi
+  # Must surface findings from BOTH edge-case files
+  echo "$out" | grep -q "bom-prefixed.php" || {
+    echo "  scan php-edge-cases missed bom-prefixed.php (UTF-8 BOM parsing broken?)"
+    return 1
+  }
+  echo "$out" | grep -q "namespaced-class.php" || {
+    echo "  scan php-edge-cases missed namespaced-class.php (class-method handler detection broken?)"
+    return 1
+  }
+  # And both must hit the same rule
+  echo "$out" | grep -q "stripe/timing-unsafe-comparison" || {
+    echo "  scan php-edge-cases missed stripe/timing-unsafe-comparison on edge-case files"
+    return 1
+  }
+  return 0
+}
+
 # T10: explain a rule → exit 0, prints docs with severity + applies-to list.
 # Exercises the explain subcommand's rule-pack loading path in compiled-Bun
 # (separate from scan/inventory which load the rule pack via different
@@ -284,6 +316,7 @@ TESTS=(
   "test_scan_php_laravel_bug T8 scan_php_laravel_bug_finds_stripe"
   "test_inventory_php T9 inventory_php_lists_handler"
   "test_explain_rule  T10 explain_rule_prints_docs"
+  "test_scan_php_edge_cases T11 scan_php_edge_cases"
 )
 
 # ─── runner ──────────────────────────────────────────────────────────────────

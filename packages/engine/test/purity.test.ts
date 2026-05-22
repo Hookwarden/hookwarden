@@ -196,4 +196,124 @@ describe("engine purity (compiled output grep)", () => {
       expect(pattern.test(sample)).toBe(expectedMatch);
     });
   });
+
+  // ─── Evasion-vector guards (auditor-facing supply-chain hardening) ───────
+  // The per-symbol grep above catches static `import 'fs'` and `require('fs')`.
+  // The vectors below are real escape hatches the static grep misses on its own.
+
+  describe("evasion-vector guards", () => {
+    it("no .js.map file in engine/dist contains inline sourcesContent (source-leak guard)", () => {
+      // If tsconfig is ever set to inlineSources or sourceMap with sourcesContent,
+      // the source files (including any forbidden symbols in pre-erasure TypeScript)
+      // get embedded in the .js.map shipped to npm consumers. tsc's default
+      // omits sourcesContent — this test fires if that default ever changes.
+      const mapFiles = globSync("**/*.js.map", { cwd: ENGINE_DIST, absolute: true });
+      const leaks: string[] = [];
+      for (const mapPath of mapFiles) {
+        const parsed = JSON.parse(readFileSync(mapPath, "utf8")) as {
+          readonly sourcesContent?: ReadonlyArray<unknown>;
+        };
+        if (parsed.sourcesContent !== undefined) {
+          leaks.push(`${mapPath.replace(`${ENGINE_DIST}/`, "")} has inline sourcesContent`);
+        }
+      }
+      expect(leaks, leaks.join("\n")).toEqual([]);
+    });
+
+    it("no .js.map file in engine/dist references any forbidden runtime dep", () => {
+      // Defense in depth: even if sourcesContent is empty, the `sources:` paths
+      // and any other metadata should not reference forbidden deps. Catches
+      // tsconfig misconfigurations that point sources at e.g. node_modules/axios.
+      const mapFiles = globSync("**/*.js.map", { cwd: ENGINE_DIST, absolute: true });
+      const leaks: string[] = [];
+      for (const mapPath of mapFiles) {
+        const content = readFileSync(mapPath, "utf8");
+        for (const dep of FORBIDDEN_RUNTIME_DEPS) {
+          // Match the dep as a path segment to avoid false positives on names
+          // like "axios-mock-adapter" matching "axios".
+          const pattern = new RegExp(`["'/]${dep.replace("-", "\\-")}["'/]`);
+          if (pattern.test(content)) {
+            leaks.push(`${mapPath.replace(`${ENGINE_DIST}/`, "")} references ${dep}`);
+          }
+        }
+      }
+      expect(leaks, leaks.join("\n")).toEqual([]);
+    });
+
+    it("no compiled .js uses string-concatenated dynamic require to evade the static grep", () => {
+      // The per-symbol grep catches `require('axios')` but misses
+      // `require("axi" + "os")` because it greps for string-quoted module
+      // specifiers. This test catches the concatenation pattern explicitly.
+      const files = globSync("**/*.js", { cwd: ENGINE_DIST, absolute: true });
+      const violations: string[] = [];
+      // Match: require(  "..."  +  "..."  ) or import(  "..."  +  "..."  )
+      // Allows whitespace around tokens; the key signal is two adjacent string
+      // literals joined by `+` inside a require/import call.
+      const evasionPattern = /(?:require|import)\s*\(\s*["'][^"']*["']\s*\+\s*["'][^"']*["']/;
+      for (const file of files) {
+        const source = readFileSync(file, "utf8");
+        const stripped = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+        if (evasionPattern.test(stripped)) {
+          violations.push(file.replace(`${ENGINE_DIST}/`, ""));
+        }
+      }
+      expect(
+        violations,
+        `string-concatenated dynamic require detected: ${violations.join(", ")}`,
+      ).toEqual([]);
+    });
+
+    it("no compiled .js uses computed-property dynamic require (variable-based)", () => {
+      // `const m = "axios"; require(m)` — even harder to catch since `m`
+      // could be set anywhere. Pattern-match for the shape: require(IDENT)
+      // where IDENT is a bare identifier, not a string literal. This is
+      // legitimate in framework code (Express does it) so we only flag
+      // computed requires in modules that have other red flags. For the
+      // engine, the convention is ZERO dynamic requires of any kind — the
+      // engine is pure-functional and synchronous-imports-only by design.
+      const files = globSync("**/*.js", { cwd: ENGINE_DIST, absolute: true });
+      const violations: string[] = [];
+      const computedRequirePattern = /\brequire\s*\(\s*[A-Za-z_]\w*\s*\)/;
+      for (const file of files) {
+        const source = readFileSync(file, "utf8");
+        const stripped = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+        if (computedRequirePattern.test(stripped)) {
+          violations.push(file.replace(`${ENGINE_DIST}/`, ""));
+        }
+      }
+      expect(
+        violations,
+        `computed-property dynamic require in engine dist: ${violations.join(", ")}`,
+      ).toEqual([]);
+    });
+
+    it("engine package.json declares no forbidden deps in peerDependencies either", () => {
+      // The existing per-dep gate covers `dependencies`. peerDependencies is
+      // a separate field that npm install ALSO satisfies — a forbidden dep
+      // declared as peer would still arrive in the consumer's node_modules.
+      const pkg = JSON.parse(readFileSync(join(PKG_ROOT, "package.json"), "utf8")) as {
+        readonly peerDependencies?: Record<string, string>;
+      };
+      const peers = pkg.peerDependencies ?? {};
+      const forbiddenPeers = Object.keys(peers).filter((d) => FORBIDDEN_RUNTIME_DEPS.includes(d));
+      expect(
+        forbiddenPeers,
+        `forbidden deps in peerDependencies: ${forbiddenPeers.join(", ")}`,
+      ).toEqual([]);
+    });
+
+    it("engine package.json declares no forbidden deps in optionalDependencies either", () => {
+      // Same rationale as peerDependencies: optionalDependencies still get
+      // installed by default; npm only treats them as soft-fail-on-install.
+      const pkg = JSON.parse(readFileSync(join(PKG_ROOT, "package.json"), "utf8")) as {
+        readonly optionalDependencies?: Record<string, string>;
+      };
+      const opt = pkg.optionalDependencies ?? {};
+      const forbiddenOpt = Object.keys(opt).filter((d) => FORBIDDEN_RUNTIME_DEPS.includes(d));
+      expect(
+        forbiddenOpt,
+        `forbidden deps in optionalDependencies: ${forbiddenOpt.join(", ")}`,
+      ).toEqual([]);
+    });
+  });
 });

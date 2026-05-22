@@ -83,6 +83,32 @@ module.exports = {
         path: "node_modules/(node-fetch|axios|got|undici|cross-fetch|isomorphic-fetch|ky|wretch|phin|needle|request)/",
       },
     },
+    {
+      // Closes the re-export-proxy bypass: engine/src/proxy.ts -> cli/src/has-fs.ts
+      // would otherwise pull fs into the engine's runtime path without firing
+      // engine-no-node-core (because the fs import lives in cli/src, where it's
+      // an allowed carve-out). This rule blocks the proxy edge directly.
+      name: "engine-no-cli-imports",
+      severity: "error",
+      comment:
+        "packages/engine must not import from packages/cli. The CLI is the I/O " +
+        "boundary; routing engine code through it (re-export proxies, util imports) " +
+        "would smuggle fs/path/network deps into the engine's runtime. See D-01.",
+      from: { path: "^packages/engine/(src|dist)" },
+      to: { path: "^packages/cli/" },
+    },
+    {
+      // Same shape as engine-no-cli-imports, applied to predicates which run in
+      // the engine sandbox (D-28). A predicate importing from cli would pull
+      // the CLI's I/O surface into the supposedly-pure rule layer.
+      name: "rules-predicates-no-cli-imports",
+      severity: "error",
+      comment:
+        "packages/rules predicates run inside the engine sandbox (D-28). They " +
+        "must not import from packages/cli — same rationale as engine-no-cli-imports.",
+      from: { path: "^packages/rules/src/predicates/" },
+      to: { path: "^packages/cli/" },
+    },
   ],
   options: {
     tsConfig: { fileName: "tsconfig.base.json" },

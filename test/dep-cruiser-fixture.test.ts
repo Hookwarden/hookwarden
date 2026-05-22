@@ -170,9 +170,50 @@ describe("dep-cruiser engine purity rules", () => {
     }
   });
 
-  it("config: total forbidden-rule count matches the documented architecture (8 rules)", () => {
+  it("config: total forbidden-rule count matches the documented architecture (10 rules)", () => {
     const ruleCount = (DEPCRUISER_CONFIG_SRC.match(/name:\s*"[^"]+"/g) ?? []).length;
-    expect(ruleCount).toBe(8);
+    expect(ruleCount).toBe(10);
+  });
+
+  // ─── Re-export proxy bypass tests (engine-no-cli-imports) ────────────────
+  // Without engine-no-cli-imports, the chain `engine/src/proxy.ts -> cli/src/x.ts`
+  // would not trigger engine-no-node-core even when x.ts imports fs (because
+  // the fs import lives in cli, where it's an allowed carve-out). These tests
+  // prove the new rule closes that bypass.
+
+  it("engine-no-cli-imports: rejects relative import from engine/src to packages/cli", () => {
+    writeFileSync(
+      ENGINE_FIXTURE,
+      "import { something } from '../../cli/src/index.js';\nexport const x = 1;\n",
+    );
+    const { code, output } = depcruise();
+    expect(code).not.toBe(0);
+    expect(output).toMatch(/engine-no-cli-imports/);
+  });
+
+  it("engine-no-cli-imports: rejects re-export-proxy chain (engine -> cli)", () => {
+    // The actual bypass scenario: a proxy file re-exporting from cli would
+    // smuggle cli's allowed-fs deps into engine's runtime path without firing
+    // engine-no-node-core. engine-no-cli-imports closes that escape hatch.
+    writeFileSync(ENGINE_FIXTURE, "export * from '../../cli/src/index.js';\n");
+    const { code, output } = depcruise();
+    expect(code).not.toBe(0);
+    expect(output).toMatch(/engine-no-cli-imports/);
+  });
+
+  it("rules-predicates-no-cli-imports: rejects relative import from rules/predicates to cli", () => {
+    writeFileSync(
+      RULES_PREDICATE_FIXTURE,
+      "import { something } from '../../../cli/src/index.js';\nexport const x = 1;\n",
+    );
+    const { code, output } = depcruise();
+    expect(code).not.toBe(0);
+    expect(output).toMatch(/rules-predicates-no-cli-imports/);
+  });
+
+  it("config: engine-no-cli-imports + rules-predicates-no-cli-imports both exist", () => {
+    expect(DEPCRUISER_CONFIG_SRC).toMatch(/name:\s*"engine-no-cli-imports"/);
+    expect(DEPCRUISER_CONFIG_SRC).toMatch(/name:\s*"rules-predicates-no-cli-imports"/);
   });
 
   // ─── Carve-outs: legitimate boundaries that MUST pass ────────────────────
