@@ -1,0 +1,44 @@
+{
+  "name": "@hookwarden/fix",
+  "version": "0.0.0",
+  "description": "hookwarden auto-remediation engine — bounded location for @babel/traverse + @babel/generator (engine purity gate D-05).",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hookwarden/hookwarden.git",
+    "directory": "packages/fix"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsc --build",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@hookwarden/engine": "workspace:*",
+    "@babel/generator": "^7.29.0",
+    "@babel/traverse": "^7.29.0"
+  },
+  "devDependencies": {
+    "@babel/types": "^7.29.0"
+  }
+}
