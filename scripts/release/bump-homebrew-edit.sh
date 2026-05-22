@@ -30,8 +30,31 @@ FORMULA=${2:?FORMULA path required}
 VERSION=${3:?VERSION required (e.g. v1.2.3)}
 SHA_NPM=${4:?SHA_NPM required (sha256 of the npm tarball)}
 
+# Explicit input-file checks: clearer failure mode than awk's "can't open" when
+# the path is wrong (a real concern for CI runners with surprising cwd state).
+if [[ ! -f "$CHECKSUMS" ]]; then
+  echo "ERROR: CHECKSUMS file does not exist: $CHECKSUMS" >&2
+  exit 1
+fi
+if [[ ! -f "$FORMULA" ]]; then
+  echo "ERROR: FORMULA file does not exist: $FORMULA" >&2
+  exit 1
+fi
+
+# Validate VERSION shape: must start with 'v' and parse as semver-ish
+# (allows pre-release suffixes like -rc.1, -beta.2). The release workflow's
+# tag-push trigger already gates this upstream, but a clearer local error
+# beats a confusing "sed produced no changes" downstream.
+if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+  echo "ERROR: VERSION must match 'v<major>.<minor>.<patch>[-prerelease]' — got '$VERSION'" >&2
+  exit 1
+fi
+
 extract_sha() {
-  awk -v f="$1" '$2 == f { print $1; exit }' "$CHECKSUMS"
+  # tr -d '\r' strips DOS line endings before awk match. Windows-touched
+  # checksums.txt (rare but real on cross-platform CI) would otherwise fail
+  # `$2 == filename` because the trailing \r becomes part of $2.
+  tr -d '\r' < "$CHECKSUMS" | awk -v f="$1" '$2 == f { print $1; exit }'
 }
 
 SHA_LINUX_ARM=$(extract_sha hookwarden-linux-arm64)

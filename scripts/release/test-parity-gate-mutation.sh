@@ -133,5 +133,294 @@ if bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/sc
 fi
 echo "  PASS (gate correctly rejected malformed SHA)"
 
+# ─── Adversarial + edge-case coverage (Tests 6-15) ──────────────────────────
+# The parity gate is the last line of defence against supply-chain divergence
+# between Homebrew, Scoop, and PyPI shim. Each negative test below maps to a
+# real attack/failure scenario a senior DevOps would expect us to catch.
+
+# ---- Test 6: reordered formula sha256 lines → membership-check still passes ----
+echo "Test 6: formula with reordered Linux SHAs (x64 before arm) → membership-check still passes"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_DA}  hookwarden-darwin-arm64
+${SHA_DX}  hookwarden-darwin-x64
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+${SHA_W}  hookwarden-windows-x64.exe
+EOF
+cat > "$TMP/shim.json" <<EOF
+{"darwin-arm64": "${SHA_DA}", "darwin-x64": "${SHA_DX}", "linux-arm64": "${SHA_LA}", "linux-x64": "${SHA_LX}", "windows-x64": "${SHA_W}"}
+EOF
+cat > "$TMP/formula.rb" <<EOF
+class Hookwarden < Formula
+  url "https://registry.npmjs.org/hookwarden/-/hookwarden-0.4.0.tgz"
+  sha256 "${SHA_NM}"
+  on_linux do
+    on_intel do
+      url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-x64"
+      sha256 "${SHA_LX}"
+    end
+    on_arm do
+      url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-arm64"
+      sha256 "${SHA_LA}"
+    end
+  end
+end
+EOF
+cat > "$TMP/scoop.json" <<EOF
+{"architecture": {"64bit": { "hash": "${SHA_W}" }}}
+EOF
+if ! bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" >/dev/null 2>&1; then
+  echo "FAIL: reordered (but still membership-valid) SHAs should have passed"
+  bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json"
+  exit 1
+fi
+echo "  PASS (gate uses membership semantics, not positional)"
+
+# ---- Test 7: hypothetical regrowth — on_macos block with its own GH url+sha
+# (this would attack the parity gate's assumption that macOS uses npm only). ----
+echo "Test 7: hypothetical on_macos { url releases/download/... sha256 X } regrowth → SHA must be parity-checked"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_DA}  hookwarden-darwin-arm64
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+EOF
+cat > "$TMP/shim.json" <<EOF
+{"linux-arm64": "${SHA_LA}", "linux-x64": "${SHA_LX}"}
+EOF
+SHA_ATTACKER=$(printf '7%.0s' {1..64})  # NOT in canonical
+cat > "$TMP/formula.rb" <<EOF
+class Hookwarden < Formula
+  url "https://registry.npmjs.org/hookwarden/-/hookwarden-0.4.0.tgz"
+  sha256 "${SHA_NM}"
+  on_macos do
+    url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-darwin-arm64"
+    sha256 "${SHA_ATTACKER}"
+  end
+  on_linux do
+    on_arm do
+      url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-arm64"
+      sha256 "${SHA_LA}"
+    end
+    on_intel do
+      url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-x64"
+      sha256 "${SHA_LX}"
+    end
+  end
+end
+EOF
+cat > "$TMP/scoop.json" <<EOF
+{"architecture": {"64bit": { "hash": "${SHA_W}" }}}
+EOF
+# Add canonical SHA_W so scoop passes; we're testing the on_macos regrowth specifically.
+echo "${SHA_W}  hookwarden-windows-x64.exe" >> "$TMP/checksums.txt"
+if bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" >/dev/null 2>&1; then
+  echo "FAIL: attacker SHA inside on_macos url block should have been caught by parity gate"
+  cat "$TMP/formula.rb"
+  exit 1
+fi
+echo "  PASS (any sha256 paired with a releases/download URL is parity-checked, including on_macos regrowths)"
+
+# ---- Test 8: missing CHECKSUMS file → gate fails fast ----
+echo "Test 8: missing CHECKSUMS file → gate MUST fail fast"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/shim.json" <<EOF
+{"linux-arm64": "${SHA_LA}"}
+EOF
+cat > "$TMP/formula.rb" <<EOF
+class Hookwarden < Formula
+  on_linux do on_arm do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-arm64"; sha256 "${SHA_LA}" end end
+end
+EOF
+cat > "$TMP/scoop.json" <<EOF
+{"architecture": {"64bit": {"hash": "${SHA_W}"}}}
+EOF
+if bash "$CORE" "$TMP/does-not-exist.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" 2>/dev/null; then
+  echo "FAIL: missing CHECKSUMS file should have triggered gate failure"
+  exit 1
+fi
+echo "  PASS"
+
+# ---- Test 9: malformed PyPI shim JSON → jq error propagates as gate failure ----
+echo "Test 9: malformed PyPI shim JSON → gate MUST fail (jq parse error)"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+${SHA_W}  hookwarden-windows-x64.exe
+EOF
+echo "not valid json {" > "$TMP/shim.json"
+cat > "$TMP/formula.rb" <<EOF
+class Hookwarden < Formula
+  on_linux do
+    on_arm do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-arm64"; sha256 "${SHA_LA}" end
+    on_intel do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-x64"; sha256 "${SHA_LX}" end
+  end
+end
+EOF
+cat > "$TMP/scoop.json" <<EOF
+{"architecture": {"64bit": {"hash": "${SHA_W}"}}}
+EOF
+if bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" 2>/dev/null; then
+  echo "FAIL: malformed PyPI shim JSON should have caused gate failure"
+  exit 1
+fi
+echo "  PASS"
+
+# ---- Test 10: malformed Scoop JSON → jq error propagates ----
+echo "Test 10: malformed Scoop manifest JSON → gate MUST fail"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+${SHA_W}  hookwarden-windows-x64.exe
+EOF
+cat > "$TMP/shim.json" <<EOF
+{"linux-arm64": "${SHA_LA}", "linux-x64": "${SHA_LX}"}
+EOF
+cat > "$TMP/formula.rb" <<EOF
+class Hookwarden < Formula
+  on_linux do
+    on_arm do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-arm64"; sha256 "${SHA_LA}" end
+    on_intel do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-x64"; sha256 "${SHA_LX}" end
+  end
+end
+EOF
+echo "broken {" > "$TMP/scoop.json"
+if bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" 2>/dev/null; then
+  echo "FAIL: malformed Scoop JSON should have caused gate failure"
+  exit 1
+fi
+echo "  PASS"
+
+# ---- Test 11: empty canonical checksums.txt → gate fails fast ----
+echo "Test 11: empty canonical checksums.txt → gate MUST fail (no membership to check against)"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+: > "$TMP/checksums.txt"
+cat > "$TMP/shim.json" <<EOF
+{"linux-arm64": "${SHA_LA}"}
+EOF
+cat > "$TMP/formula.rb" <<EOF
+class Hookwarden < Formula
+  on_linux do on_arm do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-arm64"; sha256 "${SHA_LA}" end end
+end
+EOF
+cat > "$TMP/scoop.json" <<EOF
+{"architecture": {"64bit": {"hash": "${SHA_W}"}}}
+EOF
+if bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" 2>/dev/null; then
+  echo "FAIL: empty canonical checksums.txt should have caused gate failure"
+  exit 1
+fi
+echo "  PASS"
+
+# ---- Test 12: 63-char truncated SHA in Scoop → regex validation rejects ----
+echo "Test 12: 63-char truncated SHA in Scoop (off-by-one attacker) → regex MUST reject"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+${SHA_W}  hookwarden-windows-x64.exe
+EOF
+cat > "$TMP/shim.json" <<EOF
+{"linux-arm64": "${SHA_LA}", "linux-x64": "${SHA_LX}"}
+EOF
+cat > "$TMP/formula.rb" <<EOF
+class Hookwarden < Formula
+  on_linux do
+    on_arm do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-arm64"; sha256 "${SHA_LA}" end
+    on_intel do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-x64"; sha256 "${SHA_LX}" end
+  end
+end
+EOF
+SHA_TRUNC=$(printf 'a%.0s' {1..63})  # 63 hex chars, off by one
+cat > "$TMP/scoop.json" <<EOF
+{"architecture": {"64bit": {"hash": "${SHA_TRUNC}"}}}
+EOF
+if bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" 2>/dev/null; then
+  echo "FAIL: 63-char truncated SHA should have failed the 64-hex regex"
+  exit 1
+fi
+echo "  PASS (off-by-one length mutation caught)"
+
+# ---- Test 13: multi-channel cross-divergence — gate identifies ALL diverging channels ----
+echo "Test 13: 2 channels diverged from canonical → gate reports BOTH"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+${SHA_W}  hookwarden-windows-x64.exe
+EOF
+SHA_BAD=$(printf '9%.0s' {1..64})
+# Both PyPI shim and Scoop mutated, Homebrew clean
+cat > "$TMP/shim.json" <<EOF
+{"linux-arm64": "${SHA_BAD}", "linux-x64": "${SHA_LX}"}
+EOF
+cat > "$TMP/formula.rb" <<EOF
+class Hookwarden < Formula
+  on_linux do
+    on_arm do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-arm64"; sha256 "${SHA_LA}" end
+    on_intel do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-x64"; sha256 "${SHA_LX}" end
+  end
+end
+EOF
+cat > "$TMP/scoop.json" <<EOF
+{"architecture": {"64bit": {"hash": "${SHA_BAD}"}}}
+EOF
+gate_out=$(bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" 2>&1 || true)
+# Both divergences must be reported (PyPI shim + Scoop)
+echo "$gate_out" | grep -q "PyPI shim" || { echo "FAIL: PyPI shim divergence not reported"; echo "$gate_out"; exit 1; }
+echo "$gate_out" | grep -q "Scoop manifest" || { echo "FAIL: Scoop divergence not reported"; echo "$gate_out"; exit 1; }
+echo "  PASS (gate reports all diverging channels, not just the first)"
+
+# ---- Test 14: formula path doesn't exist → fails fast ----
+echo "Test 14: missing FORMULA file → gate MUST fail"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+EOF
+cat > "$TMP/shim.json" <<EOF
+{"linux-arm64": "${SHA_LA}"}
+EOF
+cat > "$TMP/scoop.json" <<EOF
+{"architecture": {"64bit": {"hash": "${SHA_W}"}}}
+EOF
+if bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/does-not-exist.rb" "$TMP/scoop.json" 2>/dev/null; then
+  echo "FAIL: missing FORMULA file should have failed"
+  exit 1
+fi
+echo "  PASS"
+
+# ---- Test 15: Scoop manifest with multiple architectures (32bit + 64bit + arm64) ----
+echo "Test 15: Scoop manifest with multiple architectures → all hashes parity-checked"
+rm -rf "$TMP" && TMP=$(mktemp -d) && trap 'rm -rf "$TMP"' EXIT
+cat > "$TMP/checksums.txt" <<EOF
+${SHA_LA}  hookwarden-linux-arm64
+${SHA_LX}  hookwarden-linux-x64
+${SHA_W}  hookwarden-windows-x64.exe
+EOF
+cat > "$TMP/shim.json" <<EOF
+{"linux-arm64": "${SHA_LA}", "linux-x64": "${SHA_LX}"}
+EOF
+cat > "$TMP/formula.rb" <<EOF
+class Hookwarden < Formula
+  on_linux do
+    on_arm do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-arm64"; sha256 "${SHA_LA}" end
+    on_intel do url "https://github.com/Hookwarden/hookwarden/releases/download/v0.4.0/hookwarden-linux-x64"; sha256 "${SHA_LX}" end
+  end
+end
+EOF
+# 64bit valid, arm64 invalid (not in canonical) — gate must catch the arm64 mutation
+SHA_BAD=$(printf '8%.0s' {1..64})
+cat > "$TMP/scoop.json" <<EOF
+{"architecture": {"64bit": {"hash": "${SHA_W}"}, "arm64": {"hash": "${SHA_BAD}"}}}
+EOF
+if bash "$CORE" "$TMP/checksums.txt" "$TMP/shim.json" "$TMP/formula.rb" "$TMP/scoop.json" 2>/dev/null; then
+  echo "FAIL: Scoop multi-arch with one bad hash should have failed"
+  exit 1
+fi
+echo "  PASS (every Scoop architecture hash is checked, not just 64bit)"
+
 echo
-echo "All 6 mutation tests passed — channel-parity gate correctly identifies divergence."
+echo "All 15 mutation tests passed — channel-parity gate correctly identifies divergence."

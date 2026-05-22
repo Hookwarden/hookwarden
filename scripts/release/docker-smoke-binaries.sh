@@ -180,12 +180,8 @@ test_scan_clean_python() {
   return 0
 }
 
-# T7: scan PHP bug → finds timing-unsafe-comparison (proves tree-sitter-php WASM
-# loader resolves the embedded asset, not the source-tree path). No symmetric
-# "clean PHP" row yet — the PHP call-graph analyzer currently flags every
-# library-verified handler with `stripe/unreachable-verification` at high, so a
-# clean-path exit-0 assertion would be testing engine maturity rather than
-# WASM loader correctness. Re-add once PHP reachability matures.
+# T7: scan PHP bug → finds timing-unsafe-comparison on a vanilla-PHP strcmp()
+# handler (proves tree-sitter-php WASM loader resolves the embedded asset).
 test_scan_php_bug() {
   local cmd="$1"
   local fixtures="$2"
@@ -207,6 +203,76 @@ test_scan_php_bug() {
   return 0
 }
 
+# T8: scan PHP Laravel-shaped bug → finds timing-unsafe-comparison via === on a
+# Route closure. Different syntactic shape than T7 (namespace use + closure +
+# Request object + response() helper) — proves the PHP parser handles
+# framework-shaped code, not just vanilla top-level scripts.
+test_scan_php_laravel_bug() {
+  local cmd="$1"
+  local fixtures="$2"
+  local out
+  local code=0
+  out=$("$cmd" scan "$fixtures/php-laravel-bug" 2>&1) || code=$?
+  if [ "$code" != "1" ]; then
+    echo "  scan php-laravel-bug exited $code (expected 1)"
+    return 1
+  fi
+  echo "$out" | grep -q "stripe/timing-unsafe-comparison" || {
+    echo "  scan php-laravel-bug missed stripe/timing-unsafe-comparison (framework PHP shape broken?)"
+    return 1
+  }
+  return 0
+}
+
+# T9: inventory against a PHP fixture → exit 0, lists detected handler with
+# framework + provider + state columns. Proves the inventory subcommand
+# wires through to the PHP parser in compiled-Bun context (separate code
+# path from scan; same WASM loader concern).
+test_inventory_php() {
+  local cmd="$1"
+  local fixtures="$2"
+  local out
+  local code=0
+  out=$("$cmd" inventory "$fixtures/php-vanilla-bug" 2>&1) || code=$?
+  if [ "$code" != "0" ]; then
+    echo "  inventory php-vanilla-bug exited $code (expected 0)"
+    return 1
+  fi
+  echo "$out" | grep -q "vanilla-php" || {
+    echo "  inventory output missing 'vanilla-php' framework label"
+    return 1
+  }
+  echo "$out" | grep -q "stripe" || {
+    echo "  inventory output missing 'stripe' provider"
+    return 1
+  }
+  return 0
+}
+
+# T10: explain a rule → exit 0, prints docs with severity + applies-to list.
+# Exercises the explain subcommand's rule-pack loading path in compiled-Bun
+# (separate from scan/inventory which load the rule pack via different
+# entry points). Catches "rule docs unreadable inside /$bunfs" regressions.
+test_explain_rule() {
+  local cmd="$1"
+  local out
+  local code=0
+  out=$("$cmd" explain stripe/timing-unsafe-comparison 2>&1) || code=$?
+  if [ "$code" != "0" ]; then
+    echo "  explain exited $code (expected 0)"
+    return 1
+  fi
+  echo "$out" | grep -q "stripe/timing-unsafe-comparison" || {
+    echo "  explain output missing rule id header"
+    return 1
+  }
+  echo "$out" | grep -qi "severity:" || {
+    echo "  explain output missing 'severity:' field"
+    return 1
+  }
+  return 0
+}
+
 TESTS=(
   "test_help          T1 --help_works"
   "test_scan_help     T2 scan_--help"
@@ -215,6 +281,9 @@ TESTS=(
   "test_scan_clean_js   T5 scan_clean_js_exit0"
   "test_scan_clean_python T6 scan_clean_python_exit0"
   "test_scan_php_bug   T7 scan_php_bug_finds_stripe"
+  "test_scan_php_laravel_bug T8 scan_php_laravel_bug_finds_stripe"
+  "test_inventory_php T9 inventory_php_lists_handler"
+  "test_explain_rule  T10 explain_rule_prints_docs"
 )
 
 # ─── runner ──────────────────────────────────────────────────────────────────
