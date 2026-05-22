@@ -45,9 +45,9 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
 ## Why
 
-**Snyk and Semgrep find everything. Hookwarden finds the one thing that lets attackers replay your Stripe webhooks.**
+**Every dollar of fraud loss that flows through a webhook starts with a verification bug — and verification bugs hide in plain sight.**
 
-Most webhook bugs are not in delivery — they're in verification. A handler that accepts an unsigned payload, compares HMACs with `==`, or skips the signature check on a `?test=true` path will silently route attacker traffic into your business logic. The attack surface is real, the bugs are common, and general-purpose SAST tools weren't built for this — they bury the high-signal webhook bug under hundreds of medium-priority generic findings.
+A handler that accepts an unsigned payload, compares HMACs with `==`, or skips the signature check on a `?test=true` path will silently route attacker traffic into your business logic. The bug is one line of code in a 50K-line app, and the code looks plausible — not the shape general-purpose SAST tools are tuned to flag. They were built to catch SQL injection and prototype pollution; webhook verification falls between their default rule packs.
 
 Hookwarden does one thing. It walks your repo, parses every webhook handler across Express, Hono, Fastify, Next.js, Flask, FastAPI, Django, Laravel, Symfony, Slim, and vanilla-PHP single-file handlers, and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix drawn verbatim from provider documentation. That focus is the entire point. The provider catalog (Stripe, GitHub, Shopify, Slack, Twilio, Square — and growing) encodes signature-format quirks no generic scanner has the surface area to know: that Stripe uses HMAC-SHA256 with a 5-minute timestamp tolerance, that Slack uses `v0:${ts}:${body}` not raw-body, that Twilio is the SHA1 outlier the rest of the catalog has to accommodate.
 
