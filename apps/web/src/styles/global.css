@@ -1,0 +1,18 @@
+/* Tailwind v4 CSS-first config (Phase 8.2 brand) */
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0b0f14;
+  --color-text: #e5e7eb;
+  --color-accent: #6366f1;
+  --color-surface: #1e293b;
+
+  --font-sans: "Geist", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}

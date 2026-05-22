@@ -28,6 +28,27 @@ except: `stripe/express-middleware-ordering` (Express-only middleware concern) a
 pattern — PHP's `hash_equals` is handled by the cross-language
 `github-timing-unsafe-comparison` predicate via PHP dispatch).
 
+## Auto-fix coverage (v0.5)
+
+Per-rule fixability classification. `safety: safe` rules are applied
+mechanically by `hookwarden fix`; `safety: manual-only` rules emit
+per-finding fix prose via `--mode manual-only-explain`.
+
+| Rule family | safety | codegen | Notes |
+|---|---|---|---|
+| timing-unsafe-comparison | safe | dispatch-timing-unsafe-comparison | `===`/`==` → `crypto.timingSafeEqual` (JS), `hmac.compare_digest` (Python), `hash_equals` (PHP); also handles `strcmp(...) === 0` |
+| github/missing-timing-safe-equal | safe | dispatch-timing-unsafe-comparison | JS-specific alias |
+| raw-body-misuse | safe | dispatch-replace-raw-body-misuse | `req.body` → `req.rawBody` (JS); `$_POST` / `Input::all` → `file_get_contents("php://input")` (PHP); **Python manual-only — `request.data` semantics depend on Content-Type + parser state** |
+| missing-signature-verification | manual-only | null | Architectural — requires inserting full HMAC compute + compare block |
+| missing-timestamp-check | manual-only | null | Requires timestamp diff computation against provider scheme |
+| wrong-hmac-algorithm | manual-only | null | Requires understanding the provider's algorithm parameter |
+| unreachable-verification | manual-only | null | Requires reordering control flow |
+| library-verified | manual-only | null | Informational; no fix needed |
+| hardcoded-secret-prefix | manual-only | null | Replace literal with env-var read |
+| express-middleware-ordering | manual-only | null | Requires JS-only `app.use()` reorder |
+
+10 rules are `safety: safe` (8 codegen routines + 4 dispatchers); 35 are `safety: manual-only`. Schema enforces that every rule declares the `fix:` block — no silent gaps.
+
 ### PHP SDK detection
 
 | Provider | PHP namespace prefix | PHP verify FQN |

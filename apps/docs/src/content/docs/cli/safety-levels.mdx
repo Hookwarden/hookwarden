@@ -1,0 +1,53 @@
+---
+title: Safety levels
+description: How hookwarden classifies each rule's fixability — and what the three --mode values do.
+---
+
+Every rule in the hookwarden rule pack declares a `fix:` block in its YAML. The block has three possible `safety` values, and the `hookwarden fix` subcommand routes by them.
+
+## The three safety values
+
+### `safety: safe`
+
+A mechanical rewrite that is provably semantic-preserving for non-pathological inputs, strengthens security, needs no new imports (or adds them atomically), and passes type-check.
+
+The v0.5 safe set contains **10 rules** across 4 fix families:
+
+| Fix family | Languages | Codegen |
+|---|---|---|
+| `timing-unsafe-comparison` | JS/TS, Python, PHP | `dispatch-timing-unsafe-comparison` — `===`/`==` → `crypto.timingSafeEqual` / `hmac.compare_digest` / `hash_equals` |
+| `raw-body-misuse` | JS/TS, PHP | `dispatch-replace-raw-body-misuse` — `req.body` → `req.rawBody` (JS); `$_POST` / `Input::all` → `file_get_contents("php://input")` (PHP). **Python is manual-only** (Flask `request.data` semantics depend on Content-Type + parser state). |
+| `missing-nullish-guard` | JS/TS, Python | `dispatch-insert-nullish-guard` — inserts `if (!sig) throw ...` / `if sig is None: raise ...`. **PHP is manual-only** (`??` and `isset()` idioms make a one-line text-range rewrite too invasive). |
+| `missing-secret-presence-check` | JS/TS, Python, PHP | `dispatch-insert-secret-presence-check` — inserts `if (!process.env.X) throw ...` / `if not os.environ.get("X"): raise ...` / `if (!getenv("X")) throw ...` |
+
+### `safety: unsafe`
+
+A mechanical rewrite exists but requires human review. `hookwarden fix --mode all` applies these alongside `safe` rules. In non-TTY contexts (CI), the command refuses unless `--accept-unsafe` is also passed.
+
+No rules ship as `unsafe` in v0.5. The category exists for future rules that have an autofix but where the false-positive risk warrants explicit consent.
+
+### `safety: manual-only`
+
+No mechanical fix; the rule emits per-finding prose via `hookwarden fix --mode manual-only-explain`. The `description` field in the `fix:` block IS the output.
+
+The v0.5 manual-only set contains **35 rules**:
+
+- `missing-signature-verification` (× 6 providers) — architectural; requires inserting the full HMAC compute + compare block
+- `missing-timestamp-check` (× 5 providers) — requires timestamp diff computation against provider scheme
+- `wrong-hmac-algorithm` (× 6 providers) — requires understanding the provider's algorithm parameter
+- `unreachable-verification` (× 6 providers) — requires reordering control flow
+- `library-verified` (× 6 providers) — informational; no fix needed
+- `hardcoded-secret-prefix` (× 2 providers — Stripe + GitHub) — replace literal with env-var read
+- `express-middleware-ordering` (× 1 — Stripe-Express only) — requires JS-only `app.use()` reorder
+
+## The three `--mode` values
+
+| `--mode` | Applies | TTY required? |
+|---|---|---|
+| `safe` (default) | rules with `safety: safe` | no |
+| `all` | rules with `safety: safe` OR `safety: unsafe` | TTY OR `--accept-unsafe` |
+| `manual-only-explain` | emits prose for `safety: manual-only` rules; no file writes | no |
+
+## Why two layers (rule pack + mode)?
+
+The rule pack is the authoritative declaration of fixability. The `--mode` flag is the user's per-run consent layer. Buyers run `--mode safe` by default in CI; engineers reviewing diffs locally can opt into `--mode all`; and any user can ask `--mode manual-only-explain` to surface the prose for the rules that can't be mechanically fixed.

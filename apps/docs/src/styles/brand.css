@@ -1,0 +1,8 @@
+/* hookwarden brand overrides for Starlight defaults. */
+:root {
+  --sl-color-accent-low: #1e293b;
+  --sl-color-accent: #6366f1;
+  --sl-color-accent-high: #818cf8;
+  --sl-color-white: #e5e7eb;
+  --sl-color-gray-7: #0b0f14;
+}

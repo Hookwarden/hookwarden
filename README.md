@@ -176,6 +176,40 @@ See [Install](#-install) for permanent install via npm, Homebrew, Scoop, or PyPI
 
 ---
 
+## 🛠 Auto-fix (v0.5)
+
+hookwarden doesn't just tell you the fix — it applies it. The `fix` subcommand mechanically rewrites the `safety: safe` subset of findings across JS/TS, Python, and PHP.
+
+```bash
+# Dry-run (default) — prints a unified diff, writes nothing
+npx hookwarden fix ./your-app
+
+# Apply via atomic-staging path, re-scan touched files, then rename into place
+npx hookwarden fix ./your-app --write
+```
+
+**Three safety modes:**
+
+- `--mode safe` (default) — only applies rules marked `safety: safe` in the rule pack (10 rules: timing-unsafe comparisons across all 3 langs, raw-body misuse across JS/TS + PHP). Constant-time `crypto.timingSafeEqual` / `hmac.compare_digest` / `hash_equals` replacements; `req.body` → `req.rawBody`; `$_POST` / `Input::all` → `file_get_contents("php://input")`.
+- `--mode all` — applies `safe` plus `unsafe` rules. Refuses in CI/non-TTY unless `--accept-unsafe` is also passed.
+- `--mode manual-only-explain` — emits the per-finding fix prose for rules where mechanical rewrite isn't safe (missing-signature-verification, wrong-hmac-algorithm, etc. — 35 rules ship as manual-only in v0.5).
+
+**Safety contract:**
+
+- **Atomic staging** — every rewrite lands in `.hookwarden-fix-staging/<run-id>/` first; the original files are renamed into place only after a re-scan confirms zero new findings. On any failure, the staging dir persists for inspection.
+- **Forbidden-range mask** — the fixer NEVER edits inside template literals (JS/TS), triple-quoted strings (Python), heredocs/nowdocs/encapsed strings (PHP), or comments. Mask runs before every edit.
+- **Conflict resolver** — when two findings target overlapping byte ranges, the fixer aborts the commit and prints an `--only <rule-id>` recipe so you can apply them one at a time.
+- **Versioned JSON schema** — `--format json` emits a machine-readable diff against `https://hookwarden.dev/schemas/fix-output.v1.json` for IDE-plugin and CI tooling.
+
+```bash
+# Get the JSON diff for tooling
+npx hookwarden fix ./your-app --format json
+```
+
+Use `hookwarden scan` for the read path, `hookwarden fix` for the write path — never `scan --fix` (rejected at parse time per the dry-run-as-default safety boundary).
+
+---
+
 ## 📺 Real output
 
 **Clean scan — exits 0:**
@@ -505,7 +539,7 @@ pre-commit hook · Homebrew tap · Scoop/WinGet manifests · standalone binaries
 
 **v0.4.2 — `hookwarden explain <rule-id>`.** Terminal-side rule documentation: rationale, catalog entry, positive/negative fixture excerpts. Lowers the support burden on the rule-pack maintainer; deepens developer trust without leaving the terminal.
 
-**v0.5 — `--fix` auto-remediation.** The mechanical fixes (`===` → `crypto.timingSafeEqual`, `==` → `hash_equals`, etc.) applied with a real AST-rewrite engine. Safe / unsafe / manual-only classification per rule. Three-state verdicts already classify which fixes are safe to auto-apply — `--fix` makes that machine-actionable.
+**✅ v0.5 — `hookwarden fix` auto-remediation.** The mechanical fixes (`===` → `crypto.timingSafeEqual`, `==` → `hash_equals`, etc.) applied with a real AST-rewrite engine. Safe / unsafe / manual-only classification per rule. Three-state verdicts already classified which fixes are safe to auto-apply — `hookwarden fix` makes that machine-actionable. **[See Auto-fix above](#-auto-fix-v05).**
 
 **v0.6 — More providers.** Adyen, Zendesk, Mailgun — each measured against the 200-repo OSS regression corpus before release, with a published false-positive rate.
 

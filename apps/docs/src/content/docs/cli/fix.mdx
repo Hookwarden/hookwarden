@@ -1,0 +1,85 @@
+---
+title: hookwarden fix
+description: Apply mechanical fixes for safety:safe webhook-verification findings — dry-run by default.
+---
+
+`hookwarden fix [<path>]` mechanically rewrites the `safety: safe` subset of findings across JS/TS, Python, and PHP. Dry-run is the default; `--write` opt-in mutates files via an atomic-staging path.
+
+## Quick start
+
+```bash
+# Dry-run (default) — prints a unified diff, writes nothing
+npx hookwarden fix ./your-app
+
+# Apply: rewrites stage in .hookwarden-fix-staging/<run-id>/, re-scan
+# verifies zero new findings, then atomic rename into place
+npx hookwarden fix ./your-app --write
+```
+
+## Flags
+
+| Flag | Type | Default | Description |
+|---|---|---|---|
+| `--write` | boolean | false | Write fixes via atomic staging. Without it, the command dry-runs. |
+| `--mode` | enum | `safe` | `safe` \| `all` \| `manual-only-explain`. See [Safety levels](/cli/safety-levels/). |
+| `--only` | string | — | Comma-separated rule IDs to filter (gradual rollout + conflict-resolution fallback). |
+| `--format` | enum | `text` | `text` \| `json`. `--format json` forces dry-run. |
+| `--accept-unsafe` | boolean | false | Required for `--mode all` in non-TTY contexts (CI). |
+| `--rules-dir` | string | — | Override the bundled rule pack (dev-only). |
+| `--no-color` | boolean | false | Disable ANSI color + OSC-8 hyperlinks. |
+
+## Exit codes
+
+- `0` — success / nothing to fix
+- `2` — engine error (parse failure, internal bug)
+- `3` — config error (bad flag value, `scan --fix` rejection, conflict-resolution loop)
+
+## Safety contract
+
+`hookwarden fix` enforces every condition of the D-11 5-condition safety operational definition:
+
+1. **Local** — single contiguous byte range within one statement.
+2. **Semantic-preserving** — non-pathological inputs produce identical observable behavior.
+3. **Strengthens or preserves security** — the rewrite never weakens an existing property.
+4. **No new imports needed** — OR the required import is added atomically in the same transaction.
+5. **No type errors introduced** — TypeScript code is checked against the touched files.
+
+The fixer NEVER edits inside template literals (JS/TS), triple-quoted strings (Python), heredocs / nowdocs / encapsed strings (PHP), or comments. The forbidden-range mask runs before every edit.
+
+## Conflict resolution
+
+When two findings target overlapping byte ranges in the same file, the fixer aborts the commit and prints an `--only` recipe so you can apply them one at a time:
+
+```
+hookwarden fix: 2 findings in src/webhook.ts have overlapping fix ranges.
+Apply fixes one at a time:
+  hookwarden fix src/webhook.ts --only stripe/timing-unsafe-comparison --write
+  hookwarden fix src/webhook.ts --only stripe/missing-nullish-guard --write
+```
+
+## JSON output (v1.0 schema)
+
+`hookwarden fix --format json` emits a stable, versioned diff against the schema at `https://hookwarden.dev/schemas/fix-output.v1.json`:
+
+```json
+{
+  "version": "1.0",
+  "schema_url": "https://hookwarden.dev/schemas/fix-output.v1.json",
+  "fixes": [
+    {
+      "rule_id": "stripe/timing-unsafe-comparison",
+      "safety": "safe",
+      "file": "src/webhook.ts",
+      "range": { "start": {"line": 42, "col": 10}, "end": {"line": 42, "col": 30} },
+      "before": "expected === sig",
+      "after": "crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(sig))",
+      "applied": false
+    }
+  ],
+  "summary": { "fixable": 1, "applied": 0, "skipped": 0, "rejected": 0 }
+}
+```
+
+## Why not `hookwarden scan --fix`?
+
+`hookwarden scan` is read-only; `hookwarden fix` is write. Conflating them is the failure mode that produces data loss. `scan --fix` is rejected at parse time with the canonical pointer to `hookwarden fix [<path>]`.

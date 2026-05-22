@@ -1,0 +1,91 @@
+---
+import "../styles/global.css";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>hookwarden — find and fix webhook signature-verification bugs</title>
+    <meta
+      name="description"
+      content="Local. Deterministic. Zero-network. Find every webhook-verification bug in JS/TS, Python, and PHP — and apply the fix on the safe subset — in under five minutes."
+    />
+  </head>
+  <body class="min-h-screen bg-bg text-text">
+    <header class="mx-auto max-w-4xl px-6 py-12">
+      <h1 class="text-5xl font-bold tracking-tight">hookwarden</h1>
+      <p class="mt-2 text-lg text-text/80">
+        The only scanner laser-focused on webhook signature verification.
+      </p>
+    </header>
+
+    <main class="mx-auto max-w-4xl px-6 pb-24">
+      <section class="rounded-2xl bg-surface p-8">
+        <h2 class="text-3xl font-semibold">Find every bug.</h2>
+        <p class="mt-4 text-text/80">
+          Three-state verdicts (<code class="font-mono">verified</code> /
+          <code class="font-mono">not-verified</code> /
+          <code class="font-mono">manual-review</code>) across JS/TS, Python, and PHP.
+          Stripe, GitHub, Shopify, Twilio, Slack, Square. SARIF 2.1.0 output for
+          GitHub Code Scanning. Zero network. Zero telemetry.
+        </p>
+        <pre
+          class="mt-6 rounded bg-bg p-4 font-mono text-sm overflow-x-auto"><code>npx hookwarden scan ./your-app</code></pre>
+      </section>
+
+      <section class="mt-10 rounded-2xl bg-surface p-8">
+        <h2 class="text-3xl font-semibold">
+          <span class="text-accent">v0.5 —</span> Apply every safe fix.
+        </h2>
+        <p class="mt-4 text-text/80">
+          hookwarden doesn't just tell you the fix — it applies it. The
+          <code class="font-mono">fix</code> subcommand mechanically rewrites the
+          <code class="font-mono">safety: safe</code> subset of findings across
+          all 3 v1 languages. Dry-run is the default; <code class="font-mono">--write</code>
+          opt-in stages atomically and re-scans before commit.
+        </p>
+        <pre
+          class="mt-6 rounded bg-bg p-4 font-mono text-sm overflow-x-auto"><code># Dry-run (default) — prints unified diff
+npx hookwarden fix ./your-app
+
+# Apply via atomic-staging path
+npx hookwarden fix ./your-app --write</code></pre>
+        <ul class="mt-6 space-y-3 text-text/80">
+          <li>
+            <strong class="text-text">Three safety modes.</strong>
+            <code class="font-mono">--mode safe</code> (default),
+            <code class="font-mono">--mode all</code> (refuses in CI without
+            <code class="font-mono">--accept-unsafe</code>),
+            <code class="font-mono">--mode manual-only-explain</code> for the
+            prose-only rules.
+          </li>
+          <li>
+            <strong class="text-text">Atomic staging.</strong> Rewrites land in
+            <code class="font-mono">.hookwarden-fix-staging/&lt;run-id&gt;/</code>;
+            re-scan verifies zero new findings before the atomic rename. Failure
+            preserves staging for inspection.
+          </li>
+          <li>
+            <strong class="text-text">Forbidden-range mask.</strong> Never edits
+            inside template literals, triple-quoted strings, heredocs, or
+            comments.
+          </li>
+          <li>
+            <strong class="text-text">Versioned JSON schema.</strong>
+            <code class="font-mono">--format json</code> emits the v1.0 contract
+            at <code class="font-mono">hookwarden.dev/schemas/fix-output.v1.json</code>.
+          </li>
+        </ul>
+        <p class="mt-6">
+          <a
+            href="/cli"
+            class="text-accent underline underline-offset-4 hover:text-accent/80"
+            >See the full CLI reference →</a
+          >
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

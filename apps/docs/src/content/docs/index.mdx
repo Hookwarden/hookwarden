@@ -1,0 +1,34 @@
+---
+title: hookwarden documentation
+description: Local-first webhook signature-verification audit + auto-fix CLI for JS/TS, Python, and PHP.
+template: splash
+hero:
+  tagline: Find every webhook-verification bug — and apply the fix on the safe subset — in under five minutes.
+  actions:
+    - text: Get started
+      link: /cli/fix/
+      icon: right-arrow
+      variant: primary
+    - text: Safety levels
+      link: /cli/safety-levels/
+      icon: external
+---
+
+## What hookwarden does
+
+- **Scans** JS/TS, Python, and PHP webhook handlers for signature-verification bugs (Stripe, GitHub, Shopify, Twilio, Slack, Square).
+- **Reports** with three-state verdicts: `verified` / `not-verified` / `manual-review`. SARIF 2.1.0 output for GitHub Code Scanning.
+- **Fixes** — as of v0.5, mechanically rewrites the `safety: safe` subset across all 3 languages. Atomic staging, re-scan verification, sequential conflict resolution.
+- **Stays local.** Zero network, zero telemetry, zero SaaS sign-up.
+
+## v0.5 highlight: `hookwarden fix`
+
+```bash
+# Dry-run (default) — prints unified diff, writes nothing
+npx hookwarden fix ./your-app
+
+# Apply via atomic staging
+npx hookwarden fix ./your-app --write
+```
+
+See **[hookwarden fix](/cli/fix/)** for the full reference and **[Safety levels](/cli/safety-levels/)** for how the rule pack classifies fixability.

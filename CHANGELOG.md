@@ -3,6 +3,75 @@
 Project-level release notes. Per-package Changesets entries (engine, rules,
 cli, github-action) live in each package's own `CHANGELOG.md`.
 
+## 0.5.0
+
+### Auto-remediation engine — `hookwarden fix`
+
+hookwarden goes from "tells you the fix" to "applies it on the safe subset".
+The new `hookwarden fix` subcommand mechanically rewrites `safety: safe`
+findings across JS/TS, Python, and PHP.
+
+**Three safety modes (D-12 + D-13):**
+
+- `--mode safe` (default) — applies the 10 rules in the v0.5 safe set
+  (timing-unsafe-comparison + raw-body-misuse families, 4 fix families
+  × 3 languages minus 2 documented omissions).
+- `--mode all` — adds rules marked `unsafe`; refuses in non-TTY without
+  `--accept-unsafe`.
+- `--mode manual-only-explain` — emits per-finding fix prose for the 35
+  rules where mechanical rewrite cannot guarantee D-11 safety.
+
+**Safety contract (SC#6 + SC#5):**
+
+- **Atomic staging at `.hookwarden-fix-staging/<run-id>/`.** Rewrites land
+  in the staging dir first, then re-scan verifies zero new findings before
+  the atomic rename into place. On any failure, the staging dir persists
+  for inspection. First `--write` run auto-appends
+  `.hookwarden-fix-staging/` to `.gitignore` with a loud stderr notice.
+- **Forbidden-range mask** — the fixer NEVER touches template literals
+  (JS/TS), triple-quoted strings (Python), heredocs/nowdocs/encapsed
+  strings (PHP), or comments. Mask runs before every edit; rewriter
+  rejects any edit that intersects.
+- **Single-line constraint** — edits spanning multiple AST lines are
+  rejected in v0.5; multi-line rewrites defer to v0.6+.
+- **Sequential conflict resolver** — when two findings target overlapping
+  ranges on the same file, the fixer aborts the commit and prints the
+  exact `--only <rule-id>` recipe to apply them one at a time. No silent
+  code loss.
+
+**JSON schema v1.0 (D-22 + SC#7):**
+
+`hookwarden fix --format json` emits a machine-readable diff against the
+v1.0 schema at `https://hookwarden.dev/schemas/fix-output.v1.json`. Stable
+contract — `--format json` forces dry-run.
+
+**Per-rule `fix:` YAML metadata (D-01 + D-04 + SC#9):**
+
+Every rule in the rule pack now declares either a populated `fix:` block
+or `fix: null`. Schema rejects rules that omit the key.
+
+**Deliberate scope reductions:**
+
+- **Python raw-body-misuse is manual-only in v0.5.** Flask's `request.data`
+  semantics depend on Content-Type + parser state — mechanical rewrite
+  cannot guarantee semantic preservation.
+- **PHP missing-nullish-guard is manual-only.** PHP's `??` / `isset()`
+  idioms make a one-line text-range rewrite too invasive for v0.5.
+
+**Engine purity gate preserved (D-05 + SC#12).** `@babel/traverse` and
+`@babel/generator` are confined to `packages/fix/` only. Verified by
+dependency-cruiser at the source layer AND a new dist-grep purity test
+at the build layer.
+
+**Test coverage:** 942 tests across 4 packages. Round-trip fixture corpus
+exercises 5 positive + 4 negative cases across all 3 v1 languages with
+byte-exact equality assertions.
+
+**Bug fixes:**
+
+- `hookwarden scan --fix` now rejected at parse time with the canonical
+  `Use 'hookwarden fix [<path>]'` pointer per D-16.
+
 ## 0.4.0
 
 ### PHP language support — v1 third language
