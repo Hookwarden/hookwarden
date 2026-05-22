@@ -94,7 +94,20 @@ const SCHEMA = {
           type: "array",
           minItems: 1,
           items: {
-            enum: ["express", "hono", "fastify", "nextjs", "flask", "fastapi", "django"],
+            // Keep in sync with engine's Framework union — Phase 8.1 added PHP frameworks.
+            enum: [
+              "express",
+              "hono",
+              "fastify",
+              "nextjs",
+              "flask",
+              "fastapi",
+              "django",
+              "laravel",
+              "symfony",
+              "slim",
+              "vanilla-php",
+            ],
           },
         },
       ],
