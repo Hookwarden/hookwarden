@@ -9,6 +9,7 @@ const REAL_ROOT = join(__dirname, "..");
 const FIXED_GROUP = [
   "@hookwarden/engine",
   "@hookwarden/rules",
+  "@hookwarden/fix",
   "@hookwarden/github-action",
   "hookwarden",
   "hook-warden",
@@ -21,6 +22,7 @@ const FIXED_GROUP = [
 const PKG_PATHS: Record<string, string> = {
   "@hookwarden/engine": "packages/engine/package.json",
   "@hookwarden/rules": "packages/rules/package.json",
+  "@hookwarden/fix": "packages/fix/package.json",
   "@hookwarden/github-action": "packages/github-action/package.json",
   hookwarden: "packages/cli/package.json",
   "hook-warden": "packages/typo-shims/hook-warden/package.json",
@@ -84,8 +86,8 @@ afterAll(() => {
   rmSync(SANDBOX, { recursive: true, force: true });
 });
 
-describe("Changesets fixed group bumps all 9 packages in lockstep", () => {
-  it("plants a patch changeset on hookwarden and verifies all 9 packages bump to the same version", () => {
+describe("Changesets fixed group bumps all 10 packages in lockstep", () => {
+  it("plants a patch changeset on hookwarden and verifies all 10 packages bump to the same version", () => {
     const changeset = `---
 "hookwarden": patch
 ---

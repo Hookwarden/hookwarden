@@ -57,6 +57,15 @@ export function createMissingSignatureVerificationPredicate(
       return null;
     }
     if (symbols.some((s) => isManualHmacEntry(s.qualified_name))) return null;
+    // Path B (parity with library-verified-recognition) — `sdk_verify_call` evidence emitted
+    // by build.ts overlays for shapes that don't surface in `reachable_symbols`: the PHP
+    // overlay (Plan 07) and the inline-middleware verify overlay (collectInlineMiddleware
+    // VerifyEvidence). Without this branch, JS/TS handlers whose verification lives in an
+    // inline route-arg arrow middleware get flagged here even though library-verified
+    // recognises them — producing a contradictory "verified AND not-verified" finding pair.
+    if (handler.evidence.some((e) => e.kind === "sdk_verify_call" && e.provider === provider)) {
+      return null;
+    }
     return "not-verified";
   };
 }

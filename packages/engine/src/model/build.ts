@@ -11,6 +11,7 @@
 import { computeHandlerId } from "../findings/fingerprint.js";
 import { extractBabelLiterals } from "../parsers/literals.js";
 import { extractPythonLiterals } from "../parsers/python-literals.js";
+import { walkBabelAst } from "../parsers/walk.js";
 import { redactSnippet } from "../redaction/structural.js";
 import type { Config } from "../types/config.js";
 import type {
@@ -113,6 +114,13 @@ async function assembleHandler(
   // (or bodyParser.raw) is registered as an inline route middleware argument. The handler text
   // search in evidence.ts only sees the arrow function body, not outer route arguments.
   const rawBodyMwEvidence = collectRawBodyMiddlewareEvidence(cand, middlewareChain);
+  // Inline-middleware verify overlay — prevents `not-verified` FP when verification is done in
+  // an INLINE arrow-function route middleware (not in the final handler arg). The reachability
+  // pass walks `handler_body_node` only, and matchRouteArgsMiddleware skips anonymous arrow
+  // middleware (no name), so verify calls in inline arrows are invisible to the existing
+  // signals. Walks the route registration's sibling arrow-function args for any
+  // catalog `sdk_verify_calls` shape and emits matching `sdk_verify_call` evidence.
+  const inlineMwVerifyEvidence = collectInlineMiddlewareVerifyEvidence(cand, file, input.ruleSet);
   // PHP sdk_verify_call overlay — the reachability pass only handles babel + tree-sitter-python,
   // so PHP scoped-call / member-call verify shapes never surface in reachable_symbols. Walk the
   // handler-bearing file's PHP tree for matching call shapes against catalog sdk_verify_calls.
@@ -121,6 +129,7 @@ async function assembleHandler(
     ...baseEvidence.evidence,
     ...sdkVerifyEvidence,
     ...rawBodyMwEvidence,
+    ...inlineMwVerifyEvidence,
     ...phpVerifyEvidence,
   ];
   // Recompute provider attribution since sdk_verify_call evidence may shift the count.
@@ -273,6 +282,117 @@ function collectRawBodyMiddlewareEvidence(
       detail: "raw-body middleware in chain",
     },
   ];
+}
+
+// Inline-middleware verify overlay — recognises catalog `sdk_verify_calls` when they appear
+// inside an inline arrow-function (or function-expression) middleware passed as a route argument.
+//
+// Why this is needed: `matchRouteArgsMiddleware` in middleware.ts only adds args with a NAMED
+// callee (Identifier / MemberExpression / CallExpression) to `middleware_chain`; inline
+// ArrowFunctionExpression / FunctionExpression args are skipped (no name to attach). And
+// `computeReachableSymbols` walks `cand.handler_body_node` only — the last route arg — so verify
+// calls inside SIBLING arrow-function middlewares are invisible to every existing signal.
+//
+// The fix is purely additive: walk the route registration's CallExpression for arrow-function
+// args (positions [1..len-2]; index 0 is the path, last is the handler), and for each, scan
+// its body for any of the provider catalog's `sdk_verify_calls` qualified names. Emit a
+// `sdk_verify_call` evidence row per match — same shape `collectSdkVerifyCallEvidence` emits
+// from `reachable_symbols`. The evaluator's `library-verified` rule then promotes the verdict.
+function collectInlineMiddlewareVerifyEvidence(
+  cand: CandidateHandler,
+  file: ParsedFile,
+  ruleSet: RuleSet,
+): ReadonlyArray<WebhookEvidence> {
+  if (file.dialect !== "babel") return [];
+  if (file.raw_ast === null) return [];
+
+  // Walk the file looking for the CallExpression that registers this handler — match by the
+  // ExpressionStatement's source location to `cand.location`. Mirrors the shape that
+  // `matchRouteArgsMiddleware` keys on, so the two functions agree on which call is "ours".
+  const ast = file.raw_ast as import("@babel/types").File;
+
+  // Build a flat list of sdk_verify_calls (per-provider) so each match emits the right provider.
+  type VerifyEntry = { readonly provider: string; readonly qualifiedName: string };
+  const verifyEntries: VerifyEntry[] = [];
+  for (const [providerName, entry] of Object.entries(ruleSet.providers)) {
+    for (const v of entry.sdk_verify_calls) {
+      // Skip PHP-shaped entries (`::` or `\`) — those are handled by collectPhpSdkVerifyEvidence.
+      if (v.includes("::") || v.includes("\\")) continue;
+      verifyEntries.push({ provider: providerName, qualifiedName: v });
+    }
+  }
+  if (verifyEntries.length === 0) return [];
+
+  const out: WebhookEvidence[] = [];
+  const seen = new Set<string>();
+
+  walkBabelAst(ast, (node) => {
+    if (node.type !== "ExpressionStatement") return;
+    const expr = node.expression;
+    if (expr.type !== "CallExpression") return;
+    const callee = expr.callee;
+    // Route registration shape: `app.<method>(path, ...mw, handler)` — same gate as
+    // matchRouteArgsMiddleware. Need at least 3 args (path + ≥1 mw + handler).
+    if (callee.type !== "MemberExpression") return;
+    if (callee.property.type !== "Identifier") return;
+    if (expr.arguments.length < 3) return;
+
+    // Match this call to our handler by source line/col (matchRouteArgsMiddleware's identity check).
+    const loc = node.loc;
+    if (loc === null || loc === undefined) return;
+    if (loc.start.line !== cand.location.line) return;
+    if ((loc.start.column ?? 0) + 1 !== cand.location.col) return;
+
+    // Middleware args are positions [1..len-2]; the handler itself is the final arg.
+    for (let i = 1; i < expr.arguments.length - 1; i++) {
+      const arg = expr.arguments[i];
+      if (!arg) continue;
+      // Only inline functions need this overlay — named args go through middleware_chain +
+      // the regular reachable_symbols pass on the (final) handler.
+      if (arg.type !== "ArrowFunctionExpression" && arg.type !== "FunctionExpression") continue;
+
+      // Walk the inline function body for sdk_verify_call shapes. Match either the bare
+      // identifier (e.g. `constructEvent`) or the dotted qualified name (e.g.
+      // `stripe.webhooks.constructEvent`). Mirrors the reachable_symbols match in
+      // collectSdkVerifyCallEvidence (`s.qualified_name === verifyCall ||
+      // s.qualified_name.endsWith('.' + verifyCall)`).
+      walkBabelAst(arg.body, (inner) => {
+        if (inner.type !== "CallExpression") return;
+        const innerCallee = inner.callee;
+        const calleeName = qualifiedNameOf(innerCallee);
+        if (calleeName === null) return;
+        for (const { provider, qualifiedName } of verifyEntries) {
+          if (calleeName === qualifiedName || calleeName.endsWith(`.${qualifiedName}`)) {
+            const key = `${provider}|${qualifiedName}|${i}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            out.push({
+              kind: "sdk_verify_call",
+              provider,
+              location: cand.location,
+              detail: qualifiedName,
+            });
+          }
+        }
+      });
+    }
+  });
+
+  return out;
+}
+
+// Helper — resolve an AST node to its dotted qualified name when it's an Identifier or
+// MemberExpression chain. Returns null for anything else (e.g. computed members, call results).
+// Mirrors `identifierOrMemberName` in middleware.ts but kept local to avoid a cross-module
+// import cycle; the two implementations are intentionally identical in shape.
+function qualifiedNameOf(node: import("@babel/types").Node): string | null {
+  if (node.type === "Identifier") return node.name;
+  if (node.type === "MemberExpression") {
+    const obj = qualifiedNameOf(node.object);
+    if (obj && node.property.type === "Identifier") return `${obj}.${node.property.name}`;
+    return null;
+  }
+  return null;
 }
 
 function recomputeProvider(evidence: ReadonlyArray<WebhookEvidence>, fallback: string): string {

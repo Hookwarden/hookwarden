@@ -60,7 +60,7 @@ describe("Phase 1 — Foundation & Defensive Registration: Success Criteria", ()
     run("bash scripts/verify-defensive-registration.sh");
   }, 60_000);
 
-  it("Success Criterion 5: Changesets fixed group bumps all 9 packages in lockstep", () => {
+  it("Success Criterion 5: Changesets fixed group bumps all 10 packages in lockstep", () => {
     run("pnpm exec vitest run test/changeset-fixed-group.test.ts");
   }, 60_000);
 });

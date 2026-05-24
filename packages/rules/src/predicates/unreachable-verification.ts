@@ -35,6 +35,13 @@ export function createUnreachableVerificationPredicate(
     ) {
       return null;
     }
+    // Path B (parity with library-verified-recognition + missing-signature-verification) —
+    // `sdk_verify_call` evidence emitted by build.ts overlays (PHP overlay + inline-middleware
+    // verify overlay). Without this branch, JS/TS handlers whose verification lives in an
+    // inline route-arg arrow get flagged manual-review even though library-verified found it.
+    if (handler.evidence.some((e) => e.kind === "sdk_verify_call" && e.provider === provider)) {
+      return null;
+    }
     return "manual-review";
   };
 }
