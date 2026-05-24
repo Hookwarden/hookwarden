@@ -157,6 +157,15 @@ function annotateOne(
   return { finding: { ...f, suppressed: null }, drift_note: null };
 }
 
+// runScan is the scan-pipeline orchestrator (walk → parse → load rules →
+// build model → evaluate → annotate with inline/ignore/baseline →
+// drift-detect → emit). Each step has its own well-tested unit in a
+// sibling module; splitting the orchestrator further would shuffle
+// complexity into satellite helpers without reducing the true cognitive
+// surface of "what the scan does end-to-end." Refactor only if a step
+// grows enough to warrant a phase boundary (e.g., async background-worker
+// plan splits parse + evaluate).
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: see comment above
 export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
   const t0 = performance.now();
   const root = path.resolve(input.rootPath);

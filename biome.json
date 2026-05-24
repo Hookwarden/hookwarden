@@ -14,7 +14,8 @@
       "!**/test/fixtures",
       "!assets/brand/demo-fixtures",
       "!**/*.fix-positive.expected.*",
-      "!**/fp-measurement-*-result.json"
+      "!**/fp-measurement-*-result.json",
+      "!**/.astro"
     ]
   },
   "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
