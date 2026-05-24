@@ -102,9 +102,20 @@ if [[ "$shas_in_order" != "$expected_order" ]]; then
   echo "got:";      echo "$shas_in_order"
   exit 1
 fi
-# Stale version line must NOT be inserted (the new formula has no version line).
-if grep -qE '^\s*version\s+"' "$TMP/hookwarden.rb"; then
-  echo "FAIL: stale 'version' line present after bump (current formula auto-derives from npm URL)"
+# Explicit `version "X.Y.Z"` line MUST be present and match the bumped version.
+# Brew's URL-version auto-derive picks "64" from the Linux on_arm/on_intel
+# binary URLs (hookwarden-linux-arm64 / hookwarden-linux-x64) on Linux runners.
+# DIST-02 smoke gate trips when `brew info versions.stable` doesn't match
+# `hookwarden --version`. The bump script must keep this line in sync.
+if ! grep -qE '^\s*version\s+"0\.4\.1"\s*$' "$TMP/hookwarden.rb"; then
+  echo "FAIL: explicit version \"0.4.1\" line missing after bump"
+  cat "$TMP/hookwarden.rb"
+  exit 1
+fi
+# Sanity: exactly one version line (not duplicated by re-bumps)
+version_lines=$(grep -cE '^\s*version\s+"' "$TMP/hookwarden.rb" || true)
+if [[ "$version_lines" != "1" ]]; then
+  echo "FAIL: expected exactly 1 version line, got $version_lines"
   cat "$TMP/hookwarden.rb"
   exit 1
 fi

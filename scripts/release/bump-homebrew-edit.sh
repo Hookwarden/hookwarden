@@ -17,9 +17,13 @@
 #     on_linux/on_intel
 #   - Two URL version patterns: GH `releases/download/vX.Y.Z` for Linux binaries
 #     and npm `hookwarden-X.Y.Z.tgz` for the macOS path
-#   - No explicit `version "X.Y.Z"` line: the npm tarball URL auto-derives the
-#     version correctly (auto-derive only failed on the old linux-arm64 binary
-#     URL because of "64" trailing "arm64").
+#   - Explicit `version "X.Y.Z"` line REQUIRED below the top-level url. Brew's
+#     URL-version auto-derive picks "64" from the Linux on_arm/on_intel URLs
+#     (`hookwarden-linux-arm64` / `hookwarden-linux-x64`) on Linux runners,
+#     even when the top-level npm-tarball URL is correct. The DIST-02 smoke
+#     gate compares `brew info versions.stable` to `hookwarden --version` and
+#     trips on this mismatch. The script ensures the line is present and
+#     reflects the bumped version.
 #
 # Exits non-zero on missing/malformed Linux SHAs or wrong sha256 count.
 
@@ -77,11 +81,11 @@ sed -i.bak -E "s|(releases/download/)v[0-9]+\.[0-9]+\.[0-9]+|\\1${VERSION}|g" "$
 # 2. Bump the npm-tarball URL version.
 sed -i.bak -E "s|(registry\.npmjs\.org/hookwarden/-/hookwarden-)[0-9]+\.[0-9]+\.[0-9]+(\.tgz)|\\1${VERSION_NUM}\\2|g" "$FORMULA"
 
-python3 - "$FORMULA" "$SHA_NPM" "$SHA_LINUX_ARM" "$SHA_LINUX_X64" <<'PY'
+python3 - "$FORMULA" "$VERSION_NUM" "$SHA_NPM" "$SHA_LINUX_ARM" "$SHA_LINUX_X64" <<'PY'
 import re
 import sys
 
-path, sha_npm, sha_arm, sha_x64 = sys.argv[1:]
+path, version_num, sha_npm, sha_arm, sha_x64 = sys.argv[1:]
 src = open(path).read()
 
 # Pin the three sha256 lines in source order: npm tarball (top-level), then
@@ -93,6 +97,26 @@ shas = [sha_npm, sha_arm, sha_x64]
 for i in range(2, -1, -1):
     m = matches[i]
     src = src[: m.start()] + f'sha256 "{shas[i]}"' + src[m.end():]
+
+# Ensure an explicit top-level `version "X.Y.Z"` line is present, sitting
+# between the top-level `url` and `sha256`. brew audit requires the order
+# url → version → sha256 (homebrew-tap commit f927ca6); the Linux URL
+# overrides confuse URL-version auto-derive into picking "64". This block
+# either updates an existing line in place or inserts a new one right
+# after the top-level npm-tarball URL.
+version_re = re.compile(r'^(\s*)version\s+"[^"]+"', re.MULTILINE)
+if version_re.search(src):
+    src = version_re.sub(rf'\1version "{version_num}"', src, count=1)
+else:
+    url_re = re.compile(
+        r'^(\s*)url\s+"https://registry\.npmjs\.org/hookwarden/-/hookwarden-[^"]+"\n',
+        re.MULTILINE,
+    )
+    m = url_re.search(src)
+    assert m, "could not locate top-level npm-tarball url line for version insert"
+    indent = m.group(1)
+    insert = f'{indent}version "{version_num}"\n'
+    src = src[: m.end()] + insert + src[m.end():]
 
 open(path, "w").write(src)
 PY
