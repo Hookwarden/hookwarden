@@ -205,7 +205,10 @@ jobs:
         if: steps.cli-published.outputs.cli == 'true'
         run: |
           set -euo pipefail
-          sha=$(scripts/release/bump-homebrew.sh)
+          # tail -n1: defends against stray stdout from the script's git invocations
+          # (newer git can leak tag-update notices despite -q). `git rev-parse HEAD`
+          # is always the script's last line, so the SHA is reliably the tail.
+          sha=$(scripts/release/bump-homebrew.sh | tail -n1)
           echo "sha=${sha}" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -216,7 +219,7 @@ jobs:
         if: steps.cli-published.outputs.cli == 'true'
         run: |
           set -euo pipefail
-          sha=$(scripts/release/bump-scoop.sh)
+          sha=$(scripts/release/bump-scoop.sh | tail -n1)
           echo "sha=${sha}" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -240,7 +243,7 @@ jobs:
           # Homebrew / Scoop). The JS Action's bundled CLI inherits the same npm version
           # via the workspace dep, so it is trivially in lockstep — no separate gate needed.
           pnpm --filter @hookwarden/github-action run bundle
-          sha=$(scripts/release/bump-hookwarden-action.sh)
+          sha=$(scripts/release/bump-hookwarden-action.sh | tail -n1)
           echo "sha=${sha}" >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
