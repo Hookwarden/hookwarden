@@ -6,6 +6,7 @@
     [
       "@hookwarden/engine",
       "@hookwarden/rules",
+      "@hookwarden/fix",
       "@hookwarden/github-action",
       "hookwarden",
       "hook-warden",
