@@ -17,6 +17,9 @@ packages/rules/src/version.ts
 # --compile output is self-contained (no fs reads, no YAML parsing at runtime).
 packages/rules/src/bundled-rules.ts
 
+# Astro 6 generated content types (apps/docs, apps/web) — regenerated per build.
+.astro/
+
 # Python build/test artifacts (PyPI shim — python-packages/hookwarden)
 __pycache__/
 *.py[co]
