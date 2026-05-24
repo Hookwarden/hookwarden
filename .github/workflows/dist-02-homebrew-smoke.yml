@@ -5,7 +5,7 @@ on:
     # Re-run weekly to catch upstream Homebrew breakage independent of releases.
     - cron: '0 12 * * 1'
   workflow_run:
-    workflows: ["Release"]
+    workflows: ["Release", "Release bumps (manual recovery)"]
     types: [completed]
 
 permissions:

@@ -1,0 +1,127 @@
+name: Release bumps (manual recovery)
+
+# Manual recovery path for the brew/scoop/hookwarden-action bump fan-out.
+# Mirrors the bump steps from release.yml, but skips changesets/publish — runs
+# only when npm publishing is already complete and only the downstream channel
+# bumps need to land. Use when release.yml failed mid-flight (e.g. changesets
+# 404 on first-publish of a scoped package) and the channels are stranded on
+# the prior version.
+#
+# Invariant: refuses to run unless `hookwarden@<version>` is already on npm
+# AND a GitHub release with checksums.txt exists for the tag. No false-positive
+# bumps to an unpublished version.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release tag with leading v (e.g. v0.5.1) — must already be on npm + GH releases'
+        required: true
+        type: string
+
+concurrency: ${{ github.workflow }}-${{ inputs.version }}
+
+jobs:
+  bumps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm exec tsc --build
+
+      - name: Validate inputs.version
+        run: |
+          set -euo pipefail
+          ver="${{ inputs.version }}"
+          if ! echo "$ver" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$'; then
+            echo "FATAL: version '$ver' is not a valid semver tag (expected e.g. v0.5.1)" >&2
+            exit 1
+          fi
+
+      - name: Verify hookwarden@version is published on npm
+        run: |
+          set -euo pipefail
+          ver="${{ inputs.version }}"
+          ver_no_v="${ver#v}"
+          actual=$(npm view "hookwarden@${ver_no_v}" version 2>/dev/null || echo "")
+          if [ "$actual" != "$ver_no_v" ]; then
+            echo "FATAL: hookwarden@${ver_no_v} is not on npm — refusing to bump downstream channels to a non-existent version" >&2
+            exit 1
+          fi
+          echo "Confirmed hookwarden@${ver_no_v} on npm"
+
+      - name: Verify GitHub release exists with checksums.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ver="${{ inputs.version }}"
+          assets=$(gh release view "$ver" --repo "${{ github.repository }}" --json assets --jq '.assets[].name')
+          if ! echo "$assets" | grep -qx 'checksums.txt'; then
+            echo "FATAL: GitHub release $ver missing checksums.txt — refusing to bump" >&2
+            exit 1
+          fi
+          if ! echo "$assets" | grep -qx 'hookwarden-windows-x64.exe'; then
+            echo "FATAL: GitHub release $ver missing hookwarden-windows-x64.exe — scoop bump needs it" >&2
+            exit 1
+          fi
+          echo "Confirmed GH release $ver with required assets"
+
+      - name: Mint GitHub App token (homebrew-tap + scoop-bucket + hookwarden-action)
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.HOOKWARDEN_BOT_APP_ID }}
+          private-key: ${{ secrets.HOOKWARDEN_BOT_APP_PRIVATE_KEY }}
+          owner: Hookwarden
+          repositories: |
+            homebrew-tap
+            scoop-bucket
+            hookwarden-action
+
+      - name: Bump Homebrew formula
+        id: bump-homebrew
+        run: |
+          set -euo pipefail
+          sha=$(scripts/release/bump-homebrew.sh)
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          VERSION: ${{ inputs.version }}
+
+      - name: Bump Scoop manifest
+        id: bump-scoop
+        run: |
+          set -euo pipefail
+          sha=$(scripts/release/bump-scoop.sh)
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          VERSION: ${{ inputs.version }}
+
+      - name: Build + bump hookwarden-action
+        id: bump-action
+        run: |
+          set -euo pipefail
+          pnpm --filter @hookwarden/github-action run bundle
+          sha=$(scripts/release/bump-hookwarden-action.sh)
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          VERSION: ${{ inputs.version }}
+
+      - name: Channel-parity SHA gate
+        run: bash scripts/release/verify-channel-parity.sh
+        env:
+          VERSION: ${{ inputs.version }}
+          HOMEBREW_SHA: ${{ steps.bump-homebrew.outputs.sha }}
+          SCOOP_SHA: ${{ steps.bump-scoop.outputs.sha }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '0 13 * * 1'   # weekly Monday 13:00 UTC
   workflow_run:
-    workflows: ["Release"]
+    workflows: ["Release", "Release bumps (manual recovery)"]
     types: [completed]
 
 permissions:
