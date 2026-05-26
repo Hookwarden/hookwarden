@@ -34,7 +34,7 @@
     "prepack": "node scripts/sync-version.mjs"
   },
   "dependencies": {
-    "@babel/parser": "^7.29.3",
+    "@babel/parser": "^7.29.7",
     "picomatch": "^4.0.4",
     "web-tree-sitter": "^0.26.9"
   },
