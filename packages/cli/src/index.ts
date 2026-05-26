@@ -47,6 +47,7 @@ const HELP_TEXT =
   `Common flags:\n` +
   `  -v, --verbose                Verbose output (scan only).\n` +
   `      --no-color               Disable color and OSC-8 hyperlinks.\n` +
+  `      --color WHEN             always | never | auto (default). 'always' forces color through a pipe.\n` +
   `      --rules-dir D            Override the bundled rule pack (dev-only).\n` +
   `      --help, -h               Show subcommand help.\n` +
   `      --version, -V            Print CLI version.\n\n` +
@@ -72,6 +73,7 @@ interface ParsedFlags {
   path?: string;
   verbose?: boolean;
   "no-color"?: boolean;
+  color?: string;
   "rules-dir"?: string;
   // Phase 4:
   format?: string;
@@ -106,6 +108,7 @@ const STRING_FLAGS: ReadonlyArray<{
   readonly key: string;
 }> = [
   { long: "--rules-dir", key: "rules-dir" },
+  { long: "--color", key: "color" },
   { long: "--format", key: "format" },
   { long: "--fail-on", key: "fail-on" },
   { long: "--baseline", key: "baseline" },
