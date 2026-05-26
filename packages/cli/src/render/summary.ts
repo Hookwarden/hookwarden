@@ -3,7 +3,7 @@
 // Pure: receives ScanResult + optional durationMs + optional Phase 4 footer fields; returns string.
 
 import type { ScanResult, Severity } from "@hookwarden/engine";
-import { dim } from "./colors.js";
+import { dim, severityColor } from "./colors.js";
 
 export interface RenderSummaryOptions {
   readonly useAnsi: boolean;
@@ -46,7 +46,12 @@ export function renderSummary(result: ScanResult, opts: RenderSummaryOptions): s
   const filesTouched = new Set<string>();
   for (const h of result.inventory) filesTouched.add(h.file_path);
 
-  const sevLine = SEVERITY_ORDER.map((s) => `${sevCounts[s]} ${s}`).join(" · ");
+  // D-42: severity drives color. Paint each tally segment in its severity colour so the
+  // footer count matches the per-finding glyphs (critical=red, high=orange, medium=amber,
+  // low=slate, info=blue) instead of rendering the whole tally in plain foreground.
+  const sevLine = SEVERITY_ORDER.map((s) => severityColor(s, `${sevCounts[s]} ${s}`, opts)).join(
+    " · ",
+  );
   const handlersLine = `${plural(result.inventory.length, "webhook handler")} across ${plural(filesTouched.size, "file")}`;
   const totalFindings = SEVERITY_ORDER.reduce((n, s) => n + sevCounts[s], 0);
 

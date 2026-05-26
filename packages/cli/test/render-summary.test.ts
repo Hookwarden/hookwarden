@@ -75,6 +75,24 @@ describe("renderSummary (D-44)", () => {
     expect(out).toContain("rules v0.0.1");
   });
 
+  it("colors each severity tally segment in its palette colour when useAnsi is true", () => {
+    const result: ScanResult = {
+      findings: [
+        { ...baseFinding, id: "f1", severity: "critical", state: "not-verified" },
+        { ...baseFinding, id: "f2", severity: "high", state: "not-verified" },
+        { ...baseFinding, id: "f3", severity: "info", state: "verified" },
+      ],
+      inventory: [baseHandler],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: true, durationMs: 10 });
+    // 24-bit truecolor per severity (critical=#F43F5E, high=#F97316, info=#3B82F6),
+    // not a plain-foreground tally.
+    expect(out).toContain("\x1b[38;2;244;63;94m1 critical");
+    expect(out).toContain("\x1b[38;2;249;115;22m1 high");
+    expect(out).toContain("\x1b[38;2;59;130;246m1 info");
+  });
+
   it("hides engine/rules versions by default (provenance is --verbose only)", () => {
     const result: ScanResult = {
       findings: [{ ...baseFinding, id: "f1", severity: "critical", state: "not-verified" }],
