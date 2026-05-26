@@ -48,8 +48,8 @@ function pad(s: string, width: number): string {
   return s + " ".repeat(width - s.length);
 }
 
-const BOLD_ON = "[1m";
-const BOLD_OFF = "[0m";
+const BOLD_ON = "\x1b[1m";
+const BOLD_OFF = "\x1b[0m";
 
 export function renderInventory(result: ScanResult, opts: RenderInventoryOptions): string {
   if (result.inventory.length === 0) return EMPTY_MESSAGE;

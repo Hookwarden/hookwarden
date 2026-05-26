@@ -126,6 +126,18 @@ describe("renderInventory (DISCOVERY-01)", () => {
     expect(out).toContain("[manual-review]");
   });
 
+  it("bolds the header with a real ESC sequence when useAnsi is true (no literal [1m leak)", () => {
+    // Regression: BOLD_ON/BOLD_OFF were "[1m"/"[0m" (missing the \x1b), so color-mode output
+    // printed a literal `[1mframework … file:line[0m` header instead of bolding it.
+    const out = renderInventory(mkResult([baseHandler]), { useAnsi: true, cwd: "/tmp" });
+    expect(out).toContain("\x1b[1m");
+    expect(out).toContain("\x1b[0m");
+    // The "[1mframework" header text must always be preceded by a real ESC byte — never bare.
+    const headerIdx = out.indexOf("[1mframework");
+    expect(headerIdx).toBeGreaterThan(0);
+    expect(out[headerIdx - 1]).toBe("\x1b");
+  });
+
   it("snapshot — empty inventory", () => {
     const out = renderInventory(mkResult([]), { useAnsi: false, cwd: "/tmp" });
     expect(out).toMatchSnapshot();

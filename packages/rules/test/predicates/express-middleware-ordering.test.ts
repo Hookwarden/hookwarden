@@ -80,4 +80,17 @@ describe("expressMiddlewareOrderingPredicate (RULES-03)", () => {
     };
     expect(await expressMiddlewareOrderingPredicate(handler, {} as never)).toBeNull();
   });
+
+  it("returns null for non-Stripe providers (Stripe-branded rule must not fire cross-provider)", async () => {
+    // Regression: a GitHub express handler with express.json()-before-route hits the same bug,
+    // but github/raw-body-misuse owns it — this Stripe-namespaced rule firing here would emit a
+    // "for Stripe" finding on a GitHub webhook (cross-provider false positive).
+    const handler: WebhookHandler = {
+      ...baseHandler,
+      provider: "github",
+      route_pattern: "/webhooks/github",
+      middleware_chain: [mw("express.json", "express", 0)],
+    };
+    expect(await expressMiddlewareOrderingPredicate(handler, {} as never)).toBeNull();
+  });
 });
