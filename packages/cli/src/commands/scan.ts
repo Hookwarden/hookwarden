@@ -21,6 +21,7 @@ export interface ScanArgs {
   readonly path?: string;
   readonly verbose?: boolean;
   readonly "no-color"?: boolean;
+  readonly color?: string;
   readonly "rules-dir"?: string;
   // Phase 4 additions:
   readonly format?: string;
@@ -45,8 +46,19 @@ const VALID_PROVIDERS: ReadonlySet<string> = new Set(Object.keys(PROVIDER_CATALO
 
 export async function runScanCommand(args: ScanArgs): Promise<number> {
   const cwd = path.resolve(args.path ?? ".");
+  // Color resolution precedence: --color always|never  >  --no-color  >
+  // FORCE_COLOR env  >  TTY/NO_COLOR/CI auto-detection. `--color always` lets
+  // you force the palette through a pipe or recorder; `auto` (default) keeps
+  // CI logs and redirected output clean.
   const noColor = args["no-color"] === true;
-  const useAnsi = noColor ? false : shouldUseAnsi(process.stdout);
+  const colorMode = args.color;
+  const forceColorEnv = process.env["FORCE_COLOR"];
+  const forceColor = forceColorEnv !== undefined && forceColorEnv !== "" && forceColorEnv !== "0";
+  let useAnsi: boolean;
+  if (colorMode === "always") useAnsi = true;
+  else if (colorMode === "never" || noColor) useAnsi = false;
+  else if (forceColor) useAnsi = true;
+  else useAnsi = shouldUseAnsi(process.stdout);
   const verbose = args.verbose === true;
 
   // Phase 8.2 D-16: `hookwarden scan --fix` is rejected. Auto-fix lives in the
@@ -253,6 +265,11 @@ export const scanCommand = defineCommand({
     },
     verbose: { type: "boolean", alias: "v", description: "Verbose output." },
     "no-color": { type: "boolean", description: "Disable color and OSC-8 hyperlinks." },
+    color: {
+      type: "string",
+      description:
+        "When to colorize: always | never | auto (default). Use 'always' to force color through a pipe.",
+    },
     "rules-dir": {
       type: "string",
       description: "Override the bundled rule pack location (dev-only).",
