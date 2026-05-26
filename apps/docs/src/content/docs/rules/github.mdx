@@ -1,0 +1,91 @@
+---
+title: GitHub rules
+description: The 9 hookwarden rules for GitHub webhook signature verification — what each detects, the verdict it emits, and how to fix it.
+---
+
+GitHub signs every webhook with **HMAC-SHA256** over the raw request body, sending the result in the `X-Hub-Signature-256` header (hex, prefixed `sha256=`). GitHub does **not** sign a timestamp — replay defense relies on de-duplicating the per-delivery `X-GitHub-Delivery` UUID.
+
+| | |
+|---|---|
+| Signature header | `X-Hub-Signature-256` (legacy `X-Hub-Signature` is SHA-1) |
+| Algorithm | HMAC-SHA256 |
+| Signed payload | raw request body |
+| Encoding | hex |
+| Official SDK | `@octokit/webhooks` — `verify` / `verifyRequest` |
+| Secret prefix | `ghs_`, `github_pat_` |
+
+Using `@octokit/webhooks` enforces HMAC-SHA256 with constant-time comparison and is the shortest path to a `verified` verdict. See the [three-state verdict model](/rules/#the-three-state-verdict).
+
+## Library-verified
+
+`github/library-verified` · **info** · verdict `verified`
+
+`@octokit/webhooks` `verify` is reachable from the handler within 3 hops. The Octokit SDK enforces HMAC-SHA256 with constant-time comparison internally. Target state — no action needed.
+
+## Missing signature verification
+
+`github/missing-signature-verification` · **critical** · verdict `not-verified`
+
+The handler doesn't verify `X-Hub-Signature-256`: neither `@octokit/webhooks` `verify` nor a manual `crypto.createHmac('sha256', secret)` path is reachable within 3 hops.
+
+**Fix:** use `@octokit/webhooks` to verify, or compute `crypto.createHmac('sha256', secret).update(rawBody).digest('hex')` and compare against `X-Hub-Signature-256` with `crypto.timingSafeEqual`.
+
+## Missing timing-safe-equal
+
+`github/missing-timing-safe-equal` · **critical** · verdict `not-verified`
+
+JS-only. The handler doesn't call `crypto.timingSafeEqual` or the `@octokit/webhooks` verifier within 3 hops of the route — signature verification is missing or unresolvable from static analysis. **Mechanically fixable** by `hookwarden fix`.
+
+**Fix:** add the Octokit SDK call, or use `crypto.timingSafeEqual` after computing HMAC-SHA256.
+
+## Raw-body misuse
+
+`github/raw-body-misuse` · **critical** · verdict `not-verified`
+
+The handler reads the signature header but doesn't receive the body as raw bytes. The HMAC GitHub signs is computed over the exact bytes sent — once `express.json()` parses the payload, the bytes used for the HMAC differ.
+
+**Fix:** apply `express.raw({ type: 'application/json' })` to the GitHub webhook route only, or use `@octokit/webhooks` which handles this for you.
+
+## Wrong HMAC algorithm
+
+`github/wrong-hmac-algorithm` · **critical** · verdict `not-verified`
+
+`X-Hub-Signature-256` is SHA-256, but a manual HMAC path uses a different algorithm (MD5, SHA-1, SHA-512). The comparison will never succeed against the SHA-256 digest GitHub sends.
+
+**Fix:** `crypto.createHmac('sha256', secret)` (Node) or `hmac.new(secret, msg, hashlib.sha256)` (Python).
+
+## Timing-unsafe comparison
+
+`github/timing-unsafe-comparison` · **critical** · verdict `not-verified`
+
+The handler computes the HMAC but compares it with plain `==` / `===` instead of `crypto.timingSafeEqual` (Node) or `hmac.compare_digest` (Python), leaking timing information. **Mechanically fixable** by `hookwarden fix`.
+
+**Fix:** replace `expected === provided` with `crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(provided))`.
+
+## Hardcoded secret prefix
+
+`github/hardcoded-secret-prefix` · **critical** · verdict `not-verified`
+
+A literal matching a GitHub credential prefix (`ghs_*`, `github_pat_*`) appears in source. Hardcoded secrets land in git history, build artefacts, and Docker images — once committed, they must be rotated.
+
+**Fix:** read `process.env.GITHUB_WEBHOOK_SECRET` (or equivalent) and rotate the leaked credential in your GitHub App settings, or under **Settings → Developer settings → Personal access tokens**.
+
+## Missing replay defense
+
+`github/missing-replay-defense` · **high** · verdict `manual-review`
+
+A manual HMAC path is reachable but no replay-defense surface (a per-delivery `X-GitHub-Delivery` UUID lookup against a Map, Set, Redis, or DB) is. Because GitHub doesn't sign a timestamp, replay defense depends on persisting and rejecting previously-seen delivery IDs. Surfaced as `manual-review` so a human can confirm the dedupe story.
+
+**Fix:** store recent `X-GitHub-Delivery` UUIDs (with a TTL, e.g. 24h) and reject duplicates.
+
+## Unreachable verification
+
+`github/unreachable-verification` · **high** · verdict `manual-review`
+
+`@octokit/webhooks` is imported in the handler's file but its `verify` call isn't reachable from the handler entry within 3 hops — the path may be conditional, dynamically dispatched, or in dead code.
+
+**Fix:** review the handler's call graph and confirm the verification path is always taken.
+
+---
+
+Reference: [GitHub — Validating webhook deliveries](https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries) · Back to [rule coverage](/rules/).

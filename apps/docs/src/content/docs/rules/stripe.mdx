@@ -1,0 +1,91 @@
+---
+title: Stripe rules
+description: The 9 hookwarden rules for Stripe webhook signature verification — what each detects, the verdict it emits, and how to fix it.
+---
+
+Stripe signs every webhook with **HMAC-SHA256** over `{timestamp}.{raw_body}`, sending the timestamp and signature in the `Stripe-Signature` header (`t=…,v1=…`, hex-encoded). The signing secret is the `whsec_…` value from **Developers → Webhooks → your endpoint**.
+
+| | |
+|---|---|
+| Signature header | `Stripe-Signature` |
+| Algorithm | HMAC-SHA256 |
+| Signed payload | `t` + `.` + raw request body |
+| Encoding | hex |
+| Official SDK | `stripe` — `stripe.webhooks.constructEvent` (Node), `stripe.Webhook.construct_event` (Python) |
+| Secret prefix | `whsec_` |
+
+The SDK enforces HMAC-SHA256, a 300-second timestamp tolerance, and constant-time comparison internally — using it is the shortest path to a `verified` verdict. See the [three-state verdict model](/rules/#the-three-state-verdict).
+
+## Library-verified
+
+`stripe/library-verified` · **info** · verdict `verified`
+
+`stripe.webhooks.constructEvent` (or Python `stripe.Webhook.construct_event`) is reachable from the handler within 3 hops. The Stripe SDK enforces HMAC-SHA256, the timestamp tolerance, and constant-time comparison for you. This is the target state — no action needed.
+
+## Missing signature verification
+
+`stripe/missing-signature-verification` · **critical** · verdict `not-verified`
+
+The handler processes the event without verifying the signature: neither `stripe.webhooks.constructEvent` (Node) nor `stripe.Webhook.construct_event` (Python) is reachable within 3 hops, and no manual HMAC path was detected. Stripe's guidance: "You should always verify events by checking the signature."
+
+**Fix:** pass the raw request body, the `Stripe-Signature` header, and your `STRIPE_WEBHOOK_SECRET` to `stripe.webhooks.constructEvent` (Node) or `stripe.Webhook.construct_event` (Python) at the very top of the handler.
+
+## Raw-body misuse
+
+`stripe/raw-body-misuse` · **critical** · verdict `not-verified`
+
+The handler reads the signature header (or calls the SDK verify) but doesn't receive the body as raw bytes. Stripe's HMAC is computed over the raw payload — once `express.json()` (or any JSON middleware) parses the body, the bytes used for the HMAC differ from what was sent and verification fails on every webhook.
+
+**Fix:** apply `express.raw({ type: 'application/json' })` to the webhook route only, and call `stripe.webhooks.constructEvent(req.body, ...)` with the Buffer. Don't register `express.json()` globally before the webhook route.
+
+## Wrong HMAC algorithm
+
+`stripe/wrong-hmac-algorithm` · **critical** · verdict `not-verified`
+
+A manual HMAC path uses an algorithm other than HMAC-SHA256. Stripe signs with HMAC-SHA256 — any other algorithm (MD5, SHA-1, SHA-384, SHA-512, RIPEMD-160) will never match, so verification cannot succeed.
+
+**Fix:** `crypto.createHmac('sha256', secret)` (Node) or `hmac.new(secret, msg, hashlib.sha256)` (Python).
+
+## Timing-unsafe comparison
+
+`stripe/timing-unsafe-comparison` · **critical** · verdict `not-verified`
+
+The handler computes an HMAC manually but compares it with plain `==` / `===` rather than `crypto.timingSafeEqual` (Node) or `hmac.compare_digest` (Python). String comparison short-circuits on the first differing byte, leaking timing that is exploitable on a fast network. **Mechanically fixable** by `hookwarden fix`.
+
+**Fix:** replace `expected === provided` with `crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(provided))` (Node) or `hmac.compare_digest(expected, provided)` (Python).
+
+## Express middleware ordering
+
+`stripe/express-middleware-ordering` · **critical** · verdict `not-verified`
+
+Express-only. `express.json()` (or `body-parser.json()`) is registered before the webhook route, so JSON middleware consumes the body before the Stripe handler runs — the raw bytes used for HMAC are gone and `constructEvent` can't reproduce the signature.
+
+**Fix:** register `express.json()` *after* the webhook route, or mount `express.raw({ type: 'application/json' })` only on the webhook path.
+
+## Hardcoded secret prefix
+
+`stripe/hardcoded-secret-prefix` · **critical** · verdict `not-verified`
+
+A literal value matching the Stripe signing-secret prefix (`whsec_*`) appears in source. Hardcoded secrets land in git history, build artefacts, and Docker images — once committed, they must be rotated.
+
+**Fix:** read `process.env.STRIPE_WEBHOOK_SECRET` and roll the leaked secret in the Stripe Dashboard under **Developers → Webhooks → your endpoint → Roll secret**.
+
+## Missing timestamp check
+
+`stripe/missing-timestamp-check` · **high** · verdict `manual-review`
+
+A manual HMAC path is reachable but no timestamp-tolerance check (a `Date.now()` comparison against `t=` from `Stripe-Signature`) is. Without a tolerance window, an intercepted past webhook can be replayed indefinitely. Surfaced as `manual-review` so a human can confirm the replay-defense story.
+
+**Fix:** prefer `stripe.webhooks.constructEvent`, which enforces a 300-second tolerance by default. If you hand-roll, parse the `t=` timestamp and reject deliveries older than ~5 minutes.
+
+## Unreachable verification
+
+`stripe/unreachable-verification` · **high** · verdict `manual-review`
+
+The `stripe` SDK is imported but `stripe.webhooks.constructEvent` isn't reachable from the handler entry within 3 hops — the verification may be conditional, dynamically dispatched, or in dead code. Static analysis can't confirm every request goes through it.
+
+**Fix:** review the handler's call graph and confirm the verification path is always taken.
+
+---
+
+Reference: [Stripe — Check webhook signatures](https://docs.stripe.com/webhooks#verify-events) · Back to [rule coverage](/rules/).

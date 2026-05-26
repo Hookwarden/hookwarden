@@ -1,0 +1,74 @@
+---
+title: Shopify rules
+description: The 7 hookwarden rules for Shopify webhook signature verification — what each detects, the verdict it emits, and how to fix it.
+---
+
+Shopify signs every webhook with **HMAC-SHA256** over the raw request body, sending the result **base64-encoded** in the `X-Shopify-Hmac-Sha256` header. There is no signed timestamp — replay defense relies on de-duplicating the `X-Shopify-Webhook-Id` header.
+
+| | |
+|---|---|
+| Signature header | `X-Shopify-Hmac-Sha256` |
+| Algorithm | HMAC-SHA256 |
+| Signed payload | raw request body |
+| Encoding | base64 |
+| Official SDK | `@shopify/shopify-api` — `shopify.webhooks.validate` / `verifyHmac` |
+
+The Shopify SDK enforces HMAC-SHA256 over the raw body with base64 comparison. See the [three-state verdict model](/rules/#the-three-state-verdict).
+
+## Library-verified
+
+`shopify/library-verified` · **info** · verdict `verified`
+
+`shopify.webhooks.validate` (Node SDK `@shopify/shopify-api`) or `verifyHmac` is reachable within 3 hops. The SDK enforces HMAC-SHA256 over the raw body and base64 comparison internally. Target state — no action needed.
+
+## Missing signature verification
+
+`shopify/missing-signature-verification` · **critical** · verdict `not-verified`
+
+The handler processes the event without verifying `X-Shopify-Hmac-Sha256`: neither `shopify.webhooks.validate` nor `verifyHmac` is reachable within 3 hops, and no manual HMAC path was detected.
+
+**Fix:** compute `crypto.createHmac('sha256', process.env.SHOPIFY_API_SECRET).update(rawBody).digest('base64')` and compare to the header with `crypto.timingSafeEqual`, or use `shopify.webhooks.validate(...)`.
+
+## Raw-body misuse
+
+`shopify/raw-body-misuse` · **critical** · verdict `not-verified`
+
+The handler reads `X-Shopify-Hmac-Sha256` (or calls `validate`) but doesn't receive the body as raw bytes. Shopify's HMAC is computed over the raw payload — once `express.json()` parses the body, the bytes differ and verification fails on every webhook.
+
+**Fix:** apply `express.raw({ type: 'application/json' })` to the webhook route only, and call `crypto.createHmac('sha256', ...).update(req.body)` with the Buffer. Don't register `express.json()` globally before the webhook route.
+
+## Wrong HMAC algorithm
+
+`shopify/wrong-hmac-algorithm` · **critical** · verdict `not-verified`
+
+A manual HMAC path uses an algorithm other than HMAC-SHA256. Shopify signs with HMAC-SHA256 — any other algorithm will never match the base64 digest Shopify sends.
+
+**Fix:** `crypto.createHmac('sha256', secret)` (Node) or `hmac.new(secret, msg, hashlib.sha256)` (Python).
+
+## Timing-unsafe comparison
+
+`shopify/timing-unsafe-comparison` · **critical** · verdict `not-verified`
+
+The handler computes the HMAC manually but compares it with plain `==` / `===` rather than `crypto.timingSafeEqual` (Node) or `hmac.compare_digest` (Python), leaking timing information. **Mechanically fixable** by `hookwarden fix`.
+
+**Fix:** compare the base64 HMAC via `crypto.timingSafeEqual(Buffer.from(expected, 'base64'), Buffer.from(provided, 'base64'))` (Node) or `hmac.compare_digest(expected, provided)` (Python).
+
+## Missing timestamp check
+
+`shopify/missing-timestamp-check` · **info** · verdict `manual-review`
+
+Shopify webhooks carry no request-time timestamp header, so replay defense relies on application-side de-duplication. When a manual HMAC path is reachable and no dedupe is detectable, hookwarden surfaces `manual-review` so a reviewer can confirm the story.
+
+**Fix:** prefer `shopify.webhooks.validate(...)`. If you hand-roll, persist the `X-Shopify-Webhook-Id` header and reject any delivery whose ID has been seen before.
+
+## Unreachable verification
+
+`shopify/unreachable-verification` · **high** · verdict `manual-review`
+
+`@shopify/shopify-api` (or `@shopify/shopify-app-express`) is imported but `shopify.webhooks.validate` / `verifyHmac` isn't reachable from the handler entry within 3 hops — the call may be conditional, dynamically dispatched, or in dead code.
+
+**Fix:** review the handler's call graph and confirm the verification path is always taken.
+
+---
+
+Reference: [Shopify — Verify the webhook](https://shopify.dev/docs/apps/build/webhooks/subscribe/https#step-5-verify-the-webhook) · Back to [rule coverage](/rules/).

@@ -1,0 +1,71 @@
+---
+title: Rule coverage
+description: Every webhook signature-verification rule hookwarden ships — 45 rules across 6 providers, JS/TS, Python, and PHP — and the three-state verdict each one produces.
+---
+
+hookwarden ships **45 rules** across **6 providers**. Every rule is data, not engine code — defined in a YAML file under [`packages/rules/rules/`](https://github.com/Hookwarden/hookwarden/tree/main/packages/rules/rules), bundled into the binary at build time, and versioned as `@hookwarden/rules`.
+
+This section documents what each rule detects, the verdict it produces, and how to fix it. Pick a provider:
+
+- [Stripe](/rules/stripe/) — 9 rules
+- [GitHub](/rules/github/) — 9 rules
+- [Slack](/rules/slack/) — 7 rules
+- [Shopify](/rules/shopify/) — 7 rules
+- [Twilio](/rules/twilio/) — 7 rules
+- [Square](/rules/square/) — 6 rules
+
+## The three-state verdict
+
+hookwarden never reports a binary pass/fail. Every webhook handler resolves to one of three states — this is the difference between a scanner you can trust in CI and one that drowns you in false positives.
+
+| Verdict | Meaning | Exit behavior |
+|---|---|---|
+| **`verified`** | A verification path is provably reachable from the handler — an official SDK call or a correct manual HMAC + constant-time compare. No finding. | Clean |
+| **`not-verified`** | A concrete, confirmed defect: no verification, a timing-unsafe compare, a parsed (non-raw) body, the wrong HMAC algorithm, or a hardcoded secret. | Fails the build at the default threshold |
+| **`manual-review`** | The handler does something the engine can't *statically prove* is safe or unsafe — verification is reachable but conditional, or a replay-defense story exists outside the call graph. A human confirms. | Surfaced, doesn't fail by default |
+
+A rule's `emits_state` is fixed: `missing-signature-verification` always emits `not-verified`; `unreachable-verification` always emits `manual-review`; `library-verified` always emits `verified`. The verdict is a property of the rule, not a heuristic guess at scan time.
+
+## Coverage matrix
+
+Each cell shows whether the rule family ships for that provider, and the verdict it emits.
+
+| Rule family | Stripe | GitHub | Slack | Shopify | Twilio | Square |
+|---|---|---|---|---|---|---|
+| `missing-signature-verification` | ✅ not-verified | ✅ not-verified | ✅ not-verified | ✅ not-verified | ✅ not-verified | ✅ not-verified |
+| `timing-unsafe-comparison` | ✅ not-verified | ✅ not-verified | ✅ not-verified | ✅ not-verified | ✅ not-verified | ✅ not-verified |
+| `raw-body-misuse` | ✅ not-verified | ✅ not-verified | ✅ not-verified | ✅ not-verified | ✅ not-verified | ✅ not-verified |
+| `wrong-hmac-algorithm` | ✅ not-verified | ✅ not-verified | ✅ not-verified | ✅ not-verified | ✅ not-verified | ✅ not-verified |
+| `missing-timestamp-check` | ✅ manual-review | — replay-defense¹ | ✅ manual-review | ✅ manual-review | ✅ manual-review | — no timestamp² |
+| `unreachable-verification` | ✅ manual-review | ✅ manual-review | ✅ manual-review | ✅ manual-review | ✅ manual-review | ✅ manual-review |
+| `library-verified` | ✅ verified | ✅ verified | ✅ verified | ✅ verified | ✅ verified | ✅ verified |
+| `hardcoded-secret-prefix` | ✅ not-verified | ✅ not-verified | —³ | —³ | —³ | —³ |
+
+**Provider-specific rules** (no cross-provider equivalent):
+
+- `github/missing-replay-defense` (manual-review) — GitHub has no signed timestamp; replay defense is per-delivery `X-GitHub-Delivery` UUID dedupe.
+- `github/missing-timing-safe-equal` (not-verified) — JS-only alias catching the `crypto.timingSafeEqual` gap.
+- `stripe/express-middleware-ordering` (not-verified) — `express.json()` registered before the Stripe route consumes the raw body.
+
+¹ GitHub doesn't sign a timestamp, so the timestamp rule is replaced by `missing-replay-defense`.
+² Square's scheme carries no request-time timestamp; replay defense relies on event-ID de-duplication.
+³ Only Stripe (`whsec_`) and GitHub (`ghs_`, `github_pat_`) publish a canonical secret prefix that can be matched as a literal.
+
+## Language & framework coverage
+
+Every rule applies across all three languages unless noted. The engine parses JS/TS with `@babel/parser` and Python/PHP with tree-sitter grammars.
+
+| Language | Frameworks |
+|---|---|
+| JavaScript / TypeScript | Express · Hono · Fastify · Next.js |
+| Python | Flask · FastAPI · Django |
+| PHP | Laravel · Symfony · Slim · vanilla single-file handlers |
+
+Two rules are JS-only by construction: `github/missing-timing-safe-equal` (catches the `crypto.timingSafeEqual` pattern specifically) and `stripe/express-middleware-ordering` (an Express `app.use()` concern). PHP's `hash_equals` and Python's `hmac.compare_digest` are covered by the cross-language `timing-unsafe-comparison` rule instead.
+
+## Auto-fix coverage
+
+Each rule declares its fixability. `hookwarden fix` applies `safe` rules mechanically; `manual-only` rules emit per-finding fix prose via `--mode manual-only-explain`. See [Safety levels](/cli/safety-levels/) for the full model.
+
+- **Mechanically fixable (`safe`):** `timing-unsafe-comparison`, `raw-body-misuse` (JS/TS + PHP), plus nullish-guard and secret-presence-check insertions.
+- **Manual-only:** everything architectural — `missing-signature-verification`, `wrong-hmac-algorithm`, `unreachable-verification`, `missing-timestamp-check`, `library-verified`, `hardcoded-secret-prefix`, `express-middleware-ordering`.

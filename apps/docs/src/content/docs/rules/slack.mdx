@@ -1,0 +1,75 @@
+---
+title: Slack rules
+description: The 7 hookwarden rules for Slack webhook signature verification — what each detects, the verdict it emits, and how to fix it.
+---
+
+Slack signs every request with **HMAC-SHA256** over the canonical string `v0:{timestamp}:{raw_body}`, sending the result in `X-Slack-Signature` (hex, prefixed `v0=`) alongside the `X-Slack-Request-Timestamp` header. Verification must also reject timestamps outside a ~5-minute window.
+
+| | |
+|---|---|
+| Signature header | `X-Slack-Signature` (the `v0=` prefix is the version, not the algorithm) |
+| Timestamp header | `X-Slack-Request-Timestamp` |
+| Algorithm | HMAC-SHA256 |
+| Signed payload | `v0:` + timestamp + `:` + raw body |
+| Encoding | hex |
+| Official SDK | `@slack/bolt`, `@slack/events-api` (Node), `slack_sdk` (Python) |
+
+The Slack SDKs enforce the canonical-string construction, the 5-minute tolerance, and constant-time comparison. See the [three-state verdict model](/rules/#the-three-state-verdict).
+
+## Library-verified
+
+`slack/library-verified` · **info** · verdict `verified`
+
+`verifyRequestSignature` (`@slack/events-api`) or `SignatureVerifier.is_valid_request` (Python `slack_sdk`) is reachable within 3 hops. The SDK enforces the `v0` canonical-string, HMAC-SHA256, the 5-minute tolerance, and constant-time comparison. Target state — no action needed.
+
+## Missing signature verification
+
+`slack/missing-signature-verification` · **critical** · verdict `not-verified`
+
+The handler processes the request without verifying `X-Slack-Signature`: no SDK verifier and no manual HMAC-SHA256 path is reachable within 3 hops.
+
+**Fix:** use `@slack/bolt`'s built-in receiver, or call `verifyRequestSignature({ signingSecret, requestSignature, requestTimestamp, body })` (Node) / `SignatureVerifier(signing_secret).is_valid_request(body, headers)` (Python). The canonical string is `'v0:' + ts + ':' + body`, HMAC-SHA256 hex, prefixed `v0=`.
+
+## Raw-body misuse
+
+`slack/raw-body-misuse` · **critical** · verdict `not-verified`
+
+The handler reads `X-Slack-Signature` (or calls `verifyRequestSignature`) but doesn't receive the body as raw bytes. Slack's HMAC is computed over `'v0:' + timestamp + ':' + raw_body` — once JSON middleware parses the body, the bytes differ and every delivery fails verification.
+
+**Fix:** apply `express.raw({ type: 'application/json' })` to the webhook route only, or use `@slack/bolt`'s `ExpressReceiver`, which handles this correctly.
+
+## Wrong HMAC algorithm
+
+`slack/wrong-hmac-algorithm` · **critical** · verdict `not-verified`
+
+A manual HMAC path uses an algorithm other than HMAC-SHA256. The `v0=` prefix denotes the signature *version*, not the algorithm — any other algorithm (MD5, SHA-1, SHA-384, SHA-512) will never match.
+
+**Fix:** `crypto.createHmac('sha256', signingSecret)` (Node) or `hmac.new(signing_secret, msg, hashlib.sha256)` (Python).
+
+## Timing-unsafe comparison
+
+`slack/timing-unsafe-comparison` · **critical** · verdict `not-verified`
+
+The handler computes the HMAC-SHA256 manually but compares it with plain `==` / `===` rather than `crypto.timingSafeEqual` (Node) or `hmac.compare_digest` (Python), leaking timing information. **Mechanically fixable** by `hookwarden fix`.
+
+**Fix:** compare via `crypto.timingSafeEqual(Buffer.from('v0=' + expected), Buffer.from(provided))` (Node) or `hmac.compare_digest('v0=' + expected, provided)` (Python).
+
+## Missing timestamp check
+
+`slack/missing-timestamp-check` · **high** · verdict `manual-review`
+
+A manual HMAC path is reachable but no timestamp-tolerance check is. Slack signs `'v0:' + X-Slack-Request-Timestamp + ':' + body` — without rejecting deliveries outside a ~5-minute window, an attacker who captures one signed webhook can replay it indefinitely.
+
+**Fix:** read `X-Slack-Request-Timestamp`, parse to an integer, and reject any request where `Math.abs(Date.now() / 1000 - ts) > 300` (Node) or `abs(time.time() - int(ts)) > 60 * 5` (Python). The `@slack/bolt` receiver and `slack_sdk.signature.SignatureVerifier` enforce this.
+
+## Unreachable verification
+
+`slack/unreachable-verification` · **high** · verdict `manual-review`
+
+`@slack/bolt` / `@slack/events-api` / `slack_sdk` is imported but the verify call isn't reachable from the handler entry within 3 hops — the path may be conditional, dynamically dispatched, or in dead code.
+
+**Fix:** review the handler's call graph and confirm the verification path is always taken.
+
+---
+
+Reference: [Slack — Verifying requests from Slack](https://api.slack.com/authentication/verifying-requests-from-slack) · Back to [rule coverage](/rules/).
