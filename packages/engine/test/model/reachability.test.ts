@@ -131,3 +131,56 @@ describe("computeReachableSymbols (D-34) — cross-file import expansion", () =>
     expect(r4.map((r) => r.qualified_name)).toEqual(expect.arrayContaining(["a", "b", "c", "d"]));
   });
 });
+
+describe("computeReachableSymbols (D-34) — HMAC algorithm literal capture (RULES-02)", () => {
+  // Regression: Node's `crypto.createHmac('sha256', …)` passes the digest algorithm as a
+  // string literal, so it never appeared as a symbol — wrong-hmac-algorithm then mis-fired
+  // "algorithm undetermined" on every manual-HMAC JS handler. The algorithm must surface as a
+  // `crypto.<algo>` symbol so the rule can confirm SHA-256 (no finding) yet still catch MD5.
+  it("surfaces createHmac's string-literal algorithm as a crypto.<algo> symbol", async () => {
+    const file = await parseJsTs({
+      file_path: "x.ts",
+      source_text:
+        "import crypto from 'node:crypto';\n" +
+        "import express from 'express';\n" +
+        "const app = express();\n" +
+        "app.post('/webhooks/github', (req, res) => {\n" +
+        "  const mac = crypto.createHmac('sha256', process.env.SECRET).update(req.body).digest('hex');\n" +
+        "  res.send(mac);\n" +
+        "});\n",
+    });
+    const h = detectCatalogHandlers(file)[0]!;
+    const qns = computeReachableSymbols({
+      handler_body_node: h.handler_body_node,
+      handler_file: file,
+      all_files: [file],
+      imports: file.imports,
+      maxDepth: 3,
+    }).map((r) => r.qualified_name);
+    expect(qns).toContain("crypto.createHmac");
+    expect(qns).toContain("crypto.sha256");
+  });
+
+  it("normalizes the algorithm literal ('SHA-256' → crypto.sha256)", async () => {
+    const file = await parseJsTs({
+      file_path: "x.ts",
+      source_text:
+        "import crypto from 'node:crypto';\n" +
+        "import express from 'express';\n" +
+        "const app = express();\n" +
+        "app.post('/webhooks/github', (req, res) => {\n" +
+        "  crypto.createHmac('SHA-256', 's').update(req.body).digest('hex');\n" +
+        "  res.send('ok');\n" +
+        "});\n",
+    });
+    const h = detectCatalogHandlers(file)[0]!;
+    const qns = computeReachableSymbols({
+      handler_body_node: h.handler_body_node,
+      handler_file: file,
+      all_files: [file],
+      imports: file.imports,
+      maxDepth: 3,
+    }).map((r) => r.qualified_name);
+    expect(qns).toContain("crypto.sha256");
+  });
+});
