@@ -48,29 +48,41 @@ export function renderSummary(result: ScanResult, opts: RenderSummaryOptions): s
 
   const sevLine = SEVERITY_ORDER.map((s) => `${sevCounts[s]} ${s}`).join(" · ");
   const handlersLine = `${plural(result.inventory.length, "webhook handler")} across ${plural(filesTouched.size, "file")}`;
+  const totalFindings = SEVERITY_ORDER.reduce((n, s) => n + sevCounts[s], 0);
 
-  // Line 1: severity tally · manual-review · pre-existing · suppressed · stale (use --verbose ...) — handlers
-  const line1Parts: string[] = [`Found ${sevLine}`, `${manualReviewCount} manual-review`];
-  if ((opts.preExistingCount ?? 0) > 0) {
-    line1Parts.push(`${opts.preExistingCount} pre-existing`);
-  }
-  if ((opts.suppressedCount ?? 0) > 0) {
-    line1Parts.push(`${opts.suppressedCount} suppressed`);
-  }
-  if ((opts.staleCount ?? 0) > 0) {
-    line1Parts.push(`${opts.staleCount} stale`);
-  }
-  let line1 = line1Parts.join(" · ");
+  // Line 1. A clean scan skips the all-zeros severity tally — a row of zeros
+  // tells the reader nothing; just state the scope that was covered.
+  // Filtered-out tallies (still meaningful even when 0 active findings remain).
+  const extraSegments: string[] = [];
+  if ((opts.preExistingCount ?? 0) > 0) extraSegments.push(`${opts.preExistingCount} pre-existing`);
+  if ((opts.suppressedCount ?? 0) > 0) extraSegments.push(`${opts.suppressedCount} suppressed`);
+  if ((opts.staleCount ?? 0) > 0) extraSegments.push(`${opts.staleCount} stale`);
   const hiddenCount = (opts.suppressedCount ?? 0) + (opts.staleCount ?? 0);
-  if (hiddenCount > 0 && opts.verbose !== true) {
-    line1 += " (use --verbose to view)";
+
+  let line1: string;
+  if (totalFindings === 0 && extraSegments.length === 0) {
+    // Truly clean: no severity zeros to print, just the scope covered.
+    line1 = handlersLine;
+  } else {
+    // Drop the all-zeros severity tally when there are no active findings;
+    // otherwise lead with it. Filtered-out segments always follow.
+    const line1Parts: string[] =
+      totalFindings > 0 ? [`Found ${sevLine}`, `${manualReviewCount} manual-review`] : [];
+    line1Parts.push(...extraSegments);
+    line1 = line1Parts.join(" · ");
+    if (hiddenCount > 0 && opts.verbose !== true) {
+      line1 += " (use --verbose to view)";
+    }
+    line1 += ` — ${handlersLine}`;
   }
-  line1 += ` — ${handlersLine}`;
 
   const m = result.metadata;
   const line2Parts: string[] = [];
   if (opts.durationMs !== undefined) {
-    line2Parts.push(`Scanned in ${(opts.durationMs / 1000).toFixed(1)} s`);
+    // Sub-second scans rendered as "0.0 s" looked broken; show ms under 1s.
+    const ms = opts.durationMs;
+    const elapsed = ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`;
+    line2Parts.push(`Scanned in ${elapsed}`);
   }
   if (opts.parseCandidatesCount !== undefined && opts.parsedFilesCount !== undefined) {
     const pct =
@@ -86,7 +98,11 @@ export function renderSummary(result: ScanResult, opts: RenderSummaryOptions): s
   if (opts.diffBase) {
     line2Parts.push(`vs ${opts.diffBase}`);
   }
-  line2Parts.push(`engine v${m.engine_version}`, `rules v${m.rule_pack_version}`);
+  // Engine/rule-pack versions are bug-report provenance, not every-scan info —
+  // only surface them under --verbose to keep the default footer quiet.
+  if (opts.verbose === true) {
+    line2Parts.push(`engine v${m.engine_version}`, `rules v${m.rule_pack_version}`);
+  }
   let line2 = line2Parts.join(" · ");
   if (opts.rulePackDrift) {
     line2 += `\n(rule pack ${opts.rulePackDrift.from} → ${opts.rulePackDrift.to})`;

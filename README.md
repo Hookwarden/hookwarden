@@ -225,8 +225,8 @@ you'll see in your terminal, not a stylised mockup.
 $ hookwarden scan ./your-app
 No findings.
 ────────────
-Found 0 critical · 0 high · 0 medium · 0 low · 0 info · 0 manual-review — 0 webhook handlers across 0 files
-Scanned in 0.0 s · 1 / 1 candidates parsed (100.0% coverage) · engine v0.4.0 · rules v0.4.0
+0 webhook handlers across 0 files
+Scanned in 2 ms · 1 / 1 candidates parsed (100.0% coverage)
 ```
 
 **Scan with the canonical Express middleware-ordering bug — exits 1:**
@@ -256,11 +256,14 @@ $ hookwarden scan ./your-app
   the request body as raw bytes. Stripe's HMAC is computed over the raw payload — once `express.json()` (or
   any other JSON middleware) parses the body, the bytes used for the HMAC differ from what was sent and
   verification fails on every webhook.
+  fix › apply `express.raw({ type: 'application/json' })` to the webhook route only, and call
+        `stripe.webhooks.constructEvent(req.body, ...)` with the Buffer. Do NOT register `express.json()`
+        globally before the webhook route.
   docs › https://stripe.com/docs/webhooks/signatures
 
 ────────────
 Found 3 critical · 0 high · 0 medium · 0 low · 0 info · 0 manual-review — 1 webhook handler across 1 file
-Scanned in 0.0 s · 1 / 1 candidates parsed (100.0% coverage) · engine v0.4.0 · rules v0.4.0
+Scanned in 3 ms · 1 / 1 candidates parsed (100.0% coverage)
 ```
 
 Notice: one Express middleware bug produces **three** findings — middleware-ordering, missing-signature-verification, and raw-body-misuse — because that single mistake violates three distinct invariants. Fixing one (re-ordering the middleware) clears all three at once. The rule-pack isn't double-counting; it's giving you three lenses on the same root cause so any one of them can be the entry point in code review.
@@ -279,8 +282,10 @@ $ hookwarden scan ./your-php-app
 
 ────────────
 Found 1 critical · 0 high · 0 medium · 0 low · 0 info · 0 manual-review — 1 webhook handler across 1 file
-Scanned in 0.0 s · 1 / 1 candidates parsed (100.0% coverage) · engine v0.4.0 · rules v0.4.0
+Scanned in 4 ms · 1 / 1 candidates parsed (100.0% coverage)
 ```
+
+> Engine and rule-pack versions (`engine vX · rules vY`) are appended to the footer under `--verbose`.
 
 PHP's `strcmp()` (and `===` / `==`) are not constant-time; the equivalent safe call is `hash_equals($expected, $sig)`. The fix prose currently quotes the Node/Python equivalents — PHP-specific copy lands in a follow-up.
 
@@ -289,10 +294,10 @@ PHP's `strcmp()` (and `===` / `==`) are not constant-time; the equivalent safe c
 | Glyph | Severity | SARIF level | Exit-code contribution |
 |---|---|---|---|
 | `×` | `critical` | `error` | counted toward `--fail-on` threshold |
-| `×` | `high` | `error` | counted toward `--fail-on` threshold |
-| `!` | `medium` | `warning` | counted toward `--fail-on` threshold |
+| `!` | `high` | `error` | counted toward `--fail-on` threshold |
+| `▲` | `medium` | `warning` | counted toward `--fail-on` threshold |
 | `·` | `low` | `note` | counted toward `--fail-on` threshold |
-| `·` | `info` | `note` | informational (e.g. `library-verified`) — does not fail CI |
+| `i` | `info` | `note` | informational (e.g. `library-verified`) — does not fail CI |
 
 The `state` column (right of the rule id) is the architectural three-state verdict: `not-verified`, `verified`, or `manual-review`. The footer surfaces total counts plus parse-coverage so you can spot a `--min-parse-coverage` regression at a glance.
 

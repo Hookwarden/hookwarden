@@ -60,7 +60,10 @@ function splitMessage(raw: string): { explanation: string; fix: string | null } 
   // Match a paragraph break followed by "Fix:" at the start of a line.
   // Capture everything before as explanation, everything after the "Fix:"
   // marker (sans the marker itself) as fix.
-  const match = raw.match(/^([\s\S]*?)(?:\n\s*\n|\n)Fix:\s*([\s\S]*)$/);
+  // Accepts "Fix:" and qualified variants like "Fix (Express):" / "Fix (Node):"
+  // so a framework-scoped fix paragraph still becomes a clean `fix ›` line
+  // instead of being buried in the explanation prose.
+  const match = raw.match(/^([\s\S]*?)(?:\n\s*\n|\n)Fix(?:\s*\([^)]*\))?:\s*([\s\S]*)$/);
   if (match === null) {
     return { explanation: collapseWhitespace(raw), fix: null };
   }

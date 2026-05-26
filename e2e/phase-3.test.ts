@@ -94,7 +94,7 @@ describe("Phase 3 success criteria", () => {
     );
     expect(out.stdout).toContain("stripe/hardcoded-secret-prefix");
     // Compact rendering: severity is on the same line as the finding header
-    // (`· info  file:line  rule_id  state`), not in a banner section above
+    // (`i info  file:line  rule_id  state`), not in a banner section above
     // a group. Search anchor: the line that contains the rule_id has the
     // severity glyph + label at column 0.
     const ruleIdx = out.stdout.indexOf("stripe/hardcoded-secret-prefix");
@@ -103,7 +103,7 @@ describe("Phase 3 success criteria", () => {
     // walk back from ruleIdx to the start of that line and assert info.
     const lineStart = out.stdout.lastIndexOf("\n", ruleIdx) + 1;
     const headerLine = out.stdout.slice(lineStart, out.stdout.indexOf("\n", ruleIdx));
-    expect(headerLine).toContain("· info");
+    expect(headerLine).toContain("i info");
     expect(headerLine).not.toContain("× critical");
     // D-57 contract: only severity is rewritten by path_severity_overrides; state stays.
     expect(headerLine).toContain("not-verified");

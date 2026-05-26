@@ -60,7 +60,8 @@ describe("renderSummary (D-44)", () => {
       ],
       metadata: { ...META, parse_errors_count: 2 },
     };
-    const out = renderSummary(result, { useAnsi: false, durationMs: 1234 });
+    // verbose:true surfaces the engine/rules versions in the footer.
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1234, verbose: true });
     expect(out).toContain("1 critical");
     expect(out).toContain("1 high");
     expect(out).toContain("1 medium");
@@ -74,6 +75,17 @@ describe("renderSummary (D-44)", () => {
     expect(out).toContain("rules v0.0.1");
   });
 
+  it("hides engine/rules versions by default (provenance is --verbose only)", () => {
+    const result: ScanResult = {
+      findings: [{ ...baseFinding, id: "f1", severity: "critical", state: "not-verified" }],
+      inventory: [baseHandler],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1234 });
+    expect(out).not.toContain("engine v");
+    expect(out).not.toContain("rules v");
+  });
+
   it("singularizes '1 webhook handler', '1 file', '1 parse error'", () => {
     const result: ScanResult = {
       findings: [],
@@ -84,7 +96,7 @@ describe("renderSummary (D-44)", () => {
     expect(out).toContain("1 webhook handler across 1 file");
     expect(out).not.toContain("1 webhook handlers");
     expect(out).not.toContain("1 files");
-    expect(out).toContain("1 parse error ");
+    expect(out).toContain("1 parse error");
     expect(out).not.toContain("1 parse errors");
   });
 
