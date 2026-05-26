@@ -221,7 +221,21 @@ function collectCallsBabel(root: Node): ReadonlyArray<string> {
   walkBabelAst(root, (node) => {
     if (node.type !== "CallExpression") return;
     const qn = qnameBabel(node.callee);
-    if (qn) out.push(qn);
+    if (!qn) return;
+    out.push(qn);
+    // RULES-02: surface the HMAC digest algorithm as a reachable symbol. Node's
+    // `crypto.createHmac('sha256', …)` passes the algorithm as a STRING LITERAL, whereas
+    // Python's `hmac.new(…, hashlib.sha256)` exposes it as a member-access symbol. Without
+    // this the JS algorithm is invisible to wrong-hmac-algorithm, which then treats every
+    // manual-HMAC handler as "algorithm undetermined" and mis-fires a manual-review. Emitting
+    // `crypto.<algo>` lets the rule confirm SHA-256 (no finding) and still catch MD5/SHA-1.
+    if (qn === "createHmac" || qn.endsWith(".createHmac")) {
+      const first = node.arguments[0];
+      if (first && first.type === "StringLiteral") {
+        const algo = first.value.toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (algo) out.push(`crypto.${algo}`);
+      }
+    }
   });
   return out;
 }
