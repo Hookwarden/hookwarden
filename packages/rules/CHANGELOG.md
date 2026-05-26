@@ -1,5 +1,14 @@
 # @hookwarden/rules
 
+## 0.5.5
+
+### Patch Changes
+
+- Updated dependencies [80c46ef]
+- Updated dependencies [3217cec]
+  - @hookwarden/engine@0.5.5
+  - @hookwarden/fix@0.5.5
+
 ## 0.5.4
 
 ### Patch Changes

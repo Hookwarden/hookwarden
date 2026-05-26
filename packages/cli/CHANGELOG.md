@@ -1,5 +1,32 @@
 # hookwarden
 
+## 0.5.5
+
+### Patch Changes
+
+- 80c46ef: Two DX/correctness fixes:
+
+  - **`hookwarden fix <file>`** (a single-file path) now works. It silently reported "0 fixable
+    findings" because the file path was used as the base directory for re-parsing the touched
+    files, so `path.join()` produced bogus paths and the codegen never ran. Directory scans were
+    unaffected.
+  - **Engine version is no longer stale.** The footer (`engine vX`) and SARIF `tool.driver.version`
+    reported `0.5.0` across the entire 0.5.x line. `packages/engine/src/version.ts` is now generated
+    from `package.json` (mirroring `@hookwarden/rules`) with a drift-gate test, so it can't fall out
+    of sync again.
+
+- 3217cec: Fix a false positive: `wrong-hmac-algorithm` no longer flags JS/TS handlers that correctly
+  use HMAC-SHA256. Node's `crypto.createHmac('sha256', …)` passes the algorithm as a string
+  literal (unlike Python's `hashlib.sha256`, a member-access symbol), so the engine never saw
+  it — and the rule treated every manual-HMAC JS handler as "algorithm undetermined", emitting
+  a spurious `manual-review`. The engine now captures the literal algorithm as a `crypto.<algo>`
+  reachable symbol, so SHA-256 is confirmed (no finding) while MD5/SHA-1 are still caught.
+- Updated dependencies [80c46ef]
+- Updated dependencies [3217cec]
+  - @hookwarden/engine@0.5.5
+  - @hookwarden/fix@0.5.5
+  - @hookwarden/rules@0.5.5
+
 ## 0.5.4
 
 ### Patch Changes
