@@ -13,7 +13,14 @@ import { type ResolvedConfig, resolveConfig } from "../config/precedence.js";
 import { computeExitCode } from "../exit-codes.js";
 import { evaluateParseCoverage } from "../parse-coverage.js";
 import { runScan } from "../pipeline.js";
-import { renderFindings, renderJson, renderSarif, renderSummary } from "../render/index.js";
+import { dim } from "../render/colors.js";
+import {
+  renderFindings,
+  renderInventory,
+  renderJson,
+  renderSarif,
+  renderSummary,
+} from "../render/index.js";
 import { countActiveAtOrAbove } from "../severity-threshold.js";
 import { shouldUseAnsi } from "../walker/tty.js";
 
@@ -192,6 +199,15 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
   // Step 6 — Format dispatch.
   switch (resolvedConfig.format) {
     case "text":
+      // --verbose shows its work: every webhook handler the scan found (with
+      // its provider/framework/verdict) before the findings detail below.
+      if (verbose && scan.result.inventory.length > 0) {
+        process.stdout.write(
+          `${dim(`Handlers scanned — ${scan.result.inventory.length}`, { useAnsi })}\n`,
+        );
+        process.stdout.write(renderInventory(scan.result, { useAnsi, cwd }));
+        process.stdout.write("\n");
+      }
       process.stdout.write(renderFindings(scan.result, scan.ruleSet, { useAnsi, cwd }));
       process.stdout.write(
         renderSummary(scan.result, {

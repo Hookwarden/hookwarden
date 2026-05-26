@@ -89,7 +89,7 @@ function severityGlyph(s: Severity): string {
     case "low":
       return "·";
     case "info":
-      return "·";
+      return "i"; // distinct from low's "·" so the two read apart at a glance
   }
 }
 

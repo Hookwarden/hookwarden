@@ -49,13 +49,13 @@ Sleep 250ms
 Enter
 Sleep 4500ms
 
-# ── Frame 4: JSON envelope (CI-friendly) ─────────────────────
-Type "# 4. JSON envelope shape — CI parses this"
+# ── Frame 4: verbose — shows its work ────────────────────────
+Type "# 4. Verbose — every handler it found, then the findings"
 Sleep 350ms
 Enter
-Type "./hookwarden scan buggy/ --format json | jq '.scan.counts.active'"
+Type "./hookwarden scan buggy/ --verbose"
 Sleep 250ms
 Enter
-Sleep 3500ms
+Sleep 4500ms
 
 Sleep 1500ms
