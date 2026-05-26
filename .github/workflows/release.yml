@@ -153,6 +153,15 @@ jobs:
           echo "version=v${version}" >> "$GITHUB_OUTPUT"
           echo "Resolved release version: v${version}"
 
+      # Installability gate (issue #12). `changeset publish` can publish the CLI while a scoped
+      # @hookwarden/* dependency silently fails (e.g. missing OIDC Trusted Publisher binding),
+      # leaving `npm i hookwarden` broken even though earlier steps went green — exactly what
+      # happened in 0.5.2/0.5.3. This resolves the full dependency tree from the public registry
+      # and fails the release loudly (before the brew/scoop/winget fan-out points at it).
+      - name: Verify the published release is installable from npm
+        if: steps.cli-published.outputs.cli == 'true'
+        run: node scripts/verify-npm-installable.mjs "${{ steps.version.outputs.version }}"
+
       - name: Wait for PyPI publish workflow (release-py.yml triggered by the tag push)
         if: steps.cli-published.outputs.cli == 'true'
         run: |
