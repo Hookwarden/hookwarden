@@ -21,6 +21,7 @@ export default defineConfig({
         {
           label: "CLI",
           items: [
+            { label: "Continuous integration", link: "/cli/ci/" },
             { label: "hookwarden fix", link: "/cli/fix/" },
             { label: "Safety levels", link: "/cli/safety-levels/" },
           ],
