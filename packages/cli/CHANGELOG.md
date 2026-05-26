@@ -1,5 +1,33 @@
 # hookwarden
 
+## 0.5.2
+
+### Patch Changes
+
+- 4a2201b: Terminal output overhaul — clearer and more colorful:
+
+  - **Truecolor palette.** CLI output now uses 24-bit truecolor from the brand palette (critical/not-verified `#F43F5E`, verified `#10B981`, medium/manual-review `#F59E0B`, high `#F97316`, info `#3B82F6`, `fix ›`/`docs ›` accent `#6366F1`, secondary `#64748B`) instead of the muted 16-color ANSI table.
+  - **`--color always|never|auto`** flag (also honors `FORCE_COLOR`) to force or disable color independent of TTY detection.
+  - **`--verbose` now shows its work** — lists every webhook handler found (provider · framework · verdict · file:line) before the findings, and appends `engine`/`rules` versions to the footer.
+  - **Leaner default footer:** sub-second scans show `Scanned in 38 ms` (was a confusing `0.0 s`); engine/rule-pack versions moved to `--verbose`; a clean scan no longer prints an all-zeros severity tally.
+  - **`info` gets a distinct `i` glyph** so it no longer collides with `low`'s `·`.
+  - **Consistent fix lines:** framework-scoped fix paragraphs (`Fix (Express):`) are now extracted into a `fix ›` line instead of being buried in the explanation prose.
+
+  Output format and JSON/SARIF envelopes are unchanged.
+
+- 992b3d2: Fix three bugs that prevented the three-state verdict from displaying correctly:
+
+  - **Engine: library-verified handlers now resolve to `verified`.** A handler whose only finding was a passing SDK verification (e.g. `stripe.webhooks.constructEvent`) was pinned to the `manual-review` baseline, so its finding line said `verified` while the inventory column said `[manual-review]`. The handler verdict now trusts the rules' aggregate when any rule fires, and only falls back to `manual-review` when nothing is found.
+  - **Rules: `stripe/express-middleware-ordering` no longer fires cross-provider.** The Stripe-namespaced rule matched any Express handler with `express.json()` before the route, emitting a Stripe-branded finding on (e.g.) a GitHub webhook — a false positive. Each provider's own `raw-body-misuse` rule already covers this, so the rule is now scoped to Stripe handlers.
+  - **CLI: `hookwarden inventory` no longer leaks a literal `[1m` in the header.** The bold escape was missing its `\x1b`, so color-mode output printed `[1mframework … file:line[0m` as text instead of bolding the header row.
+
+  Exit codes, JSON, and SARIF envelopes are unchanged.
+
+- Updated dependencies [992b3d2]
+  - @hookwarden/engine@0.5.2
+  - @hookwarden/rules@0.5.2
+  - @hookwarden/fix@0.5.2
+
 ## 0.5.1
 
 ### Patch Changes
