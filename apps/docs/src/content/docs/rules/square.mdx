@@ -1,0 +1,66 @@
+---
+title: Square rules
+description: The 6 hookwarden rules for Square webhook signature verification — what each detects, the verdict it emits, and how to fix it.
+---
+
+Square signs every webhook with **HMAC-SHA256** over `notification_URL + raw_body`, sending the result **base64-encoded** in the `X-Square-HmacSha256-Signature` header. There is no signed timestamp — replay defense relies on event-ID de-duplication.
+
+| | |
+|---|---|
+| Signature header | `X-Square-HmacSha256-Signature` |
+| Algorithm | HMAC-SHA256 |
+| Signed payload | notification URL + raw request body |
+| Encoding | base64 |
+| Official SDK | `square` (Node), `squareup` (Python) — `WebhooksHelper.verifySignature` / `is_valid_webhook_event_signature` |
+
+The Square SDK encapsulates the URL+body canonical string, HMAC-SHA256 + base64, and constant-time comparison. See the [three-state verdict model](/rules/#the-three-state-verdict).
+
+## Library-verified
+
+`square/library-verified` · **info** · verdict `verified`
+
+`WebhooksHelper.verifySignature` (Node `square`) or `WebhooksHelper.is_valid_webhook_event_signature` (Python `squareup`) is reachable within 3 hops. The SDK encapsulates the URL+body canonical string, HMAC-SHA256 + base64, and constant-time comparison. Target state — no action needed.
+
+## Missing signature verification
+
+`square/missing-signature-verification` · **critical** · verdict `not-verified`
+
+The handler doesn't verify `X-Square-HmacSha256-Signature`: no SDK helper and no manual HMAC path is reachable within 3 hops.
+
+**Fix:** compute `crypto.createHmac('sha256', signatureKey).update(notificationUrl + rawBody).digest('base64')` and compare via `crypto.timingSafeEqual`, or use `WebhooksHelper.verifySignature(...)`.
+
+## Raw-body misuse
+
+`square/raw-body-misuse` · **critical** · verdict `not-verified`
+
+The handler reads `X-Square-HmacSha256-Signature` (or calls `verifySignature`) but doesn't receive the body as raw bytes. Square's HMAC is computed over `URL + raw_body` — once `express.json()` parses the body, the bytes differ and verification fails on every webhook.
+
+**Fix:** apply `express.raw({ type: 'application/json' })` to the webhook route only, and feed the Buffer to the HMAC update.
+
+## Wrong HMAC algorithm
+
+`square/wrong-hmac-algorithm` · **critical** · verdict `not-verified`
+
+A manual HMAC path uses an algorithm other than HMAC-SHA256. Square signs with HMAC-SHA256 — any other algorithm (MD5, SHA-1, SHA-384, SHA-512) will never match.
+
+**Fix:** `crypto.createHmac('sha256', signatureKey)` (Node) or `hmac.new(signature_key, msg, hashlib.sha256)` (Python).
+
+## Timing-unsafe comparison
+
+`square/timing-unsafe-comparison` · **critical** · verdict `not-verified`
+
+The handler computes the HMAC-SHA256 manually but compares it with plain `==` / `===` rather than `crypto.timingSafeEqual` (Node) or `hmac.compare_digest` (Python), leaking timing information. **Mechanically fixable** by `hookwarden fix`.
+
+**Fix:** compare via `crypto.timingSafeEqual(Buffer.from(expected, 'base64'), Buffer.from(provided, 'base64'))` (Node) or `hmac.compare_digest(expected, provided)` (Python).
+
+## Unreachable verification
+
+`square/unreachable-verification` · **high** · verdict `manual-review`
+
+`square` (or `squareup`) is imported but `WebhooksHelper.verifySignature` / `is_valid_webhook_event_signature` isn't reachable from the handler entry within 3 hops — the call may be conditional, dynamically dispatched, or in dead code.
+
+**Fix:** review the handler's call graph and confirm the verification path is always taken.
+
+---
+
+Reference: [Square — Validate notifications](https://developer.squareup.com/docs/webhooks/step3validate) · Back to [rule coverage](/rules/).

@@ -26,6 +26,18 @@ export default defineConfig({
             { label: "Safety levels", link: "/cli/safety-levels/" },
           ],
         },
+        {
+          label: "Rules",
+          items: [
+            { label: "Coverage matrix", link: "/rules/" },
+            { label: "Stripe", link: "/rules/stripe/" },
+            { label: "GitHub", link: "/rules/github/" },
+            { label: "Slack", link: "/rules/slack/" },
+            { label: "Shopify", link: "/rules/shopify/" },
+            { label: "Twilio", link: "/rules/twilio/" },
+            { label: "Square", link: "/rules/square/" },
+          ],
+        },
       ],
       customCss: ["./src/styles/brand.css"],
     }),

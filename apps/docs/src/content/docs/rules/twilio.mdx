@@ -1,0 +1,74 @@
+---
+title: Twilio rules
+description: The 7 hookwarden rules for Twilio webhook signature verification — what each detects, the verdict it emits, and how to fix it. Twilio is the HMAC-SHA1 outlier.
+---
+
+Twilio is the **HMAC-SHA1** outlier. Its webhook signing predates Twilio's SHA-256 REST-API migration: the canonical string is `URL + sorted form params` (or URL + raw JSON body), signed with **HMAC-SHA1** and base64-encoded into `X-Twilio-Signature`. There is no signed timestamp — replay defense relies on URL freshness.
+
+| | |
+|---|---|
+| Signature header | `X-Twilio-Signature` |
+| Algorithm | **HMAC-SHA1** (intentional, legacy — *not* a mistake to upgrade) |
+| Signed payload | URL + sorted form params (or URL + raw JSON body) |
+| Encoding | base64 |
+| Official SDK | `twilio` — `validateRequest` (Node), `RequestValidator.validate` (Python) |
+
+The Twilio SDKs encapsulate the canonical-string construction, HMAC-SHA1, and constant-time comparison. See the [three-state verdict model](/rules/#the-three-state-verdict).
+
+## Library-verified
+
+`twilio/library-verified` · **info** · verdict `verified`
+
+`twilio.validateRequest` (Node SDK) or `RequestValidator.validate` (Python SDK) is reachable within 3 hops. The SDK handles the URL+sorted-params canonical string, HMAC-SHA1 + base64, and constant-time comparison. Target state — no action needed.
+
+## Missing signature verification
+
+`twilio/missing-signature-verification` · **critical** · verdict `not-verified`
+
+The handler doesn't verify `X-Twilio-Signature`: no SDK validator and no manual HMAC-SHA1 path is reachable within 3 hops.
+
+**Fix:** pass `process.env.TWILIO_AUTH_TOKEN`, the request URL, the params object, and the `X-Twilio-Signature` header to `twilio.validateRequest(...)` (Node) or `RequestValidator(auth_token).validate(url, params, signature)` (Python). Twilio uses HMAC-SHA1 + base64 — don't substitute SHA-256.
+
+## Raw-body misuse
+
+`twilio/raw-body-misuse` · **critical** · verdict `not-verified`
+
+The handler reads `X-Twilio-Signature` (or calls `validateRequest`) but doesn't receive the body as raw bytes / form parameters. The HMAC-SHA1 is computed over the canonical string, so a pre-parsed body whose key order differs from Twilio's sort produces the wrong signature.
+
+**Fix:** for `application/x-www-form-urlencoded` webhooks (Twilio's default) use `express.urlencoded({ extended: false })` and pass the parsed body to `validateRequest(...)`; for JSON-body webhooks use `express.raw({ type: 'application/json' })` and feed the Buffer to the validator.
+
+## Wrong HMAC algorithm
+
+`twilio/wrong-hmac-algorithm` · **high** · verdict `not-verified`
+
+A manual HMAC path uses an algorithm other than HMAC-SHA1. Twilio webhook signing remains on legacy HMAC-SHA1 + base64 — any other algorithm produces a signature Twilio cannot match. This is the one provider where SHA-1 is correct.
+
+**Fix:** `crypto.createHmac('sha1', authToken).update(canonicalString).digest('base64')` (Node) or `hmac.new(auth_token, canonical_string, hashlib.sha1).digest()` (Python). The SHA-1 choice is intentional for Twilio — it is **not** a security mistake to silently upgrade.
+
+## Timing-unsafe comparison
+
+`twilio/timing-unsafe-comparison` · **critical** · verdict `not-verified`
+
+The handler computes the HMAC-SHA1 manually but compares it with plain `==` / `===` rather than `crypto.timingSafeEqual` (Node) or `hmac.compare_digest` (Python), leaking timing information. **Mechanically fixable** by `hookwarden fix`.
+
+**Fix:** compare via `crypto.timingSafeEqual(Buffer.from(expected, 'base64'), Buffer.from(provided, 'base64'))` (Node) or `hmac.compare_digest(expected, provided)` (Python).
+
+## Missing timestamp check
+
+`twilio/missing-timestamp-check` · **info** · verdict `manual-review`
+
+Twilio webhooks carry no request-time timestamp — replay defense relies on URL freshness (one-time-use or session-bound URLs). When a manual HMAC path is reachable and no replay defense is detectable, hookwarden surfaces `manual-review`. When `twilio.validateRequest` is reachable, this rule doesn't apply.
+
+**Fix:** confirm the application's replay-defense story — a per-URL nonce, a time-bounded URL, or application-side dedupe.
+
+## Unreachable verification
+
+`twilio/unreachable-verification` · **high** · verdict `manual-review`
+
+`twilio` is imported but `twilio.validateRequest` / `RequestValidator.validate` isn't reachable from the handler entry within 3 hops — the call may be conditional, dynamically dispatched, or in dead code.
+
+**Fix:** review the handler's call graph and confirm the verification path is always taken.
+
+---
+
+Reference: [Twilio — Validating signatures from Twilio](https://www.twilio.com/docs/usage/webhooks/webhooks-security) · Back to [rule coverage](/rules/).
