@@ -1,0 +1,66 @@
+---
+title: Continuous integration
+description: Run hookwarden in CI — fail the build on verification bugs and upload SARIF to GitHub Code Scanning.
+---
+
+hookwarden is built for CI: it's local, deterministic, and zero-network, so a run on a clean checkout always produces the same verdict. Wire it in two ways — **fail the build** on findings, and **surface findings in the Security tab** via SARIF.
+
+## Exit codes
+
+`hookwarden scan` returns a non-zero exit code so CI fails automatically:
+
+| Code | Meaning |
+| ---- | ------- |
+| `0`  | Clean — no findings at or above the threshold |
+| `1`  | Findings at or above `--fail-on` (default: any finding) |
+| `2`  | Engine error |
+| `3`  | Config error |
+| `4`  | Parse coverage below `--min-parse-coverage` |
+
+Tune the gate with `--fail-on <critical\|high\|medium\|low>` — e.g. `--fail-on high` lets `manual-review`/low findings through while still failing on real bugs.
+
+## GitHub Actions
+
+```yaml title=".github/workflows/webhook-audit.yml"
+name: Webhook audit
+on: [pull_request]
+
+permissions:
+  contents: read
+  security-events: write   # required to upload SARIF
+
+jobs:
+  hookwarden:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # 1. Fail the build on findings (human-readable output in the log).
+      - run: npx hookwarden@latest scan .
+      # 2. Always produce SARIF for the Security tab, even when step 1 fails.
+      - if: always()
+        run: npx hookwarden@latest scan . --format sarif > hookwarden.sarif
+      - if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: hookwarden.sarif
+```
+
+Findings then appear inline on the PR diff and in **Security → Code scanning**. The SARIF uses stable `partialFingerprints`, so re-uploading the same finding deduplicates instead of piling up.
+
+## Staged rollout
+
+Dropping hookwarden into a large existing codebase shouldn't open a 100-finding PR on day one. Two knobs help:
+
+- **Baseline** — `hookwarden scan . --baseline write` records today's findings to `.hookwarden.baseline.json`; subsequent scans report only *new* findings. Commit the baseline and burn it down over time.
+- **Per-provider** — `--provider stripe` (comma-separate for several) runs only that provider's rules, so a security team can roll coverage out one integration at a time.
+
+## Other runners
+
+The CLI is a plain `npx` invocation, so it drops into any runner:
+
+```bash
+# GitLab CI, CircleCI, Jenkins, pre-commit hook, …
+npx hookwarden@latest scan . --fail-on high
+```
+
+For air-gapped runners, install the npm package (or a standalone binary from the [releases page](https://github.com/Hookwarden/hookwarden/releases)) instead of `npx`.
