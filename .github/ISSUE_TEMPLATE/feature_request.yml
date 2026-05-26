@@ -1,0 +1,19 @@
+name: Feature / provider / framework request
+description: Suggest a capability, or a new provider/framework to cover
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's the problem or gap?
+    validations:
+      required: true
+  - type: textarea
+    id: provider
+    attributes:
+      label: If requesting a provider/framework — its signature scheme
+      description: Algorithm (e.g. HMAC-SHA256), signature header name, and timestamp/replay model. Link to the provider's verification docs if you have it.
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior

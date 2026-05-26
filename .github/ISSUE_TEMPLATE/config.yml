@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/Hookwarden/hookwarden/security/advisories/new
+    about: Report security issues privately — never in a public issue.
+  - name: Question / discussion
+    url: https://github.com/Hookwarden/hookwarden/discussions
+    about: Usage questions and ideas.
