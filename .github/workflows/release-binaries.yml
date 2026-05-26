@@ -319,7 +319,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Download all matrix artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ./artifacts
           # Matches both -signed (Windows x64) and -unsigned (Linux arm64,
