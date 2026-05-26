@@ -49,13 +49,13 @@ Sleep 250ms
 Enter
 Sleep 4500ms
 
-# ── Frame 4: verbose — shows its work ────────────────────────
-Type "# 4. Verbose — every handler it found, then the findings"
+# ── Frame 4: inventory — the three-state verdict ─────────────
+Type "# 4. Inventory — every handler with its verdict: verified / manual-review / not-verified"
 Sleep 350ms
 Enter
-Type "./hookwarden scan buggy/ --verbose"
+Type "./hookwarden inventory mixed/"
 Sleep 250ms
 Enter
-Sleep 4500ms
+Sleep 5000ms
 
 Sleep 1500ms

@@ -15,12 +15,6 @@ import type { RuleDefinition, RuleSet } from "./types/rule-set.js";
 import type { ScanMetadata, ScanResult } from "./types/scan-result.js";
 import { ENGINE_VERSION } from "./version.js";
 
-const VERDICT_RANK: Record<Verdict, number> = {
-  verified: 0,
-  "manual-review": 1,
-  "not-verified": 2,
-};
-
 export async function evaluate(
   model: ProjectModel,
   ruleSet: RuleSet,
@@ -55,13 +49,17 @@ export async function evaluate(
       // D-57 path_severity_overrides applied post-emit; identity when rule has no overrides.
       findings.push(rule ? applyPathSeverityOverrides(f, rule) : f);
     }
-    // Pick the worst verdict including the existing manual-review baseline.
+    // Resolve the handler verdict. `out.worst_state` is optimistic ("verified") when no rule
+    // fired, so it is only authoritative once at least one rule produced a verdict. With zero
+    // findings the handler stays at the manual-review baseline (D-PITFALLS #3 — we confirmed
+    // nothing). When rules DID fire, trust their aggregate: a `verified` verdict (e.g.
+    // library-verified) now correctly resolves the handler to [verified] instead of being
+    // pinned below the baseline by the old `max(worst, baseline)` rank comparison.
     const baseline: Verdict = handler.verification_state;
-    const worst: Verdict =
-      VERDICT_RANK[out.worst_state] >= VERDICT_RANK[baseline] ? out.worst_state : baseline;
+    const verdict: Verdict = out.findings.length > 0 ? out.worst_state : baseline;
     inventory.push({
       ...handler,
-      verification_state: worst,
+      verification_state: verdict,
       findings_ref: out.findings_ref,
     });
   }

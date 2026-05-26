@@ -118,6 +118,53 @@ describe("evaluate (D-35 ScanResult + ENGINE-08 metadata + DISCOVERY-01 inventor
     expect(result.metadata.total_files_count).toBe(2);
   });
 
+  it("resolves a library-verified handler to 'verified' (not pinned to the manual-review baseline)", async () => {
+    // Regression: handlers default to a manual-review baseline (build.ts) until a rule fires.
+    // A 'verified' verdict must resolve the handler to [verified] in the inventory. The prior
+    // max(worst, baseline) rank comparison discarded it (verified ranks below manual-review),
+    // so a fully SDK-verified handler wrongly displayed [manual-review].
+    const file = await parseJsTs({
+      file_path: "verified.ts",
+      source_text:
+        "import express from 'express';\n" +
+        "import crypto from 'node:crypto';\n" +
+        "const app = express();\n" +
+        "app.post('/webhooks/github', (req, res) => {\n" +
+        "  crypto.timingSafeEqual(Buffer.from('a'), Buffer.from('b'));\n" +
+        "  res.send('ok');\n" +
+        "});\n",
+    });
+    const cfg = { ...CONFIG, total_files_count: 1 };
+    const model = await buildProjectModel({ parsedFiles: [file], ruleSet: RULESET, config: cfg });
+    const result = await evaluate(model, RULESET, cfg);
+
+    expect(result.inventory).toHaveLength(1);
+    expect(result.inventory[0]?.verification_state).toBe("verified");
+    const finding = result.findings.find((f) => f.rule_id === "github/missing-timing-safe-equal");
+    expect(finding?.state).toBe("verified");
+  });
+
+  it("keeps a handler at the manual-review baseline when no rule fires", async () => {
+    // Counterpart to the fix: 'no findings' must NOT be promoted to verified by the optimistic
+    // worst_state seed — an unanalyzed handler is honestly manual-review.
+    const file = await parseJsTs({
+      file_path: "unknown.ts",
+      source_text:
+        "import express from 'express';\n" +
+        "const app = express();\n" +
+        // No provider signals (route not in any catalog conventional_paths) → provider unresolved
+        // → githubVerifyPredicate returns null → zero findings on this handler.
+        "app.post('/webhooks/unknown', (req, res) => res.send('ok'));\n",
+    });
+    const cfg = { ...CONFIG, total_files_count: 1 };
+    const model = await buildProjectModel({ parsedFiles: [file], ruleSet: RULESET, config: cfg });
+    const result = await evaluate(model, RULESET, cfg);
+
+    expect(result.inventory).toHaveLength(1);
+    expect(result.inventory[0]?.findings_ref).toHaveLength(0);
+    expect(result.inventory[0]?.verification_state).toBe("manual-review");
+  });
+
   it("is deterministic across runs (same input → same output)", async () => {
     const file = await parseJsTs({
       file_path: "x.ts",

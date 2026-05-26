@@ -42,6 +42,12 @@ export const expressMiddlewareOrderingPredicate: RulePredicate = async (
   handler: WebhookHandler,
   _model: ProjectModel,
 ) => {
+  // Scope to Stripe: this predicate backs the Stripe-namespaced rule, whose message names
+  // Stripe explicitly and points at Stripe's docs. Non-Stripe express handlers hit the same
+  // express.json()-before-route bug, but each provider's own `<provider>/raw-body-misuse` rule
+  // catches it with the correct branding — firing this rule too would emit a Stripe-labeled
+  // finding on (e.g.) a GitHub webhook, a cross-provider false positive.
+  if (handler.provider !== "stripe") return null;
   if (handler.framework !== "express") return null;
   if (handler.middleware_chain.length === 0) return null;
 
