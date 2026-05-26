@@ -199,7 +199,7 @@ jobs:
       - name: Mint GitHub App token (homebrew-tap + scoop-bucket + hookwarden-action)
         id: app-token
         if: steps.cli-published.outputs.cli == 'true'
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ vars.HOOKWARDEN_BOT_APP_ID }}
           private-key: ${{ secrets.HOOKWARDEN_BOT_APP_PRIVATE_KEY }}
