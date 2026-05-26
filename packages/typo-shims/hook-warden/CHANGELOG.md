@@ -1,5 +1,13 @@
 # hook-warden
 
+## 0.5.3
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies [a2e1946]
+  - hookwarden@0.5.3
+
 ## 0.5.2
 
 ### Patch Changes

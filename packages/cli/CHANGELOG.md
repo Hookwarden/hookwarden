@@ -1,5 +1,29 @@
 # hookwarden
 
+## 0.5.3
+
+### Patch Changes
+
+- The scan/inventory summary tally is now color-coded per severity. The footer line
+  `Found N critical · N high · N medium · N low · N info` previously rendered in plain
+  foreground regardless of color mode; each segment is now painted in its palette colour
+  (critical = red, high = orange, medium = amber, low = slate, info = blue), matching the
+  per-finding glyphs. Plain output (`--no-color`, non-TTY, `NO_COLOR`, CI) is unchanged.
+- a2e1946: `hookwarden fix` now applies the timing-unsafe-comparison fix on real multi-line handlers.
+
+  The JS/TS codegen searched for the insecure `==`/`===` comparison only on the finding's
+  own line — but findings are anchored to the handler declaration, while the comparison
+  usually sits several lines into the body. As a result `fix` reported the finding but
+  generated no edit ("0 fixable") for any normal handler; it only worked when the comparison
+  happened to be on the handler's first line. The codegen now searches the handler's full
+  line span and rewrites the sole `==`/`===` comparison it finds, declining only when the
+  span contains more than one (ambiguous — a safe fixer never guesses).
+
+- Updated dependencies [a2e1946]
+  - @hookwarden/rules@0.5.3
+  - @hookwarden/engine@0.5.3
+  - @hookwarden/fix@0.5.3
+
 ## 0.5.2
 
 ### Patch Changes
