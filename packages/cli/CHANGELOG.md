@@ -1,5 +1,17 @@
 # hookwarden
 
+## 0.5.4
+
+### Patch Changes
+
+- Republish. 0.5.2 and 0.5.3 shipped with an unpublished/unusable `@hookwarden/fix`
+  dependency, which left `npm i hookwarden` unable to resolve. 0.5.4 republishes the
+  full package set with a correctly-resolved `@hookwarden/fix`. No functional changes
+  versus 0.5.3 (multi-line `fix` codegen + color-coded summary tally).
+  - @hookwarden/engine@0.5.4
+  - @hookwarden/rules@0.5.4
+  - @hookwarden/fix@0.5.4
+
 ## 0.5.3
 
 ### Patch Changes
