@@ -34,12 +34,12 @@
     "prepack": "node scripts/sync-version.mjs"
   },
   "dependencies": {
-    "@babel/parser": "^7.29.3",
+    "@babel/parser": "^7.29.7",
     "picomatch": "^4.0.4",
     "web-tree-sitter": "^0.26.9"
   },
   "devDependencies": {
-    "@babel/types": "^7.29.0",
+    "@babel/types": "^7.29.7",
     "@types/picomatch": "^4.0.3",
     "fast-check": "^3.23.0",
     "tree-sitter-php": "0.24.2",
