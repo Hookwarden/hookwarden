@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-  <img src="./assets/brand/demo.gif?v=3" alt="hookwarden scan demo — clean scan exits 0, buggy scan finds the Stripe middleware-ordering bug and prints the fix, then the inventory shows the three-state verdict: verified / manual-review / not-verified" width="100%" />
+  <img src="./assets/brand/scan-demo.gif" alt="hookwarden scan demo — clean scan exits 0, buggy scan finds the Stripe middleware-ordering bug and prints the fix, then the inventory shows the three-state verdict: verified / manual-review / not-verified" width="100%" />
 </p>
 
 ```bash

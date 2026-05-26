@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# record-demo.sh — regenerate assets/brand/demo.gif from demo.tape.
+# record-demo.sh — regenerate assets/brand/scan-demo.gif from demo.tape.
 #
 # Builds the workspace, symlinks the CLI into demo-fixtures/, runs vhs,
 # cleans up the symlink. Designed to be idempotent — running twice
-# produces the same demo.gif modulo timing jitter in vhs.
+# produces the same scan-demo.gif modulo timing jitter in vhs.
 #
 # Prerequisites:
 #   - pnpm + node 22+ (matches CLAUDE.md tech stack)
@@ -44,7 +44,7 @@ chmod +x "$CLI_BIN"
 cleanup() { rm -f "$HOOKWARDEN_SYMLINK"; }
 trap cleanup EXIT
 
-echo "==> Recording demo.gif via vhs…"
+echo "==> Recording scan-demo.gif via vhs…"
 (cd "$BRAND_DIR" && vhs demo.tape)
 
-echo "==> Done. Updated: $BRAND_DIR/demo.gif"
+echo "==> Done. Updated: $BRAND_DIR/scan-demo.gif"
