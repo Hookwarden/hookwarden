@@ -2,7 +2,7 @@
 # Compact, brand-themed — Geist Mono on the locked palette
 # (bg #0B0F14, text #E5E7EB, accent #6366F1, surface #1E293B).
 
-Output scan-demo.gif
+Output demo-showcase.gif
 Set FontFamily "Geist Mono"
 Set FontSize 12
 Set Width 1280
