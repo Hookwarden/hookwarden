@@ -60,6 +60,37 @@ describe("typescriptReplaceBinaryEquality — positive cases", () => {
   });
 });
 
+describe("typescriptReplaceBinaryEquality — handler-anchored findings (multi-line handlers)", () => {
+  // Regression: findings anchor to the handler declaration line, but the insecure comparison
+  // lives several lines into the handler body. The codegen must search the handler's span,
+  // not just the finding's line — otherwise `fix` never works on real multi-line handlers.
+  it("rewrites a comparison several lines below the handler-anchored finding line", async () => {
+    const src =
+      "import crypto from 'node:crypto';\n" + // 1
+      "app.post('/webhooks/github', (req, res) => {\n" + // 2 — finding anchors here
+      "  const expected = compute();\n" + // 3
+      "  const sig = req.header('X-Hub-Signature-256');\n" + // 4
+      "  if (expected === sig) return res.end();\n" + // 5 — the comparison
+      "});\n"; // 6
+    const parsed = await parseJsTs({ file_path: "x.ts", source_text: src });
+    const fix = typescriptReplaceBinaryEquality(parsed, mkFinding(2));
+    expect(fix).not.toBeNull();
+    expect(fix!.before).toBe("expected === sig");
+    expect(fix!.after).toBe("crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(sig))");
+  });
+
+  it("declines (null) when the handler span holds two ==/=== comparisons — ambiguous", async () => {
+    const src =
+      "import crypto from 'node:crypto';\n" + // 1
+      "app.post('/webhooks/github', (req, res) => {\n" + // 2 — finding anchors here
+      "  if (req.method === 'POST') {}\n" + // 3 — unrelated equality
+      "  if (expected === sig) return res.end();\n" + // 4 — the real one
+      "});\n"; // 5
+    const parsed = await parseJsTs({ file_path: "x.ts", source_text: src });
+    expect(typescriptReplaceBinaryEquality(parsed, mkFinding(2))).toBeNull();
+  });
+});
+
 describe("typescriptReplaceBinaryEquality — negative cases", () => {
   it("returns null when dialect is not babel", async () => {
     const src = "if (a === b) {}\n";

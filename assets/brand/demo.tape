@@ -22,40 +22,49 @@ Type "cd demo-fixtures" Enter
 Type "clear" Enter
 Show
 
-# ── Frame 1: clean scan ──────────────────────────────────────
-Type "# 1. Clean scan — exits 0, parses 100%, zero findings"
-Sleep 350ms
-Enter
-Type "./hookwarden scan clean/"
-Sleep 250ms
-Enter
-Sleep 2500ms
-
-# ── Frame 2: scan with a bug ─────────────────────────────────
-Type "# 2. Scan with a bug — exits 1, finds it, prints the fix"
-Sleep 350ms
-Enter
-Type "./hookwarden scan buggy/"
-Sleep 250ms
-Enter
-Sleep 4500ms
-
-# ── Frame 3: PHP scan — proves v0.4 third-language support ───
-Type "# 3. PHP scan — Laravel === comparison flagged as timing-unsafe"
-Sleep 350ms
-Enter
-Type "./hookwarden scan buggy-php/"
-Sleep 250ms
-Enter
-Sleep 4500ms
-
-# ── Frame 4: inventory — the three-state verdict ─────────────
-Type "# 4. Inventory — every handler with its verdict: verified / manual-review / not-verified"
+# ── Frame 1: inventory — polyglot + three-state verdict ──────
+Type "# 1. Every handler, every language — JS · Python · PHP — with its verdict"
 Sleep 350ms
 Enter
 Type "./hookwarden inventory mixed/"
 Sleep 250ms
 Enter
 Sleep 5000ms
+Hide
+Type "clear" Enter
+Show
+
+# ── Frame 2: verified — recognizes correct code (no false alarm) ──
+Type "# 2. Correct verification is recognized as [verified] — not a false alarm"
+Sleep 350ms
+Enter
+Type "./hookwarden scan mixed/stripe.js"
+Sleep 250ms
+Enter
+Sleep 4000ms
+Hide
+Type "clear" Enter
+Show
+
+# ── Frame 3: fix — mechanical, constant-time rewrite ─────────
+Type "# 3. Fix it — insecure === rewritten to a constant-time comparison"
+Sleep 350ms
+Enter
+Type "./hookwarden fix mixed/ --only github/timing-unsafe-comparison"
+Sleep 250ms
+Enter
+Sleep 5000ms
+Hide
+Type "clear" Enter
+Show
+
+# ── Frame 4: CI — SARIF output + non-zero exit ───────────────
+Type "# 4. CI-ready: SARIF 2.1.0 output, non-zero exit gates the build"
+Sleep 350ms
+Enter
+Type './hookwarden scan mixed/ --format sarif > report.sarif; echo "exit $? — report.sarif ready for code scanning"'
+Sleep 250ms
+Enter
+Sleep 4000ms
 
 Sleep 1500ms

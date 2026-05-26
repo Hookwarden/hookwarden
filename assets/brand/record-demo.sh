@@ -41,7 +41,7 @@ fi
 # commands resolve. Removed by the EXIT trap below.
 ln -sf "$CLI_BIN" "$HOOKWARDEN_SYMLINK"
 chmod +x "$CLI_BIN"
-cleanup() { rm -f "$HOOKWARDEN_SYMLINK"; }
+cleanup() { rm -f "$HOOKWARDEN_SYMLINK" "$FIXTURES_DIR/report.sarif"; }
 trap cleanup EXIT
 
 echo "==> Recording scan-demo.gif via vhs…"
