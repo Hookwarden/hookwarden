@@ -38,11 +38,20 @@ export function typescriptReplaceBinaryEquality(
   if (parsedFile.dialect !== "babel") return null;
   if (parsedFile.parse_error !== null) return null;
   if (parsedFile.raw_ast === null || parsedFile.raw_ast === undefined) return null;
-  // Defense in depth: if the source already calls timingSafeEqual on this line, skip.
-  const lineSource = sliceLine(parsedFile.source_text, finding.location.line);
-  if (lineSource.includes("timingSafeEqual")) return null;
-  const node = findBinaryAtLine(parsedFile.raw_ast, finding.location.line);
+  // The finding is anchored to the handler declaration, but the insecure comparison lives
+  // somewhere in the handler body — usually several lines below the route. Search the
+  // handler's full line span (location.line..end_line) rather than only the finding's line;
+  // otherwise the common case (a multi-line handler) never gets fixed. When the span holds
+  // more than one ==/=== comparison the target is ambiguous, so we decline — a safe fixer
+  // never guesses which comparison is the signature check.
+  const node = findSoleBinaryInHandler(parsedFile.raw_ast, finding.location.line);
   if (node === null) return null;
+  // Defense in depth: if the comparison's own line already calls timingSafeEqual, skip.
+  const lineSource = sliceLine(
+    parsedFile.source_text,
+    node.loc?.start.line ?? finding.location.line,
+  );
+  if (lineSource.includes("timingSafeEqual")) return null;
   if (!node.operator || !RULE_OPERATORS.has(node.operator)) return null;
   if (
     typeof node.start !== "number" ||
@@ -92,8 +101,17 @@ function hasCryptoImport(parsedFile: ParsedFile): boolean {
   return false;
 }
 
-function findBinaryAtLine(root: unknown, targetLine: number): BabelNodeLike | null {
+// The finding's location is a single point (the handler declaration line), not a span, so we
+// first derive the handler's extent: the largest end-line among AST nodes that *start* on the
+// finding line — i.e. the enclosing `app.post(...)` statement, which spans the whole handler.
+// We then collect every ==/=== BinaryExpression starting within [findingLine, handlerEndLine]
+// and return the sole match. Zero or many ⇒ null: a safe fixer never guesses which comparison
+// is the signature check.
+function findSoleBinaryInHandler(root: unknown, findingLine: number): BabelNodeLike | null {
   if (root === null || root === undefined || typeof root !== "object") return null;
+
+  let handlerEndLine = findingLine;
+  const binaries: BabelNodeLike[] = [];
   const stack: unknown[] = [root];
   while (stack.length > 0) {
     const node = stack.pop();
@@ -104,8 +122,18 @@ function findBinaryAtLine(root: unknown, targetLine: number): BabelNodeLike | nu
       continue;
     }
     const n = node as BabelNodeLike & Record<string, unknown>;
-    if (n.type === "BinaryExpression" && n.loc?.start.line === targetLine) {
-      return n;
+    const startLine = n.loc?.start.line;
+    const endLine = n.loc?.end.line;
+    if (startLine === findingLine && typeof endLine === "number" && endLine > handlerEndLine) {
+      handlerEndLine = endLine;
+    }
+    if (
+      n.type === "BinaryExpression" &&
+      typeof n.operator === "string" &&
+      RULE_OPERATORS.has(n.operator) &&
+      typeof startLine === "number"
+    ) {
+      binaries.push(n);
     }
     for (const key of Object.keys(n)) {
       if (
@@ -120,7 +148,12 @@ function findBinaryAtLine(root: unknown, targetLine: number): BabelNodeLike | nu
       if (child !== null && typeof child === "object") stack.push(child);
     }
   }
-  return null;
+
+  const inHandler = binaries.filter((b) => {
+    const line = b.loc?.start.line ?? -1;
+    return line >= findingLine && line <= handlerEndLine;
+  });
+  return inHandler.length === 1 ? (inHandler[0] ?? null) : null;
 }
 
 function sliceLine(source: string, line: number): string {

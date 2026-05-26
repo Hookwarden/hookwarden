@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-  <img src="./assets/brand/scan-demo.gif" alt="hookwarden scan demo — clean scan exits 0, buggy scan finds the Stripe middleware-ordering bug and prints the fix, then the inventory shows the three-state verdict: verified / manual-review / not-verified" width="100%" />
+  <img src="./assets/brand/demo-showcase.gif" alt="hookwarden CLI demo — inventory lists webhook handlers across JS, Python and PHP with a three-state verdict (verified / manual-review / not-verified); correct SDK verification is recognized as verified; hookwarden fix rewrites an insecure === to a constant-time comparison; SARIF output with a non-zero exit for CI" width="100%" />
 </p>
 
 ```bash
