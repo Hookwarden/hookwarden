@@ -4,7 +4,7 @@
 // --write opt-in mutates files via the atomic-staging path. --format json
 // forces dry-run (D-17).
 
-import { promises as fs } from "node:fs";
+import { promises as fs, statSync } from "node:fs";
 import * as path from "node:path";
 import {
   initPhpRuntime,
@@ -75,7 +75,20 @@ export async function runFixCommand(args: FixArgs): Promise<number> {
   const isTty = process.stdout.isTTY === true && process.env["HOOKWARDEN_NO_TTY"] !== "1";
 
   // Step 1 — Config + scan target.
-  const cwd = path.resolve(args.path ?? ".");
+  // `fix path/to/handler.js` is valid: scan the file directly, but resolve config, the touched
+  // files (whose paths are reported relative to the scanned directory), and the staging dir
+  // against the file's PARENT directory. Using the file path itself as the base made
+  // path.join() produce bogus paths, so the codegen never re-parsed the file → "0 fixable
+  // findings" on any single-file invocation.
+  const rootPath = path.resolve(args.path ?? ".");
+  let isDir = false;
+  try {
+    isDir = statSync(rootPath).isDirectory();
+  } catch {
+    // Path doesn't exist — the scan step reports it; don't crash here.
+  }
+  const baseDir = isDir ? rootPath : path.dirname(rootPath);
+  const cwd = baseDir;
   let resolvedConfig: ResolvedConfig;
   try {
     const configResult = await loadConfigFromCwd({ cwd, disabled: false });
@@ -94,7 +107,7 @@ export async function runFixCommand(args: FixArgs): Promise<number> {
 
   // Step 2 — Initial scan.
   const scanOutput = await runScan({
-    rootPath: cwd,
+    rootPath,
     resolvedConfig,
     diffOnly: false,
     diffBase: null,

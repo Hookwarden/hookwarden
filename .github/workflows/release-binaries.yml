@@ -84,6 +84,7 @@ jobs:
           # and `prepare` can be skipped under some pnpm configurations on CI.
           node packages/cli/scripts/sync-wasm.mjs
           node packages/cli/scripts/sync-version.mjs
+          node packages/engine/scripts/sync-version.mjs
           node packages/rules/scripts/sync-version.mjs
           node packages/rules/scripts/sync-bundle.mjs
 

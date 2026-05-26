@@ -29,7 +29,9 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepare": "node scripts/sync-version.mjs",
+    "prepack": "node scripts/sync-version.mjs"
   },
   "dependencies": {
     "@babel/parser": "^7.29.3",

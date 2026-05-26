@@ -27,3 +27,4 @@ __pycache__/
 .pytest_cache/
 .venv/
 build/
+packages/engine/src/version.ts
