@@ -8,6 +8,14 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: development
+    ignore:
+      # Node 22 LTS is the pinned runtime (CLAUDE.md) — @types/node tracks
+      # 22.x, not 25.x. TypeScript majors are deliberate, reviewed upgrades,
+      # not auto-grouped bumps. Both broke the typecheck in PR #50.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
