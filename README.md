@@ -195,7 +195,7 @@ hookwarden is **specialized on purpose.** The general-purpose scanners below are
 | **Datadog Static Analysis** | Broad SAST; good cloud signal | No webhook specialization; low-signal for this bug class |
 | **hookwarden** | Webhook verification logic only | 45 rules, 6 providers, three-state verdicts, <5% FP on a 200-repo corpus |
 
-Already running semgrep or snyk? hookwarden is additive — it finds the class of bug they weren't built to find.
+hookwarden is **not** a general-purpose SAST or DAST scanner — it won't find XSS, SQL injection, or memory-safety bugs, and it isn't trying to. Keep semgrep, CodeQL, or your DAST for those. Already running one? hookwarden is additive — it finds the one class of bug they weren't built to catch.
 
 ---
 
