@@ -1,10 +1,24 @@
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import process from "node:process";
 import { afterEach, describe, expect, it } from "vitest";
 
 const ROOT = join(__dirname, "..");
 const SC2_FIXTURE = join(ROOT, "packages/engine/src/__sc2-fixture.ts");
+
+// Some of these checks shell out to a nested `vitest run` (e.g. the bundle
+// inspector's `pnpm --filter hookwarden test`). Vitest 4 tightened worker/pool
+// handling: if the child inherits the parent run's VITEST_* env it can collide
+// with the outer pool and intermittently collect 0 tests (a flaky "FAIL … 0
+// test"). Strip VITEST_* so the nested process starts as a clean top-level run.
+function cleanEnv(): Record<string, string | undefined> {
+  const env: Record<string, string | undefined> = {};
+  for (const [k, v] of Object.entries(process.env) as [string, string | undefined][]) {
+    if (!k.startsWith("VITEST")) env[k] = v;
+  }
+  return env;
+}
 
 function run(cmd: string, opts: { allowFail?: boolean } = {}): { code: number; output: string } {
   try {
@@ -12,6 +26,7 @@ function run(cmd: string, opts: { allowFail?: boolean } = {}): { code: number; o
       cwd: ROOT,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
+      env: cleanEnv(),
     });
     return { code: 0, output: out };
   } catch (e: unknown) {
