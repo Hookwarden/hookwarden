@@ -73,8 +73,8 @@
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
-    "@types/tar": "^6.1.13",
-    "tar": "7.4.3",
+    "@types/tar": "^7.0.87",
+    "tar": "7.5.15",
     "tree-sitter-php": "0.24.2",
     "tree-sitter-python": "^0.25.0",
     "web-tree-sitter": "0.26.9"
