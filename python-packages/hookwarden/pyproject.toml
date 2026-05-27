@@ -9,7 +9,7 @@ description = "hookwarden — webhook signature-verification audit. The Python p
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
-authors = [{ name = "Adelina Lipsa", email = "adelina.lipsa@gmail.com" }]
+authors = [{ name = "Bitly SRL", email = "adelina.lipsa@gmail.com" }]
 keywords = ["hookwarden", "webhook", "security", "audit", "pre-commit"]
 classifiers = [
   "License :: OSI Approved :: Apache Software License",
