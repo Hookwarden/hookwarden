@@ -30,7 +30,7 @@ npx hookwarden scan ./your-app
 
 No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
-📖 **Full documentation: [docs.hookwarden.dev](https://docs.hookwarden.dev)**
+📖 **Full documentation: [docs.hookwarden.dev](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs)**
 
 ---
 
@@ -42,7 +42,7 @@ A handler that accepts an unsigned payload, compares HMACs with `==`, or skips t
 
 hookwarden does one thing. It walks your repo, parses every webhook handler across 11 frameworks, and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix quoted from provider docs. The catalog (Stripe, GitHub, Shopify, Slack, Twilio, Square) encodes signature quirks no generic scanner has the surface area to know: Stripe's 5-minute timestamp tolerance, Slack's `v0:${ts}:${body}` scheme, Twilio's SHA-1 outlier.
 
-**The three-state verdict is not a hedge.** `manual-review` is what you get when hookwarden can't *prove* safety or unsafety from the source alone — a handler inside a middleware chain the analyzer couldn't unroll, say. It's how the false-positive rate stays honest (<5%, measured against a 200-repo OSS corpus). A tool that reports every gray area as a bug isn't a security tool; it's noise. → [How the verdict works](https://docs.hookwarden.dev/rules/#the-three-state-verdict)
+**The three-state verdict is not a hedge.** `manual-review` is what you get when hookwarden can't *prove* safety or unsafety from the source alone — a handler inside a middleware chain the analyzer couldn't unroll, say. It's how the false-positive rate stays honest (<5%, measured against a 200-repo OSS corpus). A tool that reports every gray area as a bug isn't a security tool; it's noise. → [How the verdict works](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/index.mdx)
 
 ---
 
@@ -60,7 +60,7 @@ Or install natively:
 | **macOS** | `brew install Hookwarden/tap/hookwarden` | `npm i -g hookwarden` · `npx hookwarden` |
 | **Windows** | `scoop bucket add hookwarden https://github.com/Hookwarden/scoop-bucket && scoop install hookwarden` | `npm i -g hookwarden` · `pip install hookwarden` |
 
-Node 22+ is required for the npm/`npx`/macOS-brew paths; the standalone binaries (Linux x64/arm64, Windows x64) bundle the runtime. Direct binary downloads are intentionally unsigned (Gatekeeper / SmartScreen will warn) — prefer `brew` / `scoop` / `npm` / `pip`, which verify by SHA-256. → [Install guide](https://docs.hookwarden.dev/)
+Node 22+ is required for the npm/`npx`/macOS-brew paths; the standalone binaries (Linux x64/arm64, Windows x64) bundle the runtime. Direct binary downloads are intentionally unsigned (Gatekeeper / SmartScreen will warn) — prefer `brew` / `scoop` / `npm` / `pip`, which verify by SHA-256. → [Install guide](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs)
 
 ---
 
@@ -82,7 +82,7 @@ npx hookwarden scan ./your-app --fail-on high
 npx hookwarden inventory ./your-app
 ```
 
-`--diff-only`, `--provider stripe,github` (phased rollout), `--include`/`--exclude` globs, `--strict-suppressions`, repo-level `hookwarden.config.yaml`, and more: `npx hookwarden --help` and the [CLI docs](https://docs.hookwarden.dev/cli/ci/).
+`--diff-only`, `--provider stripe,github` (phased rollout), `--include`/`--exclude` globs, `--strict-suppressions`, repo-level `hookwarden.config.yaml`, and more: `npx hookwarden --help` and the [CLI docs](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/cli/ci.mdx).
 
 ---
 
@@ -95,7 +95,7 @@ npx hookwarden fix ./your-app           # dry-run — prints a unified diff, wri
 npx hookwarden fix ./your-app --write   # atomic staging, re-scan, then rename into place
 ```
 
-Every rewrite lands in a staging dir and is re-scanned before replacing the original; the fixer never edits inside strings or comments. → [hookwarden fix](https://docs.hookwarden.dev/cli/fix/) · [Safety levels](https://docs.hookwarden.dev/cli/safety-levels/)
+Every rewrite lands in a staging dir and is re-scanned before replacing the original; the fixer never edits inside strings or comments. → [hookwarden fix](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/cli/fix.mdx) · [Safety levels](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/cli/safety-levels.mdx)
 
 ---
 
@@ -131,7 +131,7 @@ Scanned in 3 ms · 1 / 1 candidates parsed (100.0% coverage)
 | `·` | `low` | `note` | yes |
 | `i` | `info` | `note` | no — informational (e.g. `library-verified`) |
 
-The `state` column is the three-state verdict. Output is also available as byte-stable JSON and SARIF 2.1.0 (round-trips through GitHub Code Scanning, dedupes via `partialFingerprints`). → [Output formats & JSON schema](https://docs.hookwarden.dev/cli/ci/)
+The `state` column is the three-state verdict. Output is also available as byte-stable JSON and SARIF 2.1.0 (round-trips through GitHub Code Scanning, dedupes via `partialFingerprints`). → [Output formats & JSON schema](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/cli/ci.mdx)
 
 ---
 
@@ -146,15 +146,15 @@ The `state` column is the three-state verdict. Output is also available as byte-
 | **PHP** | Laravel · Symfony · Slim · vanilla single-file |
 
 <p align="center">
-  <a href="https://docs.hookwarden.dev/rules/stripe/"><img src="https://img.shields.io/badge/Stripe-6366F1?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe" /></a>
-  <a href="https://docs.hookwarden.dev/rules/github/"><img src="https://img.shields.io/badge/GitHub-6366F1?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" /></a>
-  <a href="https://docs.hookwarden.dev/rules/shopify/"><img src="https://img.shields.io/badge/Shopify-6366F1?style=for-the-badge&logo=shopify&logoColor=white" alt="Shopify" /></a>
-  <a href="https://docs.hookwarden.dev/rules/slack/"><img src="https://img.shields.io/badge/Slack-6366F1?style=for-the-badge&logo=slack&logoColor=white" alt="Slack" /></a>
-  <a href="https://docs.hookwarden.dev/rules/twilio/"><img src="https://img.shields.io/badge/Twilio-6366F1?style=for-the-badge&logo=twilio&logoColor=white" alt="Twilio" /></a>
-  <a href="https://docs.hookwarden.dev/rules/square/"><img src="https://img.shields.io/badge/Square-6366F1?style=for-the-badge&logo=square&logoColor=white" alt="Square" /></a>
+  <a href="https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/stripe.mdx"><img src="https://img.shields.io/badge/Stripe-6366F1?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe" /></a>
+  <a href="https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/github.mdx"><img src="https://img.shields.io/badge/GitHub-6366F1?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" /></a>
+  <a href="https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/shopify.mdx"><img src="https://img.shields.io/badge/Shopify-6366F1?style=for-the-badge&logo=shopify&logoColor=white" alt="Shopify" /></a>
+  <a href="https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/slack.mdx"><img src="https://img.shields.io/badge/Slack-6366F1?style=for-the-badge&logo=slack&logoColor=white" alt="Slack" /></a>
+  <a href="https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/twilio.mdx"><img src="https://img.shields.io/badge/Twilio-6366F1?style=for-the-badge&logo=twilio&logoColor=white" alt="Twilio" /></a>
+  <a href="https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/square.mdx"><img src="https://img.shields.io/badge/Square-6366F1?style=for-the-badge&logo=square&logoColor=white" alt="Square" /></a>
 </p>
 
-Every rule carries fix guidance quoted from the provider's canonical security docs. Full per-rule reference and coverage matrix: **[docs.hookwarden.dev/rules](https://docs.hookwarden.dev/rules/)**.
+Every rule carries fix guidance quoted from the provider's canonical security docs. Full per-rule reference and coverage matrix: **[docs.hookwarden.dev/rules](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/index.mdx)**.
 
 ---
 
@@ -179,7 +179,7 @@ jobs:
           fail-on: high
 ```
 
-Uploads SARIF to Code Scanning automatically; findings appear as PR annotations. Raw-CLI + SARIF-upload recipe, exit-code matrix, and diff-only PR scans: → [CI integration guide](https://docs.hookwarden.dev/cli/ci/).
+Uploads SARIF to Code Scanning automatically; findings appear as PR annotations. Raw-CLI + SARIF-upload recipe, exit-code matrix, and diff-only PR scans: → [CI integration guide](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/cli/ci.mdx).
 
 ---
 
@@ -230,7 +230,7 @@ Rule-pack PRs are the highest-value contribution — adding a provider is a cata
 pnpm install && pnpm -r build && pnpm -r test
 ```
 
-Bug reports & feature requests: [open an issue](https://github.com/Hookwarden/hookwarden/issues). Docs: [docs.hookwarden.dev](https://docs.hookwarden.dev) · [hookwarden.dev](https://hookwarden.dev).
+Bug reports & feature requests: [open an issue](https://github.com/Hookwarden/hookwarden/issues). Docs: [docs.hookwarden.dev](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs) · [hookwarden.dev](https://hookwarden.dev).
 
 <!-- ALL-CONTRIBUTORS-LIST:START -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
