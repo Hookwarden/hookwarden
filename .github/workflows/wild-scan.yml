@@ -60,6 +60,12 @@ jobs:
           BRANCH="chore/wild-scan-${DATE}"
           git config user.name "hookwarden-bot"
           git config user.email "bot@hookwarden.dev"
+          # If a previous run on the same UTC day left the branch on
+          # remote (merged-but-not-deleted, or a stale draft PR), drop
+          # it explicitly so the new push is a clean fast-forward.
+          # Branch is bot-owned / ephemeral / named by date — replacing
+          # it is intentional, not destructive.
+          git push origin --delete "$BRANCH" 2>/dev/null || true
           git checkout -b "$BRANCH"
           git add README.md
           git commit -m "chore(readme): refresh wild-scan table (${DATE})"
