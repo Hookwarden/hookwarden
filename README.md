@@ -43,6 +43,9 @@ Every Sunday at 22:00 UTC, this repo's CI runs `hookwarden` against **8 popular 
 | What hookwarden caught | Severity | Found | What it means |
 |---|---|---:|---|
 | Raw body misuse | 🚨 critical | 2 | Body is parsed (JSON) before HMAC reads it. Signature is computed over different bytes than the sender signed — verification fails on every webhook. |
+| Files the engine couldn't parse | 🟡 manual-review | 3 | Engine signal, not a user bug. Source file is syntactically broken or uses a language feature the parser doesn't understand. Scan continues; those files just don't contribute findings. |
+
+_Hookwarden checks **11 rule classes** across **6 providers** (Stripe, GitHub, Shopify, Slack, Twilio, Square) — most of the corpus handles webhooks correctly, hence the short list. The full rule catalog lives in the [docs](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs/rules)._
 
 Per-target findings are never published before responsible disclosure — see [methodology](./bugs-in-the-wild.md). To run the same scan against your own code:
 

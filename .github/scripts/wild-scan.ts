@@ -136,6 +136,12 @@ const RULE_CLASS_META: Readonly<Record<string, RuleClassMeta>> = {
     meaning:
       "JS-specific. Manual HMAC computed but `crypto.timingSafeEqual` not used for the comparison.",
   },
+  "parse-error": {
+    name: "Files the engine couldn't parse",
+    severity: "manual-review",
+    meaning:
+      "Engine signal, not a user bug. Source file is syntactically broken or uses a language feature the parser doesn't understand. Scan continues; those files just don't contribute findings.",
+  },
 };
 
 function readTargets(): ReadonlyArray<string> {
@@ -242,13 +248,12 @@ function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
       else if (f.severity === "low") low += 1;
       else if (f.severity === "info") info += 1;
       if (f.state === "manual-review") manualReview += 1;
-      // library-verified isn't a bug — it's the positive signal that a
-      // handler is correctly using the SDK. parse-error is an engine
-      // limitation, not a bug we caught in user code. Skip both from
-      // the "what hookwarden caught" table so the row count reflects
-      // actual findings.
+      // library-verified is the positive signal that a handler is
+      // correctly using the SDK — never a bug, always filtered out.
+      // parse-error stays in the table because it's a real
+      // observability signal about the scan's coverage.
       const cls = ruleClass(f.rule_id);
-      if (cls !== "library-verified" && cls !== "parse-error") {
+      if (cls !== "library-verified") {
         byRuleClass[cls] = (byRuleClass[cls] ?? 0) + 1;
       }
     }
@@ -331,6 +336,15 @@ function renderTable(a: Aggregate): string {
       lines.push(`| ${meta.name} | ${sev} | ${n} | ${meta.meaning} |`);
     }
   }
+  lines.push("");
+  // Coverage-scope note: without this, a 1-row table looks like "the
+  // scanner didn't do much." With it, the reader knows the BREADTH
+  // hookwarden checked even when most categories don't fire on
+  // well-maintained code.
+  const checkedClasses = Object.keys(RULE_CLASS_META).length;
+  lines.push(
+    `_Hookwarden checks **${checkedClasses} rule classes** across **6 providers** (Stripe, GitHub, Shopify, Slack, Twilio, Square) — most of the corpus handles webhooks correctly, hence the short list. The full rule catalog lives in the [docs](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs/rules)._`,
+  );
   lines.push("");
   lines.push(
     `Per-target findings are never published before responsible disclosure — see [methodology](./bugs-in-the-wild.md). To run the same scan against your own code:`,
