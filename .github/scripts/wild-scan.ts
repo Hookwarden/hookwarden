@@ -146,10 +146,17 @@ const RULE_CLASS_META: Readonly<Record<string, RuleClassMeta>> = {
 
 function readTargets(): ReadonlyArray<string> {
   const raw = readFileSync(TARGETS_FILE, "utf8");
-  return raw
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0 && !l.startsWith("#"));
+  return (
+    raw
+      .split("\n")
+      // Strip inline `# annotation` comments before trimming — without
+      // this, the annotation bleeds into the repo string passed to git
+      // clone. The shell then treats # as a comment and git falls back
+      // to its default dest (the repo name in the current dir), which
+      // pollutes the workspace and trips downstream lint/preflight hooks.
+      .map((l) => l.replace(/#.*$/, "").trim())
+      .filter((l) => l.length > 0)
+  );
 }
 
 function ensureCli(): string {
