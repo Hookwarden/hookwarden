@@ -36,9 +36,16 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
 ### Found in the wild
 
-*First weekly scan pending — see [methodology](./bugs-in-the-wild.md) and the [target list](./.github/scripts/wild-targets.txt). Re-runs every Sunday 22:00 UTC and proves hookwarden against ~8 production OSS projects with combined ★190k+. Per-target findings are never published before responsible disclosure.*
+Last scanned **2026-05-28** against **8** production OSS projects (see [methodology](./bugs-in-the-wild.md)).
 
-To run the same scan against your own code:
+| Verdict | Count |
+|---|---:|
+| 🚨 Critical (would fail a build) | 2 |
+| ⚠️ High | 3 |
+| 🟡 Manual-review (human confirms) | 3 |
+| ✅ Targets with zero critical/high | 4 / 8 |
+
+Per-target findings are never published before responsible disclosure. To run the same scan against your own code:
 
 ```bash
 npx hookwarden scan ./your-app
