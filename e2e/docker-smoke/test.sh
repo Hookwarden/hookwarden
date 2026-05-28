@@ -210,6 +210,16 @@ if "$HW" scan /fixtures/php-edge-cases >/dev/null 2>&1; then rc=0; else rc=$?; f
 if [[ $rc -le 1 ]]; then ok "1.10 php-edge-cases → completed (exit $rc)"
 else fail "1.10 php-edge-cases crashed (exit $rc)"; fi
 
+# 1.11 + 1.12: the two auto-fix-bait fixtures must still scan cleanly as
+# bug fixtures (they exist to exercise stage 8's codemod path).
+assert_scan "1.11 stripe-timing-unsafe-fixable → timing-unsafe fires" 1 \
+  /fixtures/stripe-timing-unsafe-fixable \
+  "stripe/timing-unsafe-comparison" "not-verified"
+
+assert_scan "1.12 stripe-raw-body-fixable → raw-body-misuse fires" 1 \
+  /fixtures/stripe-raw-body-fixable \
+  "stripe/raw-body-misuse" "not-verified"
+
 # ---------- stage 2: phase-3 fixtures × JSON parseability + deep schema -
 note "stage 2: phase-3 fixtures × --format json (parseability + schema)"
 
@@ -220,6 +230,7 @@ FIXTURES=(
   canonical-stripe-bug stripe-construct-event-happy-path python-flask-happy-path
   seeded-secret stripe-catch-swallow-known-fn stripe-inline-middleware-verify
   python-flask-bug php-laravel-bug php-vanilla-bug php-edge-cases
+  stripe-timing-unsafe-fixable stripe-raw-body-fixable
 )
 i=0
 for fx in "${FIXTURES[@]}"; do
@@ -545,9 +556,8 @@ fi
 [[ $rc -le 1 ]] && ok "8.9 fix --only with unknown rule_id does not crash (exit $rc)" \
   || fail "8.9 fix --only with unknown rule_id crashed (exit $rc)"
 
-# 8.10 POSITIVE: even when there are zero fixable findings (the public
-# phase-3 corpus has no auto-fixable bugs at 0.5.5), `fix` must still
-# emit the banner + count line so consumers can pattern-match the
+# 8.10 POSITIVE: even when there are zero fixable findings, `fix` must
+# still emit the banner + count line so consumers can pattern-match the
 # output. A blank output here would be a silent regression.
 FIX_OUT=$("$HW" fix "$FIXDIR" 2>&1)
 errs=()
@@ -558,6 +568,72 @@ grep -qiF "fixable findings" <<<"$FIX_OUT" \
 [[ ${#errs[@]} -eq 0 ]] \
   && ok "8.10 fix output always carries banner + count line" \
   || fail "8.10 fix output schema drift" "${errs[@]}"
+
+# 8.11–8.16: end-to-end codemod verification against the two fixtures
+# specifically constructed to trigger the published codemods (the rest
+# of the phase-3 corpus has none — see e2e/fixtures/phase-3/stripe-
+# timing-unsafe-fixable and stripe-raw-body-fixable READMEs).
+
+# ── 8.11/8.12/8.13: typescript-replace-binary-equality ─────────────
+TUFIX=/tmp/tu-fix-$$
+cp -r /fixtures/stripe-timing-unsafe-fixable "$TUFIX"
+TU_BEFORE_HASH=$(find "$TUFIX" -type f -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
+
+TU_DRYRUN=$("$HW" fix "$TUFIX" 2>&1)
+if grep -qE 'stripe/timing-unsafe-comparison' <<<"$TU_DRYRUN" \
+   && grep -qE 'crypto\.timingSafeEqual' <<<"$TU_DRYRUN"; then
+  ok "8.11 timing-unsafe codemod dry-run shows the timingSafeEqual rewrite"
+else
+  fail "8.11 timing-unsafe dry-run missing expected diff"
+  head -8 <<<"$TU_DRYRUN" | sed 's/^/   /'
+fi
+
+"$HW" fix "$TUFIX" --write >/dev/null 2>&1
+TU_AFTER_HASH=$(find "$TUFIX" -type f -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
+[[ "$TU_BEFORE_HASH" != "$TU_AFTER_HASH" ]] \
+  && ok "8.12 timing-unsafe fix --write actually mutated the source file" \
+  || fail "8.12 timing-unsafe fix --write left the file unchanged"
+
+# After the rewrite, the same scan must NOT re-fire the timing-unsafe
+# rule — the fix is supposed to RESOLVE the finding, not just edit the
+# file. This is the load-bearing safety contract.
+TU_RESCAN=$("$HW" scan "$TUFIX" --format json 2>/dev/null)
+if echo "$TU_RESCAN" \
+   | jq -e '[.scan.findings[].rule_id] | index("stripe/timing-unsafe-comparison") == null' \
+     >/dev/null 2>&1; then
+  ok "8.13 timing-unsafe re-scan after --write no longer fires the rule"
+else
+  fail "8.13 timing-unsafe rule still fires after fix --write — codemod did not resolve"
+fi
+rm -rf "$TUFIX"
+
+# ── 8.14/8.15/8.16: typescript-replace-req-body-with-raw-body ──────
+RBFIX=/tmp/rb-fix-$$
+cp -r /fixtures/stripe-raw-body-fixable "$RBFIX"
+RB_BEFORE_HASH=$(find "$RBFIX" -type f -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
+
+RB_DRYRUN=$("$HW" fix "$RBFIX" 2>&1)
+if grep -qE 'stripe/raw-body-misuse' <<<"$RB_DRYRUN" \
+   && grep -qE 'req\.rawBody' <<<"$RB_DRYRUN"; then
+  ok "8.14 raw-body codemod dry-run shows the req.body → req.rawBody rewrite"
+else
+  fail "8.14 raw-body dry-run missing expected diff"
+  head -8 <<<"$RB_DRYRUN" | sed 's/^/   /'
+fi
+
+"$HW" fix "$RBFIX" --write >/dev/null 2>&1
+RB_AFTER_HASH=$(find "$RBFIX" -type f -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
+[[ "$RB_BEFORE_HASH" != "$RB_AFTER_HASH" ]] \
+  && ok "8.15 raw-body fix --write actually mutated the source file" \
+  || fail "8.15 raw-body fix --write left the file unchanged"
+
+# Post-fix, server.ts must contain req.rawBody (the rewritten form).
+if grep -qF "req.rawBody" "$RBFIX"/server.ts; then
+  ok "8.16 raw-body fix --write wrote req.rawBody into the source"
+else
+  fail "8.16 raw-body fix --write did not produce req.rawBody"
+fi
+rm -rf "$RBFIX"
 
 rm -rf "$FIXDIR"
 
