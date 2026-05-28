@@ -58,11 +58,11 @@ interface Aggregate {
     readonly info: number;
     readonly manualReview: number;
   };
-  /** Per-rule-class counts across the corpus (provider prefix stripped),
-   *  e.g. { "missing-signature-verification": 2 } regardless of whether
-   *  the rule fired on stripe/, github/, etc. Per-project attribution is
-   *  intentionally NOT tracked — see bugs-in-the-wild.md. */
-  readonly byRuleClass: Readonly<Record<string, number>>;
+  /** Per-rule-id counts across the corpus, e.g. { "stripe/raw-body-misuse": 2 }.
+   *  Provider prefix kept so readers see WHICH provider's rule fired.
+   *  Per-project attribution is intentionally NOT tracked — see
+   *  bugs-in-the-wild.md. */
+  readonly byRuleId: Readonly<Record<string, number>>;
   readonly failed: ReadonlyArray<string>;
 }
 
@@ -219,7 +219,7 @@ function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
     info = 0;
   let manualReview = 0;
   let clean = 0;
-  const byRuleClass: Record<string, number> = {};
+  const byRuleId: Record<string, number> = {};
   const failed: string[] = [];
 
   for (const repo of targets) {
@@ -252,9 +252,8 @@ function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
       // correctly using the SDK — never a bug, always filtered out.
       // parse-error stays in the table because it's a real
       // observability signal about the scan's coverage.
-      const cls = ruleClass(f.rule_id);
-      if (cls !== "library-verified") {
-        byRuleClass[cls] = (byRuleClass[cls] ?? 0) + 1;
+      if (ruleClass(f.rule_id) !== "library-verified") {
+        byRuleId[f.rule_id] = (byRuleId[f.rule_id] ?? 0) + 1;
       }
     }
     console.log(
@@ -265,7 +264,7 @@ function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
     targetsScanned: targets.length - failed.length,
     targetsClean: clean,
     findings: { critical, high, medium, low, info, manualReview },
-    byRuleClass,
+    byRuleId,
     failed,
   };
 }
@@ -303,25 +302,26 @@ function renderTable(a: Aggregate): string {
   );
   lines.push("");
 
-  // Render one row per rule class that fired ≥ 1 time. Sort by severity
-  // (critical first), then by count desc within tier, then alphabetically
-  // for stability across reruns.
-  const rows = Object.entries(a.byRuleClass)
+  // Render one row per rule_id that fired ≥ 1 time. Description is
+  // looked up by rule CLASS (stripped of provider prefix) so we don't
+  // need 66 hardcoded entries (11 classes × 6 providers). Sort by
+  // severity (critical first), then count desc, then by rule_id.
+  const rows = Object.entries(a.byRuleId)
     .filter(([, n]) => n > 0)
-    .map(([cls, n]) => ({
-      cls,
-      n,
-      meta: RULE_CLASS_META[cls] ?? {
+    .map(([id, n]) => {
+      const cls = ruleClass(id);
+      const meta = RULE_CLASS_META[cls] ?? {
         name: cls,
         severity: "manual-review" as const,
         meaning: "Uncategorized rule — see the rule docs for context.",
-      },
-    }))
+      };
+      return { id, n, meta };
+    })
     .sort(
       (a, b) =>
         SEVERITY_RANK[a.meta.severity] - SEVERITY_RANK[b.meta.severity] ||
         b.n - a.n ||
-        a.cls.localeCompare(b.cls),
+        a.id.localeCompare(b.id),
     );
 
   if (rows.length === 0) {
@@ -329,11 +329,11 @@ function renderTable(a: Aggregate): string {
       `_The entire ${a.targetsScanned}-project corpus came back clean. Either we got lucky this week or the corpus needs harder targets._`,
     );
   } else {
-    lines.push(`| What hookwarden caught | Severity | Found | What it means |`);
+    lines.push(`| Rule fired | Severity | Found | What it means |`);
     lines.push(`|---|---|---:|---|`);
-    for (const { meta, n } of rows) {
+    for (const { id, meta, n } of rows) {
       const sev = `${SEVERITY_EMOJI[meta.severity]} ${meta.severity}`;
-      lines.push(`| ${meta.name} | ${sev} | ${n} | ${meta.meaning} |`);
+      lines.push(`| \`${id}\` | ${sev} | ${n} | ${meta.meaning} |`);
     }
   }
   lines.push("");
