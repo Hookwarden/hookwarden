@@ -1,0 +1,82 @@
+name: DIST-01 npm smoke (docker)
+# Runs e2e/docker-smoke/ against the published hookwarden@HW_VERSION npm
+# tarball in a clean Node 22 container. Proves the published artefact
+# works end-to-end — install + scan/inventory/fix/explain + JSON/SARIF
+# schemas + flag matrix + byte-stability + auto-fix codemods.
+#
+# Distinct from CI's `lint-test-build` job, which runs the in-process
+# vitest suite. That test path never touches the actual npm tarball;
+# this one does.
+on:
+  workflow_dispatch:
+    inputs:
+      hw_version:
+        description: 'hookwarden version to smoke (e.g. 0.5.5 or "latest")'
+        required: false
+        default: '0.5.5'
+  schedule:
+    # Weekly cron: catches upstream Node 22 / npm registry breakage
+    # independent of any of our pushes.
+    - cron: '0 12 * * 1'
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
+  push:
+    branches: [main]
+    paths:
+      - 'e2e/docker-smoke/**'
+      - 'e2e/fixtures/phase-3/**'
+      - 'e2e/fixtures/perf/generate.ts'
+      - 'packages/cli/**'
+      - 'packages/rules/**'
+      - 'packages/engine/**'
+      - 'packages/fix/**'
+      - '.github/workflows/dist-01-npm-smoke.yml'
+  pull_request:
+    paths:
+      - 'e2e/docker-smoke/**'
+      - 'e2e/fixtures/phase-3/**'
+      - 'e2e/fixtures/perf/generate.ts'
+      - 'packages/cli/**'
+      - 'packages/rules/**'
+      - 'packages/engine/**'
+      - 'packages/fix/**'
+      - '.github/workflows/dist-01-npm-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    # Cross-workflow sync (mirrors DIST-02/03 pattern): only fire from a
+    # successful Release run; otherwise run unconditionally for the other
+    # triggers.
+    if: |
+      github.event.workflow_run.conclusion == 'success' ||
+      github.event_name != 'workflow_run'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install workspace deps (for tsx + the perf generator)
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate perf fixtures (gitignored — must regen each run)
+        run: pnpm exec tsx e2e/fixtures/perf/generate.ts
+
+      - name: Run docker-smoke harness
+        env:
+          # For workflow_run after Release, smoke 'latest' so a fresh
+          # publish gets caught immediately. Otherwise honour the
+          # workflow_dispatch input or fall back to the pinned default
+          # baked into run.sh.
+          HW_VERSION: ${{ github.event_name == 'workflow_run' && 'latest' || inputs.hw_version || '0.5.5' }}
+        run: ./e2e/docker-smoke/run.sh
