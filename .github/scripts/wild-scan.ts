@@ -286,14 +286,19 @@ const providerOrder: ReadonlyArray<string> = [
   "engine",
 ];
 
+/** Labels are deliberately framed as "<Provider> integrations" so the
+ *  table can't be misread as "Stripe has 2 bugs in their product." The
+ *  findings are in webhook HANDLERS the corpus projects wrote to
+ *  integrate with each provider — never in the provider's SDK or
+ *  service. The footer note below reinforces this. */
 const providerLabel: Readonly<Record<string, string>> = {
-  stripe: "Stripe",
-  github: "GitHub",
-  shopify: "Shopify",
-  slack: "Slack",
-  twilio: "Twilio",
-  square: "Square",
-  engine: "Engine signals",
+  stripe: "Stripe integrations",
+  github: "GitHub integrations",
+  shopify: "Shopify integrations",
+  slack: "Slack integrations",
+  twilio: "Twilio integrations",
+  square: "Square integrations",
+  engine: "Engine signals (parse errors)",
 };
 
 function renderTable(a: Aggregate): string {
@@ -355,13 +360,22 @@ function renderTable(a: Aggregate): string {
     lines.push(`| ${providerLabel[p]} | ${row.crit} | ${row.high} | ${row.mr} | ${rulesCell} |`);
   }
   lines.push("");
+  // Framing note (A): readers may misread the per-provider rows as
+  // "Stripe has 2 critical bugs in their product." This sentence
+  // makes the relationship explicit at the source-of-truth level so
+  // we don't accidentally imply provider liability for bugs that
+  // live in the integrating project's webhook handler code.
+  lines.push(
+    `_These are bugs in the webhook **handlers** that receive provider events — flaws in the integrating projects' integration code, not in Stripe / GitHub / Shopify / Slack / Twilio / Square themselves._`,
+  );
+  lines.push("");
   // Coverage-scope note: without this, a 1-row table looks like "the
   // scanner didn't do much." With it, the reader knows the BREADTH
   // hookwarden checked even when most categories don't fire on
   // well-maintained code.
   const checkedClasses = Object.keys(RULE_CLASS_META).length;
   lines.push(
-    `_Hookwarden checks **${checkedClasses} rule classes** across **6 providers** (Stripe, GitHub, Shopify, Slack, Twilio, Square) — most of the corpus handles webhooks correctly, hence the short list. The full rule catalog lives in the [docs](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs/rules)._`,
+    `_Hookwarden checks **${checkedClasses} rule classes** across **6 providers** — most of the corpus handles webhooks correctly, hence the short list. The full rule catalog lives in the [docs](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs/rules)._`,
   );
   lines.push("");
   lines.push(
