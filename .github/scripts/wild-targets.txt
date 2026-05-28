@@ -3,20 +3,75 @@
 #
 # Selection criteria:
 #   - ≥5k GitHub stars (credible / production user base)
-#   - Recently active (push within last 6 months)
+#   - Recently active (push within last 12 months)
 #   - Public Apache/MIT/AGPL license
-#   - TS/Python/PHP source code (the languages hookwarden scans)
-#   - Contains webhook handlers (Stripe, GitHub, Shopify, etc.)
+#   - TS/JS/Python/PHP source code (the languages hookwarden scans)
+#   - Likely contains webhook handlers (Stripe billing, GitHub Apps,
+#     Shopify storefronts, Slack bots, Twilio messaging, Square POS,
+#     or generic webhook integration code)
 #
 # Adding a project: open a PR adding the org/repo line. Removing: same.
 # We never publish per-target findings without coordinated disclosure.
 # See bugs-in-the-wild.md for the methodology + privacy promise.
+#
+# Provider annotations after `#` reflect grep-detected provider patterns
+# (signature headers / SDK calls). Empty / "tbd" means we haven't profiled
+# the repo yet — the next sweep will surface what fires.
 
-calcom/cal.com
-documenso/documenso
-formbricks/formbricks
-twentyhq/twenty
-makeplane/plane
-unkeyed/unkey
-baptisteArno/typebot.io
-papermark/papermark
+# ── SaaS billing / commerce (Stripe-heavy) ─────────────────────────
+calcom/cal.com                      # Stripe
+documenso/documenso                 # Stripe
+formbricks/formbricks               # Stripe
+twentyhq/twenty                     # Stripe, GitHub
+unkeyed/unkey                       # Stripe, GitHub
+baptisteArno/typebot.io             # Stripe, GitHub
+papermark/papermark                 # Stripe
+medusajs/medusa                     # Stripe (commerce platform)
+saleor/saleor                       # Stripe (Django commerce)
+maybe-finance/maybe                 # Stripe (personal finance)
+mautic/mautic                       # tbd (marketing automation)
+woocommerce/woocommerce             # Stripe, Square (PHP commerce)
+bagisto/bagisto                     # Stripe (Laravel commerce)
+pixelfed/pixelfed                   # tbd (federated social)
+forem/forem                         # Stripe (DEV.to)
+PostHog/posthog                     # Stripe
+makeplane/plane                     # generic webhooks
+n8n-io/n8n                          # tbd (workflow automation — likely many)
+NocoDB/nocodb                       # tbd (database platform)
+
+# ── Dev tools / git platforms (GitHub-heavy) ───────────────────────
+go-gitea/gitea                      # GitHub-style (self-hosted)
+gogs/gogs                           # GitHub-style (self-hosted)
+zulip/zulip                         # GitHub
+mattermost/mattermost               # GitHub, Slack
+rocketchat/Rocket.Chat              # GitHub, Slack
+appwrite/appwrite                   # tbd (BaaS, has Functions+webhooks)
+supabase/supabase                   # GitHub, generic webhooks
+strapi/strapi                       # Stripe, generic webhooks
+directus/directus                   # generic webhooks
+TryGhost/Ghost                      # Stripe
+parse-community/parse-server        # tbd (Parse webhooks)
+
+# ── Chat / messaging (Slack/Twilio-heavy) ──────────────────────────
+slackapi/bolt-js                    # Slack
+slackapi/bolt-python                # Slack
+chatwoot/chatwoot                   # Twilio, Slack, generic
+nextcloud/server                    # tbd (PHP — has Notifications/webhooks)
+chaskiq/chaskiq                     # tbd (customer messaging)
+
+# ── Python frameworks / apps ───────────────────────────────────────
+frappe/frappe                       # generic webhooks
+frappe/erpnext                      # generic webhooks
+encode/django-rest-framework        # tbd (rest framework — example handlers)
+
+# ── PHP frameworks / apps ──────────────────────────────────────────
+magento/magento2                    # Stripe (Magento commerce)
+laravel/cashier-stripe              # Stripe (official Laravel Stripe pkg)
+pterodactyl/panel                   # tbd (game-server panel)
+flarum/flarum                       # tbd (forum software)
+matomo-org/matomo                   # tbd (analytics)
+shopware/platform                   # Stripe, Shopify (commerce)
+
+# ── Webhook receivers / integrators ────────────────────────────────
+svix/svix-webhooks                  # generic webhooks
+zapier/zapier-platform              # tbd (integration platform)

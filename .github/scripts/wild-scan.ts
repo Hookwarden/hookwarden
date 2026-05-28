@@ -273,18 +273,27 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-const SEVERITY_EMOJI: Record<RuleClassMeta["severity"], string> = {
-  critical: "🚨",
-  high: "⚠️",
-  medium: "🟠",
-  "manual-review": "🟡",
-};
+/** Provider iteration order for the per-provider table — matches the
+ *  six providers hookwarden ships rules for, plus `engine` for
+ *  parse-error and other engine-emitted findings. */
+const providerOrder: ReadonlyArray<string> = [
+  "stripe",
+  "github",
+  "shopify",
+  "slack",
+  "twilio",
+  "square",
+  "engine",
+];
 
-const SEVERITY_RANK: Record<RuleClassMeta["severity"], number> = {
-  critical: 0,
-  high: 1,
-  medium: 2,
-  "manual-review": 3,
+const providerLabel: Readonly<Record<string, string>> = {
+  stripe: "Stripe",
+  github: "GitHub",
+  shopify: "Shopify",
+  slack: "Slack",
+  twilio: "Twilio",
+  square: "Square",
+  engine: "Engine signals",
 };
 
 function renderTable(a: Aggregate): string {
@@ -302,39 +311,48 @@ function renderTable(a: Aggregate): string {
   );
   lines.push("");
 
-  // Render one row per rule_id that fired ≥ 1 time. Description is
-  // looked up by rule CLASS (stripped of provider prefix) so we don't
-  // need 66 hardcoded entries (11 classes × 6 providers). Sort by
-  // severity (critical first), then count desc, then by rule_id.
-  const rows = Object.entries(a.byRuleId)
-    .filter(([, n]) => n > 0)
-    .map(([id, n]) => {
-      const cls = ruleClass(id);
-      const meta = RULE_CLASS_META[cls] ?? {
-        name: cls,
-        severity: "manual-review" as const,
-        meaning: "Uncategorized rule — see the rule docs for context.",
-      };
-      return { id, n, meta };
-    })
-    .sort(
-      (a, b) =>
-        SEVERITY_RANK[a.meta.severity] - SEVERITY_RANK[b.meta.severity] ||
-        b.n - a.n ||
-        a.id.localeCompare(b.id),
-    );
+  // Render one row PER PROVIDER. Each row aggregates findings by
+  // severity and lists the specific rules that fired so the reader
+  // sees both the headline ("2 critical on Stripe") AND the diagnosis
+  // ("...all raw-body-misuse"). Providers with zero findings stay in
+  // the table — proves the breadth of coverage and doesn't hide the
+  // negative space.
+  interface ProviderRow {
+    crit: number;
+    high: number;
+    mr: number;
+    rules: Map<string, number>;
+  }
+  const byProvider = new Map<string, ProviderRow>();
+  for (const p of providerOrder) {
+    byProvider.set(p, { crit: 0, high: 0, mr: 0, rules: new Map() });
+  }
+  for (const [ruleId, n] of Object.entries(a.byRuleId)) {
+    const provider = ruleId.split("/")[0] ?? "unknown";
+    const row = byProvider.get(provider);
+    if (row === undefined) continue;
+    const cls = ruleClass(ruleId);
+    const meta = RULE_CLASS_META[cls];
+    const sev = meta?.severity ?? "manual-review";
+    if (sev === "critical") row.crit += n;
+    else if (sev === "high") row.high += n;
+    else row.mr += n;
+    row.rules.set(ruleId, (row.rules.get(ruleId) ?? 0) + n);
+  }
 
-  if (rows.length === 0) {
-    lines.push(
-      `_The entire ${a.targetsScanned}-project corpus came back clean. Either we got lucky this week or the corpus needs harder targets._`,
-    );
-  } else {
-    lines.push(`| Rule fired | Severity | Found | What it means |`);
-    lines.push(`|---|---|---:|---|`);
-    for (const { id, meta, n } of rows) {
-      const sev = `${SEVERITY_EMOJI[meta.severity]} ${meta.severity}`;
-      lines.push(`| \`${id}\` | ${sev} | ${n} | ${meta.meaning} |`);
-    }
+  lines.push(`| Provider | 🚨 critical | ⚠️ high | 🟡 manual-review | Rules that fired |`);
+  lines.push(`|---|---:|---:|---:|---|`);
+  for (const p of providerOrder) {
+    const row = byProvider.get(p);
+    if (row === undefined) continue;
+    const rulesCell =
+      row.rules.size === 0
+        ? "—"
+        : [...row.rules.entries()]
+            .sort(([x], [y]) => x.localeCompare(y))
+            .map(([id, n]) => `\`${id}\` (×${n})`)
+            .join("<br>");
+    lines.push(`| ${providerLabel[p]} | ${row.crit} | ${row.high} | ${row.mr} | ${rulesCell} |`);
   }
   lines.push("");
   // Coverage-scope note: without this, a 1-row table looks like "the
