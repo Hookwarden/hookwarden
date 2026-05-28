@@ -255,4 +255,32 @@ describe("renderSummary — Phase 4 footer extension", () => {
     expect(out).toContain("0 critical");
     expect(out).toContain("1 high");
   });
+
+  it("manual-review legend: appears when ≥1 manual-review finding is in the report", () => {
+    const result: ScanResult = {
+      findings: [{ ...baseFinding, severity: "high", state: "manual-review" }],
+      inventory: [],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    expect(out).toContain("manual-review =");
+    expect(out).toContain("does not fail the build by default");
+    expect(out).toContain("--fail-on low");
+  });
+
+  it("NEGATIVE manual-review legend: omitted when zero manual-review findings", () => {
+    const result: ScanResult = {
+      findings: [{ ...baseFinding, severity: "high", state: "not-verified" }],
+      inventory: [],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    expect(out).not.toContain("manual-review =");
+  });
+
+  it("NEGATIVE manual-review legend: omitted on a clean scan (zero findings)", () => {
+    const result: ScanResult = { findings: [], inventory: [], metadata: META };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    expect(out).not.toContain("manual-review =");
+  });
 });

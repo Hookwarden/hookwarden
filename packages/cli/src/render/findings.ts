@@ -161,6 +161,28 @@ function renderFinding(
     lines.push(`${indent}${docsPrefix} ${linked}`);
   }
 
+  // manual-review verdicts mean the engine can't statically prove the
+  // handler safe or unsafe (verification conditional, replay defense
+  // outside the call graph, etc). The user needs to know what action
+  // is expected — without this line, they're left guessing.
+  //
+  // Gated on `rule !== undefined`: this filters out engine-internal
+  // pseudo-rules like `engine/parse-error` (no rule pack entry) where
+  // the baseline-write hint would be misleading — a parse error isn't
+  // something you "accept", it's something you fix or .gitignore.
+  if (f.state === "manual-review" && rule !== undefined) {
+    const nextPrefix = actionPrefix("next", opts);
+    const guidance =
+      "review the handler in context. If the missing check lives outside this file (gateway, dedupe table, conditional verification), run `hookwarden scan --baseline write` to accept it.";
+    const wrapped = softWrap(guidance, "", wrapCol - 7); // 7 = "next › " width
+    if (wrapped.length > 0) {
+      lines.push(`${indent}${nextPrefix} ${wrapped[0]?.trim() ?? ""}`);
+      for (let i = 1; i < wrapped.length; i += 1) {
+        lines.push(`${indent}       ${wrapped[i]?.trim() ?? ""}`);
+      }
+    }
+  }
+
   return lines.join("\n");
 }
 

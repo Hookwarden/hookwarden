@@ -243,4 +243,31 @@ describe("renderFindings", () => {
     );
     expect(out).toMatchSnapshot();
   });
+
+  it("manual-review (rule-pack rule): emits `next ›` line with baseline-write guidance", () => {
+    const out = renderFindings(mkResult([manualReviewFinding]), RULE_SET, {
+      useAnsi: false,
+      cwd: "/tmp",
+    });
+    expect(out).toContain("next ›");
+    expect(out).toContain("hookwarden scan --baseline write");
+    expect(out).toContain("review the handler in context");
+  });
+
+  it("NEGATIVE manual-review (engine/parse-error, not in ruleSet): does NOT emit `next ›` line", () => {
+    // Parse errors are pseudo-findings; baseline-write doesn't apply.
+    const out = renderFindings(mkResult([parseErrorFinding]), RULE_SET, {
+      useAnsi: false,
+      cwd: "/tmp",
+    });
+    expect(out).not.toContain("next ›");
+  });
+
+  it("NEGATIVE not-verified finding: does NOT emit `next ›` line (verdict already actionable)", () => {
+    const out = renderFindings(mkResult([stripeFinding]), RULE_SET, {
+      useAnsi: false,
+      cwd: "/tmp",
+    });
+    expect(out).not.toContain("next ›");
+  });
 });

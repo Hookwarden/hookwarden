@@ -116,6 +116,14 @@ export function renderSummary(result: ScanResult, opts: RenderSummaryOptions): s
     line2 += `\n(${opts.testExcludedCount} test/fixture file${opts.testExcludedCount === 1 ? "" : "s"} auto-excluded; use --include-tests to scan)`;
   }
 
+  // Manual-review legend: surfaced only when ≥1 manual-review finding is in
+  // the report. Without this, readers are left guessing what the verdict
+  // implies — `manual-review` is the only verdict that surfaces but doesn't
+  // gate the build by default, and that asymmetry needs an explicit callout.
+  if (manualReviewCount > 0) {
+    line2 += `\nmanual-review = engine can't prove safe/unsafe; surfaced for human review and does not fail the build by default (use --fail-on low to gate)`;
+  }
+
   const rule = "────────────";
   return `${dim(rule, opts)}\n${line1}\n${dim(line2, opts)}\n`;
 }
