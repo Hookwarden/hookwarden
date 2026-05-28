@@ -127,12 +127,20 @@ fi
 note "stage 3: --format json + sarif on canonical-stripe-bug"
 
 JSON_OUT=$("$HW" scan /fixtures/canonical-stripe-bug --format json 2>/dev/null) || true
+# Contract: the JSON output is schema v1 with .scan.findings[].rule_id and
+# the canonical-stripe-bug fixture surfaces stripe/missing-signature-verification
+# somewhere in the findings list. Don't pin the position — finding-order is an
+# engine implementation detail and the fixture also legitimately fires other
+# stripe rules (e.g. stripe/express-middleware-ordering).
 if echo "$JSON_OUT" | jq -e '.scan.findings | length > 0' >/dev/null 2>&1; then
-  RULE_ID=$(echo "$JSON_OUT" | jq -r '.scan.findings[0].rule_id // empty')
-  if [[ "$RULE_ID" == "stripe/missing-signature-verification" ]]; then
-    ok "--format json → schema v1 with .scan.findings[].rule_id"
+  if echo "$JSON_OUT" \
+    | jq -e '[.scan.findings[].rule_id] | index("stripe/missing-signature-verification")' \
+      >/dev/null 2>&1; then
+    ok "--format json → schema v1 includes stripe/missing-signature-verification"
   else
-    fail "--format json → unexpected rule_id: '$RULE_ID'"
+    fail "--format json → stripe/missing-signature-verification not in findings"
+    echo "$JSON_OUT" | jq -r '.scan.findings[].rule_id' 2>/dev/null \
+      | head -5 | sed 's/^/   got rule_id: /'
   fi
 else
   fail "--format json → JSON shape unexpected"
