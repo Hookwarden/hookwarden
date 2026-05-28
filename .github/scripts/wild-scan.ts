@@ -15,6 +15,10 @@
 //
 // This avoids the "we found X bugs in cal.com" pre-disclosure landmine
 // while still proving the product runs against real code every week.
+//
+// biome-ignore-all lint/suspicious/noConsole: this is a CLI script that
+// prints progress to stdout/stderr by design — output goes into the
+// GH Actions log so reviewers can see what the cron run did.
 
 import { execSync, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -96,10 +100,9 @@ function cloneTarget(repo: string): string {
     }
   }
   mkdirSync(dirname(dest), { recursive: true });
-  execSync(
-    `git clone --depth 1 --filter=blob:limit=2m https://github.com/${repo} "${dest}"`,
-    { stdio: "ignore" },
-  );
+  execSync(`git clone --depth 1 --filter=blob:limit=2m https://github.com/${repo} "${dest}"`, {
+    stdio: "ignore",
+  });
   return dest;
 }
 
