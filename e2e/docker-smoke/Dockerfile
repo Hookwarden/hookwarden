@@ -7,8 +7,10 @@
 FROM node:22-bookworm-slim
 WORKDIR /test
 RUN apt-get update \
- && apt-get install -y --no-install-recommends jq ca-certificates \
- && rm -rf /var/lib/apt/lists/*
+ && apt-get install -y --no-install-recommends jq ca-certificates git \
+ && rm -rf /var/lib/apt/lists/* \
+ && git config --global user.email "e2e@hookwarden.local" \
+ && git config --global user.name "hookwarden-e2e"
 COPY test.sh /test/test.sh
 RUN chmod +x /test/test.sh
 ENTRYPOINT ["/test/test.sh"]
