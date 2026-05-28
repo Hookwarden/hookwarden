@@ -1,0 +1,36 @@
+name: DIST-01 npm smoke (no-op for docs-only PRs)
+# Paired with dist-01-npm-smoke.yml: that workflow has a `paths:` filter
+# that gates the real 1m15s Docker harness to code changes only. This
+# workflow has the INVERSE filter via paths-ignore, so docs-only PRs
+# (README, methodology, etc.) still report a `smoke` check — required
+# by branch protection.
+#
+# Exactly one of these two workflows fires per PR. Same job name
+# (`smoke`) → either fulfils the required-check rule.
+on:
+  pull_request:
+    paths-ignore:
+      - 'e2e/docker-smoke/**'
+      - 'e2e/fixtures/phase-3/**'
+      - 'e2e/fixtures/perf/generate.ts'
+      - 'packages/cli/**'
+      - 'packages/rules/**'
+      - 'packages/engine/**'
+      - 'packages/fix/**'
+      - '.github/workflows/dist-01-npm-smoke.yml'
+      - '.github/workflows/dist-01-npm-smoke-noop.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: No code paths changed — smoke not needed
+        run: |
+          echo "Docs-only PR detected. The real DIST-01 npm smoke is gated"
+          echo "to PRs that change packages/{cli,rules,engine,fix}/** or"
+          echo "e2e/**. This no-op job exists to satisfy the 'smoke'"
+          echo "required-check rule for docs/README/workflow-only changes."
