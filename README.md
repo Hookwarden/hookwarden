@@ -38,14 +38,11 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
 Every Sunday at 22:00 UTC, this repo's CI runs `hookwarden` against **8 popular open-source projects** — currently cal.com, documenso, formbricks, twenty, plane, unkey, typebot, papermark ([full target list](./.github/scripts/wild-targets.txt), combined ★190k+) — to prove the scanner works on real production code.
 
-**Latest sweep — 2026-05-28:**
+**Latest sweep — 2026-05-28** · 4/8 projects clean (zero critical/high)
 
-| Findings across the 8-project corpus | Count |
-|---|---:|
-| 🚨 Critical bugs | 2 |
-| ⚠️ High-severity bugs | 3 |
-| 🟡 Manual-review (human confirms) | 3 |
-| ✅ Projects with zero critical/high | 4 / 8 |
+| What hookwarden caught | Severity | Found | What it means |
+|---|---|---:|---|
+| Raw body misuse | 🚨 critical | 2 | Body is parsed (JSON) before HMAC reads it. Signature is computed over different bytes than the sender signed — verification fails on every webhook. |
 
 Per-target findings are never published before responsible disclosure — see [methodology](./bugs-in-the-wild.md). To run the same scan against your own code:
 

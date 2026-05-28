@@ -243,9 +243,12 @@ function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
       else if (f.severity === "info") info += 1;
       if (f.state === "manual-review") manualReview += 1;
       // library-verified isn't a bug — it's the positive signal that a
-      // handler is correctly using the SDK. Skip from the per-class table.
+      // handler is correctly using the SDK. parse-error is an engine
+      // limitation, not a bug we caught in user code. Skip both from
+      // the "what hookwarden caught" table so the row count reflects
+      // actual findings.
       const cls = ruleClass(f.rule_id);
-      if (cls !== "library-verified") {
+      if (cls !== "library-verified" && cls !== "parse-error") {
         byRuleClass[cls] = (byRuleClass[cls] ?? 0) + 1;
       }
     }
