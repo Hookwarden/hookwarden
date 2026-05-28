@@ -283,4 +283,89 @@ describe("renderSummary — Phase 4 footer extension", () => {
     const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
     expect(out).not.toContain("manual-review =");
   });
+
+  it("critical legend: appears when ≥1 critical finding", () => {
+    const result: ScanResult = {
+      findings: [{ ...baseFinding, severity: "critical", state: "not-verified" }],
+      inventory: [],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    expect(out).toContain("critical = concrete vulnerability");
+    expect(out).toContain("Fails the build");
+  });
+
+  it("high legend: appears when ≥1 high finding", () => {
+    const result: ScanResult = {
+      findings: [{ ...baseFinding, severity: "high", state: "not-verified" }],
+      inventory: [],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    expect(out).toContain("high = exploitable verification weakness");
+    expect(out).toContain("timing-unsafe");
+  });
+
+  it("info legend: appears when ≥1 info finding (positive signal callout)", () => {
+    const result: ScanResult = {
+      findings: [{ ...baseFinding, severity: "info", state: "verified" }],
+      inventory: [],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    expect(out).toContain("info = positive signal");
+    expect(out).toContain("no action needed");
+  });
+
+  it("multiple legends: all non-zero tiers render together in tier order", () => {
+    const result: ScanResult = {
+      findings: [
+        { ...baseFinding, id: "a", severity: "critical", state: "not-verified" },
+        { ...baseFinding, id: "b", severity: "high", state: "not-verified" },
+        { ...baseFinding, id: "c", severity: "high", state: "manual-review" },
+      ],
+      inventory: [],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    expect(out).toContain("critical = ");
+    expect(out).toContain("high = ");
+    expect(out).toContain("manual-review = ");
+    // Order: critical → high → manual-review (matches the inline tally line).
+    const critIdx = out.indexOf("critical = ");
+    const highIdx = out.indexOf("high = ");
+    const mrIdx = out.indexOf("manual-review = ");
+    expect(critIdx).toBeLessThan(highIdx);
+    expect(highIdx).toBeLessThan(mrIdx);
+  });
+
+  it("NEGATIVE critical legend: omitted when zero critical findings", () => {
+    const result: ScanResult = {
+      findings: [{ ...baseFinding, severity: "high", state: "not-verified" }],
+      inventory: [],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    expect(out).not.toContain("critical = ");
+  });
+
+  it("NEGATIVE info legend: omitted when zero info findings", () => {
+    const result: ScanResult = {
+      findings: [{ ...baseFinding, severity: "critical", state: "not-verified" }],
+      inventory: [],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    expect(out).not.toContain("info = ");
+  });
+
+  it("NEGATIVE all legends: omitted on a clean scan (no findings, no noise)", () => {
+    const result: ScanResult = { findings: [], inventory: [], metadata: META };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    expect(out).not.toContain("critical = ");
+    expect(out).not.toContain("high = ");
+    expect(out).not.toContain("medium = ");
+    expect(out).not.toContain("info = ");
+    expect(out).not.toContain("manual-review = ");
+  });
 });

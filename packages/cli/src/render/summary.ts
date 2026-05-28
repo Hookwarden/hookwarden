@@ -116,12 +116,39 @@ export function renderSummary(result: ScanResult, opts: RenderSummaryOptions): s
     line2 += `\n(${opts.testExcludedCount} test/fixture file${opts.testExcludedCount === 1 ? "" : "s"} auto-excluded; use --include-tests to scan)`;
   }
 
-  // Manual-review legend: surfaced only when ≥1 manual-review finding is in
-  // the report. Without this, readers are left guessing what the verdict
-  // implies — `manual-review` is the only verdict that surfaces but doesn't
-  // gate the build by default, and that asymmetry needs an explicit callout.
+  // Severity + state legends: render one line per tier with a finding in
+  // this report, so readers don't have to guess what each label implies.
+  // Each line is short ("X = ...") and accent-prefixed via dim() so the
+  // legend block is visually distinct from the scan stats above.
+  //
+  // Suppressed on a clean scan — adding a legend block to "0 findings"
+  // output would be pure noise.
+  const legendLines: string[] = [];
+  if (sevCounts.critical > 0) {
+    legendLines.push(
+      "critical = concrete vulnerability (missing sig verification, raw body misuse, hardcoded secret). Fails the build at default threshold.",
+    );
+  }
+  if (sevCounts.high > 0) {
+    legendLines.push(
+      "high = exploitable verification weakness (timing-unsafe compare, missing timestamp/replay defense, wrong HMAC algorithm).",
+    );
+  }
+  if (sevCounts.medium > 0) {
+    legendLines.push("medium = secondary-defense or hygiene issue worth fixing before audit.");
+  }
+  if (sevCounts.info > 0) {
+    legendLines.push(
+      "info = positive signal — handler is correctly using an SDK verify path (no action needed).",
+    );
+  }
   if (manualReviewCount > 0) {
-    line2 += `\nmanual-review = engine can't prove safe/unsafe; surfaced for human review and does not fail the build by default (use --fail-on low to gate)`;
+    legendLines.push(
+      "manual-review = engine can't prove safe/unsafe; surfaced for human review and does not fail the build by default (use --fail-on low to gate).",
+    );
+  }
+  if (legendLines.length > 0) {
+    line2 += `\n${legendLines.join("\n")}`;
   }
 
   const rule = "────────────";
