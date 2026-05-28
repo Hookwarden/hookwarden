@@ -1,0 +1,22 @@
+# Wild-scan target list — public OSS repos with webhook handlers we sweep
+# weekly to prove hookwarden against real-world code.
+#
+# Selection criteria:
+#   - ≥5k GitHub stars (credible / production user base)
+#   - Recently active (push within last 6 months)
+#   - Public Apache/MIT/AGPL license
+#   - TS/Python/PHP source code (the languages hookwarden scans)
+#   - Contains webhook handlers (Stripe, GitHub, Shopify, etc.)
+#
+# Adding a project: open a PR adding the org/repo line. Removing: same.
+# We never publish per-target findings without coordinated disclosure.
+# See bugs-in-the-wild.md for the methodology + privacy promise.
+
+calcom/cal.com
+documenso/documenso
+formbricks/formbricks
+twentyhq/twenty
+makeplane/plane
+unkeyed/unkey
+baptisteArno/typebot.io
+papermark/papermark

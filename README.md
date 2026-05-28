@@ -32,6 +32,20 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
 📖 **Full documentation: [docs.hookwarden.dev](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs)**
 
+<!-- HOOKWARDEN_WILD_TABLE_START -->
+
+### Found in the wild
+
+*First weekly scan pending — see [methodology](./bugs-in-the-wild.md) and the [target list](./.github/scripts/wild-targets.txt). Re-runs every Sunday 22:00 UTC and proves hookwarden against ~8 production OSS projects with combined ★190k+. Per-target findings are never published before responsible disclosure.*
+
+To run the same scan against your own code:
+
+```bash
+npx hookwarden scan ./your-app
+```
+
+<!-- HOOKWARDEN_WILD_TABLE_END -->
+
 ---
 
 ## Why
