@@ -58,8 +58,85 @@ interface Aggregate {
     readonly info: number;
     readonly manualReview: number;
   };
+  /** Per-rule-class counts across the corpus (provider prefix stripped),
+   *  e.g. { "missing-signature-verification": 2 } regardless of whether
+   *  the rule fired on stripe/, github/, etc. Per-project attribution is
+   *  intentionally NOT tracked — see bugs-in-the-wild.md. */
+  readonly byRuleClass: Readonly<Record<string, number>>;
   readonly failed: ReadonlyArray<string>;
 }
+
+/** Friendly name + one-sentence explanation for each rule class hookwarden
+ *  ships. Anything not in this table renders as the raw rule_id with a
+ *  generic "uncategorized" tag — surfaces new rules without breaking the
+ *  table. Severity uses the worst observed across providers. */
+interface RuleClassMeta {
+  readonly name: string;
+  readonly severity: "critical" | "high" | "medium" | "manual-review";
+  readonly meaning: string;
+}
+
+const RULE_CLASS_META: Readonly<Record<string, RuleClassMeta>> = {
+  "missing-signature-verification": {
+    name: "Missing signature verification",
+    severity: "critical",
+    meaning:
+      "Handler accepts webhook payloads without checking the HMAC. Anyone who learns the endpoint can forge events.",
+  },
+  "raw-body-misuse": {
+    name: "Raw body misuse",
+    severity: "critical",
+    meaning:
+      "Body is parsed (JSON) before HMAC reads it. Signature is computed over different bytes than the sender signed — verification fails on every webhook.",
+  },
+  "express-middleware-ordering": {
+    name: "Middleware ordering bug",
+    severity: "critical",
+    meaning:
+      "`express.json()` registered before the webhook route consumes the raw bytes the HMAC needs.",
+  },
+  "hardcoded-secret-prefix": {
+    name: "Hardcoded webhook secret",
+    severity: "critical",
+    meaning:
+      "A literal `whsec_*` / `ghs_*` value appears in source. Once committed, it lives in git history and Docker images forever.",
+  },
+  "timing-unsafe-comparison": {
+    name: "Timing-unsafe comparison",
+    severity: "high",
+    meaning:
+      "`==` or `===` used to compare HMACs. Leaks the secret one byte at a time over a fast network.",
+  },
+  "wrong-hmac-algorithm": {
+    name: "Wrong HMAC algorithm",
+    severity: "high",
+    meaning:
+      "HMAC computed with a different algorithm than the provider documents (e.g., SHA-1 where SHA-256 is required).",
+  },
+  "missing-timestamp-check": {
+    name: "Missing replay defense (timestamp)",
+    severity: "high",
+    meaning:
+      "No timestamp tolerance check. Intercepted past webhooks can be replayed indefinitely.",
+  },
+  "missing-replay-defense": {
+    name: "Missing replay defense",
+    severity: "manual-review",
+    meaning: "GitHub-specific. No `X-GitHub-Delivery` UUID dedupe visible to the engine.",
+  },
+  "unreachable-verification": {
+    name: "Unreachable verification",
+    severity: "manual-review",
+    meaning:
+      "Verification code exists in the file but the engine couldn't prove it runs before the handler returns. Often a conditional path or early `return`.",
+  },
+  "missing-timing-safe-equal": {
+    name: "Missing timing-safe equality (JS)",
+    severity: "high",
+    meaning:
+      "JS-specific. Manual HMAC computed but `crypto.timingSafeEqual` not used for the comparison.",
+  },
+};
 
 function readTargets(): ReadonlyArray<string> {
   const raw = readFileSync(TARGETS_FILE, "utf8");
@@ -121,6 +198,13 @@ function scanOne(hw: string, dir: string): ScanResult | null {
   }
 }
 
+/** Strip the provider prefix from a rule_id: `stripe/missing-signature-verification`
+ *  → `missing-signature-verification`. Leaves anything without a `/` untouched. */
+function ruleClass(ruleId: string): string {
+  const idx = ruleId.indexOf("/");
+  return idx === -1 ? ruleId : ruleId.slice(idx + 1);
+}
+
 function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
   let critical = 0,
     high = 0,
@@ -129,6 +213,7 @@ function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
     info = 0;
   let manualReview = 0;
   let clean = 0;
+  const byRuleClass: Record<string, number> = {};
   const failed: string[] = [];
 
   for (const repo of targets) {
@@ -157,6 +242,12 @@ function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
       else if (f.severity === "low") low += 1;
       else if (f.severity === "info") info += 1;
       if (f.state === "manual-review") manualReview += 1;
+      // library-verified isn't a bug — it's the positive signal that a
+      // handler is correctly using the SDK. Skip from the per-class table.
+      const cls = ruleClass(f.rule_id);
+      if (cls !== "library-verified") {
+        byRuleClass[cls] = (byRuleClass[cls] ?? 0) + 1;
+      }
     }
     console.log(
       `  ✓ ${fs.length} findings (${critical} critical, ${high} high, ${manualReview} manual-review)`,
@@ -166,6 +257,7 @@ function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
     targetsScanned: targets.length - failed.length,
     targetsClean: clean,
     findings: { critical, high, medium, low, info, manualReview },
+    byRuleClass,
     failed,
   };
 }
@@ -173,6 +265,20 @@ function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
+
+const SEVERITY_EMOJI: Record<RuleClassMeta["severity"], string> = {
+  critical: "🚨",
+  high: "⚠️",
+  medium: "🟠",
+  "manual-review": "🟡",
+};
+
+const SEVERITY_RANK: Record<RuleClassMeta["severity"], number> = {
+  critical: 0,
+  high: 1,
+  medium: 2,
+  "manual-review": 3,
+};
 
 function renderTable(a: Aggregate): string {
   const lines: string[] = [];
@@ -184,14 +290,44 @@ function renderTable(a: Aggregate): string {
     `Every Sunday at 22:00 UTC, this repo's CI runs \`hookwarden\` against **${a.targetsScanned} popular open-source projects** — currently cal.com, documenso, formbricks, twenty, plane, unkey, typebot, papermark ([full target list](./.github/scripts/wild-targets.txt), combined ★190k+) — to prove the scanner works on real production code.`,
   );
   lines.push("");
-  lines.push(`**Latest sweep — ${todayIso()}:**`);
+  lines.push(
+    `**Latest sweep — ${todayIso()}** · ${a.targetsClean}/${a.targetsScanned} projects clean (zero critical/high)`,
+  );
   lines.push("");
-  lines.push(`| Findings across the ${a.targetsScanned}-project corpus | Count |`);
-  lines.push("|---|---:|");
-  lines.push(`| 🚨 Critical bugs | ${a.findings.critical} |`);
-  lines.push(`| ⚠️ High-severity bugs | ${a.findings.high} |`);
-  lines.push(`| 🟡 Manual-review (human confirms) | ${a.findings.manualReview} |`);
-  lines.push(`| ✅ Projects with zero critical/high | ${a.targetsClean} / ${a.targetsScanned} |`);
+
+  // Render one row per rule class that fired ≥ 1 time. Sort by severity
+  // (critical first), then by count desc within tier, then alphabetically
+  // for stability across reruns.
+  const rows = Object.entries(a.byRuleClass)
+    .filter(([, n]) => n > 0)
+    .map(([cls, n]) => ({
+      cls,
+      n,
+      meta: RULE_CLASS_META[cls] ?? {
+        name: cls,
+        severity: "manual-review" as const,
+        meaning: "Uncategorized rule — see the rule docs for context.",
+      },
+    }))
+    .sort(
+      (a, b) =>
+        SEVERITY_RANK[a.meta.severity] - SEVERITY_RANK[b.meta.severity] ||
+        b.n - a.n ||
+        a.cls.localeCompare(b.cls),
+    );
+
+  if (rows.length === 0) {
+    lines.push(
+      `_The entire ${a.targetsScanned}-project corpus came back clean. Either we got lucky this week or the corpus needs harder targets._`,
+    );
+  } else {
+    lines.push(`| What hookwarden caught | Severity | Found | What it means |`);
+    lines.push(`|---|---|---:|---|`);
+    for (const { meta, n } of rows) {
+      const sev = `${SEVERITY_EMOJI[meta.severity]} ${meta.severity}`;
+      lines.push(`| ${meta.name} | ${sev} | ${n} | ${meta.meaning} |`);
+    }
+  }
   lines.push("");
   lines.push(
     `Per-target findings are never published before responsible disclosure — see [methodology](./bugs-in-the-wild.md). To run the same scan against your own code:`,
