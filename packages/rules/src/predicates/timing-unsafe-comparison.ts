@@ -171,6 +171,12 @@ export const datadogTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["datadog"] ?? throwMissing("datadog"),
   );
 
+export const sentryTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "sentry",
+    PROVIDER_CATALOG["sentry"] ?? throwMissing("sentry"),
+  );
+
 export const hubspotTimingUnsafeComparisonPredicate: RulePredicate =
   createTimingUnsafeComparisonPredicate(
     "hubspot",

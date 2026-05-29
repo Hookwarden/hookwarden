@@ -104,6 +104,12 @@ export const datadogMissingTimestampCheckPredicate: RulePredicate =
     PROVIDER_CATALOG["datadog"] ?? throwMissing("datadog"),
   );
 
+export const sentryMissingTimestampCheckPredicate: RulePredicate =
+  createMissingTimestampCheckPredicate(
+    "sentry",
+    PROVIDER_CATALOG["sentry"] ?? throwMissing("sentry"),
+  );
+
 export const hubspotMissingTimestampCheckPredicate: RulePredicate =
   createMissingTimestampCheckPredicate(
     "hubspot",

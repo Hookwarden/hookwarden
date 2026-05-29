@@ -92,6 +92,11 @@ export const datadogRawBodyMisusePredicate: RulePredicate = createRawBodyMisuseP
   PROVIDER_CATALOG["datadog"] ?? throwMissing("datadog"),
 );
 
+export const sentryRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "sentry",
+  PROVIDER_CATALOG["sentry"] ?? throwMissing("sentry"),
+);
+
 export const hubspotRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
   "hubspot",
   PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),

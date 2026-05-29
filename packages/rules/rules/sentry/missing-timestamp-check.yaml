@@ -1,0 +1,35 @@
+schema_version: 1
+rule_id: sentry/missing-timestamp-check
+provider: sentry
+severity: high
+emits_state: manual-review
+message: |
+  Sentry Integration Platform webhook handler computes HMAC manually but no
+  timestamp or delivery-ID dedup check is reachable from the handler. Sentry
+  does not send a dedicated timestamp header in its webhook integration —
+  applications must dedupe by a delivery identifier (e.g. the `Sentry-Hook-Resource`
+  + payload event ID tuple, or `Request-ID`) to avoid indefinite replays of
+  a captured signed delivery.
+
+  Recommended: persist the delivery identifier (e.g. Redis SETNX with a
+  10-minute TTL) and reject any request whose identifier has already been
+  processed.
+matcher: null
+predicate: sentry-missing-timestamp-check
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://docs.sentry.io/product/integrations/integration-platform/webhooks/
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

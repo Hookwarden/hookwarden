@@ -118,6 +118,12 @@ export const datadogUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["datadog"] ?? throwMissing("datadog"),
   );
 
+export const sentryUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "sentry",
+    PROVIDER_CATALOG["sentry"] ?? throwMissing("sentry"),
+  );
+
 export const hubspotUnreachableVerificationPredicate: RulePredicate =
   createUnreachableVerificationPredicate(
     "hubspot",

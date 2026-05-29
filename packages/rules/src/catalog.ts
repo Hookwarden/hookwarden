@@ -528,6 +528,41 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
   // the catalog-shape contract and let library-import detection at least fire on
   // codebases that pull in the API SDK. Per Phase 6b research clean-schema fit, no
   // catalog branch needed.
+  // Phase 8.3 Plan 10 — Sentry Integration Platform webhooks. Clean raw_body /
+  // sha256 / hex fit (closest analog: Linear, Auth0, Datadog). Dedicated
+  // `Sentry-Hook-Signature` header — no cross-provider attribution risk.
+  // Companion `Sentry-Hook-Resource` header is used by handlers for event-type
+  // routing, NOT verification (not stored in the catalog because it's not a
+  // signature input). No canonical first-party webhook-verification SDK;
+  // @sentry/node + @sentry/browser + sentry-sdk are observability clients, not
+  // webhook verifiers. sdk_verify_calls are narrow plausible function names
+  // users might write. [unverified-against-docs] tag recorded in
+  // 08.3-10-SUMMARY.md — live Sentry docs page was not fetched in this session.
+  sentry: {
+    signature_header: ["sentry-hook-signature"],
+    sdk_packages: ["@sentry/node", "@sentry/browser", "sentry-sdk", "Sentry\\"],
+    sdk_verify_calls: ["verifySentrySignature", "verifyWebhookSignature"],
+    secret_env_prefix: ["SENTRY_WEBHOOK", "SENTRY_CLIENT_SECRET", "SENTRY_INTEGRATION"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/sentry",
+      "/api/webhooks/sentry",
+      "/sentry/webhook",
+      "/sentry/webhooks",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "raw_body",
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [
+      "missing-signature-verification",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "missing-timestamp-check",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+    ],
+  },
   // Phase 8.3 Plan 09 — Datadog webhook integration. Clean raw_body / sha256 /
   // hex fit (closest analog: Linear, Auth0). Dedicated `X-Datadog-Signature`
   // header — no cross-provider attribution risk. No canonical first-party

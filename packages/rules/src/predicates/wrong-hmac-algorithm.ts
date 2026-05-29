@@ -116,6 +116,11 @@ export const datadogWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmac
   PROVIDER_CATALOG["datadog"] ?? throwMissing("datadog"),
 );
 
+export const sentryWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
+  "sentry",
+  PROVIDER_CATALOG["sentry"] ?? throwMissing("sentry"),
+);
+
 export const hubspotWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
   "hubspot",
   PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),

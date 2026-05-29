@@ -49,6 +49,7 @@ import {
 import {
   auth0MissingSignatureVerificationPredicate,
   datadogMissingSignatureVerificationPredicate,
+  sentryMissingSignatureVerificationPredicate,
   docusignMissingSignatureVerificationPredicate,
   githubMissingSignatureVerificationPredicate,
   hubspotMissingSignatureVerificationPredicate,
@@ -67,6 +68,7 @@ import {
 import {
   auth0MissingTimestampCheckPredicate,
   datadogMissingTimestampCheckPredicate,
+  sentryMissingTimestampCheckPredicate,
   docusignMissingTimestampCheckPredicate,
   githubMissingTimestampCheckPredicate,
   hubspotMissingTimestampCheckPredicate,
@@ -82,6 +84,7 @@ import {
 import {
   auth0RawBodyMisusePredicate,
   datadogRawBodyMisusePredicate,
+  sentryRawBodyMisusePredicate,
   docusignRawBodyMisusePredicate,
   githubRawBodyMisusePredicate,
   hubspotRawBodyMisusePredicate,
@@ -101,6 +104,7 @@ import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-un
 import {
   auth0TimingUnsafeComparisonPredicate,
   datadogTimingUnsafeComparisonPredicate,
+  sentryTimingUnsafeComparisonPredicate,
   docusignTimingUnsafeComparisonPredicate,
   hubspotTimingUnsafeComparisonPredicate,
   intercomTimingUnsafeComparisonPredicate,
@@ -118,6 +122,7 @@ import {
 import {
   auth0UnreachableVerificationPredicate,
   datadogUnreachableVerificationPredicate,
+  sentryUnreachableVerificationPredicate,
   docusignUnreachableVerificationPredicate,
   githubUnreachableVerificationPredicate,
   hubspotUnreachableVerificationPredicate,
@@ -136,6 +141,7 @@ import {
 import {
   auth0WrongHmacAlgorithmPredicate,
   datadogWrongHmacAlgorithmPredicate,
+  sentryWrongHmacAlgorithmPredicate,
   docusignWrongHmacAlgorithmPredicate,
   githubWrongHmacAlgorithmPredicate,
   hubspotWrongHmacAlgorithmPredicate,
@@ -298,6 +304,17 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "datadog-missing-timestamp-check": datadogMissingTimestampCheckPredicate,
   "datadog-wrong-hmac-algorithm": datadogWrongHmacAlgorithmPredicate,
   "datadog-unreachable-verification": datadogUnreachableVerificationPredicate,
+  // Phase 8.3 Plan 10 Sentry Integration Platform pack (signing_input_format: 'raw_body' —
+  // Linear/Auth0/Datadog analog; dedicated `Sentry-Hook-Signature` header, sha256/hex).
+  // Companion `Sentry-Hook-Resource` header is for event-type routing only, not verification.
+  // No library-verified rule: Sentry SDKs (@sentry/node, @sentry/browser, sentry-sdk) are
+  // observability clients, not webhook verifiers. [unverified-against-docs] tag recorded.
+  "sentry-missing-signature-verification": sentryMissingSignatureVerificationPredicate,
+  "sentry-timing-unsafe-comparison": sentryTimingUnsafeComparisonPredicate,
+  "sentry-raw-body-misuse": sentryRawBodyMisusePredicate,
+  "sentry-missing-timestamp-check": sentryMissingTimestampCheckPredicate,
+  "sentry-wrong-hmac-algorithm": sentryWrongHmacAlgorithmPredicate,
+  "sentry-unreachable-verification": sentryUnreachableVerificationPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
   // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
   // detection only; hand-rolled structural AST detection deferred to Plan 16b.
