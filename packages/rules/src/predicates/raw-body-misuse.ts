@@ -117,6 +117,11 @@ export const calendlyRawBodyMisusePredicate: RulePredicate = createRawBodyMisuse
   PROVIDER_CATALOG["calendly"] ?? throwMissing("calendly"),
 );
 
+export const zoomRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "zoom",
+  PROVIDER_CATALOG["zoom"] ?? throwMissing("zoom"),
+);
+
 export const hubspotRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
   "hubspot",
   PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),

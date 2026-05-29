@@ -148,6 +148,12 @@ export const calendlyUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["calendly"] ?? throwMissing("calendly"),
   );
 
+export const zoomUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "zoom",
+    PROVIDER_CATALOG["zoom"] ?? throwMissing("zoom"),
+  );
+
 export const hubspotUnreachableVerificationPredicate: RulePredicate =
   createUnreachableVerificationPredicate(
     "hubspot",

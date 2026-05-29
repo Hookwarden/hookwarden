@@ -34,6 +34,7 @@ import { expressMiddlewareOrderingPredicate } from "./express-middleware-orderin
 import { mailchimpUrlSecretInPathPredicate } from "./mailchimp-url-secret-in-path.js";
 import { bitbucketSignaturePrefixNotStrippedPredicate } from "./bitbucket-signature-prefix.js";
 import { calendlySignatureHeaderParseMishandledPredicate } from "./calendly-header-parse.js";
+import { zoomUrlValidationOnlyPredicate } from "./zoom-url-validation-only.js";
 import { notionVerificationTokenOnlyPredicate } from "./notion-verification-token-only.js";
 import { pagerdutyMultiSignatureRotationMishandledPredicate } from "./pagerduty-multi-signature.js";
 import { intercomOctokitCrossAttributionPredicate } from "./intercom-octokit-cross-attribution.js";
@@ -58,6 +59,7 @@ import {
   datadogMissingSignatureVerificationPredicate,
   bitbucketMissingSignatureVerificationPredicate,
   calendlyMissingSignatureVerificationPredicate,
+  zoomMissingSignatureVerificationPredicate,
   notionMissingSignatureVerificationPredicate,
   pagerdutyMissingSignatureVerificationPredicate,
   sentryMissingSignatureVerificationPredicate,
@@ -81,6 +83,7 @@ import {
   datadogMissingTimestampCheckPredicate,
   bitbucketMissingTimestampCheckPredicate,
   calendlyMissingTimestampCheckPredicate,
+  zoomMissingTimestampCheckPredicate,
   pagerdutyMissingTimestampCheckPredicate,
   sentryMissingTimestampCheckPredicate,
   docusignMissingTimestampCheckPredicate,
@@ -100,6 +103,7 @@ import {
   datadogRawBodyMisusePredicate,
   bitbucketRawBodyMisusePredicate,
   calendlyRawBodyMisusePredicate,
+  zoomRawBodyMisusePredicate,
   notionRawBodyMisusePredicate,
   pagerdutyRawBodyMisusePredicate,
   sentryRawBodyMisusePredicate,
@@ -124,6 +128,7 @@ import {
   datadogTimingUnsafeComparisonPredicate,
   bitbucketTimingUnsafeComparisonPredicate,
   calendlyTimingUnsafeComparisonPredicate,
+  zoomTimingUnsafeComparisonPredicate,
   notionTimingUnsafeComparisonPredicate,
   pagerdutyTimingUnsafeComparisonPredicate,
   sentryTimingUnsafeComparisonPredicate,
@@ -146,6 +151,7 @@ import {
   datadogUnreachableVerificationPredicate,
   bitbucketUnreachableVerificationPredicate,
   calendlyUnreachableVerificationPredicate,
+  zoomUnreachableVerificationPredicate,
   notionUnreachableVerificationPredicate,
   pagerdutyUnreachableVerificationPredicate,
   sentryUnreachableVerificationPredicate,
@@ -169,6 +175,7 @@ import {
   datadogWrongHmacAlgorithmPredicate,
   bitbucketWrongHmacAlgorithmPredicate,
   calendlyWrongHmacAlgorithmPredicate,
+  zoomWrongHmacAlgorithmPredicate,
   notionWrongHmacAlgorithmPredicate,
   pagerdutyWrongHmacAlgorithmPredicate,
   sentryWrongHmacAlgorithmPredicate,
@@ -416,6 +423,20 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "calendly-wrong-hmac-algorithm": calendlyWrongHmacAlgorithmPredicate,
   "calendly-unreachable-verification": calendlyUnreachableVerificationPredicate,
   "calendly-signature-header-parse-mishandled": calendlySignatureHeaderParseMishandledPredicate,
+  // Phase 8.3 Plan 15 Zoom pack (signing_input_format: 'timestamp_dot_body' — Slack signing
+  // recipe `v0:${X-Zm-Request-Timestamp}:${rawBody}`). Catalog-parameterized factories
+  // reuse the Slack family per plan's "REUSE Slack v0:" directive — no new generic
+  // predicate authored. NEW rule `url-validation-only` (predicate at
+  // predicates/zoom-url-validation-only.ts) catches handlers that pass Zoom's URL-validation
+  // handshake but never verify X-Zm-Signature on subsequent runtime events.
+  // [unverified-against-docs] tag recorded.
+  "zoom-missing-signature-verification": zoomMissingSignatureVerificationPredicate,
+  "zoom-url-validation-only": zoomUrlValidationOnlyPredicate,
+  "zoom-timing-unsafe-comparison": zoomTimingUnsafeComparisonPredicate,
+  "zoom-raw-body-misuse": zoomRawBodyMisusePredicate,
+  "zoom-missing-timestamp-check": zoomMissingTimestampCheckPredicate,
+  "zoom-wrong-hmac-algorithm": zoomWrongHmacAlgorithmPredicate,
+  "zoom-unreachable-verification": zoomUnreachableVerificationPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
   // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
   // detection only; hand-rolled structural AST detection deferred to Plan 16b.

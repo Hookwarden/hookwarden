@@ -144,6 +144,11 @@ export const calendlyWrongHmacAlgorithmPredicate: RulePredicate =
     PROVIDER_CATALOG["calendly"] ?? throwMissing("calendly"),
   );
 
+export const zoomWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
+  "zoom",
+  PROVIDER_CATALOG["zoom"] ?? throwMissing("zoom"),
+);
+
 export const hubspotWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
   "hubspot",
   PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),

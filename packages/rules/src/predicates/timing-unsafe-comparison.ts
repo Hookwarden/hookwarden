@@ -201,6 +201,12 @@ export const calendlyTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["calendly"] ?? throwMissing("calendly"),
   );
 
+export const zoomTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "zoom",
+    PROVIDER_CATALOG["zoom"] ?? throwMissing("zoom"),
+  );
+
 export const hubspotTimingUnsafeComparisonPredicate: RulePredicate =
   createTimingUnsafeComparisonPredicate(
     "hubspot",

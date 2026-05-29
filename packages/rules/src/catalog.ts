@@ -529,6 +529,44 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
   // the catalog-shape contract and let library-import detection at least fire on
   // codebases that pull in the API SDK. Per Phase 6b research clean-schema fit, no
   // catalog branch needed.
+  // Phase 8.3 Plan 15 — Zoom webhooks. Two-phase auth: initial URL-validation
+  // handshake (HMAC of `plainToken` echo on first delivery) + signed payloads
+  // thereafter with HMAC-SHA256 over `v0:${X-Zm-Request-Timestamp}:${rawBody}`
+  // (Slack signing recipe). signing_input_format: 'timestamp_dot_body' is
+  // identical to Slack and reuses the catalog-parameterized factories — no
+  // new generic predicate authored per the plan's "REUSE Slack v0: family"
+  // directive. The dedicated `url-validation-only` rule (predicate at
+  // predicates/zoom-url-validation-only.ts) catches the documented bug
+  // pattern: handler passes URL validation but never verifies
+  // X-Zm-Signature on runtime events. signature_header value is `v0=<hex>`;
+  // the catalog signature_encoding is the encoding of the hex portion only
+  // (the `v0=` prefix is part of the format the handler must parse).
+  zoom: {
+    signature_header: ["x-zm-signature"],
+    sdk_packages: ["@zoom/appssdk", "zoomus"],
+    sdk_verify_calls: ["verifyZoomSignature", "verifyWebhookSignature"],
+    secret_env_prefix: ["ZOOM_WEBHOOK", "ZOOM_SECRET_TOKEN", "ZOOM_SIGNING"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/zoom",
+      "/api/webhooks/zoom",
+      "/zoom/webhook",
+      "/zoom/webhooks",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "timestamp_dot_body",
+    timestamp_header: "x-zm-request-timestamp",
+    signature_encoding: "hex",
+    applicable_rules: [
+      "missing-signature-verification",
+      "url-validation-only",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "missing-timestamp-check",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+    ],
+  },
   // Phase 8.3 Plan 14 — Calendly webhooks. The signature header is comma-separated
   // `t=<unix>,v1=<hex>` (Stripe-shaped) with the inner HMAC computed over
   // `${timestamp}.${rawBody}` (Slack-shaped signing recipe). The catalog combines

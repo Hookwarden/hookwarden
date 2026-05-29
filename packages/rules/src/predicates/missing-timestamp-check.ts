@@ -128,6 +128,12 @@ export const calendlyMissingTimestampCheckPredicate: RulePredicate =
     PROVIDER_CATALOG["calendly"] ?? throwMissing("calendly"),
   );
 
+export const zoomMissingTimestampCheckPredicate: RulePredicate =
+  createMissingTimestampCheckPredicate(
+    "zoom",
+    PROVIDER_CATALOG["zoom"] ?? throwMissing("zoom"),
+  );
+
 export const hubspotMissingTimestampCheckPredicate: RulePredicate =
   createMissingTimestampCheckPredicate(
     "hubspot",

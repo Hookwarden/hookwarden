@@ -1,0 +1,50 @@
+schema_version: 1
+rule_id: zoom/url-validation-only
+provider: zoom
+severity: critical
+emits_state: manual-review
+message: |
+  Zoom's webhook integration uses a two-phase auth model:
+    1. Initial URL validation: Zoom sends an `endpoint.url_validation`
+       event with a `plainToken`; the handler must respond with
+       `{ plainToken, encryptedToken: HMAC-SHA256(plainToken) }` to prove
+       ownership of the endpoint. Zoom then enables the subscription.
+    2. Runtime events: every subsequent payload is signed under
+       `X-Zm-Signature: v0=<hex>` with HMAC over
+       `v0:${X-Zm-Request-Timestamp}:${rawBody}`. The handler MUST verify
+       the signature on every event.
+
+  This handler reads `X-Zm-Signature` (the signature header IS being read)
+  but no manual HMAC computation is reachable from the handler entry. The
+  most likely failure modes are:
+    - The handler implemented URL validation but never wired up runtime
+      signature verification. Zoom enabled the subscription on validation
+      success, and every runtime event is now accepted unauthenticated.
+    - The handler reuses the URL-validation HMAC code path for runtime
+      events, hashing the `plainToken` of the original validation event
+      against incoming v0 signatures — every runtime event fails.
+
+  Fix: compute
+  `crypto.createHmac('sha256', secretToken).update(\`v0:\${ts}:\${rawBody}\`).digest('hex')`
+  on every runtime event, then constant-time compare against the hex
+  portion of `X-Zm-Signature`. The URL-validation HMAC over `plainToken`
+  is for the initial handshake ONLY.
+matcher: null
+predicate: zoom-url-validation-only
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://developers.zoom.us/docs/api/rest/webhook-reference/
+fix:
+  safety: manual-only
+  description: "Verify X-Zm-Signature on every runtime event via HMAC over v0:${timestamp}:${rawBody}"
+  codegen: null
