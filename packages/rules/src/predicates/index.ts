@@ -1,4 +1,6 @@
-// 28 registered predicate keys (Phase 6 D-93 refactor + 06.2 Shopify + 06.3 Twilio):
+// Registered predicate keys (Phase 6 D-93 refactor + 06.2 Shopify + 06.3 Twilio
+// + 06.4 Slack + 06.5 Square + 8.1 Plan 08 PHP + 8.3 Plan 01 Zendesk + 8.3 Plan 16
+// Standard Webhooks + 8.3 Plan 03 Intercom):
 //   github-timing-safe-equal, express-middleware-ordering,
 //   stripe-library-verified, github-library-verified, shopify-library-verified, twilio-library-verified,
 //   stripe-missing-signature-verification, stripe-timing-unsafe-comparison,
@@ -38,6 +40,7 @@ import {
 } from "./library-verified-recognition.js";
 import {
   githubMissingSignatureVerificationPredicate,
+  intercomMissingSignatureVerificationPredicate,
   shopifyMissingSignatureVerificationPredicate,
   slackMissingSignatureVerificationPredicate,
   squareMissingSignatureVerificationPredicate,
@@ -48,6 +51,7 @@ import {
 } from "./missing-signature-verification.js";
 import {
   githubMissingTimestampCheckPredicate,
+  intercomMissingTimestampCheckPredicate,
   shopifyMissingTimestampCheckPredicate,
   slackMissingTimestampCheckPredicate,
   standardwebhooksMissingTimestampCheckPredicate,
@@ -57,6 +61,7 @@ import {
 } from "./missing-timestamp-check.js";
 import {
   githubRawBodyMisusePredicate,
+  intercomRawBodyMisusePredicate,
   shopifyRawBodyMisusePredicate,
   slackRawBodyMisusePredicate,
   squareRawBodyMisusePredicate,
@@ -67,6 +72,7 @@ import {
 } from "./raw-body-misuse.js";
 import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-unsafe-comparison.js";
 import {
+  intercomTimingUnsafeComparisonPredicate,
   shopifyTimingUnsafeComparisonPredicate,
   slackTimingUnsafeComparisonPredicate,
   squareTimingUnsafeComparisonPredicate,
@@ -77,6 +83,7 @@ import {
 } from "./timing-unsafe-comparison.js";
 import {
   githubUnreachableVerificationPredicate,
+  intercomUnreachableVerificationPredicate,
   shopifyUnreachableVerificationPredicate,
   slackUnreachableVerificationPredicate,
   squareUnreachableVerificationPredicate,
@@ -87,6 +94,7 @@ import {
 } from "./unreachable-verification.js";
 import {
   githubWrongHmacAlgorithmPredicate,
+  intercomWrongHmacAlgorithmPredicate,
   shopifyWrongHmacAlgorithmPredicate,
   slackWrongHmacAlgorithmPredicate,
   squareWrongHmacAlgorithmPredicate,
@@ -161,6 +169,16 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "zendesk-missing-timestamp-check": zendeskMissingTimestampCheckPredicate,
   "zendesk-wrong-hmac-algorithm": zendeskWrongHmacAlgorithmPredicate,
   "zendesk-unreachable-verification": zendeskUnreachableVerificationPredicate,
+  // Phase 8.3 Plan 03 Intercom pack (signing_input_format: 'raw_body' — GitHub analog;
+  // X-Hub-Signature is literally GitHub's own header name). No library-verified rule:
+  // Intercom has no canonical first-party webhook SDK (intercom-client is the general
+  // API SDK, not a webhook verifier).
+  "intercom-missing-signature-verification": intercomMissingSignatureVerificationPredicate,
+  "intercom-timing-unsafe-comparison": intercomTimingUnsafeComparisonPredicate,
+  "intercom-raw-body-misuse": intercomRawBodyMisusePredicate,
+  "intercom-missing-timestamp-check": intercomMissingTimestampCheckPredicate,
+  "intercom-wrong-hmac-algorithm": intercomWrongHmacAlgorithmPredicate,
+  "intercom-unreachable-verification": intercomUnreachableVerificationPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
   // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
   // detection only; hand-rolled structural AST detection deferred to Plan 16b.

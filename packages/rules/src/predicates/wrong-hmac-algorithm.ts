@@ -91,6 +91,11 @@ export const zendeskWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmac
   PROVIDER_CATALOG["zendesk"] ?? throwMissing("zendesk"),
 );
 
+export const intercomWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
+  "intercom",
+  PROVIDER_CATALOG["intercom"] ?? throwMissing("intercom"),
+);
+
 export const standardwebhooksWrongHmacAlgorithmPredicate: RulePredicate =
   createWrongHmacAlgorithmPredicate(
     "standardwebhooks",

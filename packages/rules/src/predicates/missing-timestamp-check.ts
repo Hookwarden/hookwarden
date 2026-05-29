@@ -74,6 +74,12 @@ export const zendeskMissingTimestampCheckPredicate: RulePredicate =
     PROVIDER_CATALOG["zendesk"] ?? throwMissing("zendesk"),
   );
 
+export const intercomMissingTimestampCheckPredicate: RulePredicate =
+  createMissingTimestampCheckPredicate(
+    "intercom",
+    PROVIDER_CATALOG["intercom"] ?? throwMissing("intercom"),
+  );
+
 export const standardwebhooksMissingTimestampCheckPredicate: RulePredicate =
   createMissingTimestampCheckPredicate(
     "standardwebhooks",

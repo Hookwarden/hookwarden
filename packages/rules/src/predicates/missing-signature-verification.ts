@@ -148,6 +148,12 @@ export const zendeskMissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["zendesk"] ?? throwMissing("zendesk"),
   );
 
+export const intercomMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "intercom",
+    PROVIDER_CATALOG["intercom"] ?? throwMissing("intercom"),
+  );
+
 export const standardwebhooksMissingSignatureVerificationPredicate: RulePredicate =
   createMissingSignatureVerificationPredicate(
     "standardwebhooks",

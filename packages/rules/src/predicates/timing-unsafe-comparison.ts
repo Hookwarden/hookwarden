@@ -141,6 +141,12 @@ export const zendeskTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["zendesk"] ?? throwMissing("zendesk"),
   );
 
+export const intercomTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "intercom",
+    PROVIDER_CATALOG["intercom"] ?? throwMissing("intercom"),
+  );
+
 export const standardwebhooksTimingUnsafeComparisonPredicate: RulePredicate =
   createTimingUnsafeComparisonPredicate(
     "standardwebhooks",

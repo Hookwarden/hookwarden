@@ -88,6 +88,12 @@ export const zendeskUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["zendesk"] ?? throwMissing("zendesk"),
   );
 
+export const intercomUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "intercom",
+    PROVIDER_CATALOG["intercom"] ?? throwMissing("intercom"),
+  );
+
 export const standardwebhooksUnreachableVerificationPredicate: RulePredicate =
   createUnreachableVerificationPredicate(
     "standardwebhooks",

@@ -267,6 +267,43 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
     ],
   },
+  // Phase 8.3 Plan 03 — Intercom webhooks. Same signing scheme as GitHub legacy
+  // (raw_body, sha256, hex, X-Hub-Signature). Intercom literally re-uses GitHub's
+  // header name — the predicate factory pattern is provider-agnostic so no shared
+  // logic with GitHub is needed beyond shared catalog data. Modern Intercom is
+  // sha256; legacy sha1 form surfaces via wrong-hmac-algorithm. No canonical
+  // first-party webhook SDK — `intercom-client` is the general API SDK;
+  // sdk_verify_calls are narrow plausible function names (same pattern as Zendesk).
+  // No PHP namespace prefix appended: Intercom PHP detections rely on
+  // language-agnostic hash_hmac + hash_equals shapes already caught by the rules.
+  intercom: {
+    signature_header: ["x-hub-signature"],
+    sdk_packages: ["intercom-client", "intercom-node"],
+    // No canonical webhook verifier; narrow function names users might write
+    // when wrapping Intercom verification. Kept narrow to avoid false-positive
+    // library-verified signals on unrelated `verify()` calls.
+    sdk_verify_calls: ["verifyIntercomSignature", "verifyWebhookSignature"],
+    secret_env_prefix: ["INTERCOM_WEBHOOK", "INTERCOM_CLIENT_SECRET", "INTERCOM_SIGNING"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/intercom",
+      "/api/webhooks/intercom",
+      "/intercom/webhook",
+      "/intercom/webhooks",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "raw_body",
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [
+      "missing-signature-verification",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "missing-timestamp-check",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+    ],
+  },
   // Phase 8.3 Plan 01 — Zendesk Connect webhooks. Same signing scheme as Slack
   // (timestamp_dot_body, sha256, base64 — `${timestamp}${rawBody}` HMAC). No canonical
   // first-party webhook SDK; Zendesk docs ship inline HMAC samples. The `sdk_packages`

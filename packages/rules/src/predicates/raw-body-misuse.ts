@@ -67,6 +67,11 @@ export const zendeskRawBodyMisusePredicate: RulePredicate = createRawBodyMisuseP
   PROVIDER_CATALOG["zendesk"] ?? throwMissing("zendesk"),
 );
 
+export const intercomRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "intercom",
+  PROVIDER_CATALOG["intercom"] ?? throwMissing("intercom"),
+);
+
 export const standardwebhooksRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
   "standardwebhooks",
   PROVIDER_CATALOG["standardwebhooks"] ?? throwMissing("standardwebhooks"),
