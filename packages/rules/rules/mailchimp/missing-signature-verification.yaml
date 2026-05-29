@@ -1,0 +1,37 @@
+schema_version: 1
+rule_id: mailchimp/missing-signature-verification
+provider: mailchimp
+severity: critical
+emits_state: not-verified
+message: |
+  Mailchimp webhook handler does not appear to perform any authentication
+  on incoming requests. Mailchimp's historically-documented model is
+  URL-secret-in-path (a secret token delivered as a route segment); if
+  your handler's route does NOT include a secret segment AND does not
+  perform manual HMAC verification, the endpoint is completely open and
+  any actor on the public internet can post fake webhook events to it.
+
+  Fix: route Mailchimp webhooks to a URL like
+  `https://your-site.com/webhooks/mailchimp/:secret` and verify the
+  `:secret` path parameter constant-time-equals the secret you configured
+  in Mailchimp's webhook settings. Where Mailchimp's modern HMAC option
+  is available for your account, additionally verify the HMAC.
+matcher: null
+predicate: mailchimp-missing-signature-verification
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://mailchimp.com/developer/marketing/guides/sync-audience-data-webhooks/
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

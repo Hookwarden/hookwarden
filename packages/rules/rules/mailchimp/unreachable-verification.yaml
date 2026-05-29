@@ -1,0 +1,34 @@
+schema_version: 1
+rule_id: mailchimp/unreachable-verification
+provider: mailchimp
+severity: high
+emits_state: manual-review
+message: |
+  Mailchimp webhook handler imports the Mailchimp Marketing SDK or a
+  crypto module (`node:crypto`, `hashlib`/`hmac`, `hash_hmac`) but no
+  verification path is reachable from the handler entry within 3 hops.
+  The verification may be conditional, dynamically dispatched, or in
+  dead code — static analysis cannot determine whether every request
+  goes through it.
+
+  Recommended: review the handler's call graph manually and confirm
+  the verification path is always taken.
+matcher: null
+predicate: mailchimp-unreachable-verification
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://mailchimp.com/developer/marketing/guides/sync-audience-data-webhooks/
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

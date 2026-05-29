@@ -267,6 +267,50 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
     ],
   },
+  // Phase 8.3 Plan 07 — Mailchimp Marketing webhooks. UNUSUAL: Mailchimp's
+  // historically-documented default model is URL-secret-in-path (the secret
+  // is delivered as a route segment, not in a header). The catalog entry
+  // shapes signing_input_format: 'custom' so the missing-signature-verification
+  // factory dispatches through CUSTOM_SIGNING_PREDICATES['mailchimp'] at
+  // predicates/custom/mailchimp-url-secret.ts. The `hmac_algorithm` /
+  // `signature_encoding` values are inert pins to the closest existing union
+  // members (sha256 / hex) — Mailchimp's default flow uses no HMAC; future
+  // HMAC option lands as additive rules without breaking the catalog shape.
+  // signature_header is an empty array because the auth signal is the route,
+  // not a header (no signature header to read).
+  // [unverified-against-docs] tag recorded in 08.3-07-SUMMARY.md — live
+  // mailchimp docs page was not fetched in this session.
+  mailchimp: {
+    // Pinned to the modern HMAC option's documented header form so the catalog
+    // contract (`signature_header.length > 0`) holds. The default URL-secret-in-path
+    // model does NOT use this header — the custom predicate short-circuits before
+    // any signature_header lookup. The value is here for the future HMAC-option
+    // rule path and for header-read evidence on handlers that opted into the modern
+    // option. [unverified-against-docs] — re-check the actual header name when docs
+    // are reachable.
+    signature_header: ["x-mailchimp-webhook-signature"],
+    sdk_packages: ["@mailchimp/mailchimp_marketing", "mailchimp_marketing", "DrewM\\MailChimp\\"],
+    sdk_verify_calls: ["verifyMailchimpSignature", "verifyWebhookSignature"],
+    secret_env_prefix: ["MAILCHIMP_WEBHOOK", "MAILCHIMP_API_KEY", "MAILCHIMP_SIGNING"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/mailchimp",
+      "/api/webhooks/mailchimp",
+      "/mailchimp/webhook",
+      "/mc-webhook",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "custom",
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [
+      "missing-signature-verification",
+      "url-secret-in-path",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "unreachable-verification",
+    ],
+  },
   // Phase 8.3 Plan 05 — HubSpot v3 webhooks. signing_input_format: 'custom' —
   // canonical-string is `${httpMethod}${requestURI}${rawBody}${timestamp}` per
   // HubSpot v3 docs, base64-encoded HMAC-SHA256 under `X-HubSpot-Signature-v3`.

@@ -171,6 +171,12 @@ export const hubspotTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),
   );
 
+export const mailchimpTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "mailchimp",
+    PROVIDER_CATALOG["mailchimp"] ?? throwMissing("mailchimp"),
+  );
+
 export const standardwebhooksTimingUnsafeComparisonPredicate: RulePredicate =
   createTimingUnsafeComparisonPredicate(
     "standardwebhooks",

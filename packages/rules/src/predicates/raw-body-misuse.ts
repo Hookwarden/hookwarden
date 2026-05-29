@@ -92,6 +92,11 @@ export const hubspotRawBodyMisusePredicate: RulePredicate = createRawBodyMisuseP
   PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),
 );
 
+export const mailchimpRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "mailchimp",
+  PROVIDER_CATALOG["mailchimp"] ?? throwMissing("mailchimp"),
+);
+
 export const standardwebhooksRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
   "standardwebhooks",
   PROVIDER_CATALOG["standardwebhooks"] ?? throwMissing("standardwebhooks"),

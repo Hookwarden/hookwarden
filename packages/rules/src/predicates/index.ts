@@ -25,9 +25,11 @@
 import "./custom/twilio-signing.js";
 import "./custom/standardwebhooks-signing.js";
 import "./custom/hubspot-signing.js";
+import "./custom/mailchimp-url-secret.js";
 
 import type { RulePredicate } from "@hookwarden/engine";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
+import { mailchimpUrlSecretInPathPredicate } from "./mailchimp-url-secret-in-path.js";
 import { githubPhpTimingSafeEqualPredicate } from "./github-php-timing-safe-equal.js";
 import { githubTimingSafeEqualPredicate } from "./github-timing-safe-equal.js";
 import {
@@ -46,6 +48,7 @@ import {
   hubspotMissingSignatureVerificationPredicate,
   intercomMissingSignatureVerificationPredicate,
   linearMissingSignatureVerificationPredicate,
+  mailchimpMissingSignatureVerificationPredicate,
   shopifyMissingSignatureVerificationPredicate,
   slackMissingSignatureVerificationPredicate,
   squareMissingSignatureVerificationPredicate,
@@ -75,6 +78,7 @@ import {
   hubspotRawBodyMisusePredicate,
   intercomRawBodyMisusePredicate,
   linearRawBodyMisusePredicate,
+  mailchimpRawBodyMisusePredicate,
   shopifyRawBodyMisusePredicate,
   slackRawBodyMisusePredicate,
   squareRawBodyMisusePredicate,
@@ -90,6 +94,7 @@ import {
   hubspotTimingUnsafeComparisonPredicate,
   intercomTimingUnsafeComparisonPredicate,
   linearTimingUnsafeComparisonPredicate,
+  mailchimpTimingUnsafeComparisonPredicate,
   shopifyTimingUnsafeComparisonPredicate,
   slackTimingUnsafeComparisonPredicate,
   squareTimingUnsafeComparisonPredicate,
@@ -105,6 +110,7 @@ import {
   hubspotUnreachableVerificationPredicate,
   intercomUnreachableVerificationPredicate,
   linearUnreachableVerificationPredicate,
+  mailchimpUnreachableVerificationPredicate,
   shopifyUnreachableVerificationPredicate,
   slackUnreachableVerificationPredicate,
   squareUnreachableVerificationPredicate,
@@ -244,6 +250,17 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "hubspot-missing-timestamp-check": hubspotMissingTimestampCheckPredicate,
   "hubspot-wrong-hmac-algorithm": hubspotWrongHmacAlgorithmPredicate,
   "hubspot-unreachable-verification": hubspotUnreachableVerificationPredicate,
+  // Phase 8.3 Plan 07 Mailchimp pack (signing_input_format: 'custom' — dispatches
+  // via D-92 custom slot at predicates/custom/mailchimp-url-secret.ts). NEW rule
+  // kind: url-secret-in-path — Mailchimp's default model is URL-secret-in-path,
+  // not HMAC. The mailchimpUrlSecretInPathPredicate detects handlers whose
+  // route_pattern includes a secret-shaped param name (:secret/:token/
+  // <secret>/<token>/{secret}/{token}/etc.) and surfaces manual-review.
+  "mailchimp-missing-signature-verification": mailchimpMissingSignatureVerificationPredicate,
+  "mailchimp-url-secret-in-path": mailchimpUrlSecretInPathPredicate,
+  "mailchimp-timing-unsafe-comparison": mailchimpTimingUnsafeComparisonPredicate,
+  "mailchimp-raw-body-misuse": mailchimpRawBodyMisusePredicate,
+  "mailchimp-unreachable-verification": mailchimpUnreachableVerificationPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
   // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
   // detection only; hand-rolled structural AST detection deferred to Plan 16b.

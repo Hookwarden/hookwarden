@@ -182,6 +182,14 @@ export const hubspotMissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),
   );
 
+// Mailchimp's missing-signature-verification dispatches through the
+// CUSTOM_SIGNING_PREDICATES['mailchimp'] slot (catalog signing_input_format: 'custom').
+export const mailchimpMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "mailchimp",
+    PROVIDER_CATALOG["mailchimp"] ?? throwMissing("mailchimp"),
+  );
+
 export const standardwebhooksMissingSignatureVerificationPredicate: RulePredicate =
   createMissingSignatureVerificationPredicate(
     "standardwebhooks",

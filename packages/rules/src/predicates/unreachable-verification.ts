@@ -118,6 +118,12 @@ export const hubspotUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),
   );
 
+export const mailchimpUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "mailchimp",
+    PROVIDER_CATALOG["mailchimp"] ?? throwMissing("mailchimp"),
+  );
+
 export const standardwebhooksUnreachableVerificationPredicate: RulePredicate =
   createUnreachableVerificationPredicate(
     "standardwebhooks",
