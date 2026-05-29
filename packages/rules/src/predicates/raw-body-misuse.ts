@@ -87,6 +87,11 @@ export const auth0RawBodyMisusePredicate: RulePredicate = createRawBodyMisusePre
   PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
 );
 
+export const datadogRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "datadog",
+  PROVIDER_CATALOG["datadog"] ?? throwMissing("datadog"),
+);
+
 export const hubspotRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
   "hubspot",
   PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),

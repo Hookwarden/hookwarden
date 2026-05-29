@@ -48,6 +48,7 @@ import {
 } from "./library-verified-recognition.js";
 import {
   auth0MissingSignatureVerificationPredicate,
+  datadogMissingSignatureVerificationPredicate,
   docusignMissingSignatureVerificationPredicate,
   githubMissingSignatureVerificationPredicate,
   hubspotMissingSignatureVerificationPredicate,
@@ -65,6 +66,7 @@ import {
 } from "./missing-signature-verification.js";
 import {
   auth0MissingTimestampCheckPredicate,
+  datadogMissingTimestampCheckPredicate,
   docusignMissingTimestampCheckPredicate,
   githubMissingTimestampCheckPredicate,
   hubspotMissingTimestampCheckPredicate,
@@ -79,6 +81,7 @@ import {
 } from "./missing-timestamp-check.js";
 import {
   auth0RawBodyMisusePredicate,
+  datadogRawBodyMisusePredicate,
   docusignRawBodyMisusePredicate,
   githubRawBodyMisusePredicate,
   hubspotRawBodyMisusePredicate,
@@ -97,6 +100,7 @@ import {
 import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-unsafe-comparison.js";
 import {
   auth0TimingUnsafeComparisonPredicate,
+  datadogTimingUnsafeComparisonPredicate,
   docusignTimingUnsafeComparisonPredicate,
   hubspotTimingUnsafeComparisonPredicate,
   intercomTimingUnsafeComparisonPredicate,
@@ -113,6 +117,7 @@ import {
 } from "./timing-unsafe-comparison.js";
 import {
   auth0UnreachableVerificationPredicate,
+  datadogUnreachableVerificationPredicate,
   docusignUnreachableVerificationPredicate,
   githubUnreachableVerificationPredicate,
   hubspotUnreachableVerificationPredicate,
@@ -130,6 +135,7 @@ import {
 } from "./unreachable-verification.js";
 import {
   auth0WrongHmacAlgorithmPredicate,
+  datadogWrongHmacAlgorithmPredicate,
   docusignWrongHmacAlgorithmPredicate,
   githubWrongHmacAlgorithmPredicate,
   hubspotWrongHmacAlgorithmPredicate,
@@ -282,6 +288,16 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "postmark-timing-unsafe-comparison": postmarkTimingUnsafeComparisonPredicate,
   "postmark-raw-body-misuse": postmarkRawBodyMisusePredicate,
   "postmark-unreachable-verification": postmarkUnreachableVerificationPredicate,
+  // Phase 8.3 Plan 09 Datadog pack (signing_input_format: 'raw_body' — Linear/Auth0 analog;
+  // dedicated `X-Datadog-Signature` header, sha256/hex pinned defaults). No library-verified
+  // rule: Datadog SDKs (@datadog/datadog-api-client / datadog_api_client) are API clients,
+  // not webhook verifiers. [unverified-against-docs] tag recorded in 08.3-09-SUMMARY.md.
+  "datadog-missing-signature-verification": datadogMissingSignatureVerificationPredicate,
+  "datadog-timing-unsafe-comparison": datadogTimingUnsafeComparisonPredicate,
+  "datadog-raw-body-misuse": datadogRawBodyMisusePredicate,
+  "datadog-missing-timestamp-check": datadogMissingTimestampCheckPredicate,
+  "datadog-wrong-hmac-algorithm": datadogWrongHmacAlgorithmPredicate,
+  "datadog-unreachable-verification": datadogUnreachableVerificationPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
   // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
   // detection only; hand-rolled structural AST detection deferred to Plan 16b.

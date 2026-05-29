@@ -172,6 +172,12 @@ export const auth0MissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
   );
 
+export const datadogMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "datadog",
+    PROVIDER_CATALOG["datadog"] ?? throwMissing("datadog"),
+  );
+
 // HubSpot's missing-signature-verification dispatches through the
 // CUSTOM_SIGNING_PREDICATES['hubspot'] slot (catalog signing_input_format: 'custom').
 // The factory below is a thin wrapper to keep the per-provider export shape

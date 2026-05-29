@@ -528,6 +528,42 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
   // the catalog-shape contract and let library-import detection at least fire on
   // codebases that pull in the API SDK. Per Phase 6b research clean-schema fit, no
   // catalog branch needed.
+  // Phase 8.3 Plan 09 — Datadog webhook integration. Clean raw_body / sha256 /
+  // hex fit (closest analog: Linear, Auth0). Dedicated `X-Datadog-Signature`
+  // header — no cross-provider attribution risk. No canonical first-party
+  // webhook-verification SDK; the @datadog/datadog-api-client / datadog_api_client
+  // packages are general API clients, not webhook verifiers. sdk_verify_calls
+  // are narrow plausible function names users might write (Zendesk/Linear/Auth0
+  // pattern). No PHP namespace prefix appended; Datadog PHP detections rely on
+  // language-agnostic hash_hmac + hash_equals shapes already caught by the rules.
+  // [unverified-against-docs] tag recorded in 08.3-09-SUMMARY.md — live Datadog
+  // Webhooks docs page was not fetched in this session; values are pinned
+  // defaults from the plan's `<canonical_provider_metadata>` block.
+  datadog: {
+    signature_header: ["x-datadog-signature"],
+    sdk_packages: ["@datadog/datadog-api-client", "datadog-api-client", "datadog_api_client"],
+    sdk_verify_calls: ["verifyDatadogSignature", "verifyWebhookSignature"],
+    secret_env_prefix: ["DATADOG_WEBHOOK", "DATADOG_SIGNING", "DD_WEBHOOK"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/datadog",
+      "/api/webhooks/datadog",
+      "/datadog/webhook",
+      "/datadog/webhooks",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "raw_body",
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [
+      "missing-signature-verification",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "missing-timestamp-check",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+    ],
+  },
   zendesk: {
     signature_header: ["x-zendesk-webhook-signature"],
     sdk_packages: ["node-zendesk", "zenpy", "Zendesk\\API\\"],
