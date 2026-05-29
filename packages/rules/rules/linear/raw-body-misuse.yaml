@@ -1,0 +1,36 @@
+schema_version: 1
+rule_id: linear/raw-body-misuse
+provider: linear
+severity: critical
+emits_state: not-verified
+message: |
+  Linear webhook handler reads the `Linear-Signature` header (or computes
+  manual HMAC) but does not appear to receive the request body as raw
+  bytes. Linear's HMAC is computed over the raw payload — once
+  `express.json()` (or any other JSON middleware) parses the body, the
+  bytes used for the HMAC differ from what was sent and verification
+  fails on every webhook delivery.
+
+  Fix (Express): apply `express.raw({ type: 'application/json' })` to the
+  Linear webhook route only, or capture the raw body via a custom
+  `verify` callback before JSON parsing. PHP: read `php://input` before
+  any framework body parsing.
+matcher: null
+predicate: linear-raw-body-misuse
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://developers.linear.app/docs/graphql/webhooks
+fix:
+  safety: safe
+  description: "Read the raw request body (req.rawBody in Express; php://input in PHP) instead of the parsed body"
+  codegen: dispatch-replace-raw-body-misuse

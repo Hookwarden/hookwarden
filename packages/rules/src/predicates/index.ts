@@ -41,6 +41,7 @@ import {
 import {
   githubMissingSignatureVerificationPredicate,
   intercomMissingSignatureVerificationPredicate,
+  linearMissingSignatureVerificationPredicate,
   shopifyMissingSignatureVerificationPredicate,
   slackMissingSignatureVerificationPredicate,
   squareMissingSignatureVerificationPredicate,
@@ -52,6 +53,7 @@ import {
 import {
   githubMissingTimestampCheckPredicate,
   intercomMissingTimestampCheckPredicate,
+  linearMissingTimestampCheckPredicate,
   shopifyMissingTimestampCheckPredicate,
   slackMissingTimestampCheckPredicate,
   standardwebhooksMissingTimestampCheckPredicate,
@@ -62,6 +64,7 @@ import {
 import {
   githubRawBodyMisusePredicate,
   intercomRawBodyMisusePredicate,
+  linearRawBodyMisusePredicate,
   shopifyRawBodyMisusePredicate,
   slackRawBodyMisusePredicate,
   squareRawBodyMisusePredicate,
@@ -73,6 +76,7 @@ import {
 import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-unsafe-comparison.js";
 import {
   intercomTimingUnsafeComparisonPredicate,
+  linearTimingUnsafeComparisonPredicate,
   shopifyTimingUnsafeComparisonPredicate,
   slackTimingUnsafeComparisonPredicate,
   squareTimingUnsafeComparisonPredicate,
@@ -84,6 +88,7 @@ import {
 import {
   githubUnreachableVerificationPredicate,
   intercomUnreachableVerificationPredicate,
+  linearUnreachableVerificationPredicate,
   shopifyUnreachableVerificationPredicate,
   slackUnreachableVerificationPredicate,
   squareUnreachableVerificationPredicate,
@@ -95,6 +100,7 @@ import {
 import {
   githubWrongHmacAlgorithmPredicate,
   intercomWrongHmacAlgorithmPredicate,
+  linearWrongHmacAlgorithmPredicate,
   shopifyWrongHmacAlgorithmPredicate,
   slackWrongHmacAlgorithmPredicate,
   squareWrongHmacAlgorithmPredicate,
@@ -179,6 +185,16 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "intercom-missing-timestamp-check": intercomMissingTimestampCheckPredicate,
   "intercom-wrong-hmac-algorithm": intercomWrongHmacAlgorithmPredicate,
   "intercom-unreachable-verification": intercomUnreachableVerificationPredicate,
+  // Phase 8.3 Plan 04 Linear pack (signing_input_format: 'raw_body' — GitHub analog;
+  // dedicated `Linear-Signature` header, no cross-provider attribution risk). No
+  // library-verified rule: Linear has no canonical first-party webhook SDK
+  // (@linear/sdk is the general GraphQL SDK, not a webhook verifier).
+  "linear-missing-signature-verification": linearMissingSignatureVerificationPredicate,
+  "linear-timing-unsafe-comparison": linearTimingUnsafeComparisonPredicate,
+  "linear-raw-body-misuse": linearRawBodyMisusePredicate,
+  "linear-missing-timestamp-check": linearMissingTimestampCheckPredicate,
+  "linear-wrong-hmac-algorithm": linearWrongHmacAlgorithmPredicate,
+  "linear-unreachable-verification": linearUnreachableVerificationPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
   // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
   // detection only; hand-rolled structural AST detection deferred to Plan 16b.

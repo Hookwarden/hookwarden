@@ -1,0 +1,35 @@
+schema_version: 1
+rule_id: linear/missing-timestamp-check
+provider: linear
+severity: high
+emits_state: manual-review
+message: |
+  Linear webhook handler computes HMAC manually but no timestamp or
+  delivery-ID dedup check is reachable from the handler. Linear does not
+  send a dedicated timestamp header — applications must dedupe by the
+  delivery identifier in the payload to avoid indefinite replays of a
+  captured signed delivery.
+
+  Recommended: extract a delivery identifier from the request body (e.g.
+  the webhook `webhookId` + `createdAt` tuple), persist it (e.g. Redis
+  SETNX with a 10-minute TTL), and reject any request whose identifier
+  has already been processed.
+matcher: null
+predicate: linear-missing-timestamp-check
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://developers.linear.app/docs/graphql/webhooks
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

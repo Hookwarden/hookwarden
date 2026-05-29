@@ -154,6 +154,12 @@ export const intercomMissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["intercom"] ?? throwMissing("intercom"),
   );
 
+export const linearMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "linear",
+    PROVIDER_CATALOG["linear"] ?? throwMissing("linear"),
+  );
+
 export const standardwebhooksMissingSignatureVerificationPredicate: RulePredicate =
   createMissingSignatureVerificationPredicate(
     "standardwebhooks",

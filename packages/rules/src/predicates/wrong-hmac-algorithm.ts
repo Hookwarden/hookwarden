@@ -96,6 +96,11 @@ export const intercomWrongHmacAlgorithmPredicate: RulePredicate = createWrongHma
   PROVIDER_CATALOG["intercom"] ?? throwMissing("intercom"),
 );
 
+export const linearWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
+  "linear",
+  PROVIDER_CATALOG["linear"] ?? throwMissing("linear"),
+);
+
 export const standardwebhooksWrongHmacAlgorithmPredicate: RulePredicate =
   createWrongHmacAlgorithmPredicate(
     "standardwebhooks",

@@ -267,6 +267,39 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
     ],
   },
+  // Phase 8.3 Plan 04 — Linear webhooks. Clean raw_body / sha256 / hex fit
+  // (analog: GitHub or Intercom minus the shared header). Linear sends a
+  // dedicated `Linear-Signature` header — no cross-provider attribution risk.
+  // No canonical first-party webhook SDK (`@linear/sdk` is the general
+  // GraphQL/REST SDK, not a webhook verifier); sdk_verify_calls are narrow
+  // plausible function names users might write. No PHP namespace prefix
+  // appended; Linear PHP detections rely on the language-agnostic hash_hmac
+  // + hash_equals shapes already caught by the rules.
+  linear: {
+    signature_header: ["linear-signature"],
+    sdk_packages: ["@linear/sdk", "linear-sdk"],
+    sdk_verify_calls: ["verifyLinearSignature", "verifyWebhookSignature"],
+    secret_env_prefix: ["LINEAR_WEBHOOK", "LINEAR_SIGNING", "LINEAR_SIGNING_SECRET"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/linear",
+      "/api/webhooks/linear",
+      "/linear/webhook",
+      "/linear/webhooks",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "raw_body",
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [
+      "missing-signature-verification",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "missing-timestamp-check",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+    ],
+  },
   // Phase 8.3 Plan 03 — Intercom webhooks. Same signing scheme as GitHub legacy
   // (raw_body, sha256, hex, X-Hub-Signature). Intercom literally re-uses GitHub's
   // header name — the predicate factory pattern is provider-agnostic so no shared

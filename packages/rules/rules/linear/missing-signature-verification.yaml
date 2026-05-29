@@ -1,0 +1,35 @@
+schema_version: 1
+rule_id: linear/missing-signature-verification
+provider: linear
+severity: critical
+emits_state: not-verified
+message: |
+  Linear webhook handler does not appear to verify the `Linear-Signature`
+  header before processing the request. Linear has no canonical first-party
+  webhook SDK — verification is documented as inline HMAC-SHA256 over the
+  raw request body, hex-encoded, compared with `crypto.timingSafeEqual`.
+  No such verification path was detected reachable from this handler.
+
+  Fix: compute `crypto.createHmac('sha256', signingSecret).update(rawBody).digest('hex')`
+  (Node) or `hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()`
+  (Python) or `hash_hmac('sha256', $rawBody, $secret)` (PHP), then
+  constant-time-compare against `Linear-Signature`.
+matcher: null
+predicate: linear-missing-signature-verification
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://developers.linear.app/docs/graphql/webhooks
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

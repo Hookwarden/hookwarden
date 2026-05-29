@@ -72,6 +72,11 @@ export const intercomRawBodyMisusePredicate: RulePredicate = createRawBodyMisuse
   PROVIDER_CATALOG["intercom"] ?? throwMissing("intercom"),
 );
 
+export const linearRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "linear",
+  PROVIDER_CATALOG["linear"] ?? throwMissing("linear"),
+);
+
 export const standardwebhooksRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
   "standardwebhooks",
   PROVIDER_CATALOG["standardwebhooks"] ?? throwMissing("standardwebhooks"),

@@ -94,6 +94,12 @@ export const intercomUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["intercom"] ?? throwMissing("intercom"),
   );
 
+export const linearUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "linear",
+    PROVIDER_CATALOG["linear"] ?? throwMissing("linear"),
+  );
+
 export const standardwebhooksUnreachableVerificationPredicate: RulePredicate =
   createUnreachableVerificationPredicate(
     "standardwebhooks",

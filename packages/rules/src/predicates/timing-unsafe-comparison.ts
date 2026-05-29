@@ -147,6 +147,12 @@ export const intercomTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["intercom"] ?? throwMissing("intercom"),
   );
 
+export const linearTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "linear",
+    PROVIDER_CATALOG["linear"] ?? throwMissing("linear"),
+  );
+
 export const standardwebhooksTimingUnsafeComparisonPredicate: RulePredicate =
   createTimingUnsafeComparisonPredicate(
     "standardwebhooks",

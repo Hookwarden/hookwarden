@@ -80,6 +80,12 @@ export const intercomMissingTimestampCheckPredicate: RulePredicate =
     PROVIDER_CATALOG["intercom"] ?? throwMissing("intercom"),
   );
 
+export const linearMissingTimestampCheckPredicate: RulePredicate =
+  createMissingTimestampCheckPredicate(
+    "linear",
+    PROVIDER_CATALOG["linear"] ?? throwMissing("linear"),
+  );
+
 export const standardwebhooksMissingTimestampCheckPredicate: RulePredicate =
   createMissingTimestampCheckPredicate(
     "standardwebhooks",
