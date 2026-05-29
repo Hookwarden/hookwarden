@@ -12,6 +12,7 @@
 
 import type { ReachableSymbol, WebhookEvidence, WebhookHandler } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
+import { intercomOctokitCrossAttributionPredicate } from "../src/predicates/intercom-octokit-cross-attribution.js";
 import { intercomMissingSignatureVerificationPredicate } from "../src/predicates/missing-signature-verification.js";
 import { intercomMissingTimestampCheckPredicate } from "../src/predicates/missing-timestamp-check.js";
 import { intercomRawBodyMisusePredicate } from "../src/predicates/raw-body-misuse.js";
@@ -286,5 +287,60 @@ describe("Intercom ↔ GitHub disambiguation (shared X-Hub-Signature header)", (
     };
     expect(await intercomWrongHmacAlgorithmPredicate(handler, {} as never)).toBeNull();
     expect(await githubWrongHmacAlgorithmPredicate(handler, {} as never)).toBe("not-verified");
+  });
+});
+
+describe("intercomOctokitCrossAttributionPredicate (Plan 03 retrofit — @octokit/webhooks misuse)", () => {
+  // The bug: developer wires GitHub webhook verification with @octokit/webhooks, then
+  // re-uses the same library for Intercom because both providers use X-Hub-Signature.
+  // @octokit/webhooks validates against the GitHub secret — NOT Intercom's — so
+  // either every Intercom delivery is rejected, or (if no GitHub secret is configured)
+  // verification "succeeds" for the wrong reason and yields a silent bypass.
+  it("emits not-verified when @octokit/webhooks is reachable from an Intercom handler", async () => {
+    const handler: WebhookHandler = {
+      ...baseHandler,
+      reachable_symbols: [sym("verify", "@octokit/webhooks")],
+    };
+    expect(await intercomOctokitCrossAttributionPredicate(handler, {} as never)).toBe(
+      "not-verified",
+    );
+  });
+  it("emits not-verified when @octokit/webhooks-methods is reachable from an Intercom handler", async () => {
+    const handler: WebhookHandler = {
+      ...baseHandler,
+      reachable_symbols: [sym("verify", "@octokit/webhooks-methods")],
+    };
+    expect(await intercomOctokitCrossAttributionPredicate(handler, {} as never)).toBe(
+      "not-verified",
+    );
+  });
+  it("returns null when @octokit/webhooks is reachable from a GITHUB handler (provider scope)", async () => {
+    const handler: WebhookHandler = {
+      ...baseHandler,
+      provider: "github",
+      reachable_symbols: [sym("verify", "@octokit/webhooks")],
+    };
+    expect(await intercomOctokitCrossAttributionPredicate(handler, {} as never)).toBeNull();
+  });
+  it("returns null when no @octokit/webhooks import is reachable (purity-fail-loudly)", async () => {
+    expect(await intercomOctokitCrossAttributionPredicate(baseHandler, {} as never)).toBeNull();
+  });
+  it("returns null when import_source is null (engine couldn't resolve — refuse to false-flag)", async () => {
+    // Adversary-shaped: a symbol named `verify` with no resolved import_source must NOT
+    // trigger this rule. Only symbols with import_source explicitly set to the octokit
+    // packages count.
+    const handler: WebhookHandler = {
+      ...baseHandler,
+      reachable_symbols: [sym("verify", null)],
+    };
+    expect(await intercomOctokitCrossAttributionPredicate(handler, {} as never)).toBeNull();
+  });
+  it("returns null when an unrelated octokit package is imported (kept narrow)", async () => {
+    // @octokit/rest is a REST client, not webhook verification. Must NOT trigger.
+    const handler: WebhookHandler = {
+      ...baseHandler,
+      reachable_symbols: [sym("rest.issues.list", "@octokit/rest")],
+    };
+    expect(await intercomOctokitCrossAttributionPredicate(handler, {} as never)).toBeNull();
   });
 });

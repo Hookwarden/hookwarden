@@ -519,6 +519,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "missing-timestamp-check",
       "wrong-hmac-algorithm",
       "unreachable-verification",
+      "octokit-cross-attribution",
     ],
   },
   // Phase 8.3 Plan 01 — Zendesk Connect webhooks. Same signing scheme as Slack

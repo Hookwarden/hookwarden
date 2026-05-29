@@ -32,6 +32,7 @@ import type { RulePredicate } from "@hookwarden/engine";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
 import { mailchimpUrlSecretInPathPredicate } from "./mailchimp-url-secret-in-path.js";
 import { pagerdutyMultiSignatureRotationMishandledPredicate } from "./pagerduty-multi-signature.js";
+import { intercomOctokitCrossAttributionPredicate } from "./intercom-octokit-cross-attribution.js";
 import { sentryHeaderConfusionPredicate } from "./sentry-header-confusion.js";
 import {
   postmarkMissingBasicAuthPredicate,
@@ -239,6 +240,13 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "intercom-missing-timestamp-check": intercomMissingTimestampCheckPredicate,
   "intercom-wrong-hmac-algorithm": intercomWrongHmacAlgorithmPredicate,
   "intercom-unreachable-verification": intercomUnreachableVerificationPredicate,
+  // Phase 8.3 Plan 03 retrofit — Intercom + @octokit/webhooks cross-attribution.
+  // X-Hub-Signature header re-use makes it tempting to verify Intercom signatures with
+  // GitHub's @octokit/webhooks (which validates against the GitHub secret, not Intercom's).
+  // Predicate at predicates/intercom-octokit-cross-attribution.ts emits not-verified when
+  // import_source = "@octokit/webhooks" or "@octokit/webhooks-methods" is reachable from
+  // an Intercom handler.
+  "intercom-octokit-cross-attribution": intercomOctokitCrossAttributionPredicate,
   // Phase 8.3 Plan 04 Linear pack (signing_input_format: 'raw_body' — GitHub analog;
   // dedicated `Linear-Signature` header, no cross-provider attribution risk). No
   // library-verified rule: Linear has no canonical first-party webhook SDK
