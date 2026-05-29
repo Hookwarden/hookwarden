@@ -740,12 +740,14 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     conventional_paths: [
       "/webhooks/sentry",
       "/api/webhooks/sentry",
-      "/sentry/webhook",
       "/sentry/webhooks",
+      "/sentry/webhook",
     ],
     hmac_algorithm: "sha256",
     signing_input_format: "raw_body",
-    timestamp_header: null,
+    // Verified against live docs 2026-05-30 — Sentry sends Sentry-Hook-Timestamp
+    // alongside Sentry-Hook-Signature. v0.6.0 Plan 19 pre-push fix.
+    timestamp_header: "sentry-hook-timestamp",
     signature_encoding: "hex",
     applicable_rules: [
       "missing-signature-verification",

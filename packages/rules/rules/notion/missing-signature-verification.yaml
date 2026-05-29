@@ -11,10 +11,14 @@ message: |
   verification path (header read OR manual HMAC) was detected reachable
   from this handler — the runtime payloads are accepted unauthenticated.
 
-  Fix: read `X-Notion-Signature` (hex), then constant-time-compare against
-  `crypto.createHmac('sha256', signingSecret).update(rawBody).digest('hex')`
-  (Node) or `hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()`
-  (Python) or `hash_hmac('sha256', $rawBody, $secret)` (PHP).
+  Fix: read `X-Notion-Signature` — the value is `sha256=<hex>`, so STRIP
+  the `sha256=` prefix before comparing. Compute
+  `crypto.createHmac('sha256', verificationToken).update(rawBody).digest('hex')`
+  (Node) or `hmac.new(verification_token.encode(), raw_body, hashlib.sha256).hexdigest()`
+  (Python) or `hash_hmac('sha256', $rawBody, $secret)` (PHP), then
+  constant-time-compare against the hex portion of `X-Notion-Signature`.
+  The signing key is the `verification_token` returned during the initial
+  endpoint validation handshake — NOT a separately-configured secret.
 matcher: null
 predicate: notion-missing-signature-verification
 applies_to:

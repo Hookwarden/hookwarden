@@ -5,15 +5,17 @@ severity: high
 emits_state: manual-review
 message: |
   Sentry Integration Platform webhook handler computes HMAC manually but no
-  timestamp or delivery-ID dedup check is reachable from the handler. Sentry
-  does not send a dedicated timestamp header in its webhook integration —
-  applications must dedupe by a delivery identifier (e.g. the `Sentry-Hook-Resource`
-  + payload event ID tuple, or `Request-ID`) to avoid indefinite replays of
-  a captured signed delivery.
+  timestamp tolerance check is reachable from the handler. Sentry sends a
+  dedicated `Sentry-Hook-Timestamp` header on every delivery — without
+  rejecting deliveries whose timestamp is outside a tolerance window
+  (~5 minutes is conventional), an attacker who captures one signed
+  webhook can replay it indefinitely.
 
-  Recommended: persist the delivery identifier (e.g. Redis SETNX with a
-  10-minute TTL) and reject any request whose identifier has already been
-  processed.
+  Recommended: read `Sentry-Hook-Timestamp`, parse to integer, and reject
+  any request where `Math.abs(Date.now() / 1000 - ts) > 300` (Node) or
+  `abs(time.time() - int(ts)) > 60 * 5` (Python). The
+  `Sentry-Hook-Resource` header carries the event type for routing — do NOT
+  use it for replay defense.
 matcher: null
 predicate: sentry-missing-timestamp-check
 applies_to:

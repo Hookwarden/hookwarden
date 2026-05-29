@@ -22,11 +22,15 @@ message: |
   Either way, runtime events are accepted unauthenticated even though the
   handler appears to be checking something.
 
-  Fix: compute
-  `crypto.createHmac('sha256', signingSecret).update(rawBody).digest('hex')`
-  (or the Python/PHP equivalents) on every runtime event, then constant-time
-  compare against `X-Notion-Signature`. The `verification_token` from setup
-  is for the initial challenge ONLY — do not reuse it as the signing secret.
+  Fix: on every runtime event, compute
+  `crypto.createHmac('sha256', verificationToken).update(rawBody).digest('hex')`
+  (or the Python/PHP equivalents), STRIP the `sha256=` prefix from the
+  `X-Notion-Signature` header value, then constant-time-compare against the
+  remaining hex. The `verification_token` from the initial validation
+  handshake IS the signing key (Notion's docs are explicit about this) —
+  but treating it as "the signature value" rather than "the HMAC key" is
+  the verification-token-only confusion this rule flags. The token is the
+  KEY; the HMAC OUTPUT is what you compare against the stripped header.
 matcher: null
 predicate: notion-verification-token-only
 applies_to:
