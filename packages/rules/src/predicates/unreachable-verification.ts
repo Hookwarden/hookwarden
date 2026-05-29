@@ -124,6 +124,12 @@ export const sentryUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["sentry"] ?? throwMissing("sentry"),
   );
 
+export const pagerdutyUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "pagerduty",
+    PROVIDER_CATALOG["pagerduty"] ?? throwMissing("pagerduty"),
+  );
+
 export const hubspotUnreachableVerificationPredicate: RulePredicate =
   createUnreachableVerificationPredicate(
     "hubspot",

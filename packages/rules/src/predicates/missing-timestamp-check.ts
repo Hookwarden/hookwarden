@@ -110,6 +110,12 @@ export const sentryMissingTimestampCheckPredicate: RulePredicate =
     PROVIDER_CATALOG["sentry"] ?? throwMissing("sentry"),
   );
 
+export const pagerdutyMissingTimestampCheckPredicate: RulePredicate =
+  createMissingTimestampCheckPredicate(
+    "pagerduty",
+    PROVIDER_CATALOG["pagerduty"] ?? throwMissing("pagerduty"),
+  );
+
 export const hubspotMissingTimestampCheckPredicate: RulePredicate =
   createMissingTimestampCheckPredicate(
     "hubspot",

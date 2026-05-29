@@ -177,6 +177,12 @@ export const sentryTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["sentry"] ?? throwMissing("sentry"),
   );
 
+export const pagerdutyTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "pagerduty",
+    PROVIDER_CATALOG["pagerduty"] ?? throwMissing("pagerduty"),
+  );
+
 export const hubspotTimingUnsafeComparisonPredicate: RulePredicate =
   createTimingUnsafeComparisonPredicate(
     "hubspot",

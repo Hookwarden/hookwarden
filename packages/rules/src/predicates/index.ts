@@ -31,6 +31,7 @@ import "./custom/postmark-signing.js";
 import type { RulePredicate } from "@hookwarden/engine";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
 import { mailchimpUrlSecretInPathPredicate } from "./mailchimp-url-secret-in-path.js";
+import { pagerdutyMultiSignatureRotationMishandledPredicate } from "./pagerduty-multi-signature.js";
 import {
   postmarkMissingBasicAuthPredicate,
   postmarkMissingIpAllowlistPredicate,
@@ -49,6 +50,7 @@ import {
 import {
   auth0MissingSignatureVerificationPredicate,
   datadogMissingSignatureVerificationPredicate,
+  pagerdutyMissingSignatureVerificationPredicate,
   sentryMissingSignatureVerificationPredicate,
   docusignMissingSignatureVerificationPredicate,
   githubMissingSignatureVerificationPredicate,
@@ -68,6 +70,7 @@ import {
 import {
   auth0MissingTimestampCheckPredicate,
   datadogMissingTimestampCheckPredicate,
+  pagerdutyMissingTimestampCheckPredicate,
   sentryMissingTimestampCheckPredicate,
   docusignMissingTimestampCheckPredicate,
   githubMissingTimestampCheckPredicate,
@@ -84,6 +87,7 @@ import {
 import {
   auth0RawBodyMisusePredicate,
   datadogRawBodyMisusePredicate,
+  pagerdutyRawBodyMisusePredicate,
   sentryRawBodyMisusePredicate,
   docusignRawBodyMisusePredicate,
   githubRawBodyMisusePredicate,
@@ -104,6 +108,7 @@ import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-un
 import {
   auth0TimingUnsafeComparisonPredicate,
   datadogTimingUnsafeComparisonPredicate,
+  pagerdutyTimingUnsafeComparisonPredicate,
   sentryTimingUnsafeComparisonPredicate,
   docusignTimingUnsafeComparisonPredicate,
   hubspotTimingUnsafeComparisonPredicate,
@@ -122,6 +127,7 @@ import {
 import {
   auth0UnreachableVerificationPredicate,
   datadogUnreachableVerificationPredicate,
+  pagerdutyUnreachableVerificationPredicate,
   sentryUnreachableVerificationPredicate,
   docusignUnreachableVerificationPredicate,
   githubUnreachableVerificationPredicate,
@@ -141,6 +147,7 @@ import {
 import {
   auth0WrongHmacAlgorithmPredicate,
   datadogWrongHmacAlgorithmPredicate,
+  pagerdutyWrongHmacAlgorithmPredicate,
   sentryWrongHmacAlgorithmPredicate,
   docusignWrongHmacAlgorithmPredicate,
   githubWrongHmacAlgorithmPredicate,
@@ -315,6 +322,23 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "sentry-missing-timestamp-check": sentryMissingTimestampCheckPredicate,
   "sentry-wrong-hmac-algorithm": sentryWrongHmacAlgorithmPredicate,
   "sentry-unreachable-verification": sentryUnreachableVerificationPredicate,
+  // Phase 8.3 Plan 11 PagerDuty v3 pack (signing_input_format: 'raw_body' — Linear/Datadog/Sentry
+  // analog for the six baseline rules). Adds a NEW rule kind
+  // `multi-signature-rotation-mishandled` — PagerDuty's `X-PagerDuty-Signature` header is
+  // comma-separated `v1=<hex>,v1=<hex>` during key rotation; handlers that only check the
+  // first token silently reject valid deliveries when rotation starts. The dedicated
+  // predicate at predicates/pagerduty-multi-signature.ts emits manual-review when manual
+  // HMAC is reachable but no .split / .forEach / .map / iteration symbol is reachable.
+  // No library-verified rule: @pagerduty/pdjs + pdpyras are API clients, not webhook
+  // verifiers. [unverified-against-docs] tag recorded.
+  "pagerduty-missing-signature-verification": pagerdutyMissingSignatureVerificationPredicate,
+  "pagerduty-timing-unsafe-comparison": pagerdutyTimingUnsafeComparisonPredicate,
+  "pagerduty-raw-body-misuse": pagerdutyRawBodyMisusePredicate,
+  "pagerduty-missing-timestamp-check": pagerdutyMissingTimestampCheckPredicate,
+  "pagerduty-wrong-hmac-algorithm": pagerdutyWrongHmacAlgorithmPredicate,
+  "pagerduty-unreachable-verification": pagerdutyUnreachableVerificationPredicate,
+  "pagerduty-multi-signature-rotation-mishandled":
+    pagerdutyMultiSignatureRotationMishandledPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
   // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
   // detection only; hand-rolled structural AST detection deferred to Plan 16b.

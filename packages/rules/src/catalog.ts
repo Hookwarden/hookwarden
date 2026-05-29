@@ -528,6 +528,44 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
   // the catalog-shape contract and let library-import detection at least fire on
   // codebases that pull in the API SDK. Per Phase 6b research clean-schema fit, no
   // catalog branch needed.
+  // Phase 8.3 Plan 11 — PagerDuty v3 webhooks. Clean raw_body / sha256 / hex fit
+  // for the catalog shape, BUT the header value is comma-separated `v1=<hex>,v1=<hex>`
+  // — multiple signatures during key rotation. The catalog shape doesn't model
+  // multi-token signature headers natively; the dedicated
+  // `pagerduty-multi-signature-rotation-mishandled` rule (NEW predicate at
+  // predicates/pagerduty-multi-signature.ts) emits manual-review when manual HMAC
+  // is reachable but no comma-iteration symbol (.split / .forEach / .map) is
+  // reachable — the rotation bug pattern. The remaining six catalog-parameterized
+  // rules behave as Linear/Auth0/Datadog/Sentry. No canonical first-party
+  // webhook-verification SDK; @pagerduty/pdjs and the Python pdpyras client are
+  // API clients, not webhook verifiers. [unverified-against-docs] tag recorded
+  // in 08.3-11-SUMMARY.md.
+  pagerduty: {
+    signature_header: ["x-pagerduty-signature"],
+    sdk_packages: ["@pagerduty/pdjs", "pdpyras"],
+    sdk_verify_calls: ["verifyPagerDutySignature", "verifyWebhookSignature"],
+    secret_env_prefix: ["PAGERDUTY_WEBHOOK", "PAGERDUTY_SIGNING", "PD_WEBHOOK"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/pagerduty",
+      "/api/webhooks/pagerduty",
+      "/pagerduty/webhook",
+      "/pagerduty/webhooks",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "raw_body",
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [
+      "missing-signature-verification",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "missing-timestamp-check",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+      "multi-signature-rotation-mishandled",
+    ],
+  },
   // Phase 8.3 Plan 10 — Sentry Integration Platform webhooks. Clean raw_body /
   // sha256 / hex fit (closest analog: Linear, Auth0, Datadog). Dedicated
   // `Sentry-Hook-Signature` header — no cross-provider attribution risk.

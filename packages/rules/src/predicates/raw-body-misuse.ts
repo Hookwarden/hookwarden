@@ -97,6 +97,11 @@ export const sentryRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePr
   PROVIDER_CATALOG["sentry"] ?? throwMissing("sentry"),
 );
 
+export const pagerdutyRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "pagerduty",
+  PROVIDER_CATALOG["pagerduty"] ?? throwMissing("pagerduty"),
+);
+
 export const hubspotRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
   "hubspot",
   PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),

@@ -1,0 +1,43 @@
+schema_version: 1
+rule_id: pagerduty/multi-signature-rotation-mishandled
+provider: pagerduty
+severity: high
+emits_state: manual-review
+message: |
+  PagerDuty v3 sends `X-PagerDuty-Signature: v1=<hex>,v1=<hex>` —
+  comma-separated signatures during key rotation. This handler computes
+  manual HMAC but no comma-iteration symbol (.split, .forEach, .map, .some,
+  .every, explode) is reachable from the handler entry — so it likely
+  treats the header value as a single signature OR only verifies the first
+  token.
+
+  Both failure modes are silent at first: during normal operation the header
+  contains exactly one signature and verification succeeds. Then PagerDuty
+  starts a key rotation, the header gains a second `v1=...` token, and EITHER
+  (a) the handler tries to verify the entire `v1=...,v1=...` string as one
+  signature (every request fails), OR (b) the handler verifies the first
+  token only (rotation is silent until the old key is retired, then every
+  request fails).
+
+  Recommended: split the header on `,`, iterate each `v1=<hex>` token, and
+  accept if ANY token's hex matches the computed HMAC (constant-time
+  comparison per `pagerduty/timing-unsafe-comparison`).
+matcher: null
+predicate: pagerduty-multi-signature-rotation-mishandled
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://developer.pagerduty.com/docs/db0fa8c8984fc-overview
+fix:
+  safety: manual-only
+  description: "Iterate all comma-separated v1=<hex> tokens in X-PagerDuty-Signature and accept on any constant-time match"
+  codegen: null

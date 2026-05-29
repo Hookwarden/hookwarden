@@ -121,6 +121,12 @@ export const sentryWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacA
   PROVIDER_CATALOG["sentry"] ?? throwMissing("sentry"),
 );
 
+export const pagerdutyWrongHmacAlgorithmPredicate: RulePredicate =
+  createWrongHmacAlgorithmPredicate(
+    "pagerduty",
+    PROVIDER_CATALOG["pagerduty"] ?? throwMissing("pagerduty"),
+  );
+
 export const hubspotWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
   "hubspot",
   PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),
