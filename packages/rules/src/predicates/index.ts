@@ -26,10 +26,15 @@ import "./custom/twilio-signing.js";
 import "./custom/standardwebhooks-signing.js";
 import "./custom/hubspot-signing.js";
 import "./custom/mailchimp-url-secret.js";
+import "./custom/postmark-signing.js";
 
 import type { RulePredicate } from "@hookwarden/engine";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
 import { mailchimpUrlSecretInPathPredicate } from "./mailchimp-url-secret-in-path.js";
+import {
+  postmarkMissingBasicAuthPredicate,
+  postmarkMissingIpAllowlistPredicate,
+} from "./postmark-basic-auth.js";
 import { githubPhpTimingSafeEqualPredicate } from "./github-php-timing-safe-equal.js";
 import { githubTimingSafeEqualPredicate } from "./github-timing-safe-equal.js";
 import {
@@ -49,6 +54,7 @@ import {
   intercomMissingSignatureVerificationPredicate,
   linearMissingSignatureVerificationPredicate,
   mailchimpMissingSignatureVerificationPredicate,
+  postmarkMissingSignatureVerificationPredicate,
   shopifyMissingSignatureVerificationPredicate,
   slackMissingSignatureVerificationPredicate,
   squareMissingSignatureVerificationPredicate,
@@ -79,6 +85,7 @@ import {
   intercomRawBodyMisusePredicate,
   linearRawBodyMisusePredicate,
   mailchimpRawBodyMisusePredicate,
+  postmarkRawBodyMisusePredicate,
   shopifyRawBodyMisusePredicate,
   slackRawBodyMisusePredicate,
   squareRawBodyMisusePredicate,
@@ -95,6 +102,7 @@ import {
   intercomTimingUnsafeComparisonPredicate,
   linearTimingUnsafeComparisonPredicate,
   mailchimpTimingUnsafeComparisonPredicate,
+  postmarkTimingUnsafeComparisonPredicate,
   shopifyTimingUnsafeComparisonPredicate,
   slackTimingUnsafeComparisonPredicate,
   squareTimingUnsafeComparisonPredicate,
@@ -111,6 +119,7 @@ import {
   intercomUnreachableVerificationPredicate,
   linearUnreachableVerificationPredicate,
   mailchimpUnreachableVerificationPredicate,
+  postmarkUnreachableVerificationPredicate,
   shopifyUnreachableVerificationPredicate,
   slackUnreachableVerificationPredicate,
   squareUnreachableVerificationPredicate,
@@ -261,6 +270,18 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "mailchimp-timing-unsafe-comparison": mailchimpTimingUnsafeComparisonPredicate,
   "mailchimp-raw-body-misuse": mailchimpRawBodyMisusePredicate,
   "mailchimp-unreachable-verification": mailchimpUnreachableVerificationPredicate,
+  // Phase 8.3 Plan 08 Postmark pack (signing_input_format: 'custom' — dispatches
+  // via D-92 custom slot at predicates/custom/postmark-signing.ts). NEW auth
+  // model: HTTP Basic Auth + IP allowlist (no HMAC). The custom slot emits
+  // not-verified when NEITHER layer is reachable; dedicated missing-basic-auth
+  // and missing-ip-allowlist predicates surface manual-review on partial
+  // coverage (one layer reached but not the other).
+  "postmark-missing-signature-verification": postmarkMissingSignatureVerificationPredicate,
+  "postmark-missing-basic-auth": postmarkMissingBasicAuthPredicate,
+  "postmark-missing-ip-allowlist": postmarkMissingIpAllowlistPredicate,
+  "postmark-timing-unsafe-comparison": postmarkTimingUnsafeComparisonPredicate,
+  "postmark-raw-body-misuse": postmarkRawBodyMisusePredicate,
+  "postmark-unreachable-verification": postmarkUnreachableVerificationPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
   // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
   // detection only; hand-rolled structural AST detection deferred to Plan 16b.

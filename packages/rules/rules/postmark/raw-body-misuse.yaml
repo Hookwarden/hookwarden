@@ -1,0 +1,36 @@
+schema_version: 1
+rule_id: postmark/raw-body-misuse
+provider: postmark
+severity: high
+emits_state: manual-review
+message: |
+  Postmark inbound webhook handler appears to verify Basic Auth but
+  does not read the raw request body. Postmark inbound webhooks deliver
+  the original email payload as JSON; downstream processing (parsing
+  attachments, decoding email bodies, signing receipts) must work from
+  the byte-identical raw payload, not from a possibly-mutated
+  JSON-parsed object.
+
+  Recommended (Express): capture the raw body via a custom `verify`
+  callback on `express.json()` and access it as `req.rawBody`. PHP: read
+  `php://input` before any framework body parsing. This is necessary if
+  you intend to forward, re-sign, or attest to the payload downstream.
+matcher: null
+predicate: postmark-raw-body-misuse
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://postmarkapp.com/developer/webhooks/webhooks-overview
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

@@ -190,6 +190,15 @@ export const mailchimpMissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["mailchimp"] ?? throwMissing("mailchimp"),
   );
 
+// Postmark's missing-signature-verification dispatches through the
+// CUSTOM_SIGNING_PREDICATES['postmark'] slot (catalog signing_input_format: 'custom').
+// The custom predicate evaluates Basic Auth + IP allowlist reachability.
+export const postmarkMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "postmark",
+    PROVIDER_CATALOG["postmark"] ?? throwMissing("postmark"),
+  );
+
 export const standardwebhooksMissingSignatureVerificationPredicate: RulePredicate =
   createMissingSignatureVerificationPredicate(
     "standardwebhooks",

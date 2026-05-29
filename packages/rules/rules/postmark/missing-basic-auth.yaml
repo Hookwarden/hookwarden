@@ -1,0 +1,36 @@
+schema_version: 1
+rule_id: postmark/missing-basic-auth
+provider: postmark
+severity: high
+emits_state: manual-review
+message: |
+  Postmark webhook handler appears to verify the request IP against an
+  allowlist but does NOT read the `Authorization` header. IP-only auth
+  is brittle behind load balancers, CDNs, and proxies (where
+  `req.ip` reports the proxy's IP, not the original sender's), and it
+  provides no defence-in-depth: if Postmark's egress IPs change or your
+  load balancer trust boundary leaks, the endpoint is open.
+
+  Recommended: configure HTTP Basic Auth on the Postmark webhook
+  endpoint AND on the handler. In the handler, read
+  `req.headers.authorization`, parse the Basic Auth header, and
+  constant-time-compare both username and password against env vars.
+matcher: null
+predicate: postmark-missing-basic-auth
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://postmarkapp.com/developer/webhooks/webhooks-overview
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

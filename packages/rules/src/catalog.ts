@@ -267,6 +267,43 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
     ],
   },
+  // Phase 8.3 Plan 08 — Postmark inbound/outbound webhooks. UNUSUAL: Postmark's
+  // default authentication model is HTTP Basic Auth + IP allowlist, NOT HMAC.
+  // The catalog entry shapes signing_input_format: 'custom' so the
+  // missing-signature-verification factory dispatches through
+  // CUSTOM_SIGNING_PREDICATES['postmark'] at predicates/custom/postmark-signing.ts.
+  // signature_header is repurposed: `authorization` is the Basic Auth header
+  // the handler must read to authenticate. hmac_algorithm/signature_encoding
+  // are inert pins to closest existing union members (sha256/hex) — Postmark's
+  // default flow uses no HMAC. Future per-server HMAC option (opt-in, rare)
+  // lands as additive rules without breaking the catalog shape.
+  postmark: {
+    signature_header: ["authorization"],
+    sdk_packages: ["postmark", "postmarker", "Postmark\\"],
+    sdk_verify_calls: ["verifyPostmarkAuth", "verifyWebhookAuth"],
+    secret_env_prefix: ["POSTMARK_WEBHOOK", "POSTMARK_BASIC_AUTH", "POSTMARK_HTTP_AUTH"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/postmark",
+      "/api/webhooks/postmark",
+      "/postmark/webhook",
+      "/postmark/inbound",
+      "/postmark/outbound",
+      "/postmark/bounce",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "custom",
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [
+      "missing-signature-verification",
+      "missing-basic-auth",
+      "missing-ip-allowlist",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "unreachable-verification",
+    ],
+  },
   // Phase 8.3 Plan 07 — Mailchimp Marketing webhooks. UNUSUAL: Mailchimp's
   // historically-documented default model is URL-secret-in-path (the secret
   // is delivered as a route segment, not in a header). The catalog entry

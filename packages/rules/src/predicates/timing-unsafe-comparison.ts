@@ -177,6 +177,12 @@ export const mailchimpTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["mailchimp"] ?? throwMissing("mailchimp"),
   );
 
+export const postmarkTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "postmark",
+    PROVIDER_CATALOG["postmark"] ?? throwMissing("postmark"),
+  );
+
 export const standardwebhooksTimingUnsafeComparisonPredicate: RulePredicate =
   createTimingUnsafeComparisonPredicate(
     "standardwebhooks",

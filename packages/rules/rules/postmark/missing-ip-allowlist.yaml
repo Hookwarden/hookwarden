@@ -1,0 +1,36 @@
+schema_version: 1
+rule_id: postmark/missing-ip-allowlist
+provider: postmark
+severity: high
+emits_state: manual-review
+message: |
+  Postmark webhook handler appears to verify the `Authorization` Basic
+  Auth header but does NOT check the request IP against Postmark's
+  documented IP range. Basic Auth alone exposes the credentials to log
+  surfaces (proxy access logs, request loggers, error reports) — a
+  credential leak from any of those surfaces grants webhook impersonation.
+
+  Recommended: additionally verify the request IP. In Express/Hono read
+  `req.ip` (after configuring `trust proxy` correctly for your
+  deployment) or `req.socket.remoteAddress`; in FastAPI read
+  `request.client.host`. Reject any request whose IP is not in the
+  documented Postmark webhook IP range.
+matcher: null
+predicate: postmark-missing-ip-allowlist
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://postmarkapp.com/developer/webhooks/webhooks-overview
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

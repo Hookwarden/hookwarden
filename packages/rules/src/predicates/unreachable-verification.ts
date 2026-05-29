@@ -124,6 +124,12 @@ export const mailchimpUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["mailchimp"] ?? throwMissing("mailchimp"),
   );
 
+export const postmarkUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "postmark",
+    PROVIDER_CATALOG["postmark"] ?? throwMissing("postmark"),
+  );
+
 export const standardwebhooksUnreachableVerificationPredicate: RulePredicate =
   createUnreachableVerificationPredicate(
     "standardwebhooks",

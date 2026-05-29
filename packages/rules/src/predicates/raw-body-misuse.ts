@@ -97,6 +97,11 @@ export const mailchimpRawBodyMisusePredicate: RulePredicate = createRawBodyMisus
   PROVIDER_CATALOG["mailchimp"] ?? throwMissing("mailchimp"),
 );
 
+export const postmarkRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "postmark",
+  PROVIDER_CATALOG["postmark"] ?? throwMissing("postmark"),
+);
+
 export const standardwebhooksRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
   "standardwebhooks",
   PROVIDER_CATALOG["standardwebhooks"] ?? throwMissing("standardwebhooks"),
