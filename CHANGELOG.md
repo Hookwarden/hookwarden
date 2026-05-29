@@ -3,6 +3,95 @@
 Project-level release notes. Per-package Changesets entries (engine, rules,
 cli, github-action) live in each package's own `CHANGELOG.md`.
 
+## 0.6.0
+
+### 15 new provider rule packs — effective coverage 9 → ~31
+
+`hookwarden scan` now ships rule packs for fifteen additional providers
+across four waves of Phase 8.3. Each pack is a catalog entry + five-or-more
+catalog-parameterized rules + provider-specific tests across JS/TS, Python,
+and PHP. Six of the packs include a dedicated provider-specific
+bug-pattern rule on top of the baseline six — the kind of catch the
+catalog-parameterized factories can't express on their own.
+
+| Wave | Providers | Notable provider-specific rules |
+|---|---|---|
+| 1 | Zendesk, DocuSign, Intercom, Linear | Intercom `octokit-cross-attribution` (later retrofit — flags `@octokit/webhooks` usage on Intercom's shared `X-Hub-Signature` header) |
+| 2 | HubSpot, Auth0, Mailchimp, Postmark | HubSpot D-92 custom-signing slot (canonical `${method}${uri}${body}${ts}`), Mailchimp `url-secret-in-path` rule kind, Postmark Basic Auth + IP allowlist auth model |
+| 3 | Datadog, Sentry, PagerDuty, Bitbucket | PagerDuty `multi-signature-rotation-mishandled` (catches handlers that don't iterate `v1=<hex>,v1=<hex>` rotation tokens), Bitbucket `signature-prefix-not-stripped` (catches handlers that compare `sha256=<hex>` against bare HMAC), Sentry `header-confusion` (Sentry-Hook-Resource vs Sentry-Hook-Signature) |
+| 4 | Notion, Calendly, Zoom | Notion D-92 sixth-occupant custom slot + `verification-token-only` rule, Calendly `signature-header-parse-mishandled` (comma-separated `t=<unix>,v1=<hex>` parse), Zoom `url-validation-only` rule |
+
+Three providers share `X-Hub-Signature` literally (github + intercom +
+bitbucket) — the test suite includes dedicated three-way cross-provider
+attribution tests so adding bitbucket doesn't false-positive on github
+handlers or vice versa.
+
+Effective provider coverage takes a second jump from Standard Webhooks
+spec detection (shipped in v0.5.x via the catalog) which sweeps in
+conformant providers (Clerk, Resend, Lob, Mux, Knock, Brex, ChannelTalk,
+Liveblocks, Sumsub) without per-provider rule packs.
+
+### Stripe empty-secret bypass — CVE-2026-41432 detector
+
+A new dedicated predicate at `packages/rules/src/predicates/stripe-empty-secret.ts`
+catches the CVE-2026-41432 attack class on JS/TS sources: HMAC-SHA256 over
+an empty signing key matches a forged signature an attacker computes with
+the same empty key, so passing an empty-string secret to
+`stripe.webhooks.constructEvent` silently succeeds.
+
+The Babel AST walker inspects the third positional argument at every
+`constructEvent` call site and classifies it independently into four
+shipped D-05 variants:
+
+  - `secret || ''`                (logical-OR fallback)
+  - `secret ?? ''`                (nullish-coalescing fallback)
+  - `secret ? secret : ''`        (ternary fallback)
+  - `constructEvent(b, s, '')`    (explicit empty-string literal — the literal CVE-2026-41432 repro shape)
+
+Two further variants (missing nullish guard, optional chaining) plus
+Python and PHP language coverage are deferred to a follow-up release
+under the Plan 17b backlog documented in this phase's SUMMARY artifacts.
+Critical severity, fires on every distinct call site in a handler file.
+
+### CVE corpus — auditor-facing correctness moat
+
+Five before/after fixture pairs ship under `e2e/fixtures/cve/`, each
+reproducing a real-world webhook-verification CVE in `vulnerable/` and
+the recommended remediation in `fixed/`:
+
+  - **Clerk CVE-2025-53548** (GHSA-c6q9-xc7g-72v6) → `standardwebhooks/timing-unsafe-comparison`
+  - **n8n GHSA-jf52-3f2h-h9j5** → `stripe/missing-signature-verification`
+  - **CVE-2026-41432** (Stripe empty-secret) → `stripe/empty-secret-bypass` (new this release)
+  - **CVE-2026-44109** (raw-body misuse) → `stripe/raw-body-misuse`
+  - **CVE-2026-4984** (Twilio missing signature) → `twilio/missing-signature-verification`
+
+Every fixture file carries a three-line load-bearing header tag
+(`hookwarden:cve` / `hookwarden:rule` / `hookwarden:state`) that
+`e2e/cve-corpus.test.ts` parses to enforce a CI-blocking drift guard:
+every CVE in the public corpus MUST map to a predicate that is registered
+in the rule pack's `ALL_PREDICATES` table. The corpus cannot claim
+detection coverage for a rule the rule pack doesn't ship.
+
+The Astro Starlight `/cves/` route (per-CVE detail pages + index) is
+deferred to a follow-up plan in line with the public web presence's
+own ship schedule.
+
+### Test count: 517 → 700
+
+The rule pack gains 183 new predicate-level tests across the Wave 3 + Wave 4
+work. Every provider-specific bug-pattern rule carries its own independence
+assertions so a regression that collapses two distinct match arms surfaces
+as the wrong-tag failure mode rather than silently widening the rule's
+verdict surface. The three-way X-Hub-Signature disambiguation suite is the
+load-bearing cross-provider attribution evidence.
+
+### Windows Authenticode signing status
+
+v0.6.0 Windows .exe ships unsigned if Microsoft Trusted Signing validation
+for the BITLY SRL identity is still pending at release time (first-run
+SmartScreen warning). The signing certificate will be applied on the next
+patch release once validation completes.
+
 ## 0.5.0
 
 ### macOS now installs via Homebrew
