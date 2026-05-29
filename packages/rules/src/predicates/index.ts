@@ -32,6 +32,7 @@ import type { RulePredicate } from "@hookwarden/engine";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
 import { mailchimpUrlSecretInPathPredicate } from "./mailchimp-url-secret-in-path.js";
 import { pagerdutyMultiSignatureRotationMishandledPredicate } from "./pagerduty-multi-signature.js";
+import { sentryHeaderConfusionPredicate } from "./sentry-header-confusion.js";
 import {
   postmarkMissingBasicAuthPredicate,
   postmarkMissingIpAllowlistPredicate,
@@ -322,6 +323,11 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "sentry-missing-timestamp-check": sentryMissingTimestampCheckPredicate,
   "sentry-wrong-hmac-algorithm": sentryWrongHmacAlgorithmPredicate,
   "sentry-unreachable-verification": sentryUnreachableVerificationPredicate,
+  // Phase 8.3 Plan 10 retrofit — Sentry-Hook-Signature vs Sentry-Hook-Resource confusion.
+  // Documented bug pattern: handler HMAC-verifies the wrong Sentry-Hook-* header. Predicate
+  // at predicates/sentry-header-confusion.ts emits manual-review when manual HMAC is
+  // reachable but no signature_header_read evidence is present.
+  "sentry-header-confusion": sentryHeaderConfusionPredicate,
   // Phase 8.3 Plan 11 PagerDuty v3 pack (signing_input_format: 'raw_body' — Linear/Datadog/Sentry
   // analog for the six baseline rules). Adds a NEW rule kind
   // `multi-signature-rotation-mishandled` — PagerDuty's `X-PagerDuty-Signature` header is

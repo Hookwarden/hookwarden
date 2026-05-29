@@ -1,0 +1,41 @@
+schema_version: 1
+rule_id: sentry/header-confusion
+provider: sentry
+severity: critical
+emits_state: manual-review
+message: |
+  Sentry Integration Platform sends two `Sentry-Hook-*` headers and they are
+  commonly confused:
+    - `Sentry-Hook-Signature` — the HMAC-SHA256 hex you must compare against
+    - `Sentry-Hook-Resource` — the event-type identifier (e.g. `issue.created`)
+      used for routing, NOT for verification
+
+  This handler computes HMAC manually but no read of `Sentry-Hook-Signature`
+  is detected. Most likely the handler is reading `Sentry-Hook-Resource` and
+  comparing the event-type string against the computed HMAC — every delivery
+  will silently fail verification.
+
+  Fix: read `Sentry-Hook-Signature` (case-insensitive), then constant-time
+  compare against
+  `crypto.createHmac('sha256', clientSecret).update(rawBody).digest('hex')`.
+  Use `Sentry-Hook-Resource` only to route the event after signature
+  verification has succeeded.
+matcher: null
+predicate: sentry-header-confusion
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://docs.sentry.io/product/integrations/integration-platform/webhooks/
+fix:
+  safety: manual-only
+  description: "Read Sentry-Hook-Signature (not Sentry-Hook-Resource) for HMAC verification"
+  codegen: null

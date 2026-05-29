@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 import { sentryMissingSignatureVerificationPredicate } from "../src/predicates/missing-signature-verification.js";
 import { sentryMissingTimestampCheckPredicate } from "../src/predicates/missing-timestamp-check.js";
 import { sentryRawBodyMisusePredicate } from "../src/predicates/raw-body-misuse.js";
+import { sentryHeaderConfusionPredicate } from "../src/predicates/sentry-header-confusion.js";
 import { sentryTimingUnsafeComparisonPredicate } from "../src/predicates/timing-unsafe-comparison.js";
 import { sentryUnreachableVerificationPredicate } from "../src/predicates/unreachable-verification.js";
 import { sentryWrongHmacAlgorithmPredicate } from "../src/predicates/wrong-hmac-algorithm.js";
@@ -209,5 +210,46 @@ describe("sentryUnreachableVerificationPredicate", () => {
   });
   it("returns null when no sdk_import evidence (no claim of intent)", async () => {
     expect(await sentryUnreachableVerificationPredicate(baseHandler, {} as never)).toBeNull();
+  });
+});
+
+describe("sentryHeaderConfusionPredicate (Plan 10 retrofit — Sentry-Hook-Resource vs Sentry-Hook-Signature)", () => {
+  // The bug: handler HMACs manually but reads Sentry-Hook-Resource (the event-type
+  // header) instead of Sentry-Hook-Signature. The engine's signature_header_read
+  // evidence only fires for headers matching catalog.signature_header — so when the
+  // handler is doing manual HMAC AND no signature_header_read evidence is present,
+  // it's likely reading the wrong Sentry-Hook-* header.
+  it("emits manual-review when manual HMAC reachable but no signature_header_read evidence", async () => {
+    const handler: WebhookHandler = {
+      ...baseHandler,
+      reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
+    };
+    expect(await sentryHeaderConfusionPredicate(handler, {} as never)).toBe("manual-review");
+  });
+  it("returns null when manual HMAC reachable AND signature_header_read evidence present (handler reads the right header)", async () => {
+    const handler: WebhookHandler = {
+      ...baseHandler,
+      reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
+      evidence: [ev("signature_header_read")],
+    };
+    expect(await sentryHeaderConfusionPredicate(handler, {} as never)).toBeNull();
+  });
+  it("returns null when no manual HMAC reachable (purity-fail-loudly — only fire when HMAC IS attempted)", async () => {
+    expect(await sentryHeaderConfusionPredicate(baseHandler, {} as never)).toBeNull();
+  });
+  it("returns null for non-sentry provider (contract-violation: provider-scoped)", async () => {
+    const handler: WebhookHandler = {
+      ...baseHandler,
+      provider: "stripe",
+      reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
+    };
+    expect(await sentryHeaderConfusionPredicate(handler, {} as never)).toBeNull();
+  });
+  it("emits manual-review with Python manual HMAC reachable too", async () => {
+    const handler: WebhookHandler = {
+      ...baseHandler,
+      reachable_symbols: [sym("hmac.new", "hmac")],
+    };
+    expect(await sentryHeaderConfusionPredicate(handler, {} as never)).toBe("manual-review");
   });
 });

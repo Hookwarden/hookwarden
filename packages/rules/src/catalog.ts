@@ -599,6 +599,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "missing-timestamp-check",
       "wrong-hmac-algorithm",
       "unreachable-verification",
+      "header-confusion",
     ],
   },
   // Phase 8.3 Plan 09 — Datadog webhook integration. Clean raw_body / sha256 /
