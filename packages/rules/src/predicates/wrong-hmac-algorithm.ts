@@ -127,6 +127,12 @@ export const pagerdutyWrongHmacAlgorithmPredicate: RulePredicate =
     PROVIDER_CATALOG["pagerduty"] ?? throwMissing("pagerduty"),
   );
 
+export const bitbucketWrongHmacAlgorithmPredicate: RulePredicate =
+  createWrongHmacAlgorithmPredicate(
+    "bitbucket",
+    PROVIDER_CATALOG["bitbucket"] ?? throwMissing("bitbucket"),
+  );
+
 export const hubspotWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
   "hubspot",
   PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),

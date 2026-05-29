@@ -1,0 +1,42 @@
+schema_version: 1
+rule_id: bitbucket/signature-prefix-not-stripped
+provider: bitbucket
+severity: critical
+emits_state: manual-review
+message: |
+  Bitbucket Cloud sends `X-Hub-Signature: sha256=<hex>` — the `sha256=`
+  prefix MUST be stripped before comparing the header value against a bare
+  HMAC hex digest. This handler reads the signature header and computes
+  HMAC, but no string-manipulation symbol (.substring / .substr / .slice /
+  .replace / .split / .startsWith / strpos / str_replace / preg_replace /
+  ltrim / etc.) is reachable from the handler entry.
+
+  Most likely the handler is comparing the full `sha256=<hex>` header
+  value against the bare hex output of `crypto.createHmac(...).digest('hex')`
+  — every delivery silently fails because the prefix is never going to
+  match the digest output.
+
+  Fix: extract the hex portion only — e.g.
+  `const provided = req.headers['x-hub-signature'].replace(/^sha256=/, '')`
+  (Node) or `provided = request.headers['X-Hub-Signature'].split('=')[1]`
+  (Python) or `$provided = substr($signature, 7);` (PHP) — then
+  constant-time compare against the computed HMAC hex.
+matcher: null
+predicate: bitbucket-signature-prefix-not-stripped
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://support.atlassian.com/bitbucket-cloud/docs/manage-webhooks/
+fix:
+  safety: manual-only
+  description: "Strip the sha256= prefix before constant-time comparing against the computed HMAC"
+  codegen: null

@@ -130,6 +130,12 @@ export const pagerdutyUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["pagerduty"] ?? throwMissing("pagerduty"),
   );
 
+export const bitbucketUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "bitbucket",
+    PROVIDER_CATALOG["bitbucket"] ?? throwMissing("bitbucket"),
+  );
+
 export const hubspotUnreachableVerificationPredicate: RulePredicate =
   createUnreachableVerificationPredicate(
     "hubspot",

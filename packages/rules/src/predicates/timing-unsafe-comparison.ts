@@ -183,6 +183,12 @@ export const pagerdutyTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["pagerduty"] ?? throwMissing("pagerduty"),
   );
 
+export const bitbucketTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "bitbucket",
+    PROVIDER_CATALOG["bitbucket"] ?? throwMissing("bitbucket"),
+  );
+
 export const hubspotTimingUnsafeComparisonPredicate: RulePredicate =
   createTimingUnsafeComparisonPredicate(
     "hubspot",

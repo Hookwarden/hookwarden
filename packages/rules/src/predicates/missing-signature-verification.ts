@@ -190,6 +190,12 @@ export const pagerdutyMissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["pagerduty"] ?? throwMissing("pagerduty"),
   );
 
+export const bitbucketMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "bitbucket",
+    PROVIDER_CATALOG["bitbucket"] ?? throwMissing("bitbucket"),
+  );
+
 // HubSpot's missing-signature-verification dispatches through the
 // CUSTOM_SIGNING_PREDICATES['hubspot'] slot (catalog signing_input_format: 'custom').
 // The factory below is a thin wrapper to keep the per-provider export shape

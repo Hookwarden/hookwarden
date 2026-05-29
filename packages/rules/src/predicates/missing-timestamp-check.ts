@@ -116,6 +116,12 @@ export const pagerdutyMissingTimestampCheckPredicate: RulePredicate =
     PROVIDER_CATALOG["pagerduty"] ?? throwMissing("pagerduty"),
   );
 
+export const bitbucketMissingTimestampCheckPredicate: RulePredicate =
+  createMissingTimestampCheckPredicate(
+    "bitbucket",
+    PROVIDER_CATALOG["bitbucket"] ?? throwMissing("bitbucket"),
+  );
+
 export const hubspotMissingTimestampCheckPredicate: RulePredicate =
   createMissingTimestampCheckPredicate(
     "hubspot",

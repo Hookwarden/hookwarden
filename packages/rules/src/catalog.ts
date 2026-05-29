@@ -529,6 +529,47 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
   // the catalog-shape contract and let library-import detection at least fire on
   // codebases that pull in the API SDK. Per Phase 6b research clean-schema fit, no
   // catalog branch needed.
+  // Phase 8.3 Plan 12 — Bitbucket Cloud webhooks. Clean raw_body / sha256 / hex
+  // fit for the catalog shape, BUT (like GitHub-legacy) the header value is
+  // formatted as `sha256=<hex>` — the `sha256=` prefix MUST be stripped before
+  // comparing against a bare HMAC hex digest. Handlers that compare the full
+  // header value against bare HMAC silently reject every delivery. The dedicated
+  // `bitbucket-signature-prefix-not-stripped` rule (NEW predicate at
+  // predicates/bitbucket-signature-prefix.ts) emits manual-review on this pattern.
+  //
+  // X-Hub-Signature is THREE-way shared (github / intercom / bitbucket). All three
+  // catalog-parameterized predicates scope to handler.provider — disambiguation
+  // tests guard the contract.
+  //
+  // No canonical first-party webhook-verification SDK; Atlassian's Bitbucket Cloud
+  // API clients are general-purpose. sdk_verify_calls are narrow plausible names.
+  // [unverified-against-docs] tag recorded in 08.3-12-SUMMARY.md.
+  bitbucket: {
+    signature_header: ["x-hub-signature"],
+    sdk_packages: ["bitbucket", "atlassian-python-api"],
+    sdk_verify_calls: ["verifyBitbucketSignature", "verifyWebhookSignature"],
+    secret_env_prefix: ["BITBUCKET_WEBHOOK", "BITBUCKET_SIGNING", "BB_WEBHOOK"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/bitbucket",
+      "/api/webhooks/bitbucket",
+      "/bitbucket/webhook",
+      "/bitbucket/webhooks",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "raw_body",
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [
+      "missing-signature-verification",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "missing-timestamp-check",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+      "signature-prefix-not-stripped",
+    ],
+  },
   // Phase 8.3 Plan 11 — PagerDuty v3 webhooks. Clean raw_body / sha256 / hex fit
   // for the catalog shape, BUT the header value is comma-separated `v1=<hex>,v1=<hex>`
   // — multiple signatures during key rotation. The catalog shape doesn't model

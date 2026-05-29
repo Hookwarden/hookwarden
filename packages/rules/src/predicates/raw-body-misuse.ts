@@ -102,6 +102,11 @@ export const pagerdutyRawBodyMisusePredicate: RulePredicate = createRawBodyMisus
   PROVIDER_CATALOG["pagerduty"] ?? throwMissing("pagerduty"),
 );
 
+export const bitbucketRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "bitbucket",
+  PROVIDER_CATALOG["bitbucket"] ?? throwMissing("bitbucket"),
+);
+
 export const hubspotRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
   "hubspot",
   PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),

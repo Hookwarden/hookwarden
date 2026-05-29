@@ -1,0 +1,33 @@
+schema_version: 1
+rule_id: bitbucket/missing-timestamp-check
+provider: bitbucket
+severity: high
+emits_state: manual-review
+message: |
+  Bitbucket Cloud webhook handler computes HMAC manually but no timestamp
+  or delivery-ID dedup check is reachable from the handler. Bitbucket Cloud
+  does not send a dedicated timestamp header — applications must dedupe by
+  the delivery `X-Request-UUID` (or the event payload identifier) to avoid
+  indefinite replays of a captured signed delivery.
+
+  Recommended: persist `X-Request-UUID` (e.g. Redis SETNX with a 10-minute
+  TTL) and reject any request whose identifier has already been processed.
+matcher: null
+predicate: bitbucket-missing-timestamp-check
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://support.atlassian.com/bitbucket-cloud/docs/manage-webhooks/
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

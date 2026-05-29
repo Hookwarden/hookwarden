@@ -31,6 +31,7 @@ import "./custom/postmark-signing.js";
 import type { RulePredicate } from "@hookwarden/engine";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
 import { mailchimpUrlSecretInPathPredicate } from "./mailchimp-url-secret-in-path.js";
+import { bitbucketSignaturePrefixNotStrippedPredicate } from "./bitbucket-signature-prefix.js";
 import { pagerdutyMultiSignatureRotationMishandledPredicate } from "./pagerduty-multi-signature.js";
 import { intercomOctokitCrossAttributionPredicate } from "./intercom-octokit-cross-attribution.js";
 import { sentryHeaderConfusionPredicate } from "./sentry-header-confusion.js";
@@ -52,6 +53,7 @@ import {
 import {
   auth0MissingSignatureVerificationPredicate,
   datadogMissingSignatureVerificationPredicate,
+  bitbucketMissingSignatureVerificationPredicate,
   pagerdutyMissingSignatureVerificationPredicate,
   sentryMissingSignatureVerificationPredicate,
   docusignMissingSignatureVerificationPredicate,
@@ -72,6 +74,7 @@ import {
 import {
   auth0MissingTimestampCheckPredicate,
   datadogMissingTimestampCheckPredicate,
+  bitbucketMissingTimestampCheckPredicate,
   pagerdutyMissingTimestampCheckPredicate,
   sentryMissingTimestampCheckPredicate,
   docusignMissingTimestampCheckPredicate,
@@ -89,6 +92,7 @@ import {
 import {
   auth0RawBodyMisusePredicate,
   datadogRawBodyMisusePredicate,
+  bitbucketRawBodyMisusePredicate,
   pagerdutyRawBodyMisusePredicate,
   sentryRawBodyMisusePredicate,
   docusignRawBodyMisusePredicate,
@@ -110,6 +114,7 @@ import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-un
 import {
   auth0TimingUnsafeComparisonPredicate,
   datadogTimingUnsafeComparisonPredicate,
+  bitbucketTimingUnsafeComparisonPredicate,
   pagerdutyTimingUnsafeComparisonPredicate,
   sentryTimingUnsafeComparisonPredicate,
   docusignTimingUnsafeComparisonPredicate,
@@ -129,6 +134,7 @@ import {
 import {
   auth0UnreachableVerificationPredicate,
   datadogUnreachableVerificationPredicate,
+  bitbucketUnreachableVerificationPredicate,
   pagerdutyUnreachableVerificationPredicate,
   sentryUnreachableVerificationPredicate,
   docusignUnreachableVerificationPredicate,
@@ -149,6 +155,7 @@ import {
 import {
   auth0WrongHmacAlgorithmPredicate,
   datadogWrongHmacAlgorithmPredicate,
+  bitbucketWrongHmacAlgorithmPredicate,
   pagerdutyWrongHmacAlgorithmPredicate,
   sentryWrongHmacAlgorithmPredicate,
   docusignWrongHmacAlgorithmPredicate,
@@ -353,6 +360,22 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "pagerduty-unreachable-verification": pagerdutyUnreachableVerificationPredicate,
   "pagerduty-multi-signature-rotation-mishandled":
     pagerdutyMultiSignatureRotationMishandledPredicate,
+  // Phase 8.3 Plan 12 Bitbucket Cloud pack (signing_input_format: 'raw_body' — GitHub/Intercom
+  // analog for the six baseline rules; X-Hub-Signature is THREE-way shared across
+  // github/intercom/bitbucket, so the catalog-parameterized provider scope guards
+  // disambiguation). NEW rule kind `signature-prefix-not-stripped` — Bitbucket Cloud's
+  // X-Hub-Signature value is `sha256=<hex>` (GitHub-legacy prefix); handlers that compare
+  // the full value against bare HMAC hex always fail. Dedicated predicate at
+  // predicates/bitbucket-signature-prefix.ts emits manual-review when manual HMAC reachable
+  // + signature_header_read evidence present + no string-manipulation symbol reachable.
+  // [unverified-against-docs] tag recorded.
+  "bitbucket-missing-signature-verification": bitbucketMissingSignatureVerificationPredicate,
+  "bitbucket-timing-unsafe-comparison": bitbucketTimingUnsafeComparisonPredicate,
+  "bitbucket-raw-body-misuse": bitbucketRawBodyMisusePredicate,
+  "bitbucket-missing-timestamp-check": bitbucketMissingTimestampCheckPredicate,
+  "bitbucket-wrong-hmac-algorithm": bitbucketWrongHmacAlgorithmPredicate,
+  "bitbucket-unreachable-verification": bitbucketUnreachableVerificationPredicate,
+  "bitbucket-signature-prefix-not-stripped": bitbucketSignaturePrefixNotStrippedPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
   // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
   // detection only; hand-rolled structural AST detection deferred to Plan 16b.
