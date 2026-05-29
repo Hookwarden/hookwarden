@@ -141,6 +141,12 @@ export const zendeskTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["zendesk"] ?? throwMissing("zendesk"),
   );
 
+export const standardwebhooksTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "standardwebhooks",
+    PROVIDER_CATALOG["standardwebhooks"] ?? throwMissing("standardwebhooks"),
+  );
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

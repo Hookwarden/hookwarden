@@ -77,3 +77,14 @@ export const squareLibraryVerifiedPredicate: RulePredicate = createLibraryVerifi
   "square",
   PROVIDER_CATALOG["square"]?.sdk_verify_calls ?? [],
 );
+
+// Phase 8.3 Plan 16 — Standard Webhooks spec. The library-verified predicate is the
+// load-bearing piece of the provider-multiplier claim: any conformant provider (Clerk,
+// Resend, Lob, Mux, Knock, Brex, ChannelTalk, Liveblocks, Sumsub) that uses the
+// `standardwebhooks` library is detected as verified without needing a per-provider
+// catalog entry.
+export const standardwebhooksLibraryVerifiedPredicate: RulePredicate =
+  createLibraryVerifiedPredicate(
+    "standardwebhooks",
+    PROVIDER_CATALOG["standardwebhooks"]?.sdk_verify_calls ?? [],
+  );

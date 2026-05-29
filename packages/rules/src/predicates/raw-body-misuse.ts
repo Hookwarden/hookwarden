@@ -67,6 +67,11 @@ export const zendeskRawBodyMisusePredicate: RulePredicate = createRawBodyMisuseP
   PROVIDER_CATALOG["zendesk"] ?? throwMissing("zendesk"),
 );
 
+export const standardwebhooksRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "standardwebhooks",
+  PROVIDER_CATALOG["standardwebhooks"] ?? throwMissing("standardwebhooks"),
+);
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

@@ -21,6 +21,7 @@
 // missing-signature-verification.ts) avoids the circular dep where each custom predicate
 // imports CUSTOM_SIGNING_PREDICATES from missing-signature-verification.js.
 import "./custom/twilio-signing.js";
+import "./custom/standardwebhooks-signing.js";
 
 import type { RulePredicate } from "@hookwarden/engine";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
@@ -31,6 +32,7 @@ import {
   shopifyLibraryVerifiedPredicate,
   slackLibraryVerifiedPredicate,
   squareLibraryVerifiedPredicate,
+  standardwebhooksLibraryVerifiedPredicate,
   stripeLibraryVerifiedPredicate,
   twilioLibraryVerifiedPredicate,
 } from "./library-verified-recognition.js";
@@ -39,6 +41,7 @@ import {
   shopifyMissingSignatureVerificationPredicate,
   slackMissingSignatureVerificationPredicate,
   squareMissingSignatureVerificationPredicate,
+  standardwebhooksMissingSignatureVerificationPredicate,
   stripeMissingSignatureVerificationPredicate,
   twilioMissingSignatureVerificationPredicate,
   zendeskMissingSignatureVerificationPredicate,
@@ -47,6 +50,7 @@ import {
   githubMissingTimestampCheckPredicate,
   shopifyMissingTimestampCheckPredicate,
   slackMissingTimestampCheckPredicate,
+  standardwebhooksMissingTimestampCheckPredicate,
   stripeMissingTimestampCheckPredicate,
   twilioMissingTimestampCheckPredicate,
   zendeskMissingTimestampCheckPredicate,
@@ -56,6 +60,7 @@ import {
   shopifyRawBodyMisusePredicate,
   slackRawBodyMisusePredicate,
   squareRawBodyMisusePredicate,
+  standardwebhooksRawBodyMisusePredicate,
   stripeRawBodyMisusePredicate,
   twilioRawBodyMisusePredicate,
   zendeskRawBodyMisusePredicate,
@@ -65,6 +70,7 @@ import {
   shopifyTimingUnsafeComparisonPredicate,
   slackTimingUnsafeComparisonPredicate,
   squareTimingUnsafeComparisonPredicate,
+  standardwebhooksTimingUnsafeComparisonPredicate,
   stripeTimingUnsafeComparisonPredicate,
   twilioTimingUnsafeComparisonPredicate,
   zendeskTimingUnsafeComparisonPredicate,
@@ -74,6 +80,7 @@ import {
   shopifyUnreachableVerificationPredicate,
   slackUnreachableVerificationPredicate,
   squareUnreachableVerificationPredicate,
+  standardwebhooksUnreachableVerificationPredicate,
   stripeUnreachableVerificationPredicate,
   twilioUnreachableVerificationPredicate,
   zendeskUnreachableVerificationPredicate,
@@ -83,6 +90,7 @@ import {
   shopifyWrongHmacAlgorithmPredicate,
   slackWrongHmacAlgorithmPredicate,
   squareWrongHmacAlgorithmPredicate,
+  standardwebhooksWrongHmacAlgorithmPredicate,
   stripeWrongHmacAlgorithmPredicate,
   twilioWrongHmacAlgorithmPredicate,
   zendeskWrongHmacAlgorithmPredicate,
@@ -153,4 +161,15 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "zendesk-missing-timestamp-check": zendeskMissingTimestampCheckPredicate,
   "zendesk-wrong-hmac-algorithm": zendeskWrongHmacAlgorithmPredicate,
   "zendesk-unreachable-verification": zendeskUnreachableVerificationPredicate,
+  // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
+  // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
+  // detection only; hand-rolled structural AST detection deferred to Plan 16b.
+  "standardwebhooks-library-verified": standardwebhooksLibraryVerifiedPredicate,
+  "standardwebhooks-missing-signature-verification":
+    standardwebhooksMissingSignatureVerificationPredicate,
+  "standardwebhooks-timing-unsafe-comparison": standardwebhooksTimingUnsafeComparisonPredicate,
+  "standardwebhooks-raw-body-misuse": standardwebhooksRawBodyMisusePredicate,
+  "standardwebhooks-missing-timestamp-check": standardwebhooksMissingTimestampCheckPredicate,
+  "standardwebhooks-wrong-hmac-algorithm": standardwebhooksWrongHmacAlgorithmPredicate,
+  "standardwebhooks-unreachable-verification": standardwebhooksUnreachableVerificationPredicate,
 };

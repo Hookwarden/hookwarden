@@ -226,6 +226,47 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "library-verified",
     ],
   },
+  // Phase 8.3 Plan 16 — Standard Webhooks spec (https://www.standardwebhooks.com).
+  // One catalog entry sweeps in every conformant provider — Clerk, Resend, Lob, Mux, Knock,
+  // Brex, ChannelTalk, Liveblocks, Sumsub — without per-provider catalog entries (the
+  // multiplier claim that justifies the dual-prong detector). svix-style headers
+  // (webhook-id / webhook-timestamp / webhook-signature). Custom canonical-string recipe
+  // `{msg_id}.{timestamp}.{body}` → signing_input_format: 'custom' + custom-predicate slot
+  // at predicates/custom/standardwebhooks-signing.ts (D-92). Library-prong-only in this
+  // commit — hand-rolled structural AST detection (Clerk CVE-2025-53548 catch) deferred
+  // to a Plan 16b follow-up because cross-language AST matching is net-new design surface
+  // with non-trivial false-positive risk.
+  standardwebhooks: {
+    signature_header: ["webhook-signature"],
+    sdk_packages: ["standardwebhooks", "standard-webhooks/php", "StandardWebhooks\\"],
+    sdk_verify_calls: [
+      "Webhook.verify",
+      "verify",
+      "StandardWebhooks\\Webhook::verify",
+      "Webhook::verify",
+    ],
+    secret_env_prefix: ["WEBHOOK_SECRET", "STANDARDWEBHOOKS_SECRET", "SVIX_SECRET"],
+    secret_literal_prefix: ["whsec_"],
+    conventional_paths: [
+      "/webhooks",
+      "/webhook",
+      "/api/webhooks",
+      "/api/webhook",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "custom",
+    timestamp_header: "webhook-timestamp",
+    signature_encoding: "base64",
+    applicable_rules: [
+      "library-verified",
+      "missing-signature-verification",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "missing-timestamp-check",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+    ],
+  },
   // Phase 8.3 Plan 01 — Zendesk Connect webhooks. Same signing scheme as Slack
   // (timestamp_dot_body, sha256, base64 — `${timestamp}${rawBody}` HMAC). No canonical
   // first-party webhook SDK; Zendesk docs ship inline HMAC samples. The `sdk_packages`

@@ -1,0 +1,36 @@
+schema_version: 1
+rule_id: standardwebhooks/library-verified
+provider: standardwebhooks
+severity: info
+emits_state: verified
+message: |
+  Library-based verification detected: a `Webhook.verify()` call from the
+  `standardwebhooks` library (npm `standardwebhooks`, PyPI `standardwebhooks`,
+  Packagist `standard-webhooks/php`) is reachable from this handler within
+  3 hops. The library enforces the canonical-string construction
+  `${webhook-id}.${webhook-timestamp}.${rawBody}`, HMAC-SHA256 + base64,
+  the 5-minute timestamp tolerance, multi-signature `v1,…` parsing during
+  rotation, and constant-time comparison.
+
+  This positive short-circuit covers every Standard Webhooks-conformant
+  provider — Clerk, Resend, Lob, Mux, Knock, Brex, ChannelTalk, Liveblocks,
+  Sumsub — without a per-provider catalog entry.
+matcher: null
+predicate: standardwebhooks-library-verified
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://www.standardwebhooks.com/
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null
