@@ -101,6 +101,11 @@ export const linearWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacA
   PROVIDER_CATALOG["linear"] ?? throwMissing("linear"),
 );
 
+export const docusignWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
+  "docusign",
+  PROVIDER_CATALOG["docusign"] ?? throwMissing("docusign"),
+);
+
 export const standardwebhooksWrongHmacAlgorithmPredicate: RulePredicate =
   createWrongHmacAlgorithmPredicate(
     "standardwebhooks",

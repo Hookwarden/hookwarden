@@ -86,6 +86,12 @@ export const linearMissingTimestampCheckPredicate: RulePredicate =
     PROVIDER_CATALOG["linear"] ?? throwMissing("linear"),
   );
 
+export const docusignMissingTimestampCheckPredicate: RulePredicate =
+  createMissingTimestampCheckPredicate(
+    "docusign",
+    PROVIDER_CATALOG["docusign"] ?? throwMissing("docusign"),
+  );
+
 export const standardwebhooksMissingTimestampCheckPredicate: RulePredicate =
   createMissingTimestampCheckPredicate(
     "standardwebhooks",

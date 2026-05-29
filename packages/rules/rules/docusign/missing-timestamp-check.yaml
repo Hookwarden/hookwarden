@@ -1,0 +1,35 @@
+schema_version: 1
+rule_id: docusign/missing-timestamp-check
+provider: docusign
+severity: high
+emits_state: manual-review
+message: |
+  DocuSign Connect webhook handler computes HMAC manually but no timestamp
+  tolerance or delivery-ID dedup check is reachable from the handler.
+  DocuSign Connect does not send a dedicated timestamp header — applications
+  should dedupe by the envelope event identifier in the payload to avoid
+  indefinite replays of a captured signed delivery.
+
+  Recommended: extract a unique event identifier from the envelope payload
+  (e.g. `envelopeId` + `event` + `lastModified`), persist it (e.g. Redis
+  SETNX with a 10-minute TTL), and reject any request whose identifier
+  has already been processed.
+matcher: null
+predicate: docusign-missing-timestamp-check
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://developers.docusign.com/platform/webhooks/connect/hmac/
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

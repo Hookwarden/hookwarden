@@ -100,6 +100,12 @@ export const linearUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["linear"] ?? throwMissing("linear"),
   );
 
+export const docusignUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "docusign",
+    PROVIDER_CATALOG["docusign"] ?? throwMissing("docusign"),
+  );
+
 export const standardwebhooksUnreachableVerificationPredicate: RulePredicate =
   createUnreachableVerificationPredicate(
     "standardwebhooks",

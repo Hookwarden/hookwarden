@@ -160,6 +160,12 @@ export const linearMissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["linear"] ?? throwMissing("linear"),
   );
 
+export const docusignMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "docusign",
+    PROVIDER_CATALOG["docusign"] ?? throwMissing("docusign"),
+  );
+
 export const standardwebhooksMissingSignatureVerificationPredicate: RulePredicate =
   createMissingSignatureVerificationPredicate(
     "standardwebhooks",

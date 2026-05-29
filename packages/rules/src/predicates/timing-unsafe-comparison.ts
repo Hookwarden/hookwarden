@@ -153,6 +153,12 @@ export const linearTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["linear"] ?? throwMissing("linear"),
   );
 
+export const docusignTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "docusign",
+    PROVIDER_CATALOG["docusign"] ?? throwMissing("docusign"),
+  );
+
 export const standardwebhooksTimingUnsafeComparisonPredicate: RulePredicate =
   createTimingUnsafeComparisonPredicate(
     "standardwebhooks",

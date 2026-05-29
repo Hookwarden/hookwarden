@@ -39,6 +39,7 @@ import {
   twilioLibraryVerifiedPredicate,
 } from "./library-verified-recognition.js";
 import {
+  docusignMissingSignatureVerificationPredicate,
   githubMissingSignatureVerificationPredicate,
   intercomMissingSignatureVerificationPredicate,
   linearMissingSignatureVerificationPredicate,
@@ -51,6 +52,7 @@ import {
   zendeskMissingSignatureVerificationPredicate,
 } from "./missing-signature-verification.js";
 import {
+  docusignMissingTimestampCheckPredicate,
   githubMissingTimestampCheckPredicate,
   intercomMissingTimestampCheckPredicate,
   linearMissingTimestampCheckPredicate,
@@ -62,6 +64,7 @@ import {
   zendeskMissingTimestampCheckPredicate,
 } from "./missing-timestamp-check.js";
 import {
+  docusignRawBodyMisusePredicate,
   githubRawBodyMisusePredicate,
   intercomRawBodyMisusePredicate,
   linearRawBodyMisusePredicate,
@@ -75,6 +78,7 @@ import {
 } from "./raw-body-misuse.js";
 import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-unsafe-comparison.js";
 import {
+  docusignTimingUnsafeComparisonPredicate,
   intercomTimingUnsafeComparisonPredicate,
   linearTimingUnsafeComparisonPredicate,
   shopifyTimingUnsafeComparisonPredicate,
@@ -86,6 +90,7 @@ import {
   zendeskTimingUnsafeComparisonPredicate,
 } from "./timing-unsafe-comparison.js";
 import {
+  docusignUnreachableVerificationPredicate,
   githubUnreachableVerificationPredicate,
   intercomUnreachableVerificationPredicate,
   linearUnreachableVerificationPredicate,
@@ -98,6 +103,7 @@ import {
   zendeskUnreachableVerificationPredicate,
 } from "./unreachable-verification.js";
 import {
+  docusignWrongHmacAlgorithmPredicate,
   githubWrongHmacAlgorithmPredicate,
   intercomWrongHmacAlgorithmPredicate,
   linearWrongHmacAlgorithmPredicate,
@@ -195,6 +201,16 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "linear-missing-timestamp-check": linearMissingTimestampCheckPredicate,
   "linear-wrong-hmac-algorithm": linearWrongHmacAlgorithmPredicate,
   "linear-unreachable-verification": linearUnreachableVerificationPredicate,
+  // Phase 8.3 Plan 02 DocuSign Connect pack (signing_input_format: 'raw_body' —
+  // Shopify analog; dedicated `X-DocuSign-Signature-1` header, sha256/base64).
+  // No library-verified rule: DocuSign Connect does not ship a first-party
+  // webhook-verification SDK (docusign-esign is the general eSign SDK).
+  "docusign-missing-signature-verification": docusignMissingSignatureVerificationPredicate,
+  "docusign-timing-unsafe-comparison": docusignTimingUnsafeComparisonPredicate,
+  "docusign-raw-body-misuse": docusignRawBodyMisusePredicate,
+  "docusign-missing-timestamp-check": docusignMissingTimestampCheckPredicate,
+  "docusign-wrong-hmac-algorithm": docusignWrongHmacAlgorithmPredicate,
+  "docusign-unreachable-verification": docusignUnreachableVerificationPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
   // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
   // detection only; hand-rolled structural AST detection deferred to Plan 16b.

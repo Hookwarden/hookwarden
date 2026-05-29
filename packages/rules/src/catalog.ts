@@ -267,6 +267,42 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
     ],
   },
+  // Phase 8.3 Plan 02 — DocuSign Connect webhooks. Clean raw_body / sha256 /
+  // base64 fit (closest analog: Shopify). Dedicated `X-DocuSign-Signature-1`
+  // header — no cross-provider attribution risk. DocuSign Connect does not
+  // ship a first-party webhook-verification SDK; their docs show inline HMAC
+  // samples. `sdk_packages` lists the general DocuSign eSign SDK so that
+  // codebases that pull it in still surface sdk_import evidence;
+  // `sdk_verify_calls` are narrow plausible function names users might write
+  // when wrapping verification (Zendesk/Intercom/Linear pattern). No PHP
+  // namespace prefix appended — DocuSign PHP detections rely on the
+  // language-agnostic hash_hmac + hash_equals shapes already caught by the rules.
+  docusign: {
+    signature_header: ["x-docusign-signature-1"],
+    sdk_packages: ["docusign-esign", "docusign-rest-client", "DocuSign\\eSign\\"],
+    sdk_verify_calls: ["verifyDocuSignSignature", "verifyWebhookSignature"],
+    secret_env_prefix: ["DOCUSIGN_CONNECT", "DOCUSIGN_WEBHOOK", "DOCUSIGN_HMAC"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/docusign",
+      "/api/webhooks/docusign",
+      "/docusign/webhook",
+      "/docusign/webhooks",
+      "/docusign/connect",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "raw_body",
+    timestamp_header: null,
+    signature_encoding: "base64",
+    applicable_rules: [
+      "missing-signature-verification",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "missing-timestamp-check",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+    ],
+  },
   // Phase 8.3 Plan 04 — Linear webhooks. Clean raw_body / sha256 / hex fit
   // (analog: GitHub or Intercom minus the shared header). Linear sends a
   // dedicated `Linear-Signature` header — no cross-provider attribution risk.
