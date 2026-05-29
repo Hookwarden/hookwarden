@@ -34,6 +34,7 @@ import { expressMiddlewareOrderingPredicate } from "./express-middleware-orderin
 import { mailchimpUrlSecretInPathPredicate } from "./mailchimp-url-secret-in-path.js";
 import { bitbucketSignaturePrefixNotStrippedPredicate } from "./bitbucket-signature-prefix.js";
 import { calendlySignatureHeaderParseMishandledPredicate } from "./calendly-header-parse.js";
+import { stripeEmptySecretPredicate } from "./stripe-empty-secret.js";
 import { zoomUrlValidationOnlyPredicate } from "./zoom-url-validation-only.js";
 import { notionVerificationTokenOnlyPredicate } from "./notion-verification-token-only.js";
 import { pagerdutyMultiSignatureRotationMishandledPredicate } from "./pagerduty-multi-signature.js";
@@ -423,6 +424,11 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "calendly-wrong-hmac-algorithm": calendlyWrongHmacAlgorithmPredicate,
   "calendly-unreachable-verification": calendlyUnreachableVerificationPredicate,
   "calendly-signature-header-parse-mishandled": calendlySignatureHeaderParseMishandledPredicate,
+  // Phase 8.3 Plan 17 Stripe empty-secret bypass detector (CVE-2026-41432). PARTIAL
+  // coverage shipping JS/TS variants 1 (||), 2 (??), 3 (ternary), 6 (explicit empty
+  // literal). Variants 4 (missing-guard) + 5 (optional-chain) + Python + PHP deferred
+  // to Plan 17b — see 08.3-17-SUMMARY.md §"Known-incomplete arms".
+  "stripe-empty-secret-bypass": stripeEmptySecretPredicate,
   // Phase 8.3 Plan 15 Zoom pack (signing_input_format: 'timestamp_dot_body' — Slack signing
   // recipe `v0:${X-Zm-Request-Timestamp}:${rawBody}`). Catalog-parameterized factories
   // reuse the Slack family per plan's "REUSE Slack v0:" directive — no new generic
