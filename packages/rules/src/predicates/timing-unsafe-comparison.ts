@@ -165,12 +165,6 @@ export const auth0TimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
   );
 
-export const datadogTimingUnsafeComparisonPredicate: RulePredicate =
-  createTimingUnsafeComparisonPredicate(
-    "datadog",
-    PROVIDER_CATALOG["datadog"] ?? throwMissing("datadog"),
-  );
-
 export const sentryTimingUnsafeComparisonPredicate: RulePredicate =
   createTimingUnsafeComparisonPredicate(
     "sentry",

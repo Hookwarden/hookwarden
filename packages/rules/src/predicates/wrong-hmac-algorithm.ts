@@ -111,11 +111,6 @@ export const auth0WrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAl
   PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
 );
 
-export const datadogWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
-  "datadog",
-  PROVIDER_CATALOG["datadog"] ?? throwMissing("datadog"),
-);
-
 export const sentryWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
   "sentry",
   PROVIDER_CATALOG["sentry"] ?? throwMissing("sentry"),

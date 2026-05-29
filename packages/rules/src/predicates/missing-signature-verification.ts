@@ -172,12 +172,6 @@ export const auth0MissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
   );
 
-export const datadogMissingSignatureVerificationPredicate: RulePredicate =
-  createMissingSignatureVerificationPredicate(
-    "datadog",
-    PROVIDER_CATALOG["datadog"] ?? throwMissing("datadog"),
-  );
-
 export const sentryMissingSignatureVerificationPredicate: RulePredicate =
   createMissingSignatureVerificationPredicate(
     "sentry",

@@ -759,42 +759,18 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "header-confusion",
     ],
   },
-  // Phase 8.3 Plan 09 — Datadog webhook integration. Clean raw_body / sha256 /
-  // hex fit (closest analog: Linear, Auth0). Dedicated `X-Datadog-Signature`
-  // header — no cross-provider attribution risk. No canonical first-party
-  // webhook-verification SDK; the @datadog/datadog-api-client / datadog_api_client
-  // packages are general API clients, not webhook verifiers. sdk_verify_calls
-  // are narrow plausible function names users might write (Zendesk/Linear/Auth0
-  // pattern). No PHP namespace prefix appended; Datadog PHP detections rely on
-  // language-agnostic hash_hmac + hash_equals shapes already caught by the rules.
-  // [unverified-against-docs] tag recorded in 08.3-09-SUMMARY.md — live Datadog
-  // Webhooks docs page was not fetched in this session; values are pinned
-  // defaults from the plan's `<canonical_provider_metadata>` block.
-  datadog: {
-    signature_header: ["x-datadog-signature"],
-    sdk_packages: ["@datadog/datadog-api-client", "datadog-api-client", "datadog_api_client"],
-    sdk_verify_calls: ["verifyDatadogSignature", "verifyWebhookSignature"],
-    secret_env_prefix: ["DATADOG_WEBHOOK", "DATADOG_SIGNING", "DD_WEBHOOK"],
-    secret_literal_prefix: [],
-    conventional_paths: [
-      "/webhooks/datadog",
-      "/api/webhooks/datadog",
-      "/datadog/webhook",
-      "/datadog/webhooks",
-    ],
-    hmac_algorithm: "sha256",
-    signing_input_format: "raw_body",
-    timestamp_header: null,
-    signature_encoding: "hex",
-    applicable_rules: [
-      "missing-signature-verification",
-      "timing-unsafe-comparison",
-      "raw-body-misuse",
-      "missing-timestamp-check",
-      "wrong-hmac-algorithm",
-      "unreachable-verification",
-    ],
-  },
+  // Phase 8.3 Plan 09 DEFERRED — Datadog Webhooks integration does NOT
+  // natively HMAC-sign outbound payloads (verified 2026-05-30 via Svix's
+  // public webhook review + Datadog's own integration docs which only
+  // document HTTP Basic Auth + OAuth 2.0 authentication, no signature
+  // header). The original Plan 09 catalog entry shipped pinned defaults
+  // from training-data inference and would have FALSE-POSITIVED on every
+  // real Datadog handler. Removed pre-v0.6.0 release per Plan 19 SUMMARY
+  // blocker 1 resolution path (b). Plan 09b backlog: re-model Datadog
+  // as a Postmark-shape Basic-Auth-+-credential-presence rule pack once
+  // authoritative Datadog docs confirm the actual integration shape, or
+  // accept Datadog as out-of-scope for the catalog-parameterized factory
+  // pattern.
   zendesk: {
     signature_header: ["x-zendesk-webhook-signature"],
     sdk_packages: ["node-zendesk", "zenpy", "Zendesk\\API\\"],

@@ -98,12 +98,6 @@ export const auth0MissingTimestampCheckPredicate: RulePredicate =
     PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
   );
 
-export const datadogMissingTimestampCheckPredicate: RulePredicate =
-  createMissingTimestampCheckPredicate(
-    "datadog",
-    PROVIDER_CATALOG["datadog"] ?? throwMissing("datadog"),
-  );
-
 export const sentryMissingTimestampCheckPredicate: RulePredicate =
   createMissingTimestampCheckPredicate(
     "sentry",
