@@ -529,6 +529,44 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
   // the catalog-shape contract and let library-import detection at least fire on
   // codebases that pull in the API SDK. Per Phase 6b research clean-schema fit, no
   // catalog branch needed.
+  // Phase 8.3 Plan 14 — Calendly webhooks. The signature header is comma-separated
+  // `t=<unix>,v1=<hex>` (Stripe-shaped) with the inner HMAC computed over
+  // `${timestamp}.${rawBody}` (Slack-shaped signing recipe). The catalog combines
+  // these primitives: signing_input_format='timestamp_dot_body' with timestamp_header
+  // null because the timestamp lives inside the signature header (`t=...`), not in a
+  // separate header. The dedicated `signature-header-parse-mishandled` rule
+  // (predicate at predicates/calendly-header-parse.ts) catches handlers that don't
+  // parse the comma-separated header into its t= and v1= components — a real bug:
+  // hashing the full header value against bare HMAC or using the entire header as
+  // the comparison target both fail every delivery.
+  // No canonical first-party webhook-verification SDK. [unverified-against-docs]
+  // tag recorded in 08.3-14-SUMMARY.md.
+  calendly: {
+    signature_header: ["calendly-webhook-signature"],
+    sdk_packages: ["@calendly/api", "calendly-python"],
+    sdk_verify_calls: ["verifyCalendlySignature", "verifyWebhookSignature"],
+    secret_env_prefix: ["CALENDLY_WEBHOOK", "CALENDLY_SIGNING"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/calendly",
+      "/api/webhooks/calendly",
+      "/calendly/webhook",
+      "/calendly/webhooks",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "timestamp_dot_body",
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [
+      "missing-signature-verification",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "missing-timestamp-check",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+      "signature-header-parse-mishandled",
+    ],
+  },
   // Phase 8.3 Plan 13 — Notion webhooks. Two-phase auth model: initial
   // verification-token echo (handler must respond with the token sent in the
   // first delivery) plus HMAC-SHA256 hex signed payloads thereafter under

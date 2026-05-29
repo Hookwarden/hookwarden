@@ -1,0 +1,35 @@
+schema_version: 1
+rule_id: calendly/missing-timestamp-check
+provider: calendly
+severity: high
+emits_state: manual-review
+message: |
+  Calendly webhook handler computes HMAC manually but no timestamp
+  tolerance check is reachable from the handler. Calendly embeds the
+  delivery timestamp in the `Calendly-Webhook-Signature` header (`t=<unix>`).
+  Without rejecting deliveries whose timestamp is outside a tolerance
+  window (~5 minutes is conventional), an attacker who captures a single
+  signed webhook can replay it indefinitely.
+
+  Recommended: parse `t=` from `Calendly-Webhook-Signature`, then reject
+  any request where `Math.abs(Date.now() / 1000 - t) > 300` (Node) or
+  `abs(time.time() - int(t)) > 60 * 5` (Python).
+matcher: null
+predicate: calendly-missing-timestamp-check
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://developer.calendly.com/api-docs/EVHvthYDg5Bnc-webhook-signatures
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

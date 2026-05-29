@@ -33,6 +33,7 @@ import type { RulePredicate } from "@hookwarden/engine";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
 import { mailchimpUrlSecretInPathPredicate } from "./mailchimp-url-secret-in-path.js";
 import { bitbucketSignaturePrefixNotStrippedPredicate } from "./bitbucket-signature-prefix.js";
+import { calendlySignatureHeaderParseMishandledPredicate } from "./calendly-header-parse.js";
 import { notionVerificationTokenOnlyPredicate } from "./notion-verification-token-only.js";
 import { pagerdutyMultiSignatureRotationMishandledPredicate } from "./pagerduty-multi-signature.js";
 import { intercomOctokitCrossAttributionPredicate } from "./intercom-octokit-cross-attribution.js";
@@ -56,6 +57,7 @@ import {
   auth0MissingSignatureVerificationPredicate,
   datadogMissingSignatureVerificationPredicate,
   bitbucketMissingSignatureVerificationPredicate,
+  calendlyMissingSignatureVerificationPredicate,
   notionMissingSignatureVerificationPredicate,
   pagerdutyMissingSignatureVerificationPredicate,
   sentryMissingSignatureVerificationPredicate,
@@ -78,6 +80,7 @@ import {
   auth0MissingTimestampCheckPredicate,
   datadogMissingTimestampCheckPredicate,
   bitbucketMissingTimestampCheckPredicate,
+  calendlyMissingTimestampCheckPredicate,
   pagerdutyMissingTimestampCheckPredicate,
   sentryMissingTimestampCheckPredicate,
   docusignMissingTimestampCheckPredicate,
@@ -96,6 +99,7 @@ import {
   auth0RawBodyMisusePredicate,
   datadogRawBodyMisusePredicate,
   bitbucketRawBodyMisusePredicate,
+  calendlyRawBodyMisusePredicate,
   notionRawBodyMisusePredicate,
   pagerdutyRawBodyMisusePredicate,
   sentryRawBodyMisusePredicate,
@@ -119,6 +123,7 @@ import {
   auth0TimingUnsafeComparisonPredicate,
   datadogTimingUnsafeComparisonPredicate,
   bitbucketTimingUnsafeComparisonPredicate,
+  calendlyTimingUnsafeComparisonPredicate,
   notionTimingUnsafeComparisonPredicate,
   pagerdutyTimingUnsafeComparisonPredicate,
   sentryTimingUnsafeComparisonPredicate,
@@ -140,6 +145,7 @@ import {
   auth0UnreachableVerificationPredicate,
   datadogUnreachableVerificationPredicate,
   bitbucketUnreachableVerificationPredicate,
+  calendlyUnreachableVerificationPredicate,
   notionUnreachableVerificationPredicate,
   pagerdutyUnreachableVerificationPredicate,
   sentryUnreachableVerificationPredicate,
@@ -162,6 +168,7 @@ import {
   auth0WrongHmacAlgorithmPredicate,
   datadogWrongHmacAlgorithmPredicate,
   bitbucketWrongHmacAlgorithmPredicate,
+  calendlyWrongHmacAlgorithmPredicate,
   notionWrongHmacAlgorithmPredicate,
   pagerdutyWrongHmacAlgorithmPredicate,
   sentryWrongHmacAlgorithmPredicate,
@@ -396,6 +403,19 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "notion-raw-body-misuse": notionRawBodyMisusePredicate,
   "notion-wrong-hmac-algorithm": notionWrongHmacAlgorithmPredicate,
   "notion-unreachable-verification": notionUnreachableVerificationPredicate,
+  // Phase 8.3 Plan 14 Calendly pack (signing_input_format: 'timestamp_dot_body' — Slack
+  // signing recipe + Stripe-shaped comma-separated header `t=<unix>,v1=<hex>`). NEW rule
+  // `signature-header-parse-mishandled` (predicate at predicates/calendly-header-parse.ts)
+  // catches handlers that read the signature header + do manual HMAC but never parse the
+  // comma-separated `t=`/`v1=` components — likely compare the full header value or hash
+  // the body alone without the `${timestamp}.` prefix. [unverified-against-docs] tag recorded.
+  "calendly-missing-signature-verification": calendlyMissingSignatureVerificationPredicate,
+  "calendly-timing-unsafe-comparison": calendlyTimingUnsafeComparisonPredicate,
+  "calendly-raw-body-misuse": calendlyRawBodyMisusePredicate,
+  "calendly-missing-timestamp-check": calendlyMissingTimestampCheckPredicate,
+  "calendly-wrong-hmac-algorithm": calendlyWrongHmacAlgorithmPredicate,
+  "calendly-unreachable-verification": calendlyUnreachableVerificationPredicate,
+  "calendly-signature-header-parse-mishandled": calendlySignatureHeaderParseMishandledPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
   // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
   // detection only; hand-rolled structural AST detection deferred to Plan 16b.

@@ -112,6 +112,11 @@ export const notionRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePr
   PROVIDER_CATALOG["notion"] ?? throwMissing("notion"),
 );
 
+export const calendlyRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "calendly",
+  PROVIDER_CATALOG["calendly"] ?? throwMissing("calendly"),
+);
+
 export const hubspotRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
   "hubspot",
   PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),

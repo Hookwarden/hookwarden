@@ -122,6 +122,12 @@ export const bitbucketMissingTimestampCheckPredicate: RulePredicate =
     PROVIDER_CATALOG["bitbucket"] ?? throwMissing("bitbucket"),
   );
 
+export const calendlyMissingTimestampCheckPredicate: RulePredicate =
+  createMissingTimestampCheckPredicate(
+    "calendly",
+    PROVIDER_CATALOG["calendly"] ?? throwMissing("calendly"),
+  );
+
 export const hubspotMissingTimestampCheckPredicate: RulePredicate =
   createMissingTimestampCheckPredicate(
     "hubspot",

@@ -205,6 +205,12 @@ export const notionMissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["notion"] ?? throwMissing("notion"),
   );
 
+export const calendlyMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "calendly",
+    PROVIDER_CATALOG["calendly"] ?? throwMissing("calendly"),
+  );
+
 // HubSpot's missing-signature-verification dispatches through the
 // CUSTOM_SIGNING_PREDICATES['hubspot'] slot (catalog signing_input_format: 'custom').
 // The factory below is a thin wrapper to keep the per-provider export shape

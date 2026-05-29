@@ -195,6 +195,12 @@ export const notionTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["notion"] ?? throwMissing("notion"),
   );
 
+export const calendlyTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "calendly",
+    PROVIDER_CATALOG["calendly"] ?? throwMissing("calendly"),
+  );
+
 export const hubspotTimingUnsafeComparisonPredicate: RulePredicate =
   createTimingUnsafeComparisonPredicate(
     "hubspot",

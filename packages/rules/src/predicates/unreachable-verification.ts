@@ -142,6 +142,12 @@ export const notionUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["notion"] ?? throwMissing("notion"),
   );
 
+export const calendlyUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "calendly",
+    PROVIDER_CATALOG["calendly"] ?? throwMissing("calendly"),
+  );
+
 export const hubspotUnreachableVerificationPredicate: RulePredicate =
   createUnreachableVerificationPredicate(
     "hubspot",
