@@ -1,0 +1,33 @@
+schema_version: 1
+rule_id: hubspot/unreachable-verification
+provider: hubspot
+severity: high
+emits_state: manual-review
+message: |
+  HubSpot v3 webhook handler imports a crypto module (`node:crypto`,
+  `hashlib`/`hmac`, `hash_hmac`) but the manual HMAC verification path
+  is not reachable from the handler entry within 3 hops. The verification
+  may be conditional, dynamically dispatched, or in dead code — static
+  analysis cannot determine whether every request goes through it.
+
+  Recommended: review the handler's call graph manually and confirm the
+  verification path is always taken.
+matcher: null
+predicate: hubspot-unreachable-verification
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://developers.hubspot.com/docs/api/webhooks/validating-requests
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

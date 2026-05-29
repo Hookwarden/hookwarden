@@ -87,6 +87,11 @@ export const auth0RawBodyMisusePredicate: RulePredicate = createRawBodyMisusePre
   PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
 );
 
+export const hubspotRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "hubspot",
+  PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),
+);
+
 export const standardwebhooksRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
   "standardwebhooks",
   PROVIDER_CATALOG["standardwebhooks"] ?? throwMissing("standardwebhooks"),

@@ -112,6 +112,12 @@ export const auth0UnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
   );
 
+export const hubspotUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "hubspot",
+    PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),
+  );
+
 export const standardwebhooksUnreachableVerificationPredicate: RulePredicate =
   createUnreachableVerificationPredicate(
     "standardwebhooks",

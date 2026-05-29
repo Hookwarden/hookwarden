@@ -111,6 +111,11 @@ export const auth0WrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAl
   PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
 );
 
+export const hubspotWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
+  "hubspot",
+  PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),
+);
+
 export const standardwebhooksWrongHmacAlgorithmPredicate: RulePredicate =
   createWrongHmacAlgorithmPredicate(
     "standardwebhooks",

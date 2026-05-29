@@ -1,0 +1,36 @@
+schema_version: 1
+rule_id: hubspot/missing-timestamp-check
+provider: hubspot
+severity: high
+emits_state: manual-review
+message: |
+  HubSpot v3 webhook handler computes HMAC manually but no timestamp
+  tolerance check is reachable from the handler. HubSpot v3 includes the
+  timestamp in the canonical string (`X-HubSpot-Request-Timestamp`
+  header) and recommends rejecting deliveries whose timestamp is more
+  than 5 minutes from the current time — without this check, an attacker
+  who captures one signed webhook can replay it indefinitely.
+
+  Fix: read `X-HubSpot-Request-Timestamp`, parse to integer (milliseconds
+  per HubSpot v3 spec), and reject any request where
+  `Math.abs(Date.now() - ts) > 5 * 60 * 1000` (Node) or
+  `abs(time.time() * 1000 - int(ts)) > 5 * 60 * 1000` (Python).
+matcher: null
+predicate: hubspot-missing-timestamp-check
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://developers.hubspot.com/docs/api/webhooks/validating-requests
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

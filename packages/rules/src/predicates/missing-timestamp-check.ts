@@ -98,6 +98,12 @@ export const auth0MissingTimestampCheckPredicate: RulePredicate =
     PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
   );
 
+export const hubspotMissingTimestampCheckPredicate: RulePredicate =
+  createMissingTimestampCheckPredicate(
+    "hubspot",
+    PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),
+  );
+
 export const standardwebhooksMissingTimestampCheckPredicate: RulePredicate =
   createMissingTimestampCheckPredicate(
     "standardwebhooks",

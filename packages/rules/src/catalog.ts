@@ -267,6 +267,41 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
     ],
   },
+  // Phase 8.3 Plan 05 — HubSpot v3 webhooks. signing_input_format: 'custom' —
+  // canonical-string is `${httpMethod}${requestURI}${rawBody}${timestamp}` per
+  // HubSpot v3 docs, base64-encoded HMAC-SHA256 under `X-HubSpot-Signature-v3`.
+  // Dispatch through CUSTOM_SIGNING_PREDICATES['hubspot'] at
+  // predicates/custom/hubspot-signing.ts (D-92, Twilio analog). The "did the
+  // handler attempt to verify at all" question is what the custom predicate
+  // answers; the concatenation-order failure mode is the wrong-hmac-algorithm +
+  // raw-body-misuse rules' responsibility. `@hubspot/api-client` is the
+  // general SDK (not a webhook verifier), so sdk_verify_calls are narrow
+  // plausible names.
+  hubspot: {
+    signature_header: ["x-hubspot-signature-v3"],
+    sdk_packages: ["@hubspot/api-client", "hubspot", "hubspot3"],
+    sdk_verify_calls: ["verifyHubSpotSignature", "verifyWebhookSignature"],
+    secret_env_prefix: ["HUBSPOT_WEBHOOK", "HUBSPOT_CLIENT_SECRET", "HUBSPOT_SIGNING"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/hubspot",
+      "/api/webhooks/hubspot",
+      "/hubspot/webhook",
+      "/hubspot/webhooks",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "custom",
+    timestamp_header: "x-hubspot-request-timestamp",
+    signature_encoding: "base64",
+    applicable_rules: [
+      "missing-signature-verification",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "missing-timestamp-check",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+    ],
+  },
   // Phase 8.3 Plan 06 — Auth0 Log Streams webhooks. Clean raw_body / sha256 /
   // base64 fit (closest analog: Shopify, DocuSign). Dedicated `Auth0-Signature`
   // header per pinned default (per Auth0 Log Streams docs — pinned default

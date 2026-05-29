@@ -24,6 +24,7 @@
 // imports CUSTOM_SIGNING_PREDICATES from missing-signature-verification.js.
 import "./custom/twilio-signing.js";
 import "./custom/standardwebhooks-signing.js";
+import "./custom/hubspot-signing.js";
 
 import type { RulePredicate } from "@hookwarden/engine";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
@@ -42,6 +43,7 @@ import {
   auth0MissingSignatureVerificationPredicate,
   docusignMissingSignatureVerificationPredicate,
   githubMissingSignatureVerificationPredicate,
+  hubspotMissingSignatureVerificationPredicate,
   intercomMissingSignatureVerificationPredicate,
   linearMissingSignatureVerificationPredicate,
   shopifyMissingSignatureVerificationPredicate,
@@ -56,6 +58,7 @@ import {
   auth0MissingTimestampCheckPredicate,
   docusignMissingTimestampCheckPredicate,
   githubMissingTimestampCheckPredicate,
+  hubspotMissingTimestampCheckPredicate,
   intercomMissingTimestampCheckPredicate,
   linearMissingTimestampCheckPredicate,
   shopifyMissingTimestampCheckPredicate,
@@ -69,6 +72,7 @@ import {
   auth0RawBodyMisusePredicate,
   docusignRawBodyMisusePredicate,
   githubRawBodyMisusePredicate,
+  hubspotRawBodyMisusePredicate,
   intercomRawBodyMisusePredicate,
   linearRawBodyMisusePredicate,
   shopifyRawBodyMisusePredicate,
@@ -83,6 +87,7 @@ import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-un
 import {
   auth0TimingUnsafeComparisonPredicate,
   docusignTimingUnsafeComparisonPredicate,
+  hubspotTimingUnsafeComparisonPredicate,
   intercomTimingUnsafeComparisonPredicate,
   linearTimingUnsafeComparisonPredicate,
   shopifyTimingUnsafeComparisonPredicate,
@@ -97,6 +102,7 @@ import {
   auth0UnreachableVerificationPredicate,
   docusignUnreachableVerificationPredicate,
   githubUnreachableVerificationPredicate,
+  hubspotUnreachableVerificationPredicate,
   intercomUnreachableVerificationPredicate,
   linearUnreachableVerificationPredicate,
   shopifyUnreachableVerificationPredicate,
@@ -111,6 +117,7 @@ import {
   auth0WrongHmacAlgorithmPredicate,
   docusignWrongHmacAlgorithmPredicate,
   githubWrongHmacAlgorithmPredicate,
+  hubspotWrongHmacAlgorithmPredicate,
   intercomWrongHmacAlgorithmPredicate,
   linearWrongHmacAlgorithmPredicate,
   shopifyWrongHmacAlgorithmPredicate,
@@ -227,6 +234,16 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "auth0-missing-timestamp-check": auth0MissingTimestampCheckPredicate,
   "auth0-wrong-hmac-algorithm": auth0WrongHmacAlgorithmPredicate,
   "auth0-unreachable-verification": auth0UnreachableVerificationPredicate,
+  // Phase 8.3 Plan 05 HubSpot v3 pack (signing_input_format: 'custom' — dispatches
+  // via D-92 custom slot at predicates/custom/hubspot-signing.ts). Canonical-string
+  // is `${httpMethod}${requestURI}${rawBody}${timestamp}` under `X-HubSpot-Signature-v3`,
+  // base64-encoded HMAC-SHA256.
+  "hubspot-missing-signature-verification": hubspotMissingSignatureVerificationPredicate,
+  "hubspot-timing-unsafe-comparison": hubspotTimingUnsafeComparisonPredicate,
+  "hubspot-raw-body-misuse": hubspotRawBodyMisusePredicate,
+  "hubspot-missing-timestamp-check": hubspotMissingTimestampCheckPredicate,
+  "hubspot-wrong-hmac-algorithm": hubspotWrongHmacAlgorithmPredicate,
+  "hubspot-unreachable-verification": hubspotUnreachableVerificationPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
   // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
   // detection only; hand-rolled structural AST detection deferred to Plan 16b.

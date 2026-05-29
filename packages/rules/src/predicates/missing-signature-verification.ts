@@ -172,6 +172,16 @@ export const auth0MissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
   );
 
+// HubSpot's missing-signature-verification dispatches through the
+// CUSTOM_SIGNING_PREDICATES['hubspot'] slot (catalog signing_input_format: 'custom').
+// The factory below is a thin wrapper to keep the per-provider export shape
+// consistent across catalog/index.ts registration.
+export const hubspotMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "hubspot",
+    PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),
+  );
+
 export const standardwebhooksMissingSignatureVerificationPredicate: RulePredicate =
   createMissingSignatureVerificationPredicate(
     "standardwebhooks",
