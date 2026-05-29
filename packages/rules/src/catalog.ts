@@ -529,6 +529,43 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
   // the catalog-shape contract and let library-import detection at least fire on
   // codebases that pull in the API SDK. Per Phase 6b research clean-schema fit, no
   // catalog branch needed.
+  // Phase 8.3 Plan 13 — Notion webhooks. Two-phase auth model: initial
+  // verification-token echo (handler must respond with the token sent in the
+  // first delivery) plus HMAC-SHA256 hex signed payloads thereafter under
+  // `X-Notion-Signature`. signing_input_format: 'custom' dispatches to
+  // CUSTOM_SIGNING_PREDICATES['notion'] at predicates/custom/notion-signing.ts
+  // (D-92, sixth occupant). Dedicated `verification-token-only` rule (predicate
+  // at predicates/notion-verification-token-only.ts) catches handlers that
+  // read X-Notion-Signature but never compute HMAC — likely comparing the
+  // signature header against a stored verification token rather than verifying it.
+  // No canonical first-party webhook-verification SDK; @notionhq/client +
+  // notion-client + notion-sdk-py are API clients. [unverified-against-docs] tag
+  // recorded in 08.3-13-SUMMARY.md.
+  notion: {
+    signature_header: ["x-notion-signature"],
+    sdk_packages: ["@notionhq/client", "notion-client", "notion-sdk-py", "Notion\\"],
+    sdk_verify_calls: ["verifyNotionSignature", "verifyWebhookSignature"],
+    secret_env_prefix: ["NOTION_WEBHOOK", "NOTION_SIGNING", "NOTION_VERIFICATION_TOKEN"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/notion",
+      "/api/webhooks/notion",
+      "/notion/webhook",
+      "/notion/webhooks",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "custom",
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [
+      "missing-signature-verification",
+      "verification-token-only",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+    ],
+  },
   // Phase 8.3 Plan 12 — Bitbucket Cloud webhooks. Clean raw_body / sha256 / hex
   // fit for the catalog shape, BUT (like GitHub-legacy) the header value is
   // formatted as `sha256=<hex>` — the `sha256=` prefix MUST be stripped before

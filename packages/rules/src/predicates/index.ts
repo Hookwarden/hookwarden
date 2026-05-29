@@ -27,11 +27,13 @@ import "./custom/standardwebhooks-signing.js";
 import "./custom/hubspot-signing.js";
 import "./custom/mailchimp-url-secret.js";
 import "./custom/postmark-signing.js";
+import "./custom/notion-signing.js";
 
 import type { RulePredicate } from "@hookwarden/engine";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
 import { mailchimpUrlSecretInPathPredicate } from "./mailchimp-url-secret-in-path.js";
 import { bitbucketSignaturePrefixNotStrippedPredicate } from "./bitbucket-signature-prefix.js";
+import { notionVerificationTokenOnlyPredicate } from "./notion-verification-token-only.js";
 import { pagerdutyMultiSignatureRotationMishandledPredicate } from "./pagerduty-multi-signature.js";
 import { intercomOctokitCrossAttributionPredicate } from "./intercom-octokit-cross-attribution.js";
 import { sentryHeaderConfusionPredicate } from "./sentry-header-confusion.js";
@@ -54,6 +56,7 @@ import {
   auth0MissingSignatureVerificationPredicate,
   datadogMissingSignatureVerificationPredicate,
   bitbucketMissingSignatureVerificationPredicate,
+  notionMissingSignatureVerificationPredicate,
   pagerdutyMissingSignatureVerificationPredicate,
   sentryMissingSignatureVerificationPredicate,
   docusignMissingSignatureVerificationPredicate,
@@ -93,6 +96,7 @@ import {
   auth0RawBodyMisusePredicate,
   datadogRawBodyMisusePredicate,
   bitbucketRawBodyMisusePredicate,
+  notionRawBodyMisusePredicate,
   pagerdutyRawBodyMisusePredicate,
   sentryRawBodyMisusePredicate,
   docusignRawBodyMisusePredicate,
@@ -115,6 +119,7 @@ import {
   auth0TimingUnsafeComparisonPredicate,
   datadogTimingUnsafeComparisonPredicate,
   bitbucketTimingUnsafeComparisonPredicate,
+  notionTimingUnsafeComparisonPredicate,
   pagerdutyTimingUnsafeComparisonPredicate,
   sentryTimingUnsafeComparisonPredicate,
   docusignTimingUnsafeComparisonPredicate,
@@ -135,6 +140,7 @@ import {
   auth0UnreachableVerificationPredicate,
   datadogUnreachableVerificationPredicate,
   bitbucketUnreachableVerificationPredicate,
+  notionUnreachableVerificationPredicate,
   pagerdutyUnreachableVerificationPredicate,
   sentryUnreachableVerificationPredicate,
   docusignUnreachableVerificationPredicate,
@@ -156,6 +162,7 @@ import {
   auth0WrongHmacAlgorithmPredicate,
   datadogWrongHmacAlgorithmPredicate,
   bitbucketWrongHmacAlgorithmPredicate,
+  notionWrongHmacAlgorithmPredicate,
   pagerdutyWrongHmacAlgorithmPredicate,
   sentryWrongHmacAlgorithmPredicate,
   docusignWrongHmacAlgorithmPredicate,
@@ -376,6 +383,19 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "bitbucket-wrong-hmac-algorithm": bitbucketWrongHmacAlgorithmPredicate,
   "bitbucket-unreachable-verification": bitbucketUnreachableVerificationPredicate,
   "bitbucket-signature-prefix-not-stripped": bitbucketSignaturePrefixNotStrippedPredicate,
+  // Phase 8.3 Plan 13 Notion pack (signing_input_format: 'custom' — dispatches via D-92
+  // custom slot at predicates/custom/notion-signing.ts; sixth occupant). NEW rule kind
+  // `verification-token-only` — Notion's two-phase auth (verification-token echo on setup +
+  // HMAC signed payloads thereafter); handlers that read X-Notion-Signature but never compute
+  // HMAC likely compare the signature against a stored verification token or trust it
+  // unconditionally. Predicate at predicates/notion-verification-token-only.ts emits
+  // manual-review on this pattern. [unverified-against-docs] tag recorded.
+  "notion-missing-signature-verification": notionMissingSignatureVerificationPredicate,
+  "notion-verification-token-only": notionVerificationTokenOnlyPredicate,
+  "notion-timing-unsafe-comparison": notionTimingUnsafeComparisonPredicate,
+  "notion-raw-body-misuse": notionRawBodyMisusePredicate,
+  "notion-wrong-hmac-algorithm": notionWrongHmacAlgorithmPredicate,
+  "notion-unreachable-verification": notionUnreachableVerificationPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
   // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
   // detection only; hand-rolled structural AST detection deferred to Plan 16b.

@@ -189,6 +189,12 @@ export const bitbucketTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["bitbucket"] ?? throwMissing("bitbucket"),
   );
 
+export const notionTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "notion",
+    PROVIDER_CATALOG["notion"] ?? throwMissing("notion"),
+  );
+
 export const hubspotTimingUnsafeComparisonPredicate: RulePredicate =
   createTimingUnsafeComparisonPredicate(
     "hubspot",

@@ -136,6 +136,12 @@ export const bitbucketUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["bitbucket"] ?? throwMissing("bitbucket"),
   );
 
+export const notionUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "notion",
+    PROVIDER_CATALOG["notion"] ?? throwMissing("notion"),
+  );
+
 export const hubspotUnreachableVerificationPredicate: RulePredicate =
   createUnreachableVerificationPredicate(
     "hubspot",

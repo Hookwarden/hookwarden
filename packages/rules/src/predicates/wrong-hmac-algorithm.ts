@@ -133,6 +133,11 @@ export const bitbucketWrongHmacAlgorithmPredicate: RulePredicate =
     PROVIDER_CATALOG["bitbucket"] ?? throwMissing("bitbucket"),
   );
 
+export const notionWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
+  "notion",
+  PROVIDER_CATALOG["notion"] ?? throwMissing("notion"),
+);
+
 export const hubspotWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
   "hubspot",
   PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),

@@ -107,6 +107,11 @@ export const bitbucketRawBodyMisusePredicate: RulePredicate = createRawBodyMisus
   PROVIDER_CATALOG["bitbucket"] ?? throwMissing("bitbucket"),
 );
 
+export const notionRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "notion",
+  PROVIDER_CATALOG["notion"] ?? throwMissing("notion"),
+);
+
 export const hubspotRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
   "hubspot",
   PROVIDER_CATALOG["hubspot"] ?? throwMissing("hubspot"),

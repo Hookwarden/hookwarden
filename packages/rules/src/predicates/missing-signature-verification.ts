@@ -196,6 +196,15 @@ export const bitbucketMissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["bitbucket"] ?? throwMissing("bitbucket"),
   );
 
+// Notion's missing-signature-verification dispatches through the
+// CUSTOM_SIGNING_PREDICATES['notion'] slot (catalog signing_input_format: 'custom').
+// The factory wrapper keeps the per-provider export shape consistent.
+export const notionMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "notion",
+    PROVIDER_CATALOG["notion"] ?? throwMissing("notion"),
+  );
+
 // HubSpot's missing-signature-verification dispatches through the
 // CUSTOM_SIGNING_PREDICATES['hubspot'] slot (catalog signing_input_format: 'custom').
 // The factory below is a thin wrapper to keep the per-provider export shape
