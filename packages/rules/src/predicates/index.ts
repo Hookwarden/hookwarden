@@ -41,6 +41,7 @@ import {
   squareMissingSignatureVerificationPredicate,
   stripeMissingSignatureVerificationPredicate,
   twilioMissingSignatureVerificationPredicate,
+  zendeskMissingSignatureVerificationPredicate,
 } from "./missing-signature-verification.js";
 import {
   githubMissingTimestampCheckPredicate,
@@ -48,6 +49,7 @@ import {
   slackMissingTimestampCheckPredicate,
   stripeMissingTimestampCheckPredicate,
   twilioMissingTimestampCheckPredicate,
+  zendeskMissingTimestampCheckPredicate,
 } from "./missing-timestamp-check.js";
 import {
   githubRawBodyMisusePredicate,
@@ -56,6 +58,7 @@ import {
   squareRawBodyMisusePredicate,
   stripeRawBodyMisusePredicate,
   twilioRawBodyMisusePredicate,
+  zendeskRawBodyMisusePredicate,
 } from "./raw-body-misuse.js";
 import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-unsafe-comparison.js";
 import {
@@ -64,6 +67,7 @@ import {
   squareTimingUnsafeComparisonPredicate,
   stripeTimingUnsafeComparisonPredicate,
   twilioTimingUnsafeComparisonPredicate,
+  zendeskTimingUnsafeComparisonPredicate,
 } from "./timing-unsafe-comparison.js";
 import {
   githubUnreachableVerificationPredicate,
@@ -72,6 +76,7 @@ import {
   squareUnreachableVerificationPredicate,
   stripeUnreachableVerificationPredicate,
   twilioUnreachableVerificationPredicate,
+  zendeskUnreachableVerificationPredicate,
 } from "./unreachable-verification.js";
 import {
   githubWrongHmacAlgorithmPredicate,
@@ -80,6 +85,7 @@ import {
   squareWrongHmacAlgorithmPredicate,
   stripeWrongHmacAlgorithmPredicate,
   twilioWrongHmacAlgorithmPredicate,
+  zendeskWrongHmacAlgorithmPredicate,
 } from "./wrong-hmac-algorithm.js";
 
 export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
@@ -139,4 +145,12 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   // reachability is bounded to babel + tree-sitter-python in v1).
   "stripe-php-timing-unsafe-comparison": stripePhpTimingUnsafeComparisonPredicate,
   "github-php-timing-safe-equal": githubPhpTimingSafeEqualPredicate,
+  // Phase 8.3 Plan 01 Zendesk pack (signing_input_format: 'timestamp_dot_body' — Slack analog).
+  // No library-verified rule: Zendesk has no canonical first-party webhook SDK.
+  "zendesk-missing-signature-verification": zendeskMissingSignatureVerificationPredicate,
+  "zendesk-timing-unsafe-comparison": zendeskTimingUnsafeComparisonPredicate,
+  "zendesk-raw-body-misuse": zendeskRawBodyMisusePredicate,
+  "zendesk-missing-timestamp-check": zendeskMissingTimestampCheckPredicate,
+  "zendesk-wrong-hmac-algorithm": zendeskWrongHmacAlgorithmPredicate,
+  "zendesk-unreachable-verification": zendeskUnreachableVerificationPredicate,
 };

@@ -135,6 +135,12 @@ export const squareTimingUnsafeComparisonPredicate: RulePredicate =
     PROVIDER_CATALOG["square"] ?? throwMissing("square"),
   );
 
+export const zendeskTimingUnsafeComparisonPredicate: RulePredicate =
+  createTimingUnsafeComparisonPredicate(
+    "zendesk",
+    PROVIDER_CATALOG["zendesk"] ?? throwMissing("zendesk"),
+  );
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

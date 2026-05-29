@@ -62,6 +62,11 @@ export const squareRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePr
   PROVIDER_CATALOG["square"] ?? throwMissing("square"),
 );
 
+export const zendeskRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "zendesk",
+  PROVIDER_CATALOG["zendesk"] ?? throwMissing("zendesk"),
+);
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

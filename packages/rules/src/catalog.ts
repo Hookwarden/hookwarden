@@ -226,4 +226,39 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "library-verified",
     ],
   },
+  // Phase 8.3 Plan 01 — Zendesk Connect webhooks. Same signing scheme as Slack
+  // (timestamp_dot_body, sha256, base64 — `${timestamp}${rawBody}` HMAC). No canonical
+  // first-party webhook SDK; Zendesk docs ship inline HMAC samples. The `sdk_packages`
+  // entries below are Zendesk's general API SDKs (NOT webhook-specific) — they satisfy
+  // the catalog-shape contract and let library-import detection at least fire on
+  // codebases that pull in the API SDK. Per Phase 6b research clean-schema fit, no
+  // catalog branch needed.
+  zendesk: {
+    signature_header: ["x-zendesk-webhook-signature"],
+    sdk_packages: ["node-zendesk", "zenpy", "Zendesk\\API\\"],
+    // No canonical webhook verifier; these are plausible function names users might write
+    // when wrapping verification. They are NOT exported by the listed SDKs — kept narrow
+    // to avoid false-positive library-verified signals on unrelated `verify()` calls.
+    sdk_verify_calls: ["verifyZendeskSignature", "verifyWebhookSignature"],
+    secret_env_prefix: ["ZENDESK_WEBHOOK", "ZENDESK_SIGNING"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/zendesk",
+      "/api/webhooks/zendesk",
+      "/zendesk/webhook",
+      "/zendesk/webhooks",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "timestamp_dot_body",
+    timestamp_header: "x-zendesk-webhook-signature-timestamp",
+    signature_encoding: "base64",
+    applicable_rules: [
+      "missing-signature-verification",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "missing-timestamp-check",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+    ],
+  },
 };

@@ -142,6 +142,12 @@ export const squareMissingSignatureVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["square"] ?? throwMissing("square"),
   );
 
+export const zendeskMissingSignatureVerificationPredicate: RulePredicate =
+  createMissingSignatureVerificationPredicate(
+    "zendesk",
+    PROVIDER_CATALOG["zendesk"] ?? throwMissing("zendesk"),
+  );
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }

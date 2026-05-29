@@ -82,6 +82,12 @@ export const squareUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["square"] ?? throwMissing("square"),
   );
 
+export const zendeskUnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "zendesk",
+    PROVIDER_CATALOG["zendesk"] ?? throwMissing("zendesk"),
+  );
+
 function throwMissing(provider: string): never {
   throw new Error(`PROVIDER_CATALOG entry for '${provider}' is missing`);
 }
