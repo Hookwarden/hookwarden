@@ -5,9 +5,9 @@ cli, github-action) live in each package's own `CHANGELOG.md`.
 
 ## 0.6.0
 
-### 15 new provider rule packs — effective coverage 9 → ~31
+### 14 new provider rule packs — effective coverage 9 → ~30
 
-`hookwarden scan` now ships rule packs for fifteen additional providers
+`hookwarden scan` now ships rule packs for fourteen additional providers
 across four waves of Phase 8.3. Each pack is a catalog entry + five-or-more
 catalog-parameterized rules + provider-specific tests across JS/TS, Python,
 and PHP. Six of the packs include a dedicated provider-specific
@@ -18,7 +18,7 @@ catalog-parameterized factories can't express on their own.
 |---|---|---|
 | 1 | Zendesk, DocuSign, Intercom, Linear | Intercom `octokit-cross-attribution` (later retrofit — flags `@octokit/webhooks` usage on Intercom's shared `X-Hub-Signature` header) |
 | 2 | HubSpot, Auth0, Mailchimp, Postmark | HubSpot D-92 custom-signing slot (canonical `${method}${uri}${body}${ts}`), Mailchimp `url-secret-in-path` rule kind, Postmark Basic Auth + IP allowlist auth model |
-| 3 | Datadog, Sentry, PagerDuty, Bitbucket | PagerDuty `multi-signature-rotation-mishandled` (catches handlers that don't iterate `v1=<hex>,v1=<hex>` rotation tokens), Bitbucket `signature-prefix-not-stripped` (catches handlers that compare `sha256=<hex>` against bare HMAC), Sentry `header-confusion` (Sentry-Hook-Resource vs Sentry-Hook-Signature) |
+| 3 | Sentry, PagerDuty, Bitbucket | PagerDuty `multi-signature-rotation-mishandled` (catches handlers that don't iterate `v1=<hex>,v1=<hex>` rotation tokens), Bitbucket `signature-prefix-not-stripped` (catches handlers that compare `sha256=<hex>` against bare HMAC), Sentry `header-confusion` (Sentry-Hook-Resource vs Sentry-Hook-Signature) |
 | 4 | Notion, Calendly, Zoom | Notion D-92 sixth-occupant custom slot + `verification-token-only` rule, Calendly `signature-header-parse-mishandled` (comma-separated `t=<unix>,v1=<hex>` parse), Zoom `url-validation-only` rule |
 
 Three providers share `X-Hub-Signature` literally (github + intercom +
@@ -76,7 +76,19 @@ The Astro Starlight `/cves/` route (per-CVE detail pages + index) is
 deferred to a follow-up plan in line with the public web presence's
 own ship schedule.
 
-### Test count: 517 → 700
+### Datadog deferred to a follow-up
+
+Plan 19's pre-push live-doc verification surfaced that Datadog Webhooks
+integration does NOT natively HMAC-sign outbound payloads (Datadog docs
+document HTTP Basic Auth + OAuth 2.0 only; Svix's public webhook review
+of Datadog confirms the same). The Plan 09 rule pack — authored from
+training-data pinned defaults — would have false-positived on every
+real Datadog handler, so it's been removed from v0.6.0 entirely. A
+follow-up plan will re-model Datadog as a Basic-Auth + credential-presence
+rule pack (Postmark shape) once the integration surface is authoritatively
+documented.
+
+### Test count: 517 → 677
 
 The rule pack gains 183 new predicate-level tests across the Wave 3 + Wave 4
 work. Every provider-specific bug-pattern rule carries its own independence
