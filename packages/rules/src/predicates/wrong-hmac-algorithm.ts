@@ -106,6 +106,11 @@ export const docusignWrongHmacAlgorithmPredicate: RulePredicate = createWrongHma
   PROVIDER_CATALOG["docusign"] ?? throwMissing("docusign"),
 );
 
+export const auth0WrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
+  "auth0",
+  PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
+);
+
 export const standardwebhooksWrongHmacAlgorithmPredicate: RulePredicate =
   createWrongHmacAlgorithmPredicate(
     "standardwebhooks",

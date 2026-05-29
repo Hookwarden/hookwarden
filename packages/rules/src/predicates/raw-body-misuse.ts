@@ -82,6 +82,11 @@ export const docusignRawBodyMisusePredicate: RulePredicate = createRawBodyMisuse
   PROVIDER_CATALOG["docusign"] ?? throwMissing("docusign"),
 );
 
+export const auth0RawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
+  "auth0",
+  PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
+);
+
 export const standardwebhooksRawBodyMisusePredicate: RulePredicate = createRawBodyMisusePredicate(
   "standardwebhooks",
   PROVIDER_CATALOG["standardwebhooks"] ?? throwMissing("standardwebhooks"),

@@ -1,0 +1,35 @@
+schema_version: 1
+rule_id: auth0/missing-timestamp-check
+provider: auth0
+severity: high
+emits_state: manual-review
+message: |
+  Auth0 Log Streams webhook handler computes HMAC manually but no timestamp
+  tolerance or delivery-ID dedup check is reachable from the handler.
+  Auth0 Log Streams does not send a dedicated timestamp header —
+  applications should dedupe by the log event identifiers in the payload
+  (each log object has a `_id`/`date` field) to avoid indefinite replays
+  of a captured signed delivery.
+
+  Recommended: extract a unique event identifier from the log batch,
+  persist it (e.g. Redis SETNX with a 10-minute TTL), and reject any
+  request whose identifier has already been processed.
+matcher: null
+predicate: auth0-missing-timestamp-check
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://auth0.com/docs/customize/log-streams/event-filtering
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

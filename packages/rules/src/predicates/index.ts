@@ -39,6 +39,7 @@ import {
   twilioLibraryVerifiedPredicate,
 } from "./library-verified-recognition.js";
 import {
+  auth0MissingSignatureVerificationPredicate,
   docusignMissingSignatureVerificationPredicate,
   githubMissingSignatureVerificationPredicate,
   intercomMissingSignatureVerificationPredicate,
@@ -52,6 +53,7 @@ import {
   zendeskMissingSignatureVerificationPredicate,
 } from "./missing-signature-verification.js";
 import {
+  auth0MissingTimestampCheckPredicate,
   docusignMissingTimestampCheckPredicate,
   githubMissingTimestampCheckPredicate,
   intercomMissingTimestampCheckPredicate,
@@ -64,6 +66,7 @@ import {
   zendeskMissingTimestampCheckPredicate,
 } from "./missing-timestamp-check.js";
 import {
+  auth0RawBodyMisusePredicate,
   docusignRawBodyMisusePredicate,
   githubRawBodyMisusePredicate,
   intercomRawBodyMisusePredicate,
@@ -78,6 +81,7 @@ import {
 } from "./raw-body-misuse.js";
 import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-unsafe-comparison.js";
 import {
+  auth0TimingUnsafeComparisonPredicate,
   docusignTimingUnsafeComparisonPredicate,
   intercomTimingUnsafeComparisonPredicate,
   linearTimingUnsafeComparisonPredicate,
@@ -90,6 +94,7 @@ import {
   zendeskTimingUnsafeComparisonPredicate,
 } from "./timing-unsafe-comparison.js";
 import {
+  auth0UnreachableVerificationPredicate,
   docusignUnreachableVerificationPredicate,
   githubUnreachableVerificationPredicate,
   intercomUnreachableVerificationPredicate,
@@ -103,6 +108,7 @@ import {
   zendeskUnreachableVerificationPredicate,
 } from "./unreachable-verification.js";
 import {
+  auth0WrongHmacAlgorithmPredicate,
   docusignWrongHmacAlgorithmPredicate,
   githubWrongHmacAlgorithmPredicate,
   intercomWrongHmacAlgorithmPredicate,
@@ -211,6 +217,16 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "docusign-missing-timestamp-check": docusignMissingTimestampCheckPredicate,
   "docusign-wrong-hmac-algorithm": docusignWrongHmacAlgorithmPredicate,
   "docusign-unreachable-verification": docusignUnreachableVerificationPredicate,
+  // Phase 8.3 Plan 06 Auth0 Log Streams pack (signing_input_format: 'raw_body' —
+  // Shopify analog; dedicated `Auth0-Signature` header, sha256/base64 per pinned
+  // default; doc-verification status recorded in 08.3-06-SUMMARY.md). No
+  // library-verified rule: Auth0 SDKs do not ship a webhook-verification helper.
+  "auth0-missing-signature-verification": auth0MissingSignatureVerificationPredicate,
+  "auth0-timing-unsafe-comparison": auth0TimingUnsafeComparisonPredicate,
+  "auth0-raw-body-misuse": auth0RawBodyMisusePredicate,
+  "auth0-missing-timestamp-check": auth0MissingTimestampCheckPredicate,
+  "auth0-wrong-hmac-algorithm": auth0WrongHmacAlgorithmPredicate,
+  "auth0-unreachable-verification": auth0UnreachableVerificationPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
   // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
   // detection only; hand-rolled structural AST detection deferred to Plan 16b.

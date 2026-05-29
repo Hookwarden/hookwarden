@@ -267,6 +267,38 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
     ],
   },
+  // Phase 8.3 Plan 06 — Auth0 Log Streams webhooks. Clean raw_body / sha256 /
+  // base64 fit (closest analog: Shopify, DocuSign). Dedicated `Auth0-Signature`
+  // header per pinned default (per Auth0 Log Streams docs — pinned default
+  // base64/Auth0-Signature; SUMMARY records doc-verification status). No
+  // canonical first-party webhook-verification SDK; Auth0 SDKs ship API
+  // clients but not webhook verifiers. sdk_verify_calls are narrow plausible
+  // function names users might write (Zendesk/Intercom/Linear/DocuSign pattern).
+  auth0: {
+    signature_header: ["auth0-signature"],
+    sdk_packages: ["auth0", "@auth0/auth0-spa-js", "@auth0/nextjs-auth0"],
+    sdk_verify_calls: ["verifyAuth0Signature", "verifyWebhookSignature"],
+    secret_env_prefix: ["AUTH0_WEBHOOK", "AUTH0_LOG_STREAMS", "AUTH0_SIGNING"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/auth0",
+      "/api/webhooks/auth0",
+      "/auth0/webhook",
+      "/auth0/log-streams",
+    ],
+    hmac_algorithm: "sha256",
+    signing_input_format: "raw_body",
+    timestamp_header: null,
+    signature_encoding: "base64",
+    applicable_rules: [
+      "missing-signature-verification",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "missing-timestamp-check",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+    ],
+  },
   // Phase 8.3 Plan 02 — DocuSign Connect webhooks. Clean raw_body / sha256 /
   // base64 fit (closest analog: Shopify). Dedicated `X-DocuSign-Signature-1`
   // header — no cross-provider attribution risk. DocuSign Connect does not

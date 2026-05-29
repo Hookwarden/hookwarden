@@ -106,6 +106,12 @@ export const docusignUnreachableVerificationPredicate: RulePredicate =
     PROVIDER_CATALOG["docusign"] ?? throwMissing("docusign"),
   );
 
+export const auth0UnreachableVerificationPredicate: RulePredicate =
+  createUnreachableVerificationPredicate(
+    "auth0",
+    PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
+  );
+
 export const standardwebhooksUnreachableVerificationPredicate: RulePredicate =
   createUnreachableVerificationPredicate(
     "standardwebhooks",
