@@ -1,5 +1,43 @@
 # @hookwarden/github-action
 
+## 0.7.1
+
+### Patch Changes
+
+- ## v0.7.1 — Rule-pack polish
+
+  Two evidence-quality sweeps across all 230 YAML rules. No new rule classes, no behaviour change for findings outside test paths.
+
+  ### References backfilled on 142 grandfathered rules — coverage 38% → 100%
+
+  Every rule now carries ≥1 external citation (CWE / RFC / Svix / Hookdeck / Stripe spec) alongside the existing `provider_docs_url:`. Auditors and reviewers can now follow any finding back to a stable external source without manually cross-referencing the rule class.
+
+  Citation strategy is class-based and stable:
+
+  - **Verification-absent** (`missing-signature-verification`, `unreachable-verification`, `verify-after-side-effect`, `raw-body-misuse`, `express-middleware-ordering`) → Svix + Hookdeck guides
+  - **Bypass / timing** (`timing-unsafe-comparison`, `missing-timing-safe-equal`, `wrong-hmac-algorithm`, `empty-secret-bypass`, `test-mode-bypass`) → Coda Hale timing-attack writeup + CWE-208 / RFC 2104 / CWE-521
+  - **Replay** (`missing-timestamp-check`, `replay-window-too-permissive`) → Stripe replay-attacks docs + Standardwebhooks spec
+  - **Leak** (`secret-in-log-or-error`, `hardcoded-secret-prefix`, `url-secret-in-path`) → CWE-532 / CWE-798 / CWE-598 + OWASP
+  - **Error swallowed** (`verification-error-swallowed`) → CWE-391 + OWASP improper-error-handling
+  - **Provider-specific quirks** (`header-confusion`, `signature-prefix-not-stripped`, etc.) → Svix + CWE-345
+
+  ### Test-path severity overrides on 219 rules
+
+  Adds `path_severity_overrides:` to every rule not already at `info` severity, downgrading findings inside `**/{test,tests,__tests__,spec,specs}/**` and `**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}` to `info`. Test fixtures legitimately demonstrate insecure patterns; previously these would surface as `critical` or `high` and contribute to false-positive noise. The 9 info-severity rules are skipped — no further downgrade makes sense.
+
+  Coverage of `path_severity_overrides:` jumps from 2/230 (1%) to 221/230 (96%).
+
+  ### Not changed
+
+  - No new rule classes
+  - No `fix:` codegen additions — manual-only coverage remains at 18% (42/230); this is a separate workstream
+  - No severity re-grading — the binary critical/high distribution remains; medium/low introduction deferred
+  - Engine behaviour unchanged
+  - `@hookwarden/mcp` is not in the fixed-version group; it stays at 0.8.1
+
+- Updated dependencies
+  - hookwarden@0.7.1
+
 ## 0.7.0
 
 ### Patch Changes
