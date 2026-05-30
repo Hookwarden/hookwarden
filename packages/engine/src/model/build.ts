@@ -29,6 +29,7 @@ import type {
 import type { RuleSet } from "../types/rule-set.js";
 import { type CandidateHandler, detectCatalogHandlers } from "./catalog.js";
 import { computeEvidence } from "./evidence.js";
+import { collectVerifyOrderingEvidence } from "./handler-cfg.js";
 import { extractMiddlewareChain } from "./middleware.js";
 import { computeReachableSymbols } from "./reachability.js";
 
@@ -125,7 +126,7 @@ async function assembleHandler(
   // so PHP scoped-call / member-call verify shapes never surface in reachable_symbols. Walk the
   // handler-bearing file's PHP tree for matching call shapes against catalog sdk_verify_calls.
   const phpVerifyEvidence = collectPhpSdkVerifyEvidence(cand, file, input.ruleSet);
-  const evidence: ReadonlyArray<WebhookEvidence> = [
+  const preCfgEvidence: ReadonlyArray<WebhookEvidence> = [
     ...baseEvidence.evidence,
     ...sdkVerifyEvidence,
     ...rawBodyMwEvidence,
@@ -133,7 +134,20 @@ async function assembleHandler(
     ...phpVerifyEvidence,
   ];
   // Recompute provider attribution since sdk_verify_call evidence may shift the count.
-  const provider = recomputeProvider(evidence, baseEvidence.provider);
+  const provider = recomputeProvider(preCfgEvidence, baseEvidence.provider);
+  // v0.7 Rule Depth handler-cfg overlay (VAS-01) — emits `side_effect_before_verify`
+  // evidence for each T1/T2 side effect appearing BEFORE a verification call in
+  // handler scope. JS/TS only at v0.7.0; PHP/Python emit empty evidence. The
+  // overlay needs the resolved `provider` (above), so it must run AFTER the
+  // recomputed provider attribution.
+  const verifyOrderingEvidence = collectVerifyOrderingEvidence({
+    handler_body_node: cand.handler_body_node,
+    location: cand.location,
+    providerCatalog: input.ruleSet.providers,
+    provider,
+    reachable_qnames: new Set(reachableSymbols.map((s) => s.qualified_name)),
+  });
+  const evidence: ReadonlyArray<WebhookEvidence> = [...preCfgEvidence, ...verifyOrderingEvidence];
   const redactedSnippet = renderHandlerSnippet(file, cand);
   return {
     id,
