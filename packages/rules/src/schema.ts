@@ -49,6 +49,11 @@ export interface ParsedRuleDocument {
     readonly description: string;
     readonly codegen: string | null;
   } | null;
+  // v0.7 Rule Depth (Phase 13): optional CVE / GHSA / docs citations for the
+  // rule. Populated for new rules (v0.7+); legacy rules grandfathered. The
+  // CI gate `references-required.test.ts` enforces non-empty `references` on
+  // YAMLs introduced from v0.7 onwards.
+  readonly references: ReadonlyArray<string> | null;
 }
 
 const SCHEMA = {
@@ -174,6 +179,20 @@ const SCHEMA = {
         },
       ],
     },
+    // v0.7 Rule Depth: additive citations field. Optional in YAML, normalized
+    // to null when omitted (parallel to path_severity_overrides). v0.7+ rules
+    // are required to populate this via a CI gate, NOT via the YAML schema —
+    // keeping the field optional avoids breaking existing legacy YAMLs.
+    references: {
+      anyOf: [
+        { type: "null" },
+        {
+          type: "array",
+          items: { type: "string", minLength: 1 },
+          minItems: 1,
+        },
+      ],
+    },
   },
 } as const;
 
@@ -191,9 +210,11 @@ export function validateRuleDocument(input: unknown): ParsedRuleDocument {
   // path_severity_overrides is optional in YAML; normalize undefined → null so downstream code
   // can rely on a closed two-state value (D-57). Same normalization applied to `fix` per
   // Phase 8.2 D-04 — RuleSet consumers can rely on `fix !== undefined` (either FixMetadata or null).
+  // `references` (v0.7 Rule Depth) follows the same pattern: undefined → null.
   const raw = input as ParsedRuleDocument & {
     path_severity_overrides?: unknown;
     fix?: unknown;
+    references?: unknown;
   };
   const normalizedFix: ParsedRuleDocument["fix"] =
     raw.fix === undefined ? null : (raw.fix as ParsedRuleDocument["fix"]);
@@ -203,6 +224,8 @@ export function validateRuleDocument(input: unknown): ParsedRuleDocument {
       raw.path_severity_overrides === undefined
         ? null
         : (raw.path_severity_overrides as ParsedRuleDocument["path_severity_overrides"]),
+    references:
+      raw.references === undefined ? null : (raw.references as ParsedRuleDocument["references"]),
     ...(normalizedFix !== undefined ? { fix: normalizedFix } : {}),
   } as ParsedRuleDocument;
   // A rule must have at least one of matcher or predicate.

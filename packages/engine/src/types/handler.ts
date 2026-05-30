@@ -20,6 +20,14 @@ export type Framework =
   | "vanilla-php";
 
 // D-32 multi-signal evidence. Engine computes; rules query thresholds.
+// `side_effect_before_verify` is the v0.7 Rule Depth extension — emitted by the
+// handler-cfg overlay in assembleHandler when a T1 side effect (DB write,
+// outbound HTTP non-provider, event emit, file write outside log paths)
+// executes BEFORE the verification call in handler scope. Consumed by the
+// verify-after-side-effect rule class (VAS-01). The kind never appears
+// without a matching `sdk_verify_call` evidence emitted elsewhere — if
+// verification can't be found in handler scope at all, that's a different
+// finding (missing-signature-verification).
 export type WebhookEvidenceKind =
   | "path_pattern_match"
   | "signature_header_read"
@@ -27,7 +35,8 @@ export type WebhookEvidenceKind =
   | "sdk_verify_call"
   | "body_as_bytes_or_buffer"
   | "secret_env_var_reference"
-  | "secret_literal_match";
+  | "secret_literal_match"
+  | "side_effect_before_verify";
 
 export interface WebhookEvidence {
   readonly kind: WebhookEvidenceKind;

@@ -29,6 +29,29 @@ export interface ProviderCatalogEntry {
   readonly timestamp_header: string | null;
   readonly signature_encoding: "hex" | "base64";
   readonly applicable_rules: ReadonlyArray<string>;
+  // v0.7 Rule Depth additive fields — all optional so existing catalog entries
+  // remain valid. Populated per downstream rule needs.
+  //
+  // replay_tolerance_max_seconds: provider-spec maximum for the replay window.
+  // Consumed by replay-window-too-permissive (RPL-01). `null` means the
+  // provider has no canonical timestamp window (e.g. GitHub uses delivery-ID
+  // dedupe; Twilio's X-Twilio-Signature has no timestamp). Where `null`, the
+  // rule does not apply and no per-provider YAML is shipped.
+  readonly replay_tolerance_max_seconds?: number | null;
+  // Side-effect sink call patterns (v0.7 VAS-01). Each is a list of qualified
+  // names that the side-effect classifier treats as a T1 critical side effect
+  // when reachable BEFORE the verification call. Examples:
+  //   db_sink_calls: ["prisma.*.create", "prisma.*.update", "knex.insert", ...]
+  //   http_sink_calls: ["fetch", "axios.post", "got.post", ...]
+  //   event_sink_calls: ["EventEmitter.emit", "sqs.send", "sns.publish", ...]
+  //   notification_sink_calls: ["nodemailer.sendMail", "twilio.messages.create", ...]
+  // provider_api_hosts: list of provider-owned hostnames that should NOT
+  // count as outbound side effects (e.g. ["api.stripe.com"] for Stripe).
+  readonly db_sink_calls?: ReadonlyArray<string>;
+  readonly http_sink_calls?: ReadonlyArray<string>;
+  readonly event_sink_calls?: ReadonlyArray<string>;
+  readonly notification_sink_calls?: ReadonlyArray<string>;
+  readonly provider_api_hosts?: ReadonlyArray<string>;
 }
 
 export type ProviderCatalog = Readonly<Record<string, ProviderCatalogEntry>>;
