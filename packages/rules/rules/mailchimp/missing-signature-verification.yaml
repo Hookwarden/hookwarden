@@ -31,6 +31,14 @@ applies_to:
   - slim
   - vanilla-php
 provider_docs_url: https://mailchimp.com/developer/marketing/guides/sync-audience-data-webhooks/
+references:
+  - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
+  - https://hookdeck.com/webhooks/guides/webhook-security-vulnerabilities-guide
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
 fix:
   safety: manual-only
   description: "Apply the fix manually per the provider documentation — see provider_docs_url"
