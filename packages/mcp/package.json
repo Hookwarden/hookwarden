@@ -1,0 +1,68 @@
+{
+  "name": "@hookwarden/mcp",
+  "version": "0.8.0",
+  "description": "Model Context Protocol server for hookwarden — exposes the scan_handler tool so AI coding agents (Claude Code, Cursor, Continue) can find webhook signature-verification bugs locally. Zero-network, deterministic, ships the v0.7 rule pack inline.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "cursor",
+    "anthropic",
+    "ai-agent",
+    "webhook",
+    "webhook-security",
+    "security",
+    "audit",
+    "static-analysis",
+    "hookwarden"
+  ],
+  "homepage": "https://hookwarden.dev",
+  "bugs": {
+    "url": "https://github.com/Hookwarden/hookwarden/issues"
+  },
+  "license": "Apache-2.0",
+  "type": "module",
+  "mcpName": "io.github.hookwarden/mcp",
+  "bin": {
+    "hookwarden-mcp": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "wasm",
+    "README.md",
+    "LICENSE",
+    "server.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hookwarden/hookwarden.git",
+    "directory": "packages/mcp"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsc -b",
+    "prepare": "node scripts/sync-wasm.mjs && node scripts/sync-version.mjs",
+    "prepack": "node scripts/sync-wasm.mjs && node scripts/sync-version.mjs && tsc -b && node scripts/emit-build-manifest.mjs"
+  },
+  "dependencies": {
+    "@hookwarden/engine": "0.7.0",
+    "@hookwarden/rules": "0.7.0",
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "citty": "^0.2.2",
+    "picocolors": "^1.1.1",
+    "web-tree-sitter": "0.26.9",
+    "zod": "^3.25 || ^4.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/inspector": "^0.21.2",
+    "@types/tar": "^7.0.87",
+    "tar": "7.5.15",
+    "tree-sitter-python": "^0.25.0"
+  }
+}

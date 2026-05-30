@@ -1,0 +1,4 @@
+dist/
+src/version.ts
+node_modules/
+wasm/

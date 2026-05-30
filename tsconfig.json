@@ -6,6 +6,7 @@
     { "path": "./packages/pr-renderer" },
     { "path": "./packages/github-action" },
     { "path": "./packages/rules" },
-    { "path": "./packages/fix" }
+    { "path": "./packages/fix" },
+    { "path": "./packages/mcp" }
   ]
 }
