@@ -29,8 +29,8 @@ describe("manifest-consistency (server.json ↔ package.json)", () => {
   const pkg = JSON.parse(readFileSync(PKG_JSON, "utf-8")) as PackageJson;
   const srv = JSON.parse(readFileSync(SERVER_JSON, "utf-8")) as ServerJson;
 
-  it("package.json#mcpName equals io.github.hookwarden/mcp", () => {
-    expect(pkg.mcpName).toBe("io.github.hookwarden/mcp");
+  it("package.json#mcpName equals io.github.Hookwarden/mcp", () => {
+    expect(pkg.mcpName).toBe("io.github.Hookwarden/mcp");
   });
 
   it("server.json#name byte-equals package.json#mcpName", () => {

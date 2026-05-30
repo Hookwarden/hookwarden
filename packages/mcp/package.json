@@ -1,6 +1,6 @@
 {
   "name": "@hookwarden/mcp",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Model Context Protocol server for hookwarden — exposes the scan_handler tool so AI coding agents (Claude Code, Cursor, Continue) can find webhook signature-verification bugs locally. Zero-network, deterministic, ships the v0.7 rule pack inline.",
   "keywords": [
     "mcp",
@@ -22,7 +22,7 @@
   },
   "license": "Apache-2.0",
   "type": "module",
-  "mcpName": "io.github.hookwarden/mcp",
+  "mcpName": "io.github.Hookwarden/mcp",
   "bin": {
     "hookwarden-mcp": "./dist/cli.js"
   },
