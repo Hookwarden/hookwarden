@@ -52,8 +52,8 @@
     "prepack": "node scripts/sync-wasm.mjs && node scripts/sync-version.mjs && tsc -b && node scripts/emit-build-manifest.mjs"
   },
   "dependencies": {
-    "@hookwarden/engine": "0.7.1",
-    "@hookwarden/rules": "0.7.1",
+    "@hookwarden/engine": "workspace:*",
+    "@hookwarden/rules": "workspace:*",
     "@modelcontextprotocol/sdk": "1.29.0",
     "citty": "^0.2.2",
     "picocolors": "^1.1.1",

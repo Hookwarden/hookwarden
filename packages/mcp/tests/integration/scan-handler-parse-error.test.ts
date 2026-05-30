@@ -76,7 +76,7 @@ describe("scan_handler — call-time drift gate (Test 12)", () => {
     expect(sc.error).toBe("engine_drift");
     expect(sc.component).toBe("engine");
     expect(sc.pinned).toBe("9.99.99");
-    expect(sc.current).toBe("0.7.0");
+    expect(sc.current).toBe("0.7.1");
     expect(sc.suggestion).toContain("npm i -g @hookwarden/mcp@latest");
     expect(sc.rationale.length).toBeGreaterThan(0);
   });

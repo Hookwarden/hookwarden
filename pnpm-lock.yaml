@@ -194,11 +194,11 @@ importers:
   packages/mcp:
     dependencies:
       '@hookwarden/engine':
-        specifier: 0.7.0
-        version: 0.7.0
+        specifier: workspace:*
+        version: link:../engine
       '@hookwarden/rules':
-        specifier: 0.7.0
-        version: 0.7.0
+        specifier: workspace:*
+        version: link:../rules
       '@modelcontextprotocol/sdk':
         specifier: 1.29.0
         version: 1.29.0(zod@4.4.3)
@@ -866,18 +866,6 @@ packages:
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
-
-  '@hookwarden/engine@0.7.0':
-    resolution: {integrity: sha512-mtGsNBWWpPEoISRxkPoclRcBThBxFf2Okh8FdkyFUIaJHwieR3G/ff84gcGX+khOOcywRu7Mpi/tHplZKLZVkA==}
-    engines: {node: '>=22.0.0'}
-
-  '@hookwarden/fix@0.7.0':
-    resolution: {integrity: sha512-x7IinSoWjkko2Sv7gAqLApeHosrxqkI9UYeDcp0TwMpTvtDtOMfPw5OMWiZqpreSgQ6SauOniiCU5XnGOB68vg==}
-    engines: {node: '>=22.0.0'}
-
-  '@hookwarden/rules@0.7.0':
-    resolution: {integrity: sha512-kiTEjlWRYpNQ0rnuTtd6yb04KpWN74LDqOmh9T+3IGwg0/92ToBi8wXf5XXc0CKpLizJAqyaoGf4KT4pVT0Hxw==}
-    engines: {node: '>=22.0.0'}
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -5241,28 +5229,6 @@ snapshots:
   '@hono/node-server@1.19.14(hono@4.12.23)':
     dependencies:
       hono: 4.12.23
-
-  '@hookwarden/engine@0.7.0':
-    dependencies:
-      '@babel/parser': 7.29.7
-      picomatch: 4.0.4
-      web-tree-sitter: 0.26.9
-
-  '@hookwarden/fix@0.7.0':
-    dependencies:
-      '@babel/generator': 7.29.7
-      '@babel/traverse': 7.29.7
-      '@hookwarden/engine': 0.7.0
-    transitivePeerDependencies:
-      - supports-color
-
-  '@hookwarden/rules@0.7.0':
-    dependencies:
-      '@hookwarden/engine': 0.7.0
-      '@hookwarden/fix': 0.7.0
-      ajv: 8.20.0
-    transitivePeerDependencies:
-      - supports-color
 
   '@img/colour@1.1.0':
     optional: true
