@@ -1,5 +1,77 @@
 # hookwarden-cli
 
+## 0.7.3
+
+### Patch Changes
+
+- ## v0.7.3 — Verbose-mode CLI redesign + trivia ticker + release hardening
+
+  ### `hookwarden scan --verbose` — Stitch CLI design (visual redesign)
+
+  Default mode is unchanged. `--verbose` now renders the polished audit-grade layout:
+
+  - **Provenance banner** at the top (3 lines, box-drawing):
+
+    ```
+    ╭─ hookwarden v0.7.3 · engine 0.7.3 · rules 0.7.3 (e05c30e8…)
+    │  230 rules · 100% cited · 21 providers · local · zero network
+    ╰─ scope: ./apps/webhooks · 7 handlers · 4 files
+    ```
+
+  - **Severity section dividers** (`─── critical ───`) grouping findings — empty groups skipped.
+
+  - **2-line finding header** instead of crammed one-liner:
+
+    ```
+    × not-verified                stripe/express-middleware-ordering
+      server.js:10:1                              (high confidence)
+    ```
+
+  - **FIX box** wraps the fix prose in box-drawing with the rule's safety label on the open line — instantly tells the reader whether `hookwarden fix --write` can apply this mechanically or whether human judgment is required:
+
+    ```
+    ╭ FIX (manual-only)
+    │  Register express.json() AFTER the webhook route, OR mount
+    │  express.raw({type: 'application/json'}) on the path only.
+    ╰
+    ```
+
+  - **Verdict tally + exit-code line** in the summary footer:
+    ```
+    3 critical · 0 high · 0 medium · 0 low · 0 info · 2 manual-review
+    1 verified · 4 not-verified · 2 manual-review
+    Exit: 1 (fail-on=high)
+    ```
+
+  The severity tally tells you blast radius; the new verdict tally tells you confidence distribution. Two complementary axes.
+
+  ### Trivia ticker — rotating webhook-security tips during long scans
+
+  PostHog-style stderr ticker that rotates ~35 webhook-security tips every 3 seconds, starting only after a scan has run for 1+ seconds (so fast scans never see it). TTY-gated — auto-disabled in CI, `NO_COLOR`, or when stderr is piped. Opt out with `--no-trivia`.
+
+  Zero-network: every tip is a string literal in `packages/cli/src/trivia.ts`. Sample tips:
+
+  - "Stripe's signature tolerance defaults to 300s. Wider = `replay-window-too-permissive`."
+  - "Twilio is the SHA-1 outlier. Every other major provider in the rule pack uses SHA-256."
+  - "Hookwarden has never made a network call during a scan. Run `lsof -p` if you don't trust us."
+  - "CVE-2026-41432: a Stripe webhook with an empty secret accepts everything. Flagged on every scan."
+
+  ### Release pipeline — install-verify gate hardened
+
+  The "Verify @hookwarden/mcp installability" post-publish gate has failed on every release since v0.8.0 with `Cannot read properties of null (reading 'matches')` — npm's publish endpoint and read CDN are different layers; the read side can lag 30–90s after `changeset publish` returns 200.
+
+  A flat `sleep 30` wasn't enough on v0.7.2. The gate now polls `npm view @hookwarden/mcp@<just-published-version>` in a retry loop (up to 9 attempts, 10s apart, max ~90s) until the exact version is queryable, then runs the dry-run install against that pinned version. The pin is also a stronger gate — proves THIS publish landed, not just "any version of the package."
+
+  ### Not changed
+
+  - No new rule classes, no new providers, no rule re-grading
+  - Default `hookwarden scan` output (no `--verbose`) unchanged — every existing test, snapshot, and CI integration sees the same shape
+  - SARIF renderer not yet updated for the Stitch design (SARIF is a structured format and doesn't benefit from the visual changes; the JSON envelope already carries every field SARIF consumers need)
+  - `@hookwarden/mcp` is not in the fixed group; ships v0.8.4 via transitive patch (bundles the v0.7.3 rule pack inline)
+
+- Updated dependencies
+  - hookwarden@0.7.3
+
 ## 0.7.2
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@hookwarden/engine",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "hookwarden audit engine — handler discovery, reachability analysis, and evidence collection for webhook signature verification. Browser-safe, pure-functional, zero I/O. Powers the @hookwarden CLI, GitHub Action, and MCP server.",
   "license": "Apache-2.0",
   "type": "module",
