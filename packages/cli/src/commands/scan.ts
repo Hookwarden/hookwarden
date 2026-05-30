@@ -24,6 +24,8 @@ import {
 } from "../render/index.js";
 import { countActiveAtOrAbove } from "../severity-threshold.js";
 import { shouldDisableTrivia, startTriviaTicker } from "../trivia.js";
+import { maybeRenderUpdateBanner, runUpdateCheck } from "../update-check.js";
+import { VERSION } from "../version.js";
 import { shouldUseAnsi } from "../walker/tty.js";
 
 export interface ScanArgs {
@@ -48,6 +50,7 @@ export interface ScanArgs {
   readonly exclude?: string;
   readonly include?: string;
   readonly "no-trivia"?: boolean;
+  readonly "no-update-notifier"?: boolean;
 }
 
 const VALID_FAIL_ON: ReadonlySet<string> = new Set(["critical", "high", "medium", "low"]);
@@ -173,6 +176,18 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
   // but the TTY check (isTTY on stderr) catches that automatically.
   const stopTrivia = startTriviaTicker({
     disabled: shouldDisableTrivia(args["no-trivia"] === true ? { noTrivia: true } : {}),
+  });
+
+  // v0.7.4 update-availability check — non-blocking background fetch of
+  // npm's latest hookwarden version. Result rendered post-scan if (a) a
+  // newer version landed AND (b) TTY/text-format gates pass. Auto-skipped
+  // in CI / NO_COLOR via update-notifier's own checks; explicitly skipped
+  // by --no-update-notifier (consumed by update-notifier directly from
+  // process.argv). The check is a network call but is scoped to npm
+  // registry only — never touches user code, never sees scan data.
+  const updateNotifier = runUpdateCheck({
+    pkg: { name: "hookwarden", version: VERSION },
+    disabled: args["no-update-notifier"] === true,
   });
 
   const scan = await runScan({
@@ -309,6 +324,15 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
       return 3;
   }
 
+  // v0.7.4 update banner — emitted AFTER findings + summary so it lives at
+  // the bottom of the visible output where users naturally land. Gated to
+  // text-format scans + TTY contexts (json/sarif consumers see nothing).
+  // No-op if the background check hasn't resolved yet or current === latest.
+  maybeRenderUpdateBanner(updateNotifier, {
+    useAnsi,
+    format: resolvedConfig.format,
+  });
+
   // Step 7 — Exit-code reporting (D-65 precedence: 3 > 2 > 4 > 1 > 0;
   // config + engine already returned earlier). Exit code itself was
   // pre-computed in Step 6.0 so the verbose summary could annotate it.
@@ -364,6 +388,11 @@ export const scanCommand = defineCommand({
       type: "boolean",
       description:
         "Suppress the rotating webhook-security tips that appear on stderr during long scans. Already auto-disabled in CI / non-TTY / NO_COLOR.",
+    },
+    "no-update-notifier": {
+      type: "boolean",
+      description:
+        "Suppress the 'update available' notice that appears when a newer hookwarden is on npm. Already auto-disabled in CI / non-TTY / NO_COLOR.",
     },
     "strict-suppressions": {
       type: "boolean",

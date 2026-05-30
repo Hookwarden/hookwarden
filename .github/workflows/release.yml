@@ -166,7 +166,15 @@ jobs:
             echo "Attempt $attempt: not yet visible (got '$FOUND'); sleeping 10s"
             sleep 10
           done
-          npm i "@hookwarden/mcp@$VERSION" --dry-run --prefer-online
+          # `npm install --dry-run` hits an upstream npm bug:
+          # "Cannot read properties of null (reading 'matches')" — failed
+          # on v0.7.2 and v0.7.3 despite the package being fully installable
+          # in real environments (verified via `npm i -g @hookwarden/mcp@X.Y.Z`
+          # in clean docker each time). `npm pack --dry-run` exercises the
+          # tarball-fetch path without invoking the install-time resolver,
+          # giving us the same "is this really published?" gate without the
+          # false negative.
+          npm pack --dry-run "@hookwarden/mcp@$VERSION"
 
       - name: Install mcp-publisher CLI (Plan 23-09 — pinned to MCP_PUBLISHER_VERSION)
         # WARNING #4 fix: pinned to a specific GitHub Release tag, NEVER

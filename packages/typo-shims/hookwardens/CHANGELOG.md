@@ -1,5 +1,47 @@
 # hookwardens
 
+## 0.7.4
+
+### Patch Changes
+
+- ## v0.7.4 — Update-availability prompts + release-gate fix
+
+  ### Update-availability check (PostHog-style)
+
+  Users on `npm i -g hookwarden@<old>` had zero signal that newer rule packs existed. Today (2026-05-30) we shipped 0.7.0 → 0.7.3 with no in-CLI prompt. This release closes that gap.
+
+  After every text-format scan, if a newer hookwarden is on npm:
+
+  ```
+  ─────────────────────────────────
+  Update available: 0.7.0 → 0.7.4 (patch)
+  Run: npm i -g hookwarden@latest
+  ```
+
+  - **Background fetch, never blocking.** Check happens in parallel with the scan; banner renders post-scan if the result is ready.
+  - **24h cached** via update-notifier's local config store — repeated invocations don't re-hit npm.
+  - **TTY-gated.** Auto-skipped in CI, `NO_COLOR`, non-TTY stderr (piped / captured), and for `--format json` / `--format sarif`.
+  - **Opt-out** via `--no-update-notifier` flag.
+  - **Brand boundary preserved.** The update check IS a network call — but it queries npm for hookwarden's own version, never sees your scan data, never touches user code. The "zero network during scan" promise applies to the scan, not to "does hookwarden itself need updating."
+
+  Powered by `update-notifier` (Sindre Sorhus' canonical library — same one npm, Vue/Angular/Nest CLIs, Yeoman, and PostHog all use). hookwarden renders its own banner via the low-level API to keep the tone aligned with the rest of the audit-grade output.
+
+  ### Release-pipeline gate — fix the false-negative
+
+  `Verify @hookwarden/mcp installability` failed on every release since v0.8.0 with `Cannot read properties of null (reading 'matches')` — even though the package was always fully installable (verified in clean Docker each time). The culprit was `npm install --dry-run`'s upstream bug.
+
+  Swapped to `npm pack --dry-run`, which exercises the tarball-fetch path without invoking the install-time resolver. Same "is this really published?" gate without the false negative. Combined with the v0.7.3 propagation poll (90s window), the gate should now report green when — and only when — the publish actually landed.
+
+  ### Not changed
+
+  - No new rule classes, no new providers
+  - Default scan output (no `--verbose`) unchanged
+  - `@hookwarden/mcp` is not in the fixed group; ships v0.8.5 via transitive patch (re-bundles updated rule pack)
+  - The update notifier wraps the npm-install case; brew/scoop already have their own `brew outdated` / `scoop status` flows
+
+- Updated dependencies
+  - hookwarden@0.7.4
+
 ## 0.7.3
 
 ### Patch Changes

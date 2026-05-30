@@ -50,6 +50,7 @@ const HELP_TEXT =
   `  -v, --verbose                Verbose output (scan only).\n` +
   `      --no-color               Disable color and OSC-8 hyperlinks.\n` +
   `      --no-trivia              Suppress scan-time webhook-security tips (auto-off in CI).\n` +
+  `      --no-update-notifier     Suppress the 'update available' notice (auto-off in CI).\n` +
   `      --color WHEN             always | never | auto (default). 'always' forces color through a pipe.\n` +
   `      --rules-dir D            Override the bundled rule pack (dev-only).\n` +
   `      --help, -h               Show subcommand help.\n` +
