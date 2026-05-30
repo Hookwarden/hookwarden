@@ -49,7 +49,37 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "hardcoded-secret-prefix",
       "library-verified",
       "express-middleware-ordering",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01) sink-call catalog. Shared cross-provider list —
+    // a database write is a side effect regardless of which webhook fired it.
+    // Wildcard matching for nested member paths happens in the handler-cfg
+    // qname matcher (Phase 13 Stage C); literal names land here.
+    db_sink_calls: [
+      "prisma.user.create",
+      "prisma.user.update",
+      "prisma.user.delete",
+      "prisma.event.create",
+      "knex.insert",
+      "knex.update",
+      "knex.delete",
+      "db.query",
+    ],
+    http_sink_calls: ["fetch", "axios.post", "axios.put", "axios.delete", "got.post", "got.put"],
+    event_sink_calls: [
+      "emitter.emit",
+      "eventEmitter.emit",
+      "sqs.send",
+      "sns.publish",
+      "kafka.send",
+    ],
+    notification_sink_calls: [
+      "nodemailer.sendMail",
+      "transporter.sendMail",
+      "twilio.messages.create",
+      "sendgrid.send",
+    ],
+    provider_api_hosts: ["api.stripe.com"],
   },
   github: {
     signature_header: ["x-hub-signature-256", "x-hub-signature"],

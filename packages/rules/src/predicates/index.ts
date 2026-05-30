@@ -165,6 +165,7 @@ import {
   zendeskUnreachableVerificationPredicate,
   zoomUnreachableVerificationPredicate,
 } from "./unreachable-verification.js";
+import { createVerifyAfterSideEffectPredicate } from "./verify-after-side-effect.js";
 import {
   auth0WrongHmacAlgorithmPredicate,
   bitbucketWrongHmacAlgorithmPredicate,
@@ -193,6 +194,11 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "github-timing-safe-equal": githubTimingSafeEqualPredicate,
   // Wave 2 cross-cutting
   "express-middleware-ordering": expressMiddlewareOrderingPredicate,
+  // v0.7 Rule Depth (VAS-01) — per-provider factory that emits manual-review
+  // when the engine attaches `side_effect_before_verify` evidence to a handler.
+  // Provider-scoped registry keys mirror the missing-signature-verification
+  // pattern so per-provider YAML rules can reference them as predicates.
+  "stripe-verify-after-side-effect": createVerifyAfterSideEffectPredicate("stripe"),
   "stripe-library-verified": stripeLibraryVerifiedPredicate,
   "github-library-verified": githubLibraryVerifiedPredicate,
   // Wave 3 Stripe pack (D-93 refactor — sourced from catalog-parameterized factories)
