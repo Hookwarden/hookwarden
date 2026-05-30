@@ -92,6 +92,23 @@ Or install natively:
 
 Node 22+ is required for the npm/`npx`/macOS-brew paths; the standalone binaries (Linux x64/arm64, Windows x64) bundle the runtime. Direct binary downloads are intentionally unsigned (Gatekeeper / SmartScreen will warn) — prefer `brew` / `scoop` / `npm` / `pip`, which verify by SHA-256. → [Install guide](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs)
 
+### Update
+
+```bash
+hookwarden --version   # check what you have
+```
+
+| Channel | Command |
+|---|---|
+| **brew** (macOS/Linux) | `brew upgrade hookwarden` |
+| **scoop** (Windows) | `scoop update hookwarden` |
+| **npm** (global) | `npm i -g hookwarden@latest` |
+| **pip** | `pip install -U hookwarden` |
+| **npx** | always latest with `npx hookwarden@latest scan .` |
+| **direct binary** | re-download from [Releases](https://github.com/Hookwarden/hookwarden/releases/latest) |
+
+Rule pack versions move with the CLI (engine, rules, and CLI ship as a fixed group — `0.6.0` everywhere). Pin in CI with `npx hookwarden@0.6.0 scan .` if you want byte-stable verdicts across runs.
+
 ---
 
 ## Quickstart
