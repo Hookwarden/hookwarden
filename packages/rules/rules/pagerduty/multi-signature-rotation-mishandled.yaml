@@ -37,6 +37,14 @@ applies_to:
   - slim
   - vanilla-php
 provider_docs_url: https://developer.pagerduty.com/docs/db0fa8c8984fc-overview
+references:
+  - https://www.standardwebhooks.com/
+  - https://docs.stripe.com/webhooks#roll-webhook-endpoint-secrets
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
 fix:
   safety: manual-only
   description: "Iterate all comma-separated v1=<hex> tokens in X-PagerDuty-Signature and accept on any constant-time match"
