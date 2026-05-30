@@ -106,6 +106,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "library-verified",
       "express-middleware-ordering",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01) — shared sink lists spread from SHARED_VAS_SINKS.
     ...SHARED_VAS_SINKS,
@@ -141,6 +142,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "hardcoded-secret-prefix",
       "library-verified",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -182,6 +184,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "library-verified",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -224,6 +227,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "library-verified",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -262,6 +266,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "library-verified",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -301,6 +306,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "library-verified",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -344,6 +350,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -385,6 +392,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "raw-body-misuse",
       "unreachable-verification",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -433,6 +441,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "raw-body-misuse",
       "unreachable-verification",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -472,6 +481,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -508,6 +518,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -548,6 +559,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -585,6 +597,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -627,6 +640,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "octokit-cross-attribution",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -671,6 +685,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -713,6 +728,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "signature-header-parse-mishandled",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -754,6 +770,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -799,6 +816,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "signature-prefix-not-stripped",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -841,6 +859,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "multi-signature-rotation-mishandled",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -883,6 +902,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "header-confusion",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -927,6 +947,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "verify-after-side-effect",
+      "verification-error-swallowed",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,

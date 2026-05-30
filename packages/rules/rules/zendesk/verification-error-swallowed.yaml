@@ -1,0 +1,35 @@
+schema_version: 1
+rule_id: zendesk/verification-error-swallowed
+provider: zendesk
+severity: high
+emits_state: not-verified
+message: |
+  Zendesk webhook handler wraps the verification call in a try/catch
+  whose catch handler does NOT terminate execution. The SDK verify call
+  throws on invalid signatures, but the handler proceeds anyway — an
+  attacker who forges a payload will trigger the throw, get caught, and
+  see the handler complete normally.
+
+  Defensible catch handlers MUST do one of:
+    - rethrow (`throw err`)
+    - return a 4xx/5xx response
+    - call `next(err)` (Express)
+    - call `process.exit` / `process.abort`
+
+  This rule does NOT fire when the catch handler matches any of the above.
+  Reference: Clerk JavaScript GHSA-9mp4-77wg-rwx9.
+matcher: null
+predicate: zendesk-verification-error-swallowed
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+provider_docs_url: https://developer.zendesk.com/api-reference/webhooks/webhooks-api/verifying/
+references:
+  - https://github.com/clerk/javascript/security/advisories/GHSA-9mp4-77wg-rwx9
+  - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
+fix:
+  safety: manual-only
+  description: "Add a terminating action to the catch block (rethrow, return 4xx, next(err), or process.exit) — see provider_docs_url"
+  codegen: null

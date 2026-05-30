@@ -30,6 +30,7 @@ import "./custom/postmark-signing.js";
 import "./custom/notion-signing.js";
 
 import type { RulePredicate } from "@hookwarden/engine";
+import { PROVIDER_CATALOG } from "../catalog.js";
 import { bitbucketSignaturePrefixNotStrippedPredicate } from "./bitbucket-signature-prefix.js";
 import { calendlySignatureHeaderParseMishandledPredicate } from "./calendly-header-parse.js";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
@@ -165,6 +166,7 @@ import {
   zendeskUnreachableVerificationPredicate,
   zoomUnreachableVerificationPredicate,
 } from "./unreachable-verification.js";
+import { createVerificationErrorSwallowedPredicate } from "./verification-error-swallowed.js";
 import { createVerifyAfterSideEffectPredicate } from "./verify-after-side-effect.js";
 import {
   auth0WrongHmacAlgorithmPredicate,
@@ -220,6 +222,90 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "zoom-verify-after-side-effect": createVerifyAfterSideEffectPredicate("zoom"),
   "standardwebhooks-verify-after-side-effect":
     createVerifyAfterSideEffectPredicate("standardwebhooks"),
+  "stripe-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "stripe",
+    PROVIDER_CATALOG["stripe"]!,
+  ),
+  "github-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "github",
+    PROVIDER_CATALOG["github"]!,
+  ),
+  "shopify-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "shopify",
+    PROVIDER_CATALOG["shopify"]!,
+  ),
+  "twilio-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "twilio",
+    PROVIDER_CATALOG["twilio"]!,
+  ),
+  "slack-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "slack",
+    PROVIDER_CATALOG["slack"]!,
+  ),
+  "square-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "square",
+    PROVIDER_CATALOG["square"]!,
+  ),
+  "zendesk-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "zendesk",
+    PROVIDER_CATALOG["zendesk"]!,
+  ),
+  "docusign-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "docusign",
+    PROVIDER_CATALOG["docusign"]!,
+  ),
+  "intercom-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "intercom",
+    PROVIDER_CATALOG["intercom"]!,
+  ),
+  "linear-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "linear",
+    PROVIDER_CATALOG["linear"]!,
+  ),
+  "hubspot-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "hubspot",
+    PROVIDER_CATALOG["hubspot"]!,
+  ),
+  "auth0-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "auth0",
+    PROVIDER_CATALOG["auth0"]!,
+  ),
+  "mailchimp-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "mailchimp",
+    PROVIDER_CATALOG["mailchimp"]!,
+  ),
+  "postmark-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "postmark",
+    PROVIDER_CATALOG["postmark"]!,
+  ),
+  "sentry-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "sentry",
+    PROVIDER_CATALOG["sentry"]!,
+  ),
+  "pagerduty-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "pagerduty",
+    PROVIDER_CATALOG["pagerduty"]!,
+  ),
+  "bitbucket-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "bitbucket",
+    PROVIDER_CATALOG["bitbucket"]!,
+  ),
+  "notion-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "notion",
+    PROVIDER_CATALOG["notion"]!,
+  ),
+  "calendly-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "calendly",
+    PROVIDER_CATALOG["calendly"]!,
+  ),
+  "zoom-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "zoom",
+    PROVIDER_CATALOG["zoom"]!,
+  ),
+  "standardwebhooks-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "standardwebhooks",
+    PROVIDER_CATALOG["standardwebhooks"]!,
+  ),
   "stripe-library-verified": stripeLibraryVerifiedPredicate,
   "github-library-verified": githubLibraryVerifiedPredicate,
   // Wave 3 Stripe pack (D-93 refactor — sourced from catalog-parameterized factories)
