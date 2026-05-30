@@ -29,6 +29,11 @@ provider_docs_url: https://developers.notion.com/reference/webhooks
 references:
   - https://github.com/clerk/javascript/security/advisories/GHSA-9mp4-77wg-rwx9
   - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
 fix:
   safety: manual-only
   description: "Add a terminating action to the catch block (rethrow, return 4xx, next(err), or process.exit) — see provider_docs_url"

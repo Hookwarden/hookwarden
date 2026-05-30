@@ -29,6 +29,14 @@ applies_to:
   - slim
   - vanilla-php
 provider_docs_url: https://developers.notion.com/reference/webhooks
+references:
+  - https://codahale.com/a-lesson-in-timing-attacks/
+  - https://cwe.mitre.org/data/definitions/208.html
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
 fix:
   safety: safe
   description: "Replace insecure equality with a constant-time comparison (crypto.timingSafeEqual / hmac.compare_digest / hash_equals)"
