@@ -1,0 +1,31 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.hookwarden/mcp",
+  "title": "Hookwarden — Webhook Integrity",
+  "description": "Webhook signature-verification audit MCP server. Runs hookwarden's AST rules against pasted handler code — Stripe, GitHub, Shopify, Twilio, and 17 other providers. Client-side, zero network egress.",
+  "websiteUrl": "https://hookwarden.dev",
+  "repository": {
+    "url": "https://github.com/Hookwarden/hookwarden",
+    "source": "github",
+    "subfolder": "packages/mcp"
+  },
+  "version": "0.8.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@hookwarden/mcp",
+      "version": "0.8.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "license": "Apache-2.0",
+      "categories": ["security", "static-analysis", "code-review"],
+      "languages_scanned": ["javascript", "typescript", "python"]
+    }
+  }
+}
