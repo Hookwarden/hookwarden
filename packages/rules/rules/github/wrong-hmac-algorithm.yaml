@@ -26,6 +26,14 @@ applies_to:
   - slim
   - vanilla-php
 provider_docs_url: https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries
+references:
+  - https://datatracker.ietf.org/doc/html/rfc2104
+  - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
 fix:
   safety: manual-only
   description: "Apply the fix manually per the provider documentation — see provider_docs_url"
