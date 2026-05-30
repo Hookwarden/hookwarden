@@ -11,6 +11,8 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 
 import { checkDrift, loadBuildManifest } from "./drift-check.js";
+import { scanHandler } from "./tools/scan-handler.js";
+import type { ScanHandlerInput } from "./types.js";
 import { VERSION } from "./version.js";
 
 const REINSTALL = "npm i -g @hookwarden/mcp@latest";
@@ -55,19 +57,24 @@ export async function bootServer(): Promise<number> {
         provider: z.string().optional(),
       },
     },
-    async () => ({
-      isError: true,
-      content: [
-        {
-          type: "text" as const,
-          text: "scan_handler not implemented in this build — Plan 23-05 replaces this placeholder.",
-        },
-      ],
-      structuredContent: { error: "not_implemented" as const },
-    }),
+    // SDK CallToolResult expects structuredContent shaped as `{ [x: string]: unknown }`;
+    // our typed ScanHandlerStructuredContent satisfies it at runtime. Cast through
+    // `unknown` to avoid TS structural-match failures on the readonly/index-signature
+    // delta between the interfaces.
+    async (args) =>
+      (await scanHandler(args as ScanHandlerInput, manifest)) as unknown as Awaited<
+        ReturnType<Parameters<typeof server.registerTool>[2]>
+      >,
   );
 
-  // ── 4. Connect transport (stays alive until stdin closes) ───────────────
-  await server.connect(new StdioServerTransport());
+  // ── 4. Connect transport — server.connect() resolves once the transport
+  // is wired; we must hold the event loop OPEN until stdin closes
+  // (otherwise cli.ts's `process.exit(0)` would kill the server immediately
+  // after bootServer returns). Wait on the transport's close signal.
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  await new Promise<void>((resolve) => {
+    transport.onclose = (): void => resolve();
+  });
   return 0;
 }

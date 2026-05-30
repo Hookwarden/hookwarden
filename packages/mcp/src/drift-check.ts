@@ -29,11 +29,17 @@ const RATIONALE = {
     "Bundled rule YAML content has changed since release; reinstalling realigns the rule pack with the engine.",
 } as const;
 
-// Resolve the default manifest path (one level up from the compiled
-// dist/drift-check.js — works in both dev `src/` and post-build).
+// Resolve the default manifest path:
+//   - Built mode: dist/drift-check.js → manifest is a sibling in same dist/
+//   - Dev mode (vitest): src/drift-check.ts → manifest is in ../dist/
+// emit-build-manifest.mjs writes packages/mcp/dist/build-manifest.json in
+// both modes, so both branches above land on the same physical file.
 function defaultManifestPath(): string {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  return path.join(__dirname, "..", "build-manifest.json");
+  if (path.basename(__dirname) === "dist") {
+    return path.join(__dirname, "build-manifest.json");
+  }
+  return path.join(__dirname, "..", "dist", "build-manifest.json");
 }
 
 // Read the build-manifest written at `pnpm build` / `pnpm prepack` time

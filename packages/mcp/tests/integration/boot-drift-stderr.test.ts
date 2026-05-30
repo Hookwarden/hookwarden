@@ -12,7 +12,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PKG_ROOT = path.resolve(__dirname, "..", "..");
-const MANIFEST_PATH = path.join(PKG_ROOT, "build-manifest.json");
+// Built dist/cli.js looks for the manifest in its sibling dir (dist/).
+const MANIFEST_PATH = path.join(PKG_ROOT, "dist", "build-manifest.json");
 const CLI_PATH = path.join(PKG_ROOT, "dist", "cli.js");
 
 const SYNTHETIC_DRIFT_MANIFEST = {

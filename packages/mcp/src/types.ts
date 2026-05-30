@@ -44,29 +44,45 @@ export interface ScanHandlerInput {
   readonly provider?: string;
 }
 
+// Finding shape as emitted in the MCP Tool.result structuredContent. Mirrors
+// the engine Finding but flattens the SourceLocation block and renames
+// `state` → `verdict` for MCP-facing readability (3-state vocabulary
+// preserved verbatim per D-23-05).
 export interface ScanHandlerFinding {
   readonly rule_id: string;
   readonly provider: string;
   readonly severity: string;
   readonly verdict: "verified" | "not-verified" | "manual-review";
-  readonly file_path: string;
+  readonly file: string;
   readonly line_start: number;
   readonly line_end: number;
-  readonly snippet: string;
   readonly message: string;
+  readonly provider_docs_url: string | null;
+  readonly rule_pack_version: string;
+}
+
+export interface ScanHandlerVerdictSummary {
+  readonly verified: number;
+  readonly not_verified: number;
+  readonly manual_review: number;
+  readonly parse_error: number;
 }
 
 export interface ScanHandlerStructuredContent {
+  readonly verdict_summary: ScanHandlerVerdictSummary;
   readonly findings: ReadonlyArray<ScanHandlerFinding>;
-  readonly engine_version: string;
-  readonly rules_pack_version: string;
-  readonly rules_content_hash: string;
-  readonly scanned_files: number;
-  readonly scanned_loc: number;
+  readonly scan_metadata: {
+    readonly engine_version: string;
+    readonly rule_pack_version: string;
+    readonly rule_pack_content_hash: string;
+  };
 }
 
+// Tool.result is consumed by the MCP SDK which expects MUTABLE arrays for
+// content[]; mark non-readonly so server.ts can pass the value through
+// without a structural cast.
 export interface ScanHandlerOutput {
-  readonly content: ReadonlyArray<{ readonly type: "text"; readonly text: string }>;
-  readonly structuredContent: ScanHandlerStructuredContent | { readonly error: string; readonly [key: string]: unknown };
-  readonly isError?: boolean;
+  content: Array<{ type: "text"; text: string }>;
+  structuredContent: ScanHandlerStructuredContent | (Record<string, unknown> & { error: string });
+  isError?: boolean;
 }
