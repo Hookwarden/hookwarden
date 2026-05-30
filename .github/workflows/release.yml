@@ -36,6 +36,16 @@ jobs:
         run: pnpm exec tsc --build
       - name: Bundle inspection (pre-publish gate)
         run: pnpm inspect-bundle
+      - name: Bundle inspection — @hookwarden/mcp (pre-publish gate, Plan 23-04)
+        # SC#4 zero-outbound-TCP gate for the MCP server. Source-file regex
+        # scan + package.json#dependencies allowlist + tarball structural
+        # assertions (wasm + build-manifest + LICENSE + server.json).
+        run: pnpm --filter @hookwarden/mcp inspect-bundle
+      - name: Build @hookwarden/mcp (emits dist/build-manifest.json — MCP-04)
+        # Plan 23-03 emit-build-manifest.mjs writes the manifest checkDrift
+        # compares against at boot + call time. Must run BEFORE changesets
+        # publish so the tarball ships the fresh manifest.
+        run: pnpm --filter @hookwarden/mcp build
       - name: Dry-run publish every workspace package
         # Validates each package's tarball + publishConfig without uploading.
         # No auth: --dry-run skips the registry PUT.
@@ -85,6 +95,16 @@ jobs:
         run: pnpm exec tsc --build
       - name: Bundle inspection (pre-publish gate)
         run: pnpm inspect-bundle
+      - name: Bundle inspection — @hookwarden/mcp (pre-publish gate, Plan 23-04)
+        # SC#4 zero-outbound-TCP gate for the MCP server. Source-file regex
+        # scan + package.json#dependencies allowlist + tarball structural
+        # assertions (wasm + build-manifest + LICENSE + server.json).
+        run: pnpm --filter @hookwarden/mcp inspect-bundle
+      - name: Build @hookwarden/mcp (emits dist/build-manifest.json — MCP-04)
+        # Plan 23-03 emit-build-manifest.mjs writes the manifest checkDrift
+        # compares against at boot + call time. Must run BEFORE changesets
+        # publish so the tarball ships the fresh manifest.
+        run: pnpm --filter @hookwarden/mcp build
       - name: Upgrade npm for OIDC support
         # npm 11.5.1+ is required for native OIDC Trusted Publisher publishing.
         # Node 22 LTS ships with npm 10.x. Self-upgrade via `npm install -g
@@ -109,10 +129,24 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # npm auth: OIDC via id-token: write (above) + Trusted Publisher
           # bindings on npmjs.com for `hookwarden`, `@hookwarden/engine`,
-          # `@hookwarden/rules`. npm 11.5+ auto-detects the OIDC env and
-          # exchanges the JWT for a short-lived publish token — no NPM_TOKEN
-          # secret to rotate, immune to package-side 2FA-policy changes
-          # (bug 8 from issue #12, which forced multiple v0.3.1 re-runs).
+          # `@hookwarden/rules`, `@hookwarden/mcp` (v0.8.0+). npm 11.5+
+          # auto-detects the OIDC env and exchanges the JWT for a short-lived
+          # publish token — no NPM_TOKEN secret to rotate, immune to
+          # package-side 2FA-policy changes (bug 8 from issue #12, which
+          # forced multiple v0.3.1 re-runs).
+
+      - name: Verify @hookwarden/mcp installability (Plan 23-08 — pipeline-green != published)
+        # Per [[project_release_pipeline_fix_pkg_blocker]] — pipeline-green is
+        # NOT proof the tarball is actually fetchable. Confirm with a real
+        # registry-touching dry-run install AFTER the changesets publish step
+        # claims success. Gated on the @hookwarden/mcp publish actually
+        # happening in this release.
+        if: |
+          steps.changesets.outputs.published == 'true' &&
+          contains(steps.changesets.outputs.publishedPackages, '@hookwarden/mcp')
+        run: |
+          sleep 30  # npm registry propagation
+          npm i @hookwarden/mcp --dry-run --prefer-online
 
       # ----- Phase 4.1 channel fan-out (only when the `hookwarden` CLI was published) -----
       #
