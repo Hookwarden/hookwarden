@@ -58,8 +58,11 @@ describe("checkDrift — rules content-hash drift (Test 4)", () => {
 
 describe("loadBuildManifest — missing manifest (Test 7)", () => {
   it("throws a structured error pointing at the reinstall command", async () => {
-    // packages/mcp/build-manifest.json does not exist yet (Plan 23-03 emits it).
-    await expect(loadBuildManifest()).rejects.toThrow(/build-manifest missing/);
-    await expect(loadBuildManifest()).rejects.toThrow(/npm i -g @hookwarden\/mcp@latest/);
+    // Use an explicit guaranteed-missing path. The default-path overload would
+    // race with the sibling boot-drift-stderr.test.ts which writes a synthetic
+    // manifest into the same file.
+    const missing = "/tmp/hookwarden-mcp-nonexistent-manifest-for-test.json";
+    await expect(loadBuildManifest(missing)).rejects.toThrow(/build-manifest missing/);
+    await expect(loadBuildManifest(missing)).rejects.toThrow(/npm i -g @hookwarden\/mcp@latest/);
   });
 });

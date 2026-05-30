@@ -29,20 +29,28 @@ const RATIONALE = {
     "Bundled rule YAML content has changed since release; reinstalling realigns the rule pack with the engine.",
 } as const;
 
-// Read the build-manifest written at `pnpm build` / `pnpm prepack` time
-// (Plan 23-03 emits it). Path-walks one level up from the compiled
-// `dist/drift-check.js` so the same logic works in dev (`src/`) and post-build.
-export async function loadBuildManifest(): Promise<BuildManifest> {
+// Resolve the default manifest path (one level up from the compiled
+// dist/drift-check.js — works in both dev `src/` and post-build).
+function defaultManifestPath(): string {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const manifestPath = path.join(__dirname, "..", "build-manifest.json");
+  return path.join(__dirname, "..", "build-manifest.json");
+}
+
+// Read the build-manifest written at `pnpm build` / `pnpm prepack` time
+// (Plan 23-03 emits it). Accepts an optional explicit path so tests can
+// exercise missing-file and tamper scenarios without racing with the
+// production-default path (D-23-13 still applies: production code never
+// passes an override; the parameter exists purely as a test injection seam).
+export async function loadBuildManifest(manifestPath?: string): Promise<BuildManifest> {
+  const resolvedPath = manifestPath ?? defaultManifestPath();
   try {
-    const raw = await fs.readFile(manifestPath, "utf-8");
+    const raw = await fs.readFile(resolvedPath, "utf-8");
     return JSON.parse(raw) as BuildManifest;
   } catch (err) {
     const e = err as NodeJS.ErrnoException;
     if (e.code === "ENOENT") {
       throw new Error(
-        `hookwarden-mcp: build-manifest missing at ${manifestPath} — package not properly built; reinstall via ${REINSTALL}`,
+        `hookwarden-mcp: build-manifest missing at ${resolvedPath} — package not properly built; reinstall via ${REINSTALL}`,
       );
     }
     throw err;
