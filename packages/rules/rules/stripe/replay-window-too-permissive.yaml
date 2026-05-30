@@ -29,6 +29,11 @@ provider_docs_url: https://stripe.com/docs/webhooks
 references:
   - https://docs.stripe.com/webhooks#verify-events
   - https://api.slack.com/authentication/verifying-requests-from-slack
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
 fix:
   safety: manual-only
   description: "Lower tolerance to <= 300s OR document the reason for the wider window and suppress — see provider_docs_url"

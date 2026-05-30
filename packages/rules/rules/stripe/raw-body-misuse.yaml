@@ -29,6 +29,14 @@ applies_to:
   - slim
   - vanilla-php
 provider_docs_url: https://stripe.com/docs/webhooks/signatures
+references:
+  - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
+  - https://docs.stripe.com/webhooks#verify-events
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
 fix:
   safety: safe
   description: "Read the raw request body (req.rawBody in Express; php://input in PHP) instead of the parsed body"

@@ -26,6 +26,11 @@ provider_docs_url: https://stripe.com/docs/webhooks
 references:
   - https://hookdeck.com/webhooks/guides/webhook-security-vulnerabilities-guide
   - https://owasp.org/www-project-top-ten/
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
 fix:
   safety: manual-only
   description: "Remove the dev-mode bypass OR gate on a positive prod-checked condition — see provider_docs_url"
