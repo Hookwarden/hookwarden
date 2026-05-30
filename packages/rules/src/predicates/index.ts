@@ -29,7 +29,7 @@ import "./custom/mailchimp-url-secret.js";
 import "./custom/postmark-signing.js";
 import "./custom/notion-signing.js";
 
-import type { RulePredicate } from "@hookwarden/engine";
+import type { ProviderCatalogEntry, RulePredicate } from "@hookwarden/engine";
 import { PROVIDER_CATALOG } from "../catalog.js";
 import { bitbucketSignaturePrefixNotStrippedPredicate } from "./bitbucket-signature-prefix.js";
 import { calendlySignatureHeaderParseMishandledPredicate } from "./calendly-header-parse.js";
@@ -227,241 +227,271 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
     createVerifyAfterSideEffectPredicate("standardwebhooks"),
   "stripe-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "stripe",
-    PROVIDER_CATALOG["stripe"]!,
+    PROVIDER_CATALOG["stripe"] as ProviderCatalogEntry,
   ),
   "github-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "github",
-    PROVIDER_CATALOG["github"]!,
+    PROVIDER_CATALOG["github"] as ProviderCatalogEntry,
   ),
   "shopify-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "shopify",
-    PROVIDER_CATALOG["shopify"]!,
+    PROVIDER_CATALOG["shopify"] as ProviderCatalogEntry,
   ),
   "twilio-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "twilio",
-    PROVIDER_CATALOG["twilio"]!,
+    PROVIDER_CATALOG["twilio"] as ProviderCatalogEntry,
   ),
   "slack-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "slack",
-    PROVIDER_CATALOG["slack"]!,
+    PROVIDER_CATALOG["slack"] as ProviderCatalogEntry,
   ),
   "square-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "square",
-    PROVIDER_CATALOG["square"]!,
+    PROVIDER_CATALOG["square"] as ProviderCatalogEntry,
   ),
   "zendesk-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "zendesk",
-    PROVIDER_CATALOG["zendesk"]!,
+    PROVIDER_CATALOG["zendesk"] as ProviderCatalogEntry,
   ),
   "docusign-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "docusign",
-    PROVIDER_CATALOG["docusign"]!,
+    PROVIDER_CATALOG["docusign"] as ProviderCatalogEntry,
   ),
   "intercom-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "intercom",
-    PROVIDER_CATALOG["intercom"]!,
+    PROVIDER_CATALOG["intercom"] as ProviderCatalogEntry,
   ),
   "linear-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "linear",
-    PROVIDER_CATALOG["linear"]!,
+    PROVIDER_CATALOG["linear"] as ProviderCatalogEntry,
   ),
   "hubspot-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "hubspot",
-    PROVIDER_CATALOG["hubspot"]!,
+    PROVIDER_CATALOG["hubspot"] as ProviderCatalogEntry,
   ),
   "auth0-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "auth0",
-    PROVIDER_CATALOG["auth0"]!,
+    PROVIDER_CATALOG["auth0"] as ProviderCatalogEntry,
   ),
   "mailchimp-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "mailchimp",
-    PROVIDER_CATALOG["mailchimp"]!,
+    PROVIDER_CATALOG["mailchimp"] as ProviderCatalogEntry,
   ),
   "postmark-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "postmark",
-    PROVIDER_CATALOG["postmark"]!,
+    PROVIDER_CATALOG["postmark"] as ProviderCatalogEntry,
   ),
   "sentry-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "sentry",
-    PROVIDER_CATALOG["sentry"]!,
+    PROVIDER_CATALOG["sentry"] as ProviderCatalogEntry,
   ),
   "pagerduty-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "pagerduty",
-    PROVIDER_CATALOG["pagerduty"]!,
+    PROVIDER_CATALOG["pagerduty"] as ProviderCatalogEntry,
   ),
   "bitbucket-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "bitbucket",
-    PROVIDER_CATALOG["bitbucket"]!,
+    PROVIDER_CATALOG["bitbucket"] as ProviderCatalogEntry,
   ),
   "notion-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "notion",
-    PROVIDER_CATALOG["notion"]!,
+    PROVIDER_CATALOG["notion"] as ProviderCatalogEntry,
   ),
   "calendly-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "calendly",
-    PROVIDER_CATALOG["calendly"]!,
+    PROVIDER_CATALOG["calendly"] as ProviderCatalogEntry,
   ),
   "zoom-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "zoom",
-    PROVIDER_CATALOG["zoom"]!,
+    PROVIDER_CATALOG["zoom"] as ProviderCatalogEntry,
   ),
   "standardwebhooks-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
     "standardwebhooks",
-    PROVIDER_CATALOG["standardwebhooks"]!,
+    PROVIDER_CATALOG["standardwebhooks"] as ProviderCatalogEntry,
   ),
-  "stripe-test-mode-bypass": createTestModeBypassPredicate("stripe", PROVIDER_CATALOG["stripe"]!),
-  "github-test-mode-bypass": createTestModeBypassPredicate("github", PROVIDER_CATALOG["github"]!),
+  "stripe-test-mode-bypass": createTestModeBypassPredicate(
+    "stripe",
+    PROVIDER_CATALOG["stripe"] as ProviderCatalogEntry,
+  ),
+  "github-test-mode-bypass": createTestModeBypassPredicate(
+    "github",
+    PROVIDER_CATALOG["github"] as ProviderCatalogEntry,
+  ),
   "shopify-test-mode-bypass": createTestModeBypassPredicate(
     "shopify",
-    PROVIDER_CATALOG["shopify"]!,
+    PROVIDER_CATALOG["shopify"] as ProviderCatalogEntry,
   ),
-  "twilio-test-mode-bypass": createTestModeBypassPredicate("twilio", PROVIDER_CATALOG["twilio"]!),
-  "slack-test-mode-bypass": createTestModeBypassPredicate("slack", PROVIDER_CATALOG["slack"]!),
-  "square-test-mode-bypass": createTestModeBypassPredicate("square", PROVIDER_CATALOG["square"]!),
+  "twilio-test-mode-bypass": createTestModeBypassPredicate(
+    "twilio",
+    PROVIDER_CATALOG["twilio"] as ProviderCatalogEntry,
+  ),
+  "slack-test-mode-bypass": createTestModeBypassPredicate(
+    "slack",
+    PROVIDER_CATALOG["slack"] as ProviderCatalogEntry,
+  ),
+  "square-test-mode-bypass": createTestModeBypassPredicate(
+    "square",
+    PROVIDER_CATALOG["square"] as ProviderCatalogEntry,
+  ),
   "zendesk-test-mode-bypass": createTestModeBypassPredicate(
     "zendesk",
-    PROVIDER_CATALOG["zendesk"]!,
+    PROVIDER_CATALOG["zendesk"] as ProviderCatalogEntry,
   ),
   "docusign-test-mode-bypass": createTestModeBypassPredicate(
     "docusign",
-    PROVIDER_CATALOG["docusign"]!,
+    PROVIDER_CATALOG["docusign"] as ProviderCatalogEntry,
   ),
   "intercom-test-mode-bypass": createTestModeBypassPredicate(
     "intercom",
-    PROVIDER_CATALOG["intercom"]!,
+    PROVIDER_CATALOG["intercom"] as ProviderCatalogEntry,
   ),
-  "linear-test-mode-bypass": createTestModeBypassPredicate("linear", PROVIDER_CATALOG["linear"]!),
+  "linear-test-mode-bypass": createTestModeBypassPredicate(
+    "linear",
+    PROVIDER_CATALOG["linear"] as ProviderCatalogEntry,
+  ),
   "hubspot-test-mode-bypass": createTestModeBypassPredicate(
     "hubspot",
-    PROVIDER_CATALOG["hubspot"]!,
+    PROVIDER_CATALOG["hubspot"] as ProviderCatalogEntry,
   ),
-  "auth0-test-mode-bypass": createTestModeBypassPredicate("auth0", PROVIDER_CATALOG["auth0"]!),
+  "auth0-test-mode-bypass": createTestModeBypassPredicate(
+    "auth0",
+    PROVIDER_CATALOG["auth0"] as ProviderCatalogEntry,
+  ),
   "mailchimp-test-mode-bypass": createTestModeBypassPredicate(
     "mailchimp",
-    PROVIDER_CATALOG["mailchimp"]!,
+    PROVIDER_CATALOG["mailchimp"] as ProviderCatalogEntry,
   ),
   "postmark-test-mode-bypass": createTestModeBypassPredicate(
     "postmark",
-    PROVIDER_CATALOG["postmark"]!,
+    PROVIDER_CATALOG["postmark"] as ProviderCatalogEntry,
   ),
-  "sentry-test-mode-bypass": createTestModeBypassPredicate("sentry", PROVIDER_CATALOG["sentry"]!),
+  "sentry-test-mode-bypass": createTestModeBypassPredicate(
+    "sentry",
+    PROVIDER_CATALOG["sentry"] as ProviderCatalogEntry,
+  ),
   "pagerduty-test-mode-bypass": createTestModeBypassPredicate(
     "pagerduty",
-    PROVIDER_CATALOG["pagerduty"]!,
+    PROVIDER_CATALOG["pagerduty"] as ProviderCatalogEntry,
   ),
   "bitbucket-test-mode-bypass": createTestModeBypassPredicate(
     "bitbucket",
-    PROVIDER_CATALOG["bitbucket"]!,
+    PROVIDER_CATALOG["bitbucket"] as ProviderCatalogEntry,
   ),
-  "notion-test-mode-bypass": createTestModeBypassPredicate("notion", PROVIDER_CATALOG["notion"]!),
+  "notion-test-mode-bypass": createTestModeBypassPredicate(
+    "notion",
+    PROVIDER_CATALOG["notion"] as ProviderCatalogEntry,
+  ),
   "calendly-test-mode-bypass": createTestModeBypassPredicate(
     "calendly",
-    PROVIDER_CATALOG["calendly"]!,
+    PROVIDER_CATALOG["calendly"] as ProviderCatalogEntry,
   ),
-  "zoom-test-mode-bypass": createTestModeBypassPredicate("zoom", PROVIDER_CATALOG["zoom"]!),
+  "zoom-test-mode-bypass": createTestModeBypassPredicate(
+    "zoom",
+    PROVIDER_CATALOG["zoom"] as ProviderCatalogEntry,
+  ),
   "standardwebhooks-test-mode-bypass": createTestModeBypassPredicate(
     "standardwebhooks",
-    PROVIDER_CATALOG["standardwebhooks"]!,
+    PROVIDER_CATALOG["standardwebhooks"] as ProviderCatalogEntry,
   ),
   "stripe-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "stripe",
-    PROVIDER_CATALOG["stripe"]!,
+    PROVIDER_CATALOG["stripe"] as ProviderCatalogEntry,
   ),
   "github-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "github",
-    PROVIDER_CATALOG["github"]!,
+    PROVIDER_CATALOG["github"] as ProviderCatalogEntry,
   ),
   "shopify-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "shopify",
-    PROVIDER_CATALOG["shopify"]!,
+    PROVIDER_CATALOG["shopify"] as ProviderCatalogEntry,
   ),
   "twilio-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "twilio",
-    PROVIDER_CATALOG["twilio"]!,
+    PROVIDER_CATALOG["twilio"] as ProviderCatalogEntry,
   ),
   "slack-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "slack",
-    PROVIDER_CATALOG["slack"]!,
+    PROVIDER_CATALOG["slack"] as ProviderCatalogEntry,
   ),
   "square-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "square",
-    PROVIDER_CATALOG["square"]!,
+    PROVIDER_CATALOG["square"] as ProviderCatalogEntry,
   ),
   "zendesk-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "zendesk",
-    PROVIDER_CATALOG["zendesk"]!,
+    PROVIDER_CATALOG["zendesk"] as ProviderCatalogEntry,
   ),
   "docusign-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "docusign",
-    PROVIDER_CATALOG["docusign"]!,
+    PROVIDER_CATALOG["docusign"] as ProviderCatalogEntry,
   ),
   "intercom-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "intercom",
-    PROVIDER_CATALOG["intercom"]!,
+    PROVIDER_CATALOG["intercom"] as ProviderCatalogEntry,
   ),
   "linear-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "linear",
-    PROVIDER_CATALOG["linear"]!,
+    PROVIDER_CATALOG["linear"] as ProviderCatalogEntry,
   ),
   "hubspot-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "hubspot",
-    PROVIDER_CATALOG["hubspot"]!,
+    PROVIDER_CATALOG["hubspot"] as ProviderCatalogEntry,
   ),
   "auth0-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "auth0",
-    PROVIDER_CATALOG["auth0"]!,
+    PROVIDER_CATALOG["auth0"] as ProviderCatalogEntry,
   ),
   "mailchimp-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "mailchimp",
-    PROVIDER_CATALOG["mailchimp"]!,
+    PROVIDER_CATALOG["mailchimp"] as ProviderCatalogEntry,
   ),
   "postmark-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "postmark",
-    PROVIDER_CATALOG["postmark"]!,
+    PROVIDER_CATALOG["postmark"] as ProviderCatalogEntry,
   ),
   "sentry-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "sentry",
-    PROVIDER_CATALOG["sentry"]!,
+    PROVIDER_CATALOG["sentry"] as ProviderCatalogEntry,
   ),
   "pagerduty-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "pagerduty",
-    PROVIDER_CATALOG["pagerduty"]!,
+    PROVIDER_CATALOG["pagerduty"] as ProviderCatalogEntry,
   ),
   "bitbucket-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "bitbucket",
-    PROVIDER_CATALOG["bitbucket"]!,
+    PROVIDER_CATALOG["bitbucket"] as ProviderCatalogEntry,
   ),
   "notion-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "notion",
-    PROVIDER_CATALOG["notion"]!,
+    PROVIDER_CATALOG["notion"] as ProviderCatalogEntry,
   ),
   "calendly-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "calendly",
-    PROVIDER_CATALOG["calendly"]!,
+    PROVIDER_CATALOG["calendly"] as ProviderCatalogEntry,
   ),
   "zoom-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "zoom",
-    PROVIDER_CATALOG["zoom"]!,
+    PROVIDER_CATALOG["zoom"] as ProviderCatalogEntry,
   ),
   "standardwebhooks-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "standardwebhooks",
-    PROVIDER_CATALOG["standardwebhooks"]!,
+    PROVIDER_CATALOG["standardwebhooks"] as ProviderCatalogEntry,
   ),
   "stripe-replay-window-too-permissive": createReplayWindowTooPermissivePredicate(
     "stripe",
-    PROVIDER_CATALOG["stripe"]!,
+    PROVIDER_CATALOG["stripe"] as ProviderCatalogEntry,
   ),
   "slack-replay-window-too-permissive": createReplayWindowTooPermissivePredicate(
     "slack",
-    PROVIDER_CATALOG["slack"]!,
+    PROVIDER_CATALOG["slack"] as ProviderCatalogEntry,
   ),
   "shopify-replay-window-too-permissive": createReplayWindowTooPermissivePredicate(
     "shopify",
-    PROVIDER_CATALOG["shopify"]!,
+    PROVIDER_CATALOG["shopify"] as ProviderCatalogEntry,
   ),
   "standardwebhooks-replay-window-too-permissive": createReplayWindowTooPermissivePredicate(
     "standardwebhooks",
-    PROVIDER_CATALOG["standardwebhooks"]!,
+    PROVIDER_CATALOG["standardwebhooks"] as ProviderCatalogEntry,
   ),
   "stripe-library-verified": stripeLibraryVerifiedPredicate,
   "github-library-verified": githubLibraryVerifiedPredicate,
