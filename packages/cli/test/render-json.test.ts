@@ -314,7 +314,11 @@ describe("renderJson — D-59 envelope", () => {
       const findings = [
         makeFinding({ rule_id: "stripe/missing-verification", primary_location_line_hash: "h1" }),
       ];
-      const out = renderJson({ scanResult: makeResult(findings), ruleSet: ruleSetWithRefs, stale: [] });
+      const out = renderJson({
+        scanResult: makeResult(findings),
+        ruleSet: ruleSetWithRefs,
+        stale: [],
+      });
       const parsed = JSON.parse(out);
       expect(parsed.scan.findings[0].references).toEqual([
         "https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/",
