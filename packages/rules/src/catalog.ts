@@ -113,6 +113,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     ],
     // v0.7 Rule Depth (VAS-01) — shared sink lists spread from SHARED_VAS_SINKS.
     ...SHARED_VAS_SINKS,
+    replay_tolerance_max_seconds: 300,
     provider_api_hosts: ["api.stripe.com"],
   },
   github: {
@@ -196,6 +197,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
+    replay_tolerance_max_seconds: 300,
     provider_api_hosts: ["myshopify.com"],
   },
   slack: {
@@ -242,6 +244,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
+    replay_tolerance_max_seconds: 300,
     provider_api_hosts: ["slack.com", "api.slack.com"],
   },
   square: {
@@ -372,6 +375,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
+    replay_tolerance_max_seconds: 300,
     provider_api_hosts: [],
   },
   // Phase 8.3 Plan 08 — Postmark inbound/outbound webhooks. UNUSUAL: Postmark's

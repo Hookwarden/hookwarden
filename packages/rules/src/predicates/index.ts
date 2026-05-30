@@ -447,14 +447,22 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
     "standardwebhooks",
     PROVIDER_CATALOG["standardwebhooks"]!,
   ),
-  "stripe-replay-window-too-permissive":
-    createReplayWindowTooPermissivePredicate("stripe", PROVIDER_CATALOG["stripe"]!),
-  "slack-replay-window-too-permissive":
-    createReplayWindowTooPermissivePredicate("slack", PROVIDER_CATALOG["slack"]!),
-  "shopify-replay-window-too-permissive":
-    createReplayWindowTooPermissivePredicate("shopify", PROVIDER_CATALOG["shopify"]!),
-  "standardwebhooks-replay-window-too-permissive":
-    createReplayWindowTooPermissivePredicate("standardwebhooks", PROVIDER_CATALOG["standardwebhooks"]!),
+  "stripe-replay-window-too-permissive": createReplayWindowTooPermissivePredicate(
+    "stripe",
+    PROVIDER_CATALOG["stripe"]!,
+  ),
+  "slack-replay-window-too-permissive": createReplayWindowTooPermissivePredicate(
+    "slack",
+    PROVIDER_CATALOG["slack"]!,
+  ),
+  "shopify-replay-window-too-permissive": createReplayWindowTooPermissivePredicate(
+    "shopify",
+    PROVIDER_CATALOG["shopify"]!,
+  ),
+  "standardwebhooks-replay-window-too-permissive": createReplayWindowTooPermissivePredicate(
+    "standardwebhooks",
+    PROVIDER_CATALOG["standardwebhooks"]!,
+  ),
   "stripe-library-verified": stripeLibraryVerifiedPredicate,
   "github-library-verified": githubLibraryVerifiedPredicate,
   // Wave 3 Stripe pack (D-93 refactor — sourced from catalog-parameterized factories)
