@@ -104,7 +104,7 @@ hookwarden --version   # check what you have
 | **scoop** (Windows) | `scoop update hookwarden` |
 | **npm** (global) | `npm i -g hookwarden@latest` |
 | **pip** | `pip install -U hookwarden` |
-| **npx** | always latest with `npx hookwarden@latest scan .` |
+| **npx** (no install) | `npx hookwarden@latest scan .` — `@latest` bypasses the npx cache |
 | **direct binary** | re-download from [Releases](https://github.com/Hookwarden/hookwarden/releases/latest) |
 
 Rule pack versions move with the CLI (engine, rules, and CLI ship as a fixed group — `0.6.0` everywhere). Pin in CI with `npx hookwarden@0.6.0 scan .` if you want byte-stable verdicts across runs.

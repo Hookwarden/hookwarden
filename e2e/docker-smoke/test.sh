@@ -130,13 +130,22 @@ else fail "0.1 npm install hookwarden@${HW_VERSION}"; exit 1; fi
 HW="./node_modules/.bin/hookwarden"
 [[ -x "$HW" ]] && ok "0.2 binary present at $HW" || { fail "0.2 binary missing"; exit 1; }
 
+# When HW_VERSION=latest, resolve to the concrete version that actually got
+# installed (npm dist-tag). For pinned versions, the strict equality below is
+# the pin-proven assertion.
+if [[ "$HW_VERSION" == "latest" ]]; then
+  EXPECTED_VERSION=$(node -e "console.log(require('./node_modules/hookwarden/package.json').version)")
+else
+  EXPECTED_VERSION="$HW_VERSION"
+fi
+
 VER=$("$HW" --version 2>&1 | head -1)
-[[ "$VER" == "$HW_VERSION" ]] && ok "0.3 --version → $VER" \
-  || fail "0.3 --version mismatch" "want $HW_VERSION got $VER"
+[[ "$VER" == "$EXPECTED_VERSION" ]] && ok "0.3 --version → $VER" \
+  || fail "0.3 --version mismatch" "want $EXPECTED_VERSION got $VER"
 
 VER_SHORT=$("$HW" -V 2>&1 | head -1)
-[[ "$VER_SHORT" == "$HW_VERSION" ]] && ok "0.4 -V (short) → $VER_SHORT" \
-  || fail "0.4 -V mismatch" "want $HW_VERSION got $VER_SHORT"
+[[ "$VER_SHORT" == "$EXPECTED_VERSION" ]] && ok "0.4 -V (short) → $VER_SHORT" \
+  || fail "0.4 -V mismatch" "want $EXPECTED_VERSION got $VER_SHORT"
 
 HELP=$("$HW" --help 2>&1)
 errs=()
