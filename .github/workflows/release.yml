@@ -148,6 +148,41 @@ jobs:
           sleep 30  # npm registry propagation
           npm i @hookwarden/mcp --dry-run --prefer-online
 
+      - name: Install mcp-publisher CLI (Plan 23-09 — pinned to MCP_PUBLISHER_VERSION)
+        # WARNING #4 fix: pinned to a specific GitHub Release tag, NEVER
+        # `releases/latest`. Resolves at edit-time via
+        # `gh api repos/modelcontextprotocol/registry/releases --jq '.[0].tag_name'`
+        # (2026-05-30 resolved to v1.7.9). An upstream breaking change in
+        # mcp-publisher can't silently break the hookwarden release pipeline;
+        # bumping the pin is a deliberate PR.
+        if: |
+          steps.changesets.outputs.published == 'true' &&
+          contains(steps.changesets.outputs.publishedPackages, '@hookwarden/mcp')
+        env:
+          MCP_PUBLISHER_VERSION: v1.7.9
+        run: |
+          curl -fL "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          sudo mv mcp-publisher /usr/local/bin/mcp-publisher
+          mcp-publisher --version
+
+      - name: Register @hookwarden/mcp at registry.modelcontextprotocol.io (Plan 23-09)
+        # GitHub OIDC auth via the existing `id-token: write` permission.
+        # Dry-run FIRST per RESEARCH §Pitfall 6 — fails fast on namespace or
+        # schema mismatch (Plan 23-04 Task 2 CI gate already catches mcpName
+        # vs server.json#name mismatch at PR time; this is defense-in-depth).
+        # Supersedes D-23-15 per RESEARCH §Pitfall 2: NO PRs to fictional
+        # catalog repos. Cursor Directory + Continue Hub both scrape this
+        # registry on nightly schedule; aggregator visibility lags 24-48h
+        # (Plan 23-09 Tasks 2 + 3 human-verify).
+        if: |
+          steps.changesets.outputs.published == 'true' &&
+          contains(steps.changesets.outputs.publishedPackages, '@hookwarden/mcp')
+        working-directory: packages/mcp
+        run: |
+          mcp-publisher login github
+          mcp-publisher publish --dry-run
+          mcp-publisher publish
+
       # ----- Phase 4.1 channel fan-out (only when the `hookwarden` CLI was published) -----
       #
       # Original gate: all downstream steps fired whenever Changesets published anything.
