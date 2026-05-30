@@ -14,6 +14,62 @@
 
 import type { ProviderCatalog } from "@hookwarden/engine";
 
+// v0.7 Rule Depth (VAS-01) shared sink-call lists. These patterns are
+// cross-provider — a DB write is a side effect regardless of which webhook
+// fired it. Each provider catalog entry spreads SHARED_VAS_SINKS to inherit
+// the same baseline + adds its own `provider_api_hosts` to exclude calls to
+// its own API from the outbound-HTTP check (e.g. Stripe handlers calling
+// api.stripe.com shouldn't trigger verify-after-side-effect on the HTTP rule).
+//
+// Catalog wildcard matching is the planner's job — for v0.7.0 the engine's
+// qualifiedCallName resolves dotted call chains literally; nested member
+// access shapes like `prisma.user.create` and `prisma.event.create` need
+// explicit enumeration. Common shapes are listed below; Plan 14 follow-ups
+// can extend per real-corpus findings.
+const SHARED_VAS_SINKS = {
+  db_sink_calls: [
+    "prisma.user.create",
+    "prisma.user.update",
+    "prisma.user.delete",
+    "prisma.event.create",
+    "prisma.event.update",
+    "knex.insert",
+    "knex.update",
+    "knex.delete",
+    "db.query",
+    "pool.query",
+    "client.query",
+    "drizzle.insert",
+    "drizzle.update",
+    "drizzle.delete",
+  ] as const,
+  http_sink_calls: [
+    "fetch",
+    "axios.post",
+    "axios.put",
+    "axios.delete",
+    "axios.patch",
+    "got.post",
+    "got.put",
+    "got.delete",
+  ] as const,
+  event_sink_calls: [
+    "emitter.emit",
+    "eventEmitter.emit",
+    "sqs.send",
+    "sns.publish",
+    "kafka.send",
+    "pubsub.publish",
+  ] as const,
+  notification_sink_calls: [
+    "nodemailer.sendMail",
+    "transporter.sendMail",
+    "twilio.messages.create",
+    "sendgrid.send",
+    "mail.send",
+  ] as const,
+};
+
 export const PROVIDER_CATALOG: ProviderCatalog = {
   stripe: {
     signature_header: ["stripe-signature"],
@@ -51,34 +107,8 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "express-middleware-ordering",
       "verify-after-side-effect",
     ],
-    // v0.7 Rule Depth (VAS-01) sink-call catalog. Shared cross-provider list —
-    // a database write is a side effect regardless of which webhook fired it.
-    // Wildcard matching for nested member paths happens in the handler-cfg
-    // qname matcher (Phase 13 Stage C); literal names land here.
-    db_sink_calls: [
-      "prisma.user.create",
-      "prisma.user.update",
-      "prisma.user.delete",
-      "prisma.event.create",
-      "knex.insert",
-      "knex.update",
-      "knex.delete",
-      "db.query",
-    ],
-    http_sink_calls: ["fetch", "axios.post", "axios.put", "axios.delete", "got.post", "got.put"],
-    event_sink_calls: [
-      "emitter.emit",
-      "eventEmitter.emit",
-      "sqs.send",
-      "sns.publish",
-      "kafka.send",
-    ],
-    notification_sink_calls: [
-      "nodemailer.sendMail",
-      "transporter.sendMail",
-      "twilio.messages.create",
-      "sendgrid.send",
-    ],
+    // v0.7 Rule Depth (VAS-01) — shared sink lists spread from SHARED_VAS_SINKS.
+    ...SHARED_VAS_SINKS,
     provider_api_hosts: ["api.stripe.com"],
   },
   github: {
@@ -110,7 +140,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "hardcoded-secret-prefix",
       "library-verified",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["api.github.com"],
   },
   shopify: {
     signature_header: ["x-shopify-hmac-sha256"],
@@ -147,7 +181,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "library-verified",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["myshopify.com"],
   },
   slack: {
     signature_header: ["x-slack-signature"],
@@ -185,7 +223,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "library-verified",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["slack.com", "api.slack.com"],
   },
   square: {
     signature_header: ["x-square-hmacsha256-signature"],
@@ -219,7 +261,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "library-verified",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["connect.squareup.com"],
   },
   twilio: {
     signature_header: ["x-twilio-signature"],
@@ -254,7 +300,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "library-verified",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["api.twilio.com"],
   },
   // Phase 8.3 Plan 16 — Standard Webhooks spec (https://www.standardwebhooks.com).
   // One catalog entry sweeps in every conformant provider — Clerk, Resend, Lob, Mux, Knock,
@@ -293,7 +343,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "missing-timestamp-check",
       "wrong-hmac-algorithm",
       "unreachable-verification",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: [],
   },
   // Phase 8.3 Plan 08 — Postmark inbound/outbound webhooks. UNUSUAL: Postmark's
   // default authentication model is HTTP Basic Auth + IP allowlist, NOT HMAC.
@@ -330,7 +384,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "timing-unsafe-comparison",
       "raw-body-misuse",
       "unreachable-verification",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["api.postmarkapp.com"],
   },
   // Phase 8.3 Plan 07 — Mailchimp Marketing webhooks. UNUSUAL: Mailchimp's
   // historically-documented default model is URL-secret-in-path (the secret
@@ -374,7 +432,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "timing-unsafe-comparison",
       "raw-body-misuse",
       "unreachable-verification",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["api.mailchimp.com"],
   },
   // Phase 8.3 Plan 05 — HubSpot v3 webhooks. signing_input_format: 'custom' —
   // canonical-string is `${httpMethod}${requestURI}${rawBody}${timestamp}` per
@@ -409,7 +471,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "missing-timestamp-check",
       "wrong-hmac-algorithm",
       "unreachable-verification",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["api.hubapi.com"],
   },
   // Phase 8.3 Plan 06 — Auth0 Log Streams webhooks. Clean raw_body / sha256 /
   // base64 fit (closest analog: Shopify, DocuSign). Dedicated `Auth0-Signature`
@@ -441,7 +507,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "missing-timestamp-check",
       "wrong-hmac-algorithm",
       "unreachable-verification",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: [],
   },
   // Phase 8.3 Plan 02 — DocuSign Connect webhooks. Clean raw_body / sha256 /
   // base64 fit (closest analog: Shopify). Dedicated `X-DocuSign-Signature-1`
@@ -477,7 +547,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "missing-timestamp-check",
       "wrong-hmac-algorithm",
       "unreachable-verification",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["docusign.net"],
   },
   // Phase 8.3 Plan 04 — Linear webhooks. Clean raw_body / sha256 / hex fit
   // (analog: GitHub or Intercom minus the shared header). Linear sends a
@@ -510,7 +584,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "missing-timestamp-check",
       "wrong-hmac-algorithm",
       "unreachable-verification",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["api.linear.app"],
   },
   // Phase 8.3 Plan 03 — Intercom webhooks. Same signing scheme as GitHub legacy
   // (raw_body, sha256, hex, X-Hub-Signature). Intercom literally re-uses GitHub's
@@ -548,7 +626,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "octokit-cross-attribution",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["api.intercom.io"],
   },
   // Phase 8.3 Plan 01 — Zendesk Connect webhooks. Same signing scheme as Slack
   // (timestamp_dot_body, sha256, base64 — `${timestamp}${rawBody}` HMAC). No canonical
@@ -588,7 +670,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "missing-timestamp-check",
       "wrong-hmac-algorithm",
       "unreachable-verification",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["api.zoom.us"],
   },
   // Phase 8.3 Plan 14 — Calendly webhooks. The signature header is comma-separated
   // `t=<unix>,v1=<hex>` (Stripe-shaped) with the inner HMAC computed over
@@ -626,7 +712,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "signature-header-parse-mishandled",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["api.calendly.com"],
   },
   // Phase 8.3 Plan 13 — Notion webhooks. Two-phase auth model: initial
   // verification-token echo (handler must respond with the token sent in the
@@ -663,7 +753,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "raw-body-misuse",
       "wrong-hmac-algorithm",
       "unreachable-verification",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["api.notion.com"],
   },
   // Phase 8.3 Plan 12 — Bitbucket Cloud webhooks. Clean raw_body / sha256 / hex
   // fit for the catalog shape, BUT (like GitHub-legacy) the header value is
@@ -704,7 +798,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "signature-prefix-not-stripped",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["api.bitbucket.org"],
   },
   // Phase 8.3 Plan 11 — PagerDuty v3 webhooks. Clean raw_body / sha256 / hex fit
   // for the catalog shape, BUT the header value is comma-separated `v1=<hex>,v1=<hex>`
@@ -742,7 +840,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "multi-signature-rotation-mishandled",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["api.pagerduty.com"],
   },
   // Phase 8.3 Plan 10 — Sentry Integration Platform webhooks. Clean raw_body /
   // sha256 / hex fit (closest analog: Linear, Auth0, Datadog). Dedicated
@@ -780,7 +882,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "wrong-hmac-algorithm",
       "unreachable-verification",
       "header-confusion",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["sentry.io"],
   },
   // Phase 8.3 Plan 09 DEFERRED — Datadog Webhooks integration does NOT
   // natively HMAC-sign outbound payloads (verified 2026-05-30 via Svix's
@@ -820,6 +926,10 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "missing-timestamp-check",
       "wrong-hmac-algorithm",
       "unreachable-verification",
+      "verify-after-side-effect",
     ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    provider_api_hosts: ["zendesk.com"],
   },
 };

@@ -1,0 +1,36 @@
+schema_version: 1
+rule_id: standardwebhooks/verify-after-side-effect
+provider: standardwebhooks
+severity: high
+emits_state: manual-review
+message: |
+  Standardwebhooks webhook handler appears to perform a side effect (DB write,
+  outbound HTTP call, or event emission) BEFORE verifying the signature. If
+  an attacker forges a payload, the side effect fires before the verification
+  call can reject the request. The signature check still fails, but the
+  damage is already done.
+
+  At v0.7.0 this rule ships at `manual-review` verdict — the engine reports
+  what it observed, but the auditor must confirm the call order isn't sound
+  for another reason (e.g. middleware-upstream verification, transactional
+  rollback on failure, or an asynchronous side effect that completes only
+  after verification).
+
+  Fix: move every side effect AFTER the verification call succeeds. Cache
+  the verified payload on the request object before writing to the database,
+  calling external services, or emitting events.
+matcher: null
+predicate: standardwebhooks-verify-after-side-effect
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+provider_docs_url: https://www.standardwebhooks.com/
+references:
+  - https://hookdeck.com/webhooks/guides/webhook-security-vulnerabilities-guide
+  - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
+fix:
+  safety: manual-only
+  description: "Re-order the handler so every side effect runs AFTER verification succeeds — see provider_docs_url"
+  codegen: null

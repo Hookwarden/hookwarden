@@ -199,6 +199,27 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   // Provider-scoped registry keys mirror the missing-signature-verification
   // pattern so per-provider YAML rules can reference them as predicates.
   "stripe-verify-after-side-effect": createVerifyAfterSideEffectPredicate("stripe"),
+  "github-verify-after-side-effect": createVerifyAfterSideEffectPredicate("github"),
+  "shopify-verify-after-side-effect": createVerifyAfterSideEffectPredicate("shopify"),
+  "twilio-verify-after-side-effect": createVerifyAfterSideEffectPredicate("twilio"),
+  "slack-verify-after-side-effect": createVerifyAfterSideEffectPredicate("slack"),
+  "square-verify-after-side-effect": createVerifyAfterSideEffectPredicate("square"),
+  "zendesk-verify-after-side-effect": createVerifyAfterSideEffectPredicate("zendesk"),
+  "docusign-verify-after-side-effect": createVerifyAfterSideEffectPredicate("docusign"),
+  "intercom-verify-after-side-effect": createVerifyAfterSideEffectPredicate("intercom"),
+  "linear-verify-after-side-effect": createVerifyAfterSideEffectPredicate("linear"),
+  "hubspot-verify-after-side-effect": createVerifyAfterSideEffectPredicate("hubspot"),
+  "auth0-verify-after-side-effect": createVerifyAfterSideEffectPredicate("auth0"),
+  "mailchimp-verify-after-side-effect": createVerifyAfterSideEffectPredicate("mailchimp"),
+  "postmark-verify-after-side-effect": createVerifyAfterSideEffectPredicate("postmark"),
+  "sentry-verify-after-side-effect": createVerifyAfterSideEffectPredicate("sentry"),
+  "pagerduty-verify-after-side-effect": createVerifyAfterSideEffectPredicate("pagerduty"),
+  "bitbucket-verify-after-side-effect": createVerifyAfterSideEffectPredicate("bitbucket"),
+  "notion-verify-after-side-effect": createVerifyAfterSideEffectPredicate("notion"),
+  "calendly-verify-after-side-effect": createVerifyAfterSideEffectPredicate("calendly"),
+  "zoom-verify-after-side-effect": createVerifyAfterSideEffectPredicate("zoom"),
+  "standardwebhooks-verify-after-side-effect":
+    createVerifyAfterSideEffectPredicate("standardwebhooks"),
   "stripe-library-verified": stripeLibraryVerifiedPredicate,
   "github-library-verified": githubLibraryVerifiedPredicate,
   // Wave 3 Stripe pack (D-93 refactor — sourced from catalog-parameterized factories)
