@@ -107,7 +107,7 @@ hookwarden --version   # check what you have
 | **npx** (no install) | `npx hookwarden@latest scan .` — `@latest` bypasses the npx cache |
 | **direct binary** | re-download from [Releases](https://github.com/Hookwarden/hookwarden/releases/latest) |
 
-Rule pack versions move with the CLI (engine, rules, and CLI ship as a fixed group — `0.6.0` everywhere). Pin in CI with `npx hookwarden@0.6.0 scan .` if you want byte-stable verdicts across runs.
+Rule pack versions move with the CLI (engine, rules, and CLI ship as a fixed group — `0.7.1` everywhere). Pin in CI with `npx hookwarden@0.7.1 scan .` if you want byte-stable verdicts across runs.
 
 ---
 
@@ -135,7 +135,7 @@ npx hookwarden inventory ./your-app
 
 ## Auto-fix
 
-hookwarden doesn't just name the fix — it applies it. The `fix` subcommand mechanically rewrites the `safety: safe` subset across JS/TS, Python, and PHP (10 rules: timing-unsafe comparisons → `crypto.timingSafeEqual` / `hmac.compare_digest` / `hash_equals`, and raw-body misuse). The other 35 rules are architectural and emit per-finding fix prose instead.
+hookwarden doesn't just name the fix — it applies it. The `fix` subcommand mechanically rewrites the `safety: safe` subset across JS/TS, Python, and PHP (42 rules covering timing-unsafe comparisons → `crypto.timingSafeEqual` / `hmac.compare_digest` / `hash_equals`, and raw-body misuse). The other 188 rules are architectural and emit per-finding fix prose instead.
 
 ```bash
 npx hookwarden fix ./your-app           # dry-run — prints a unified diff, writes nothing
@@ -184,7 +184,7 @@ The `state` column is the three-state verdict. Output is also available as byte-
 
 ## Languages, frameworks & providers
 
-**3 languages · 11 frameworks · 21 providers · 142 rules.** JS/TS parse with Babel; Python and PHP with tree-sitter (WASM).
+**3 languages · 11 frameworks · 21 providers · 230 rules · 100% cited.** Every rule carries ≥1 external citation (CWE / RFC / Svix / Stripe spec) alongside the provider's own docs — auditors and reviewers can follow any finding back to a stable external source. JS/TS parse with Babel; Python and PHP with tree-sitter (WASM).
 
 | Language | Frameworks |
 |---|---|
@@ -240,20 +240,34 @@ hookwarden is **specialized on purpose.** The general-purpose scanners below are
 | **snyk Code** | Broad vuln detection (paid SaaS) | No webhook rules; doesn't model HMAC reachability |
 | **GitGuardian / TruffleHog** | Secret-leak detection | Finds hardcoded secrets; doesn't audit whether verification is correct |
 | **Datadog Static Analysis** | Broad SAST; good cloud signal | No webhook specialization; low-signal for this bug class |
-| **hookwarden** | Webhook verification logic only | 142 rules, 21 providers, three-state verdicts, <5% FP on a 200-repo corpus |
+| **hookwarden** | Webhook verification logic only | 230 rules (100% cited), 21 providers, three-state verdicts, <5% FP on a 200-repo corpus |
 
 hookwarden is **not** a general-purpose SAST or DAST scanner — it won't find XSS, SQL injection, or memory-safety bugs, and it isn't trying to. Keep semgrep, CodeQL, or your DAST for those. Already running one? hookwarden is additive — it finds the one class of bug they weren't built to catch.
 
 ---
 
+## AI agents (Claude Code, Cursor, Continue)
+
+`@hookwarden/mcp` is a Model Context Protocol server that gives AI coding agents the `scan_handler` tool. Paste in any webhook handler, get back the same 3-state verdict (`verified` / `not-verified` / `manual-review`) the CLI would emit — fully local, deterministic, no traffic leaves the agent's machine.
+
+```bash
+npx @hookwarden/mcp init           # auto-detects Claude Desktop / Cursor / Continue and writes the config
+```
+
+The rule pack is bundled inline, content-hashed, and version-pinned to the engine — `scan_handler` cross-checks both on every call and fails loudly on drift. → [`@hookwarden/mcp` on npm](https://www.npmjs.com/package/@hookwarden/mcp)
+
+---
+
 ## Architecture
 
-A pnpm monorepo with a strict, CI-enforced dependency boundary: the engine is pure-functional (no I/O, no filesystem, no network), so the same engine runs in the CLI, in CI, and — eventually — in a browser playground without modification.
+A pnpm monorepo with a strict, CI-enforced dependency boundary: the engine is pure-functional (no I/O, no filesystem, no network), so the same engine runs in the CLI, in CI, in the MCP server, and — eventually — in a browser playground without modification.
 
 | Package | Purpose | License |
 |---|---|---|
 | [`@hookwarden/engine`](./packages/engine) | Handler discovery, reachability analysis, evidence collection. Pure-functional, browser-safe. | Apache 2.0 |
 | [`@hookwarden/rules`](./packages/rules) | Provider catalog, YAML rule packs, parameterized predicate factories. | Apache 2.0 |
+| [`@hookwarden/fix`](./packages/fix) | Auto-remediation — bounded location for AST mutation (Babel traverse + generator). | Apache 2.0 |
+| [`@hookwarden/mcp`](./packages/mcp) | Model Context Protocol server — `scan_handler` tool for AI coding agents. | Apache 2.0 |
 | [`hookwarden`](./packages/cli) | CLI binary — reads config, drives the engine, renders text/JSON/SARIF. | Apache 2.0 |
 
 `dependency-cruiser` enforces the engine's I/O boundary in every PR.
@@ -262,10 +276,12 @@ A pnpm monorepo with a strict, CI-enforced dependency boundary: the engine is pu
 
 ## Roadmap
 
+- **✅ v0.8 — `@hookwarden/mcp` developer preview** (Model Context Protocol server exposing `scan_handler` to Claude Code, Cursor, Continue, and the Anthropic Agent SDK — pasted handler code returns a 3-state verdict locally, zero-network, deterministic). → [MCP server](https://www.npmjs.com/package/@hookwarden/mcp)
+- **✅ v0.7.1 — rule-pack polish** (references backfilled on 142 grandfathered rules → 230 cited; test-path severity overrides on 219 rules → test fixtures no longer false-fire as critical/high).
+- **✅ v0.7 — Rule Depth** (5 new rule classes: VAS / BYP / ERS / LEAK / RPL families across 21 providers; rule pack grew 142 → 230).
 - **✅ v0.6 — rule-pack expansion** (15 new provider rule packs incl. Zendesk, DocuSign, PagerDuty, Bitbucket, Notion, Calendly, Zoom; Standard Webhooks spec sweep covers Clerk, Resend, Mux, Lob, etc.; CVE-2026-41432 Stripe empty-secret detector).
 - **✅ v0.5 — `hookwarden fix`** auto-remediation (mechanical AST rewrites, safe/manual-only per rule).
 - **✅ v0.4 — PHP support** (Laravel, Symfony, Slim, vanilla) + `--provider` filter for phased rollout.
-- **v0.7 — corpus integrity** — every rule-pack PR's findings-delta verified against the full corpus before merge.
 
 ---
 

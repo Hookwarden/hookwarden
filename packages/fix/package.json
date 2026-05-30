@@ -1,7 +1,7 @@
 {
   "name": "@hookwarden/fix",
   "version": "0.7.1",
-  "description": "hookwarden auto-remediation engine — bounded location for @babel/traverse + @babel/generator (engine purity gate D-05).",
+  "description": "hookwarden auto-remediation — mechanical AST rewrites for the safe-codegen rule subset (timing-unsafe → constant-time comparison, raw-body misuse). Atomic staging, re-scan before replace, never edits inside strings or comments. Powers `hookwarden fix`.",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.js",
