@@ -36,6 +36,14 @@ applies_to:
   - slim
   - vanilla-php
 provider_docs_url: https://support.atlassian.com/bitbucket-cloud/docs/manage-webhooks/
+references:
+  - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
+  - https://cwe.mitre.org/data/definitions/345.html
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
 fix:
   safety: manual-only
   description: "Strip the sha256= prefix before constant-time comparing against the computed HMAC"
