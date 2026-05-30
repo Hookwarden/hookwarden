@@ -1,0 +1,35 @@
+schema_version: 1
+rule_id: slack/replay-window-too-permissive
+provider: slack
+severity: high
+emits_state: not-verified
+message: |
+  Slack webhook handler uses a timestamp tolerance that exceeds
+  the provider's documented maximum (300 seconds / 5 minutes). A larger
+  window gives an attacker more time to replay a captured signed payload.
+
+  Patterns detected:
+    - Manual time-diff: `Math.abs(Date.now() / 1000 - timestamp) > 3600`
+      (1 hour vs spec's 5 minutes)
+    - Stripe-shaped tolerance arg: `constructEvent(body, sig, secret, 3600)`
+      (4th arg is documented as tolerance in seconds; default is 300)
+
+  Fix: lower the tolerance to ≤ 300 seconds. If the use case genuinely
+  requires a wider window (e.g. mobile-app polling), document the reason
+  inline and add a `// hookwarden:disable replay-window-too-permissive`
+  suppression so the auditor sees the justification.
+matcher: null
+predicate: slack-replay-window-too-permissive
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+provider_docs_url: https://api.slack.com/authentication/verifying-requests-from-slack
+references:
+  - https://docs.stripe.com/webhooks#verify-events
+  - https://api.slack.com/authentication/verifying-requests-from-slack
+fix:
+  safety: manual-only
+  description: "Lower tolerance to <= 300s OR document the reason for the wider window and suppress — see provider_docs_url"
+  codegen: null
