@@ -107,7 +107,7 @@ hookwarden --version   # check what you have
 | **npx** (no install) | `npx hookwarden@latest scan .` — `@latest` bypasses the npx cache |
 | **direct binary** | re-download from [Releases](https://github.com/Hookwarden/hookwarden/releases/latest) |
 
-Rule pack versions move with the CLI (engine, rules, and CLI ship as a fixed group — `0.7.1` everywhere). Pin in CI with `npx hookwarden@0.7.1 scan .` if you want byte-stable verdicts across runs.
+Rule pack versions move with the CLI (engine, rules, and CLI ship as a fixed group — `0.7.2` everywhere). Pin in CI with `npx hookwarden@0.7.2 scan .` if you want byte-stable verdicts across runs.
 
 ---
 
@@ -158,6 +158,8 @@ $ hookwarden scan ./your-app
   HMAC are gone and `stripe.webhooks.constructEvent` cannot reproduce the signature.
   fix › register `express.json()` AFTER the webhook route, OR mount `express.raw(...)` on the path only.
   docs › https://docs.stripe.com/webhooks#verify-events
+  refs › https://expressjs.com/en/guide/using-middleware.html
+         https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
 
 × critical  server.js:10:1  stripe/missing-signature-verification  not-verified
   Stripe webhook handler does not appear to verify the signature header before processing the event …
@@ -277,6 +279,7 @@ A pnpm monorepo with a strict, CI-enforced dependency boundary: the engine is pu
 ## Roadmap
 
 - **✅ v0.8 — `@hookwarden/mcp` developer preview** (Model Context Protocol server exposing `scan_handler` to Claude Code, Cursor, Continue, and the Anthropic Agent SDK — pasted handler code returns a 3-state verdict locally, zero-network, deterministic). → [MCP server](https://www.npmjs.com/package/@hookwarden/mcp)
+- **✅ v0.7.2 — references visible in output** (text renderer gains a `refs ›` block per finding; JSON envelope gains `scan.findings[].references: string[]`. v0.7.1 cited every rule; v0.7.2 makes citations actually visible to scan consumers).
 - **✅ v0.7.1 — rule-pack polish** (references backfilled on 142 grandfathered rules → 230 cited; test-path severity overrides on 219 rules → test fixtures no longer false-fire as critical/high).
 - **✅ v0.7 — Rule Depth** (5 new rule classes: VAS / BYP / ERS / LEAK / RPL families across 21 providers; rule pack grew 142 → 230).
 - **✅ v0.6 — rule-pack expansion** (15 new provider rule packs incl. Zendesk, DocuSign, PagerDuty, Bitbucket, Notion, Calendly, Zoom; Standard Webhooks spec sweep covers Clerk, Resend, Mux, Lob, etc.; CVE-2026-41432 Stripe empty-secret detector).
