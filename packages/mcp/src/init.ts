@@ -7,7 +7,7 @@ import * as os from "node:os";
 import { defineCommand, runMain } from "citty";
 import pc from "picocolors";
 
-import { writeClaudeDesktopConfig } from "./client-config/claude-desktop.js";
+import { type WriteResult, writeClaudeDesktopConfig } from "./client-config/claude-desktop.js";
 import { writeContinueDevConfig } from "./client-config/continue-dev.js";
 import { writeCursorConfig } from "./client-config/cursor.js";
 import { type ConfigPath, getClientConfigPaths } from "./client-config/paths.js";
@@ -67,7 +67,7 @@ export async function executeInit(opts: ExecuteOptions): Promise<{
     if (selectedClients !== null && !selectedClients.has(cp.client)) continue;
 
     const writeOpts = { dryRun: opts.dryRun, forceOverwrite: opts.force };
-    let result;
+    let result: WriteResult;
     if (cp.client === "claude-desktop") {
       // Detection for Claude Desktop: parent dir existence (config file
       // may not exist yet on first install, but the Claude/ dir does).
@@ -125,7 +125,9 @@ export async function executeInit(opts: ExecuteOptions): Promise<{
     if (row.backup) backupCount += 1;
   }
 
-  out.write(`\n  ${pc.dim("— Anthropic SDK")}    ${pc.dim("(programmatic — copy snippet from README)")}\n`);
+  out.write(
+    `\n  ${pc.dim("— Anthropic SDK")}    ${pc.dim("(programmatic — copy snippet from README)")}\n`,
+  );
 
   if (backupCount > 0) {
     out.write(

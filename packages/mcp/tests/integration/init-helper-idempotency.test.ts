@@ -8,12 +8,16 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { executeInit } from "../../src/init.js";
 
 let tmpHome: string;
-let stdout: string;
-const stdoutCollector = { write: (chunk: string): void => { stdout += chunk; } };
+let _stdout: string;
+const stdoutCollector = {
+  write: (chunk: string): void => {
+    _stdout += chunk;
+  },
+};
 
 beforeEach(async () => {
   tmpHome = await fs.mkdtemp(path.join(os.tmpdir(), "hookwarden-init-idem-"));
-  stdout = "";
+  _stdout = "";
 });
 
 afterEach(async () => {
@@ -79,10 +83,6 @@ describe("init helper — idempotency + sibling preservation", () => {
     const merged = JSON.parse(await fs.readFile(cfgPath, "utf-8")) as {
       mcpServers: Record<string, unknown>;
     };
-    expect(Object.keys(merged.mcpServers).sort()).toEqual([
-      "filesystem",
-      "hookwarden",
-      "memory",
-    ]);
+    expect(Object.keys(merged.mcpServers).sort()).toEqual(["filesystem", "hookwarden", "memory"]);
   });
 });

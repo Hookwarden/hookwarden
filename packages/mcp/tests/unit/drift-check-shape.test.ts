@@ -3,15 +3,15 @@
 // integration test files (drift-engine.test.ts, drift-rules.test.ts) where
 // vi.mock substitutes the version constant per file scope.
 
-import { describe, expect, it } from "vitest";
 import { ENGINE_VERSION } from "@hookwarden/engine";
 import {
   BUNDLED_RULE_DOCUMENTS,
+  computeContentHash,
   PROVIDER_CATALOG,
   RULES_PACK_VERSION,
-  computeContentHash,
   validateRuleDocument,
 } from "@hookwarden/rules";
+import { describe, expect, it } from "vitest";
 
 import { checkDrift, loadBuildManifest } from "../../src/drift-check.js";
 import type { BuildManifest } from "../../src/types.js";

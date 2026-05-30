@@ -43,10 +43,7 @@ app.post("/webhook", express.json(), (req, res) => {
 
   it("returns at least one not-verified finding for the canonical Stripe bug", async () => {
     const manifest = await loadBuildManifest();
-    const result = await scanHandler(
-      { code: SINGLE_FILE_BUG, language: "ts" },
-      manifest,
-    );
+    const result = await scanHandler({ code: SINGLE_FILE_BUG, language: "ts" }, manifest);
 
     expect(result.isError).toBeFalsy();
 
@@ -102,10 +99,7 @@ app.post("/webhook", express.json(), (req, res) => {
 
   it("Tool.result includes both structuredContent AND companion content[1] JSON text", async () => {
     const manifest = await loadBuildManifest();
-    const result = await scanHandler(
-      { code: "// empty handler", language: "ts" },
-      manifest,
-    );
+    const result = await scanHandler({ code: "// empty handler", language: "ts" }, manifest);
 
     expect(result.content).toHaveLength(2);
     expect(result.content[0].text).toMatch(/hookwarden scan_handler/);

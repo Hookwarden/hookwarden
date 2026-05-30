@@ -4,11 +4,10 @@ import { promises as fs } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-
+import { getAnthropicSdkSnippet } from "../../src/client-config/anthropic-sdk.js";
 import { writeClaudeDesktopConfig } from "../../src/client-config/claude-desktop.js";
 import { writeContinueDevConfig } from "../../src/client-config/continue-dev.js";
 import { writeCursorConfig } from "../../src/client-config/cursor.js";
-import { getAnthropicSdkSnippet } from "../../src/client-config/anthropic-sdk.js";
 import { getClientConfigPaths } from "../../src/client-config/paths.js";
 
 let tmpDir: string;
@@ -183,9 +182,9 @@ describe("getAnthropicSdkSnippet (Test 7)", () => {
   it("returns a runnable TS snippet referencing claude-agent-sdk + hookwarden mcpServers config", () => {
     const snippet = getAnthropicSdkSnippet();
     expect(snippet).toContain("@anthropic-ai/claude-agent-sdk");
-    expect(snippet).toContain('mcpServers');
+    expect(snippet).toContain("mcpServers");
     expect(snippet).toContain("hookwarden");
     expect(snippet).toContain('"npx"');
-    expect(snippet).toContain('@hookwarden/mcp');
+    expect(snippet).toContain("@hookwarden/mcp");
   });
 });

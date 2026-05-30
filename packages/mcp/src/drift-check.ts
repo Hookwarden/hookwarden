@@ -11,9 +11,9 @@ import { fileURLToPath } from "node:url";
 import { ENGINE_VERSION } from "@hookwarden/engine";
 import {
   BUNDLED_RULE_DOCUMENTS,
+  computeContentHash,
   PROVIDER_CATALOG,
   RULES_PACK_VERSION,
-  computeContentHash,
   validateRuleDocument,
 } from "@hookwarden/rules";
 

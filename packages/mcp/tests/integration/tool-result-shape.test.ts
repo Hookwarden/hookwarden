@@ -32,10 +32,7 @@ describe("Tool.result dual-shape contract (Plan 23-05 T2 Test 1)", () => {
   it("error path also satisfies dual-shape (negative coverage)", async () => {
     const manifest = await loadBuildManifest();
     // Trigger validation error: code AND files both set.
-    const result = await scanHandler(
-      { code: "x", files: { "a.ts": "y" } },
-      manifest,
-    );
+    const result = await scanHandler({ code: "x", files: { "a.ts": "y" } }, manifest);
 
     expect(result.isError).toBe(true);
     expect(result.content.length).toBeGreaterThanOrEqual(2);

@@ -8,12 +8,16 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { executeInit } from "../../src/init.js";
 
 let tmpHome: string;
-let stdout: string;
-const stdoutCollector = { write: (chunk: string): void => { stdout += chunk; } };
+let _stdout: string;
+const stdoutCollector = {
+  write: (chunk: string): void => {
+    _stdout += chunk;
+  },
+};
 
 beforeEach(async () => {
   tmpHome = await fs.mkdtemp(path.join(os.tmpdir(), "hookwarden-init-detect-"));
-  stdout = "";
+  _stdout = "";
 });
 
 afterEach(async () => {

@@ -36,11 +36,7 @@ import {
 } from "@hookwarden/rules";
 
 import { checkDrift } from "../drift-check.js";
-import type {
-  BuildManifest,
-  ScanHandlerInput,
-  ScanHandlerOutput,
-} from "../types.js";
+import type { BuildManifest, ScanHandlerInput, ScanHandlerOutput } from "../types.js";
 import { loadPythonWasmBytes } from "../wasm/loader.js";
 
 // ── Module-level lazy-init caches ────────────────────────────────────────
@@ -97,7 +93,9 @@ function inferLanguage(filePath: string): LangKind {
 }
 
 // ── Error helper ──────────────────────────────────────────────────────────
-function errorResult(payload: Record<string, unknown> & { readonly error: string }): ScanHandlerOutput {
+function errorResult(
+  payload: Record<string, unknown> & { readonly error: string },
+): ScanHandlerOutput {
   return {
     isError: true,
     content: [
@@ -121,9 +119,7 @@ export async function scanHandler(
     // 2. Input validation (D-23-01..D-23-09)
     const hasCode = typeof args.code === "string" && args.code.length > 0;
     const hasFiles =
-      args.files !== undefined &&
-      args.files !== null &&
-      Object.keys(args.files).length > 0;
+      args.files !== undefined && args.files !== null && Object.keys(args.files).length > 0;
 
     if (!hasCode && !hasFiles) return errorResult({ error: "empty_input" });
     if (hasCode && hasFiles) return errorResult({ error: "exclusive_input_modes" });

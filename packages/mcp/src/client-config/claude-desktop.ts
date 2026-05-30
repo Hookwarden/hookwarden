@@ -60,11 +60,13 @@ export async function writeJsonMcpServersConfig(
   }
 
   const currentServers =
-    existing !== null && typeof existing["mcpServers"] === "object" && existing["mcpServers"] !== null
+    existing !== null &&
+    typeof existing["mcpServers"] === "object" &&
+    existing["mcpServers"] !== null
       ? (existing["mcpServers"] as Record<string, unknown>)
       : {};
 
-  const alreadyHasHookwarden = Object.prototype.hasOwnProperty.call(currentServers, "hookwarden");
+  const alreadyHasHookwarden = Object.hasOwn(currentServers, "hookwarden");
   if (alreadyHasHookwarden && !forceOverwrite) {
     return { status: "skipped", path: configPath, error: "exists" };
   }

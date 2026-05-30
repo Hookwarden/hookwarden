@@ -4,10 +4,9 @@
 // structured error payload — never throw past the tool boundary.
 
 import { describe, expect, it } from "vitest";
-
+import { loadBuildManifest } from "../../src/drift-check.js";
 import { scanHandler } from "../../src/tools/scan-handler.js";
 import type { BuildManifest, ScanHandlerInput } from "../../src/types.js";
-import { loadBuildManifest } from "../../src/drift-check.js";
 
 // Use the just-emitted manifest so drift doesn't fire and we exercise the
 // input-validation branch. Build runs before tests via the verify gate.
@@ -27,10 +26,7 @@ describe("scan_handler input validation (Tests 1-5 + 7)", () => {
 
   it("Test 2: code AND files → exclusive_input_modes", async () => {
     const m = await getManifest();
-    const result = await scanHandler(
-      { code: "x", files: { "a.ts": "y" } } as ScanHandlerInput,
-      m,
-    );
+    const result = await scanHandler({ code: "x", files: { "a.ts": "y" } } as ScanHandlerInput, m);
     expect(result.isError).toBe(true);
     expect((result.structuredContent as { error: string }).error).toBe("exclusive_input_modes");
   });

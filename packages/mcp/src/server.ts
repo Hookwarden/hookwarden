@@ -12,14 +12,14 @@ import { z } from "zod";
 
 import { checkDrift, loadBuildManifest } from "./drift-check.js";
 import { scanHandler } from "./tools/scan-handler.js";
-import type { ScanHandlerInput } from "./types.js";
+import type { BuildManifest, ScanHandlerInput } from "./types.js";
 import { VERSION } from "./version.js";
 
 const REINSTALL = "npm i -g @hookwarden/mcp@latest";
 
 export async function bootServer(): Promise<number> {
   // ── 1. Load build-manifest ───────────────────────────────────────────────
-  let manifest;
+  let manifest: BuildManifest;
   try {
     manifest = await loadBuildManifest();
   } catch (err) {

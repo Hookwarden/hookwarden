@@ -15,10 +15,7 @@ import type { BuildManifest } from "../../src/types.js";
 describe("scan_handler — parse error surfaces as finding (Test 10)", () => {
   it("syntactically broken JS produces a parse-error finding, NOT a transport crash", async () => {
     const manifest = await loadBuildManifest();
-    const result = await scanHandler(
-      { code: "function ( {", language: "ts" },
-      manifest,
-    );
+    const result = await scanHandler({ code: "function ( {", language: "ts" }, manifest);
 
     // The handler must not throw — parse errors are findings.
     expect(result.isError).toBeFalsy();
