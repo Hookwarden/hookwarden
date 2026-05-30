@@ -45,19 +45,24 @@ afterEach(() => {
 });
 
 describe("Phase 1 — Foundation & Defensive Registration: Success Criteria", () => {
-  it("Success Criterion 1: TS project references resolve and 5 OSS package dirs exist", () => {
+  it("Success Criterion 1: TS project references resolve and all OSS package dirs exist", () => {
     run("pnpm exec tsc --build --dry");
     // pr-renderer added in phase 8 (08-02) as the canonical home of the PR
     // sticky-comment renderer — shared between @hookwarden/github-action (this
     // repo) and the SaaS continuous-scanning worker (private repo via npm).
     // fix added in phase 8.2 — bounded location for @babel/traverse +
     // @babel/generator (D-05); engine stays pure.
-    for (const name of ["engine", "cli", "github-action", "rules", "pr-renderer", "fix"]) {
+    // mcp added in phase 23 (v0.8) — Model Context Protocol server exposing
+    // scan_handler for AI coding agents (Claude Desktop / Cursor / Continue /
+    // Anthropic Agent SDK); pinned engine + rules deps for drift detection.
+    for (const name of ["engine", "cli", "github-action", "rules", "pr-renderer", "fix", "mcp"]) {
       const path = join(ROOT, "packages", name, "package.json");
       expect(existsSync(path), `packages/${name}/package.json missing`).toBe(true);
     }
     const root = JSON.parse(readFileSync(join(ROOT, "tsconfig.json"), "utf8"));
-    expect(root.references.length).toBe(6);
+    // Bump this count whenever a new packages/* project reference lands in
+    // the root tsconfig.json — see packages list above.
+    expect(root.references.length).toBe(7);
   });
 
   it("Success Criterion 2: dep-cruiser blocks fs import in packages/engine", () => {
