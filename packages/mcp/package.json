@@ -46,7 +46,7 @@
   },
   "scripts": {
     "test": "vitest run",
-    "build": "tsc -b",
+    "build": "tsc -b && node scripts/emit-build-manifest.mjs",
     "prepare": "node scripts/sync-wasm.mjs && node scripts/sync-version.mjs",
     "prepack": "node scripts/sync-wasm.mjs && node scripts/sync-version.mjs && tsc -b && node scripts/emit-build-manifest.mjs"
   },
