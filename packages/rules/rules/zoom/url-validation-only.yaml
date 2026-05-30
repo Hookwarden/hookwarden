@@ -44,6 +44,14 @@ applies_to:
   - slim
   - vanilla-php
 provider_docs_url: https://developers.zoom.us/docs/api/rest/webhook-reference/
+references:
+  - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
+  - https://cwe.mitre.org/data/definitions/345.html
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
 fix:
   safety: manual-only
   description: "Verify X-Zm-Signature on every runtime event via HMAC over v0:${timestamp}:${rawBody}"
