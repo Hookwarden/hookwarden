@@ -21,8 +21,12 @@
 # the PUBLISHED npm artefact works in a clean Node 22 + no source tree,
 # which the in-process test cannot.
 #
-# Pass HW_VERSION=latest as an env var to test the latest published
-# version instead of the pinned default.
+# Default: smoke against the latest published hookwarden. Pass
+# `HW_VERSION=0.7.5` (or any concrete version) to backwards-compat check
+# a specific artifact. The pinned-floor default (0.5.5) was dropped
+# after it silently masked a stale test assertion — the rule was added
+# in v0.7 but the smoke kept passing against 0.5.5 because the rule
+# simply didn't exist there yet.
 
 set -u
 
@@ -34,7 +38,7 @@ set -u
 set +m
 shopt -s lastpipe
 
-HW_VERSION="${HW_VERSION:-0.5.5}"
+HW_VERSION="${HW_VERSION:-latest}"
 
 PASS=0
 FAIL=0
