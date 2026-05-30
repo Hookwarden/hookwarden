@@ -29,6 +29,14 @@ applies_to:
   - slim
   - vanilla-php
 provider_docs_url: https://developers.docusign.com/platform/webhooks/connect/hmac/
+references:
+  - https://docs.stripe.com/webhooks#replay-attacks
+  - https://www.standardwebhooks.com/
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
 fix:
   safety: manual-only
   description: "Apply the fix manually per the provider documentation — see provider_docs_url"
