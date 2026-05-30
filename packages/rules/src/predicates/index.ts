@@ -118,6 +118,7 @@ import {
   zendeskRawBodyMisusePredicate,
   zoomRawBodyMisusePredicate,
 } from "./raw-body-misuse.js";
+import { createSecretInLogOrErrorPredicate } from "./secret-in-log-or-error.js";
 import { sentryHeaderConfusionPredicate } from "./sentry-header-confusion.js";
 import { stripeEmptySecretPredicate } from "./stripe-empty-secret.js";
 import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-unsafe-comparison.js";
@@ -358,6 +359,90 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   ),
   "zoom-test-mode-bypass": createTestModeBypassPredicate("zoom", PROVIDER_CATALOG["zoom"]!),
   "standardwebhooks-test-mode-bypass": createTestModeBypassPredicate(
+    "standardwebhooks",
+    PROVIDER_CATALOG["standardwebhooks"]!,
+  ),
+  "stripe-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "stripe",
+    PROVIDER_CATALOG["stripe"]!,
+  ),
+  "github-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "github",
+    PROVIDER_CATALOG["github"]!,
+  ),
+  "shopify-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "shopify",
+    PROVIDER_CATALOG["shopify"]!,
+  ),
+  "twilio-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "twilio",
+    PROVIDER_CATALOG["twilio"]!,
+  ),
+  "slack-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "slack",
+    PROVIDER_CATALOG["slack"]!,
+  ),
+  "square-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "square",
+    PROVIDER_CATALOG["square"]!,
+  ),
+  "zendesk-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "zendesk",
+    PROVIDER_CATALOG["zendesk"]!,
+  ),
+  "docusign-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "docusign",
+    PROVIDER_CATALOG["docusign"]!,
+  ),
+  "intercom-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "intercom",
+    PROVIDER_CATALOG["intercom"]!,
+  ),
+  "linear-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "linear",
+    PROVIDER_CATALOG["linear"]!,
+  ),
+  "hubspot-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "hubspot",
+    PROVIDER_CATALOG["hubspot"]!,
+  ),
+  "auth0-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "auth0",
+    PROVIDER_CATALOG["auth0"]!,
+  ),
+  "mailchimp-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "mailchimp",
+    PROVIDER_CATALOG["mailchimp"]!,
+  ),
+  "postmark-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "postmark",
+    PROVIDER_CATALOG["postmark"]!,
+  ),
+  "sentry-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "sentry",
+    PROVIDER_CATALOG["sentry"]!,
+  ),
+  "pagerduty-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "pagerduty",
+    PROVIDER_CATALOG["pagerduty"]!,
+  ),
+  "bitbucket-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "bitbucket",
+    PROVIDER_CATALOG["bitbucket"]!,
+  ),
+  "notion-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "notion",
+    PROVIDER_CATALOG["notion"]!,
+  ),
+  "calendly-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "calendly",
+    PROVIDER_CATALOG["calendly"]!,
+  ),
+  "zoom-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "zoom",
+    PROVIDER_CATALOG["zoom"]!,
+  ),
+  "standardwebhooks-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
     "standardwebhooks",
     PROVIDER_CATALOG["standardwebhooks"]!,
   ),
