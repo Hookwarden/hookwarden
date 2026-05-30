@@ -112,6 +112,15 @@ export function stateBadge(state: Verdict, opts: ColorOptions): string {
 }
 
 /**
+ * Paint arbitrary text in a verdict's color — used by the v0.7.3 verbose
+ * summary footer's verdict-tally row to color the counts ("1 verified",
+ * "4 not-verified", "2 manual-review") in the matching verdict color.
+ */
+export function verdictColor(state: Verdict, text: string, opts: ColorOptions): string {
+  return paint(verdictRgb(state), text, opts, state === "verified");
+}
+
+/**
  * Three-state verdict text without brackets — used by the compact
  * findings renderer where the bracket wrapping is redundant with the
  * column gap.
@@ -127,6 +136,15 @@ export function stateText(state: Verdict, opts: ColorOptions): string {
  */
 export function actionPrefix(label: "fix" | "docs" | "next" | "refs", opts: ColorOptions): string {
   return paint(RGB.accent, `${label} ›`, opts, true);
+}
+
+/**
+ * Paint arbitrary text in the brand accent (#6366F1) — used by the v0.7.3
+ * Stitch verbose-mode renderer for FIX-box framing and section dividers
+ * where `actionPrefix` doesn't fit (no `… ›` shape, no fixed label set).
+ */
+export function accent(text: string, opts: ColorOptions, bold = false): string {
+  return paint(RGB.accent, text, opts, bold);
 }
 
 // D-43 OSC-8 hyperlink: `ESC ] 8 ; ; URL ESC \ DISPLAY ESC ] 8 ; ; ESC \`.

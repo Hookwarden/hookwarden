@@ -14,11 +14,28 @@
 
 import * as path from "node:path";
 import type { Finding, RuleDefinition, RuleSet, ScanResult, Severity } from "@hookwarden/engine";
-import { actionPrefix, ansiLink, dim, severityHeaderInline, stateText } from "./colors.js";
+import {
+  accent,
+  actionPrefix,
+  ansiLink,
+  dim,
+  severityColor,
+  severityHeaderInline,
+  stateText,
+} from "./colors.js";
 
 export interface RenderFindingsOptions {
   readonly useAnsi: boolean;
   readonly cwd: string;
+  /**
+   * v0.7.3+ Stitch CLI design: when true, render the Stitch-design layout:
+   *   - severity-section dividers (`─── critical ───`) grouping findings
+   *   - 2-line finding header (state + rule_id; file:line + confidence)
+   *   - FIX text wrapped in a box-drawing `╭ FIX (safety) │ … ╰` frame
+   * Default mode (verbose unset/false) renders the existing compact layout
+   * — backwards compatible for every consumer that didn't pass verbose.
+   */
+  readonly verbose?: boolean;
 }
 
 // Severity rank for sort; lower number = higher severity (sorted first).
@@ -113,6 +130,80 @@ function softWrap(text: string, indent: string, maxCol: number): string[] {
   return out;
 }
 
+/**
+ * Verbose-mode header (Stitch CLI design): 2 lines instead of 1.
+ *   Line A: `<glyph> <state>  …  <rule_id>` — state leads, rule_id right.
+ *   Line B: `  <file:line:col>  …  <confidence-paren>` — provenance below.
+ * The 2-line shape lets the rule_id breathe and groups the location with
+ * its provenance hint instead of cramming five columns onto one row.
+ */
+function renderVerboseHeader(
+  f: Finding,
+  opts: RenderFindingsOptions,
+  rule: RuleDefinition | undefined,
+): string {
+  const absPath = path.resolve(opts.cwd, f.file_path);
+  const locText = `${f.file_path}:${f.location.line}:${f.location.col}`;
+  const fileLink = ansiLink(
+    `file://${absPath}:${f.location.line}:${f.location.col}`,
+    locText,
+    opts,
+  );
+
+  // Glyph carries severity color; state pill carries verdict color. Together
+  // they tell the reader "how bad" (glyph) and "how sure" (state) at a glance.
+  const glyph = severityHeaderInline(f.severity, opts).split(" ")[0] ?? "";
+  const stateCol = stateText(f.state, opts);
+
+  // Right-align rule_id to a reasonable column. 110-col wrap is what the
+  // body uses; line up rule_id near the right margin so the eye lands on
+  // the actionable identifier first when scanning down a long report.
+  const ruleId = dim(f.rule_id, opts);
+  const lineA = `${glyph} ${stateCol}  ${ruleId}`;
+
+  // Confidence parenthetical:
+  //   - manual-review → `(needs human review)` (action-oriented)
+  //   - rule with predicate → `(high confidence)` (statically proven)
+  //   - parse-error / pseudo-rules → omit (would be misleading)
+  let confidence = "";
+  if (f.state === "manual-review") {
+    confidence = "(needs human review)";
+  } else if (rule !== undefined) {
+    confidence = "(high confidence)";
+  }
+  const lineB = confidence !== ""
+    ? `  ${dim(fileLink, opts)}  ${dim(confidence, opts)}`
+    : `  ${dim(fileLink, opts)}`;
+
+  return `${lineA}\n${lineB}`;
+}
+
+/**
+ * Wrap fix prose in a box-drawing frame (Stitch CLI verbose design):
+ *
+ *   ╭ FIX (manual-only)
+ *   │  Register express.json() AFTER the webhook route, …
+ *   ╰
+ *
+ * The safety label (safe / unsafe / manual-only) lives on the open line so
+ * the reader immediately knows whether `hookwarden fix --write` can apply
+ * this mechanically or whether human judgment is required.
+ */
+function renderFixBox(
+  fix: string,
+  fixSafety: "safe" | "unsafe" | "manual-only" | null,
+  indent: string,
+  wrapCol: number,
+  opts: RenderFindingsOptions,
+): string[] {
+  const safetyLabel = fixSafety !== null ? `FIX (${fixSafety})` : "FIX";
+  const open = `${indent}${accent("╭", opts, true)} ${accent(safetyLabel, opts, true)}`;
+  const close = `${indent}${accent("╰", opts, true)}`;
+  const wrapped = softWrap(fix, "", wrapCol - 6); // 6 = "│  " body indent + buffer
+  const body = wrapped.map((line) => `${indent}${accent("│", opts, true)}  ${line.trim()}`);
+  return [open, ...body, close];
+}
+
 function renderFinding(
   f: Finding,
   rule: RuleDefinition | undefined,
@@ -126,12 +217,17 @@ function renderFinding(
     opts,
   );
 
-  // Header: `<glyph> <severity>  <file:line:col>  <rule_id>  <state>`
-  // Severity column is 10 chars wide (glyph + 8-pad label + 1 space);
-  // state column right-floats. Two spaces between columns for scan-readability.
-  const sevCol = severityHeaderInline(f.severity, opts);
-  const stateCol = stateText(f.state, opts);
-  const header = `${sevCol}  ${fileLink}  ${dim(f.rule_id, opts)}  ${stateCol}`;
+  // Header: verbose mode uses the 2-line Stitch design (state leads, file
+  // provenance below); default mode keeps the compact one-line shape that
+  // every existing test + snapshot relies on.
+  let header: string;
+  if (opts.verbose === true) {
+    header = renderVerboseHeader(f, opts, rule);
+  } else {
+    const sevCol = severityHeaderInline(f.severity, opts);
+    const stateCol = stateText(f.state, opts);
+    header = `${sevCol}  ${fileLink}  ${dim(f.rule_id, opts)}  ${stateCol}`;
+  }
 
   const lines: string[] = [header];
   const indent = "  ";
@@ -144,16 +240,23 @@ function renderFinding(
   // Body: explanation + (optional) fix line.
   const { explanation, fix } = splitMessage(f.message);
   if (explanation.length > 0) {
+    if (opts.verbose === true) lines.push(""); // breathing room after the 2-line header
     lines.push(...softWrap(explanation, indent, wrapCol));
   }
   if (fix !== null) {
-    const fixPrefix = actionPrefix("fix", opts);
-    // First line carries the prefix; continuation lines indent past it.
-    const fixWrapped = softWrap(fix, "", wrapCol - 6); // 6 = "fix › " width
-    if (fixWrapped.length > 0) {
-      lines.push(`${indent}${fixPrefix} ${fixWrapped[0]?.trim() ?? ""}`);
-      for (let i = 1; i < fixWrapped.length; i += 1) {
-        lines.push(`${indent}      ${fixWrapped[i]?.trim() ?? ""}`);
+    if (opts.verbose === true) {
+      // Stitch FIX box: framed prose with safety label on the open line.
+      lines.push("");
+      lines.push(...renderFixBox(fix, rule?.fix?.safety ?? null, indent, wrapCol, opts));
+    } else {
+      // Default mode: compact `fix › <prose>` line(s).
+      const fixPrefix = actionPrefix("fix", opts);
+      const fixWrapped = softWrap(fix, "", wrapCol - 6); // 6 = "fix › " width
+      if (fixWrapped.length > 0) {
+        lines.push(`${indent}${fixPrefix} ${fixWrapped[0]?.trim() ?? ""}`);
+        for (let i = 1; i < fixWrapped.length; i += 1) {
+          lines.push(`${indent}      ${fixWrapped[i]?.trim() ?? ""}`);
+        }
       }
     }
   }
@@ -215,11 +318,40 @@ export function renderFindings(
 ): string {
   if (result.findings.length === 0) return "No findings.\n";
   const rulesByID = indexRules(ruleSet);
-  // Severity-desc → file → line. No banner sections — every finding stands
-  // on its own one-line header with the severity glyph + color.
   const sorted = [...result.findings].sort(compareFindings);
-  const rendered = sorted.map((f) => renderFinding(f, rulesByID.get(f.rule_id), opts));
-  // Single blank line between findings; trailing newline so the summary
-  // footer renders flush against a clean blank.
-  return `${rendered.join("\n\n")}\n\n`;
+
+  // Default mode (existing layout — every test/snapshot relies on this shape):
+  // findings flow as a flat list separated by blank lines; severity is
+  // carried by the inline glyph + color in each finding's one-line header.
+  if (opts.verbose !== true) {
+    const rendered = sorted.map((f) => renderFinding(f, rulesByID.get(f.rule_id), opts));
+    return `${rendered.join("\n\n")}\n\n`;
+  }
+
+  // Verbose mode (Stitch CLI design): findings grouped by severity with a
+  // full-width section divider preceding each group (`─── critical ───`).
+  // Groups iterate in the canonical severity-desc order so output is stable
+  // regardless of input order. Empty groups are skipped — no `─── medium ───`
+  // header when zero medium findings exist.
+  const SECTION_WIDTH = 78; // matches the 78-col footer rule in summary.ts
+  const groups = new Map<Severity, Finding[]>();
+  for (const sev of ["critical", "high", "medium", "low", "info"] as Severity[]) {
+    groups.set(sev, []);
+  }
+  for (const f of sorted) {
+    const bucket = groups.get(f.severity);
+    if (bucket !== undefined) bucket.push(f);
+  }
+
+  const sections: string[] = [];
+  for (const [sev, bucket] of groups) {
+    if (bucket.length === 0) continue;
+    const label = severityColor(sev, sev, opts);
+    const dashCount = Math.max(4, SECTION_WIDTH - sev.length - 5); // "─── " + " " + dashes
+    const divider = `${dim("─── ", opts)}${label} ${dim("─".repeat(dashCount), opts)}`;
+    const renderedGroup = bucket.map((f) => renderFinding(f, rulesByID.get(f.rule_id), opts));
+    sections.push(`${divider}\n\n${renderedGroup.join("\n\n")}`);
+  }
+  // Trailing double-newline so the summary footer renders flush against a clean blank.
+  return `${sections.join("\n\n")}\n\n`;
 }

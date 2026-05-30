@@ -19,6 +19,7 @@ import {
   renderInventory,
   renderJson,
   renderSarif,
+  renderScanBanner,
   renderSummary,
 } from "../render/index.js";
 import { countActiveAtOrAbove } from "../severity-threshold.js";
@@ -196,9 +197,47 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
     process.stderr.write(`${coverage.message}\n`);
   }
 
+  // Step 6.0 — Pre-compute exit code so verbose summary can annotate it
+  // BEFORE rendering. The same computation runs in Step 7 (return value);
+  // keeping it here avoids two passes through countActiveAtOrAbove and
+  // ensures the rendered summary matches the actual process exit.
+  const findingsAtThreshold =
+    countActiveAtOrAbove(scan.result.findings, resolvedConfig.fail_on) > 0;
+  const staleAsError = resolvedConfig.suppressions_strict && scan.stale.length > 0;
+  const exitCode = computeExitCode({
+    configError: false,
+    engineError: false,
+    belowParseCoverage: coverage.belowMin,
+    findingsAtThreshold: findingsAtThreshold || staleAsError,
+  });
+
   // Step 6 — Format dispatch.
   switch (resolvedConfig.format) {
     case "text":
+      // v0.7.3 Stitch verbose banner — emitted FIRST so the provenance
+      // (engine/rule-pack version, cited %, scope) frames everything below.
+      // Cited-count walks the ruleSet once; cheap (<1ms even at 230 rules).
+      if (verbose && scan.ruleSet !== null) {
+        const ruleCount = scan.ruleSet.rules.length;
+        const citedCount = scan.ruleSet.rules.filter(
+          (r) => r.references !== null && r.references.length > 0,
+        ).length;
+        const providerCount = Object.keys(scan.ruleSet.providers ?? {}).length;
+        const fileCount = new Set(scan.result.inventory.map((h) => h.file_path)).size;
+        process.stdout.write(
+          renderScanBanner({
+            useAnsi,
+            metadata: scan.result.metadata,
+            ruleCount,
+            citedCount,
+            providerCount,
+            scope: args.path ?? ".",
+            handlerCount: scan.result.inventory.length,
+            fileCount,
+          }),
+        );
+        process.stdout.write("\n");
+      }
       // --verbose shows its work: every webhook handler the scan found (with
       // its provider/framework/verdict) before the findings detail below.
       if (verbose && scan.result.inventory.length > 0) {
@@ -208,7 +247,7 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
         process.stdout.write(renderInventory(scan.result, { useAnsi, cwd }));
         process.stdout.write("\n");
       }
-      process.stdout.write(renderFindings(scan.result, scan.ruleSet, { useAnsi, cwd }));
+      process.stdout.write(renderFindings(scan.result, scan.ruleSet, { useAnsi, cwd, verbose }));
       process.stdout.write(
         renderSummary(scan.result, {
           useAnsi,
@@ -222,6 +261,8 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
           rulePackDrift: scan.rulePackDrift,
           verbose,
           testExcludedCount: scan.walkResult.test_excluded_count,
+          exitCode,
+          failOn: resolvedConfig.fail_on,
         }),
       );
       break;
@@ -250,21 +291,15 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
       return 3;
   }
 
-  // Step 7 — Exit-code computation (D-65 precedence: 3 > 2 > 4 > 1 > 0; config + engine already returned earlier).
-  const findingsAtThreshold =
-    countActiveAtOrAbove(scan.result.findings, resolvedConfig.fail_on) > 0;
-  const staleAsError = resolvedConfig.suppressions_strict && scan.stale.length > 0;
+  // Step 7 — Exit-code reporting (D-65 precedence: 3 > 2 > 4 > 1 > 0;
+  // config + engine already returned earlier). Exit code itself was
+  // pre-computed in Step 6.0 so the verbose summary could annotate it.
   if (staleAsError) {
     process.stderr.write(
       `error: ${scan.stale.length} stale suppression(s) detected (--strict-suppressions)\n`,
     );
   }
-  return computeExitCode({
-    configError: false,
-    engineError: false,
-    belowParseCoverage: coverage.belowMin,
-    findingsAtThreshold: findingsAtThreshold || staleAsError,
-  });
+  return exitCode;
 }
 
 export const scanCommand = defineCommand({

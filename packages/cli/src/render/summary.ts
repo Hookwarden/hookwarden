@@ -2,8 +2,10 @@
 // D-67 stale count. D-69 pre-existing count. D-70 rule-pack drift. D-72 vs <ref>. D-64 parse-coverage line.
 // Pure: receives ScanResult + optional durationMs + optional Phase 4 footer fields; returns string.
 
-import type { ScanResult, Severity } from "@hookwarden/engine";
-import { dim, severityColor } from "./colors.js";
+import type { ScanResult, Severity, Verdict } from "@hookwarden/engine";
+import { dim, severityColor, verdictColor } from "./colors.js";
+
+const VERDICT_ORDER: ReadonlyArray<Verdict> = ["verified", "not-verified", "manual-review"];
 
 export interface RenderSummaryOptions {
   readonly useAnsi: boolean;
@@ -21,6 +23,11 @@ export interface RenderSummaryOptions {
   // Surfaced as a footer hint so users know what got skipped without having
   // to re-run with --include-tests.
   readonly testExcludedCount?: number;
+  // v0.7.3 Stitch verbose-mode addition: emit a separate 3-state verdict
+  // tally row + exit-code annotation below the existing severity line.
+  // Only fires when verbose is true AND there are findings to tally.
+  readonly exitCode?: number;
+  readonly failOn?: string;
 }
 
 const SEVERITY_ORDER: ReadonlyArray<Severity> = ["critical", "high", "medium", "low", "info"];
@@ -152,5 +159,41 @@ export function renderSummary(result: ScanResult, opts: RenderSummaryOptions): s
   }
 
   const rule = "────────────";
-  return `${dim(rule, opts)}\n${line1}\n${dim(line2, opts)}\n`;
+
+  // v0.7.3 Stitch verbose-mode addition: a separate 3-state verdict tally
+  // row + exit-code annotation below the severity line. The severity row
+  // ("X critical · Y high · …") tells you the BLAST RADIUS; the verdict
+  // row tells you the CONFIDENCE distribution (how many are statically
+  // proven not-verified vs. flagged for human review). Two complementary
+  // axes — surfacing both in verbose mode is a real signal, not noise.
+  let verdictLine = "";
+  let exitLine = "";
+  if (opts.verbose === true && totalFindings > 0) {
+    const verdictCounts: Record<Verdict, number> = {
+      verified: 0,
+      "not-verified": 0,
+      "manual-review": 0,
+    };
+    for (const f of result.findings) {
+      if (f.suppressed != null) continue;
+      verdictCounts[f.state] += 1;
+    }
+    verdictLine = VERDICT_ORDER.map((v) =>
+      verdictColor(v, `${verdictCounts[v]} ${v}`, opts),
+    ).join(" · ");
+    if (opts.exitCode !== undefined) {
+      const code = opts.exitCode;
+      const gate = opts.failOn !== undefined ? ` (fail-on=${opts.failOn})` : "";
+      const codePainted =
+        code === 0 ? severityColor("info", `Exit: ${code}`, opts) : severityColor("critical", `Exit: ${code}`, opts);
+      exitLine = `${codePainted}${dim(gate, opts)}`;
+    }
+  }
+
+  const base = `${dim(rule, opts)}\n${line1}\n${dim(line2, opts)}\n`;
+  if (verdictLine === "" && exitLine === "") return base;
+  const extras: string[] = [];
+  if (verdictLine !== "") extras.push(verdictLine);
+  if (exitLine !== "") extras.push(exitLine);
+  return `${base}${extras.join("\n")}\n`;
 }
