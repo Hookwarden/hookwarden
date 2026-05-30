@@ -30,22 +30,12 @@ import "./custom/postmark-signing.js";
 import "./custom/notion-signing.js";
 
 import type { RulePredicate } from "@hookwarden/engine";
-import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
-import { mailchimpUrlSecretInPathPredicate } from "./mailchimp-url-secret-in-path.js";
 import { bitbucketSignaturePrefixNotStrippedPredicate } from "./bitbucket-signature-prefix.js";
 import { calendlySignatureHeaderParseMishandledPredicate } from "./calendly-header-parse.js";
-import { stripeEmptySecretPredicate } from "./stripe-empty-secret.js";
-import { zoomUrlValidationOnlyPredicate } from "./zoom-url-validation-only.js";
-import { notionVerificationTokenOnlyPredicate } from "./notion-verification-token-only.js";
-import { pagerdutyMultiSignatureRotationMishandledPredicate } from "./pagerduty-multi-signature.js";
-import { intercomOctokitCrossAttributionPredicate } from "./intercom-octokit-cross-attribution.js";
-import { sentryHeaderConfusionPredicate } from "./sentry-header-confusion.js";
-import {
-  postmarkMissingBasicAuthPredicate,
-  postmarkMissingIpAllowlistPredicate,
-} from "./postmark-basic-auth.js";
+import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
 import { githubPhpTimingSafeEqualPredicate } from "./github-php-timing-safe-equal.js";
 import { githubTimingSafeEqualPredicate } from "./github-timing-safe-equal.js";
+import { intercomOctokitCrossAttributionPredicate } from "./intercom-octokit-cross-attribution.js";
 import {
   githubLibraryVerifiedPredicate,
   shopifyLibraryVerifiedPredicate,
@@ -55,21 +45,21 @@ import {
   stripeLibraryVerifiedPredicate,
   twilioLibraryVerifiedPredicate,
 } from "./library-verified-recognition.js";
+import { mailchimpUrlSecretInPathPredicate } from "./mailchimp-url-secret-in-path.js";
 import {
   auth0MissingSignatureVerificationPredicate,
   bitbucketMissingSignatureVerificationPredicate,
   calendlyMissingSignatureVerificationPredicate,
-  zoomMissingSignatureVerificationPredicate,
-  notionMissingSignatureVerificationPredicate,
-  pagerdutyMissingSignatureVerificationPredicate,
-  sentryMissingSignatureVerificationPredicate,
   docusignMissingSignatureVerificationPredicate,
   githubMissingSignatureVerificationPredicate,
   hubspotMissingSignatureVerificationPredicate,
   intercomMissingSignatureVerificationPredicate,
   linearMissingSignatureVerificationPredicate,
   mailchimpMissingSignatureVerificationPredicate,
+  notionMissingSignatureVerificationPredicate,
+  pagerdutyMissingSignatureVerificationPredicate,
   postmarkMissingSignatureVerificationPredicate,
+  sentryMissingSignatureVerificationPredicate,
   shopifyMissingSignatureVerificationPredicate,
   slackMissingSignatureVerificationPredicate,
   squareMissingSignatureVerificationPredicate,
@@ -77,41 +67,47 @@ import {
   stripeMissingSignatureVerificationPredicate,
   twilioMissingSignatureVerificationPredicate,
   zendeskMissingSignatureVerificationPredicate,
+  zoomMissingSignatureVerificationPredicate,
 } from "./missing-signature-verification.js";
 import {
   auth0MissingTimestampCheckPredicate,
   bitbucketMissingTimestampCheckPredicate,
   calendlyMissingTimestampCheckPredicate,
-  zoomMissingTimestampCheckPredicate,
-  pagerdutyMissingTimestampCheckPredicate,
-  sentryMissingTimestampCheckPredicate,
   docusignMissingTimestampCheckPredicate,
   githubMissingTimestampCheckPredicate,
   hubspotMissingTimestampCheckPredicate,
   intercomMissingTimestampCheckPredicate,
   linearMissingTimestampCheckPredicate,
+  pagerdutyMissingTimestampCheckPredicate,
+  sentryMissingTimestampCheckPredicate,
   shopifyMissingTimestampCheckPredicate,
   slackMissingTimestampCheckPredicate,
   standardwebhooksMissingTimestampCheckPredicate,
   stripeMissingTimestampCheckPredicate,
   twilioMissingTimestampCheckPredicate,
   zendeskMissingTimestampCheckPredicate,
+  zoomMissingTimestampCheckPredicate,
 } from "./missing-timestamp-check.js";
+import { notionVerificationTokenOnlyPredicate } from "./notion-verification-token-only.js";
+import { pagerdutyMultiSignatureRotationMishandledPredicate } from "./pagerduty-multi-signature.js";
+import {
+  postmarkMissingBasicAuthPredicate,
+  postmarkMissingIpAllowlistPredicate,
+} from "./postmark-basic-auth.js";
 import {
   auth0RawBodyMisusePredicate,
   bitbucketRawBodyMisusePredicate,
   calendlyRawBodyMisusePredicate,
-  zoomRawBodyMisusePredicate,
-  notionRawBodyMisusePredicate,
-  pagerdutyRawBodyMisusePredicate,
-  sentryRawBodyMisusePredicate,
   docusignRawBodyMisusePredicate,
   githubRawBodyMisusePredicate,
   hubspotRawBodyMisusePredicate,
   intercomRawBodyMisusePredicate,
   linearRawBodyMisusePredicate,
   mailchimpRawBodyMisusePredicate,
+  notionRawBodyMisusePredicate,
+  pagerdutyRawBodyMisusePredicate,
   postmarkRawBodyMisusePredicate,
+  sentryRawBodyMisusePredicate,
   shopifyRawBodyMisusePredicate,
   slackRawBodyMisusePredicate,
   squareRawBodyMisusePredicate,
@@ -119,22 +115,24 @@ import {
   stripeRawBodyMisusePredicate,
   twilioRawBodyMisusePredicate,
   zendeskRawBodyMisusePredicate,
+  zoomRawBodyMisusePredicate,
 } from "./raw-body-misuse.js";
+import { sentryHeaderConfusionPredicate } from "./sentry-header-confusion.js";
+import { stripeEmptySecretPredicate } from "./stripe-empty-secret.js";
 import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-unsafe-comparison.js";
 import {
   auth0TimingUnsafeComparisonPredicate,
   bitbucketTimingUnsafeComparisonPredicate,
   calendlyTimingUnsafeComparisonPredicate,
-  zoomTimingUnsafeComparisonPredicate,
-  notionTimingUnsafeComparisonPredicate,
-  pagerdutyTimingUnsafeComparisonPredicate,
-  sentryTimingUnsafeComparisonPredicate,
   docusignTimingUnsafeComparisonPredicate,
   hubspotTimingUnsafeComparisonPredicate,
   intercomTimingUnsafeComparisonPredicate,
   linearTimingUnsafeComparisonPredicate,
   mailchimpTimingUnsafeComparisonPredicate,
+  notionTimingUnsafeComparisonPredicate,
+  pagerdutyTimingUnsafeComparisonPredicate,
   postmarkTimingUnsafeComparisonPredicate,
+  sentryTimingUnsafeComparisonPredicate,
   shopifyTimingUnsafeComparisonPredicate,
   slackTimingUnsafeComparisonPredicate,
   squareTimingUnsafeComparisonPredicate,
@@ -142,22 +140,22 @@ import {
   stripeTimingUnsafeComparisonPredicate,
   twilioTimingUnsafeComparisonPredicate,
   zendeskTimingUnsafeComparisonPredicate,
+  zoomTimingUnsafeComparisonPredicate,
 } from "./timing-unsafe-comparison.js";
 import {
   auth0UnreachableVerificationPredicate,
   bitbucketUnreachableVerificationPredicate,
   calendlyUnreachableVerificationPredicate,
-  zoomUnreachableVerificationPredicate,
-  notionUnreachableVerificationPredicate,
-  pagerdutyUnreachableVerificationPredicate,
-  sentryUnreachableVerificationPredicate,
   docusignUnreachableVerificationPredicate,
   githubUnreachableVerificationPredicate,
   hubspotUnreachableVerificationPredicate,
   intercomUnreachableVerificationPredicate,
   linearUnreachableVerificationPredicate,
   mailchimpUnreachableVerificationPredicate,
+  notionUnreachableVerificationPredicate,
+  pagerdutyUnreachableVerificationPredicate,
   postmarkUnreachableVerificationPredicate,
+  sentryUnreachableVerificationPredicate,
   shopifyUnreachableVerificationPredicate,
   slackUnreachableVerificationPredicate,
   squareUnreachableVerificationPredicate,
@@ -165,20 +163,20 @@ import {
   stripeUnreachableVerificationPredicate,
   twilioUnreachableVerificationPredicate,
   zendeskUnreachableVerificationPredicate,
+  zoomUnreachableVerificationPredicate,
 } from "./unreachable-verification.js";
 import {
   auth0WrongHmacAlgorithmPredicate,
   bitbucketWrongHmacAlgorithmPredicate,
   calendlyWrongHmacAlgorithmPredicate,
-  zoomWrongHmacAlgorithmPredicate,
-  notionWrongHmacAlgorithmPredicate,
-  pagerdutyWrongHmacAlgorithmPredicate,
-  sentryWrongHmacAlgorithmPredicate,
   docusignWrongHmacAlgorithmPredicate,
   githubWrongHmacAlgorithmPredicate,
   hubspotWrongHmacAlgorithmPredicate,
   intercomWrongHmacAlgorithmPredicate,
   linearWrongHmacAlgorithmPredicate,
+  notionWrongHmacAlgorithmPredicate,
+  pagerdutyWrongHmacAlgorithmPredicate,
+  sentryWrongHmacAlgorithmPredicate,
   shopifyWrongHmacAlgorithmPredicate,
   slackWrongHmacAlgorithmPredicate,
   squareWrongHmacAlgorithmPredicate,
@@ -186,7 +184,9 @@ import {
   stripeWrongHmacAlgorithmPredicate,
   twilioWrongHmacAlgorithmPredicate,
   zendeskWrongHmacAlgorithmPredicate,
+  zoomWrongHmacAlgorithmPredicate,
 } from "./wrong-hmac-algorithm.js";
+import { zoomUrlValidationOnlyPredicate } from "./zoom-url-validation-only.js";
 
 export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   // Phase 2 / Wave 1

@@ -10,8 +10,8 @@ import { zoomMissingTimestampCheckPredicate } from "../src/predicates/missing-ti
 import { zoomRawBodyMisusePredicate } from "../src/predicates/raw-body-misuse.js";
 import { zoomTimingUnsafeComparisonPredicate } from "../src/predicates/timing-unsafe-comparison.js";
 import { zoomUnreachableVerificationPredicate } from "../src/predicates/unreachable-verification.js";
-import { zoomUrlValidationOnlyPredicate } from "../src/predicates/zoom-url-validation-only.js";
 import { zoomWrongHmacAlgorithmPredicate } from "../src/predicates/wrong-hmac-algorithm.js";
+import { zoomUrlValidationOnlyPredicate } from "../src/predicates/zoom-url-validation-only.js";
 
 const baseHandler: WebhookHandler = {
   id: "h",
@@ -178,8 +178,6 @@ describe("zoomWrongHmacAlgorithmPredicate", () => {
 describe("zoomUnreachableVerificationPredicate", () => {
   it("emits manual-review when sdk_import present but no SDK verify reachable", async () => {
     const handler: WebhookHandler = { ...baseHandler, evidence: [ev("sdk_import")] };
-    expect(await zoomUnreachableVerificationPredicate(handler, {} as never)).toBe(
-      "manual-review",
-    );
+    expect(await zoomUnreachableVerificationPredicate(handler, {} as never)).toBe("manual-review");
   });
 });

@@ -84,9 +84,7 @@ describe("notionVerificationTokenOnlyPredicate (NEW Plan 13 rule — challenge-v
       ...baseHandler,
       evidence: [ev("signature_header_read")],
     };
-    expect(await notionVerificationTokenOnlyPredicate(handler, {} as never)).toBe(
-      "manual-review",
-    );
+    expect(await notionVerificationTokenOnlyPredicate(handler, {} as never)).toBe("manual-review");
   });
   it("returns null when signature_header_read present AND manual HMAC reachable (handler is verifying)", async () => {
     const handler: WebhookHandler = {
@@ -112,9 +110,7 @@ describe("notionVerificationTokenOnlyPredicate (NEW Plan 13 rule — challenge-v
       ...baseHandler,
       evidence: [ev("signature_header_read")],
     };
-    expect(await notionVerificationTokenOnlyPredicate(handler, {} as never)).toBe(
-      "manual-review",
-    );
+    expect(await notionVerificationTokenOnlyPredicate(handler, {} as never)).toBe("manual-review");
   });
 });
 
@@ -124,9 +120,7 @@ describe("notionTimingUnsafeComparisonPredicate", () => {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(await notionTimingUnsafeComparisonPredicate(handler, {} as never)).toBe(
-      "not-verified",
-    );
+    expect(await notionTimingUnsafeComparisonPredicate(handler, {} as never)).toBe("not-verified");
   });
   it("returns null when crypto.timingSafeEqual reachable", async () => {
     const handler: WebhookHandler = {

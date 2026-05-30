@@ -200,9 +200,7 @@ describe("auth0WrongHmacAlgorithmPredicate", () => {
 describe("auth0UnreachableVerificationPredicate", () => {
   it("emits manual-review when sdk_import present but no SDK verify reachable", async () => {
     const handler: WebhookHandler = { ...baseHandler, evidence: [ev("sdk_import")] };
-    expect(await auth0UnreachableVerificationPredicate(handler, {} as never)).toBe(
-      "manual-review",
-    );
+    expect(await auth0UnreachableVerificationPredicate(handler, {} as never)).toBe("manual-review");
   });
   it("returns null when no sdk_import evidence (no claim of intent)", async () => {
     expect(await auth0UnreachableVerificationPredicate(baseHandler, {} as never)).toBeNull();

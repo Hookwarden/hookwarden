@@ -193,10 +193,7 @@ describe("pagerdutyMultiSignatureRotationMishandledPredicate (NEW Plan 11 rule)"
   it("returns null when manual HMAC AND String.prototype.split are both reachable", async () => {
     const handler: WebhookHandler = {
       ...baseHandler,
-      reachable_symbols: [
-        sym("crypto.createHmac", "node:crypto"),
-        sym("String.prototype.split"),
-      ],
+      reachable_symbols: [sym("crypto.createHmac", "node:crypto"), sym("String.prototype.split")],
     };
     expect(
       await pagerdutyMultiSignatureRotationMishandledPredicate(handler, {} as never),
@@ -205,10 +202,7 @@ describe("pagerdutyMultiSignatureRotationMishandledPredicate (NEW Plan 11 rule)"
   it("returns null when manual HMAC AND Array.prototype.forEach are both reachable", async () => {
     const handler: WebhookHandler = {
       ...baseHandler,
-      reachable_symbols: [
-        sym("crypto.createHmac", "node:crypto"),
-        sym("Array.prototype.forEach"),
-      ],
+      reachable_symbols: [sym("crypto.createHmac", "node:crypto"), sym("Array.prototype.forEach")],
     };
     expect(
       await pagerdutyMultiSignatureRotationMishandledPredicate(handler, {} as never),

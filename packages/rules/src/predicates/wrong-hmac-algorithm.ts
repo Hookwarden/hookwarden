@@ -133,11 +133,10 @@ export const notionWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacA
   PROVIDER_CATALOG["notion"] ?? throwMissing("notion"),
 );
 
-export const calendlyWrongHmacAlgorithmPredicate: RulePredicate =
-  createWrongHmacAlgorithmPredicate(
-    "calendly",
-    PROVIDER_CATALOG["calendly"] ?? throwMissing("calendly"),
-  );
+export const calendlyWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
+  "calendly",
+  PROVIDER_CATALOG["calendly"] ?? throwMissing("calendly"),
+);
 
 export const zoomWrongHmacAlgorithmPredicate: RulePredicate = createWrongHmacAlgorithmPredicate(
   "zoom",

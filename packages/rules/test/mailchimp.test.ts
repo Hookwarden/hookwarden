@@ -9,15 +9,15 @@
 
 import type { ReachableSymbol, WebhookEvidence, WebhookHandler } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
-import { mailchimpMissingSignatureVerificationPredicate } from "../src/predicates/missing-signature-verification.js";
-import { mailchimpRawBodyMisusePredicate } from "../src/predicates/raw-body-misuse.js";
-import { mailchimpTimingUnsafeComparisonPredicate } from "../src/predicates/timing-unsafe-comparison.js";
-import { mailchimpUnreachableVerificationPredicate } from "../src/predicates/unreachable-verification.js";
+import { mailchimpSigningPredicate } from "../src/predicates/custom/mailchimp-url-secret.js";
 import {
   hasUrlSecretInPath,
   mailchimpUrlSecretInPathPredicate,
 } from "../src/predicates/mailchimp-url-secret-in-path.js";
-import { mailchimpSigningPredicate } from "../src/predicates/custom/mailchimp-url-secret.js";
+import { mailchimpMissingSignatureVerificationPredicate } from "../src/predicates/missing-signature-verification.js";
+import { mailchimpRawBodyMisusePredicate } from "../src/predicates/raw-body-misuse.js";
+import { mailchimpTimingUnsafeComparisonPredicate } from "../src/predicates/timing-unsafe-comparison.js";
+import { mailchimpUnreachableVerificationPredicate } from "../src/predicates/unreachable-verification.js";
 
 const baseHandler: WebhookHandler = {
   id: "h",

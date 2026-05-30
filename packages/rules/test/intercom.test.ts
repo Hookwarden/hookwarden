@@ -13,14 +13,18 @@
 import type { ReachableSymbol, WebhookEvidence, WebhookHandler } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
 import { intercomOctokitCrossAttributionPredicate } from "../src/predicates/intercom-octokit-cross-attribution.js";
-import { intercomMissingSignatureVerificationPredicate } from "../src/predicates/missing-signature-verification.js";
+import {
+  githubMissingSignatureVerificationPredicate,
+  intercomMissingSignatureVerificationPredicate,
+} from "../src/predicates/missing-signature-verification.js";
 import { intercomMissingTimestampCheckPredicate } from "../src/predicates/missing-timestamp-check.js";
 import { intercomRawBodyMisusePredicate } from "../src/predicates/raw-body-misuse.js";
 import { intercomTimingUnsafeComparisonPredicate } from "../src/predicates/timing-unsafe-comparison.js";
 import { intercomUnreachableVerificationPredicate } from "../src/predicates/unreachable-verification.js";
-import { intercomWrongHmacAlgorithmPredicate } from "../src/predicates/wrong-hmac-algorithm.js";
-import { githubMissingSignatureVerificationPredicate } from "../src/predicates/missing-signature-verification.js";
-import { githubWrongHmacAlgorithmPredicate } from "../src/predicates/wrong-hmac-algorithm.js";
+import {
+  githubWrongHmacAlgorithmPredicate,
+  intercomWrongHmacAlgorithmPredicate,
+} from "../src/predicates/wrong-hmac-algorithm.js";
 
 const baseHandler: WebhookHandler = {
   id: "h",
@@ -65,24 +69,18 @@ describe("intercomMissingSignatureVerificationPredicate", () => {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(
-      await intercomMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await intercomMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null when hmac.new (Python manual path) is reachable", async () => {
     const handler: WebhookHandler = {
       ...baseHandler,
       reachable_symbols: [sym("hmac.new", "hmac")],
     };
-    expect(
-      await intercomMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await intercomMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null for non-intercom provider (contract-violation: predicate must be provider-scoped)", async () => {
     const handler: WebhookHandler = { ...baseHandler, provider: "stripe" };
-    expect(
-      await intercomMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await intercomMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null when inline-middleware sdk_verify_call evidence is present (provider-attributed)", async () => {
     // Adversary-shaped: middleware sets sdk_verify_call evidence with provider='intercom'.
@@ -91,9 +89,7 @@ describe("intercomMissingSignatureVerificationPredicate", () => {
       ...baseHandler,
       evidence: [ev("sdk_verify_call")],
     };
-    expect(
-      await intercomMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await intercomMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
   it("emits not-verified when sdk_verify_call evidence has wrong provider (adversary-shaped attribution)", async () => {
     // Boundary: cross-provider attribution must NOT satisfy intercom verification.

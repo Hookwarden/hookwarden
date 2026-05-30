@@ -93,10 +93,7 @@ export const docusignMissingTimestampCheckPredicate: RulePredicate =
   );
 
 export const auth0MissingTimestampCheckPredicate: RulePredicate =
-  createMissingTimestampCheckPredicate(
-    "auth0",
-    PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"),
-  );
+  createMissingTimestampCheckPredicate("auth0", PROVIDER_CATALOG["auth0"] ?? throwMissing("auth0"));
 
 export const sentryMissingTimestampCheckPredicate: RulePredicate =
   createMissingTimestampCheckPredicate(
@@ -123,10 +120,7 @@ export const calendlyMissingTimestampCheckPredicate: RulePredicate =
   );
 
 export const zoomMissingTimestampCheckPredicate: RulePredicate =
-  createMissingTimestampCheckPredicate(
-    "zoom",
-    PROVIDER_CATALOG["zoom"] ?? throwMissing("zoom"),
-  );
+  createMissingTimestampCheckPredicate("zoom", PROVIDER_CATALOG["zoom"] ?? throwMissing("zoom"));
 
 export const hubspotMissingTimestampCheckPredicate: RulePredicate =
   createMissingTimestampCheckPredicate(

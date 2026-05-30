@@ -97,9 +97,7 @@ describe("linearTimingUnsafeComparisonPredicate", () => {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(await linearTimingUnsafeComparisonPredicate(handler, {} as never)).toBe(
-      "not-verified",
-    );
+    expect(await linearTimingUnsafeComparisonPredicate(handler, {} as never)).toBe("not-verified");
   });
   it("returns null when crypto.timingSafeEqual reachable", async () => {
     const handler: WebhookHandler = {

@@ -23,13 +23,13 @@
 
 import type { ReachableSymbol, WebhookEvidence, WebhookHandler } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
+import { hubspotSigningPredicate } from "../src/predicates/custom/hubspot-signing.js";
 import { hubspotMissingSignatureVerificationPredicate } from "../src/predicates/missing-signature-verification.js";
 import { hubspotMissingTimestampCheckPredicate } from "../src/predicates/missing-timestamp-check.js";
 import { hubspotRawBodyMisusePredicate } from "../src/predicates/raw-body-misuse.js";
 import { hubspotTimingUnsafeComparisonPredicate } from "../src/predicates/timing-unsafe-comparison.js";
 import { hubspotUnreachableVerificationPredicate } from "../src/predicates/unreachable-verification.js";
 import { hubspotWrongHmacAlgorithmPredicate } from "../src/predicates/wrong-hmac-algorithm.js";
-import { hubspotSigningPredicate } from "../src/predicates/custom/hubspot-signing.js";
 
 const baseHandler: WebhookHandler = {
   id: "h",
@@ -118,9 +118,7 @@ describe("hubspotTimingUnsafeComparisonPredicate", () => {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(await hubspotTimingUnsafeComparisonPredicate(handler, {} as never)).toBe(
-      "not-verified",
-    );
+    expect(await hubspotTimingUnsafeComparisonPredicate(handler, {} as never)).toBe("not-verified");
   });
   it("returns null when crypto.timingSafeEqual reachable", async () => {
     const handler: WebhookHandler = {
@@ -173,9 +171,7 @@ describe("hubspotMissingTimestampCheckPredicate (timestamp_header: 'x-hubspot-re
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(await hubspotMissingTimestampCheckPredicate(handler, {} as never)).toBe(
-      "manual-review",
-    );
+    expect(await hubspotMissingTimestampCheckPredicate(handler, {} as never)).toBe("manual-review");
   });
   it("returns null when Date.now reachable alongside manual HMAC (Node tolerance window)", async () => {
     const handler: WebhookHandler = {

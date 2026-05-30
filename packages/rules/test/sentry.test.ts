@@ -95,9 +95,7 @@ describe("sentryTimingUnsafeComparisonPredicate", () => {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(await sentryTimingUnsafeComparisonPredicate(handler, {} as never)).toBe(
-      "not-verified",
-    );
+    expect(await sentryTimingUnsafeComparisonPredicate(handler, {} as never)).toBe("not-verified");
   });
   it("returns null when crypto.timingSafeEqual reachable", async () => {
     const handler: WebhookHandler = {
@@ -147,9 +145,7 @@ describe("sentryMissingTimestampCheckPredicate (D-91 null timestamp_header — d
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(await sentryMissingTimestampCheckPredicate(handler, {} as never)).toBe(
-      "manual-review",
-    );
+    expect(await sentryMissingTimestampCheckPredicate(handler, {} as never)).toBe("manual-review");
   });
   it("returns null when Date.now reachable alongside manual HMAC (Node)", async () => {
     const handler: WebhookHandler = {

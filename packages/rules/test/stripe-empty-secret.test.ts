@@ -11,14 +11,11 @@
 import {
   type ParsedFile,
   type ProjectModel,
-  type WebhookHandler,
   parseJsTs,
+  type WebhookHandler,
 } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
-import {
-  __test_only,
-  stripeEmptySecretPredicate,
-} from "../src/predicates/stripe-empty-secret.js";
+import { __test_only, stripeEmptySecretPredicate } from "../src/predicates/stripe-empty-secret.js";
 
 async function parse(source: string, filePath = "src/server.ts"): Promise<ParsedFile> {
   return parseJsTs({ source_text: source, file_path: filePath, hint: "ts" });
@@ -65,7 +62,6 @@ describe("stripeEmptySecretPredicate — Variant 1: `secret || ''` (logical-OR f
   });
   it("classifies the variant as 'or-fallback'", async () => {
     const file = await parse("stripe.webhooks.constructEvent(b, s, secret || '');");
-    const ast = (file.raw_ast as { program: import("../src/predicates/stripe-empty-secret.js").__test_only extends never ? never : { type: string } });
     const matches = __test_only.findEmptySecretConstructEventCalls(
       (file.raw_ast as { program: { type: string } }).program as never,
     );
@@ -110,7 +106,7 @@ describe("stripeEmptySecretPredicate — Variant 6: explicit empty literal at th
     const src = `stripe.webhooks.constructEvent(rawBody, sig, '');`;
     expect(await runOn(src)).toBe("not-verified");
   });
-  it("emits not-verified when constructEvent receives the literal \"\" as secret", async () => {
+  it('emits not-verified when constructEvent receives the literal "" as secret', async () => {
     const src = `stripe.webhooks.constructEvent(rawBody, sig, "");`;
     expect(await runOn(src)).toBe("not-verified");
   });

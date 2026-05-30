@@ -247,12 +247,10 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     ],
     secret_env_prefix: ["WEBHOOK_SECRET", "STANDARDWEBHOOKS_SECRET", "SVIX_SECRET"],
     secret_literal_prefix: ["whsec_"],
-    conventional_paths: [
-      "/webhooks",
-      "/webhook",
-      "/api/webhooks",
-      "/api/webhook",
-    ],
+    // Standard Webhooks has no canonical receiving URL — receivers configure their own endpoint
+    // per integration. Provider attribution relies on the `webhook-signature` header + SDK
+    // package match. Generic paths like `/webhook` belong to no specific provider.
+    conventional_paths: [],
     hmac_algorithm: "sha256",
     signing_input_format: "custom",
     timestamp_header: "webhook-timestamp",
@@ -547,12 +545,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     sdk_verify_calls: ["verifyZoomSignature", "verifyWebhookSignature"],
     secret_env_prefix: ["ZOOM_WEBHOOK", "ZOOM_SECRET_TOKEN", "ZOOM_SIGNING"],
     secret_literal_prefix: [],
-    conventional_paths: [
-      "/webhooks/zoom",
-      "/api/webhooks/zoom",
-      "/zoom/webhook",
-      "/zoom/webhooks",
-    ],
+    conventional_paths: ["/webhooks/zoom", "/api/webhooks/zoom", "/zoom/webhook", "/zoom/webhooks"],
     hmac_algorithm: "sha256",
     signing_input_format: "timestamp_dot_body",
     timestamp_header: "x-zm-request-timestamp",

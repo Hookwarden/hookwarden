@@ -11,13 +11,13 @@
 
 import type { ReachableSymbol, WebhookEvidence, WebhookHandler } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
+import { standardwebhooksSigningPredicate } from "../src/predicates/custom/standardwebhooks-signing.js";
 import { standardwebhooksLibraryVerifiedPredicate } from "../src/predicates/library-verified-recognition.js";
 import { standardwebhooksMissingTimestampCheckPredicate } from "../src/predicates/missing-timestamp-check.js";
 import { standardwebhooksRawBodyMisusePredicate } from "../src/predicates/raw-body-misuse.js";
 import { standardwebhooksTimingUnsafeComparisonPredicate } from "../src/predicates/timing-unsafe-comparison.js";
 import { standardwebhooksUnreachableVerificationPredicate } from "../src/predicates/unreachable-verification.js";
 import { standardwebhooksWrongHmacAlgorithmPredicate } from "../src/predicates/wrong-hmac-algorithm.js";
-import { standardwebhooksSigningPredicate } from "../src/predicates/custom/standardwebhooks-signing.js";
 
 const baseHandler: WebhookHandler = {
   id: "h",
@@ -204,18 +204,14 @@ describe("standardwebhooksMissingTimestampCheckPredicate", () => {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto"), sym("Date.now")],
     };
-    expect(
-      await standardwebhooksMissingTimestampCheckPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await standardwebhooksMissingTimestampCheckPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null when SDK verify reachable", async () => {
     const handler: WebhookHandler = {
       ...baseHandler,
       reachable_symbols: [sym("Webhook.verify", "standardwebhooks")],
     };
-    expect(
-      await standardwebhooksMissingTimestampCheckPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await standardwebhooksMissingTimestampCheckPredicate(handler, {} as never)).toBeNull();
   });
 });
 
@@ -234,9 +230,7 @@ describe("standardwebhooksWrongHmacAlgorithmPredicate", () => {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto"), sym("hash.sha256")],
     };
-    expect(
-      await standardwebhooksWrongHmacAlgorithmPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await standardwebhooksWrongHmacAlgorithmPredicate(handler, {} as never)).toBeNull();
   });
 });
 

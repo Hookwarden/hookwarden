@@ -64,24 +64,18 @@ describe("bitbucketMissingSignatureVerificationPredicate", () => {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(
-      await bitbucketMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await bitbucketMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null when hmac.new (Python) reachable", async () => {
     const handler: WebhookHandler = {
       ...baseHandler,
       reachable_symbols: [sym("hmac.new", "hmac")],
     };
-    expect(
-      await bitbucketMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await bitbucketMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null for non-bitbucket provider (contract-violation)", async () => {
     const handler: WebhookHandler = { ...baseHandler, provider: "stripe" };
-    expect(
-      await bitbucketMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await bitbucketMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
 });
 
@@ -152,9 +146,7 @@ describe("bitbucketWrongHmacAlgorithmPredicate", () => {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto"), sym("hash.sha512")],
     };
-    expect(await bitbucketWrongHmacAlgorithmPredicate(handler, {} as never)).toBe(
-      "not-verified",
-    );
+    expect(await bitbucketWrongHmacAlgorithmPredicate(handler, {} as never)).toBe("not-verified");
   });
   it("returns null when expected algorithm (.sha256) reachable", async () => {
     const handler: WebhookHandler = {
@@ -187,22 +179,17 @@ describe("bitbucketSignaturePrefixNotStrippedPredicate (NEW Plan 12 rule)", () =
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
       evidence: [ev("signature_header_read")],
     };
-    expect(
-      await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never),
-    ).toBe("manual-review");
+    expect(await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never)).toBe(
+      "manual-review",
+    );
   });
   it("returns null when String.prototype.replace is reachable (prefix stripped)", async () => {
     const handler: WebhookHandler = {
       ...baseHandler,
-      reachable_symbols: [
-        sym("crypto.createHmac", "node:crypto"),
-        sym("String.prototype.replace"),
-      ],
+      reachable_symbols: [sym("crypto.createHmac", "node:crypto"), sym("String.prototype.replace")],
       evidence: [ev("signature_header_read")],
     };
-    expect(
-      await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null when String.prototype.split is reachable (alternative parse path)", async () => {
     const handler: WebhookHandler = {
@@ -210,9 +197,7 @@ describe("bitbucketSignaturePrefixNotStrippedPredicate (NEW Plan 12 rule)", () =
       reachable_symbols: [sym("crypto.createHmac", "node:crypto"), sym("String.prototype.split")],
       evidence: [ev("signature_header_read")],
     };
-    expect(
-      await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null when String.prototype.substring is reachable", async () => {
     const handler: WebhookHandler = {
@@ -223,9 +208,7 @@ describe("bitbucketSignaturePrefixNotStrippedPredicate (NEW Plan 12 rule)", () =
       ],
       evidence: [ev("signature_header_read")],
     };
-    expect(
-      await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null when PHP substr is reachable", async () => {
     const handler: WebhookHandler = {
@@ -233,27 +216,21 @@ describe("bitbucketSignaturePrefixNotStrippedPredicate (NEW Plan 12 rule)", () =
       reachable_symbols: [sym("crypto.createHmac", "node:crypto"), sym("substr")],
       evidence: [ev("signature_header_read")],
     };
-    expect(
-      await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null when no manual HMAC reachable (only fires when verification IS attempted)", async () => {
     const handler: WebhookHandler = {
       ...baseHandler,
       evidence: [ev("signature_header_read")],
     };
-    expect(
-      await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null when no signature_header_read evidence (can't say comparison side is the bug)", async () => {
     const handler: WebhookHandler = {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(
-      await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null for non-bitbucket provider (contract-violation: provider-scoped)", async () => {
     const handler: WebhookHandler = {
@@ -262,9 +239,7 @@ describe("bitbucketSignaturePrefixNotStrippedPredicate (NEW Plan 12 rule)", () =
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
       evidence: [ev("signature_header_read", "github")],
     };
-    expect(
-      await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await bitbucketSignaturePrefixNotStrippedPredicate(handler, {} as never)).toBeNull();
   });
 });
 
@@ -273,9 +248,7 @@ describe("3-way X-Hub-Signature disambiguation (github / intercom / bitbucket)",
   // predicate must scope to its own handler.provider — adversary-shaped cross-provider
   // attribution must not surface.
   it("bitbucket handler does NOT trip github predicate", async () => {
-    expect(
-      await githubMissingSignatureVerificationPredicate(baseHandler, {} as never),
-    ).toBeNull();
+    expect(await githubMissingSignatureVerificationPredicate(baseHandler, {} as never)).toBeNull();
   });
   it("bitbucket handler does NOT trip intercom predicate", async () => {
     expect(
@@ -284,14 +257,10 @@ describe("3-way X-Hub-Signature disambiguation (github / intercom / bitbucket)",
   });
   it("github handler does NOT trip bitbucket predicate", async () => {
     const handler: WebhookHandler = { ...baseHandler, provider: "github" };
-    expect(
-      await bitbucketMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await bitbucketMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
   it("intercom handler does NOT trip bitbucket predicate", async () => {
     const handler: WebhookHandler = { ...baseHandler, provider: "intercom" };
-    expect(
-      await bitbucketMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await bitbucketMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
 });

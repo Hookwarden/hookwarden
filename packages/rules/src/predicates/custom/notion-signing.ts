@@ -18,8 +18,8 @@
 // Pure: no fs / http / network / process / node:* (D-28).
 
 import type { ProjectModel, RulePredicate, WebhookHandler } from "@hookwarden/engine";
-import { CUSTOM_SIGNING_PREDICATES } from "../missing-signature-verification.js";
 import { isManualHmacEntry } from "../_helpers.js";
+import { CUSTOM_SIGNING_PREDICATES } from "../missing-signature-verification.js";
 
 const notionSigningPredicate: RulePredicate = async (
   handler: WebhookHandler,
@@ -34,5 +34,3 @@ const notionSigningPredicate: RulePredicate = async (
 };
 
 CUSTOM_SIGNING_PREDICATES["notion"] = notionSigningPredicate;
-
-export {};

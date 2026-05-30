@@ -13,15 +13,15 @@
 
 import type { ReachableSymbol, WebhookEvidence, WebhookHandler } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
+import { postmarkSigningPredicate } from "../src/predicates/custom/postmark-signing.js";
 import { postmarkMissingSignatureVerificationPredicate } from "../src/predicates/missing-signature-verification.js";
-import { postmarkRawBodyMisusePredicate } from "../src/predicates/raw-body-misuse.js";
-import { postmarkTimingUnsafeComparisonPredicate } from "../src/predicates/timing-unsafe-comparison.js";
-import { postmarkUnreachableVerificationPredicate } from "../src/predicates/unreachable-verification.js";
 import {
   postmarkMissingBasicAuthPredicate,
   postmarkMissingIpAllowlistPredicate,
 } from "../src/predicates/postmark-basic-auth.js";
-import { postmarkSigningPredicate } from "../src/predicates/custom/postmark-signing.js";
+import { postmarkRawBodyMisusePredicate } from "../src/predicates/raw-body-misuse.js";
+import { postmarkTimingUnsafeComparisonPredicate } from "../src/predicates/timing-unsafe-comparison.js";
+import { postmarkUnreachableVerificationPredicate } from "../src/predicates/unreachable-verification.js";
 
 const baseHandler: WebhookHandler = {
   id: "h",

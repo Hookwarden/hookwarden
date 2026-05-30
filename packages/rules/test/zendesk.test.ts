@@ -57,24 +57,18 @@ describe("zendeskMissingSignatureVerificationPredicate", () => {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(
-      await zendeskMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await zendeskMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null when hmac.new (Python manual path) is reachable", async () => {
     const handler: WebhookHandler = {
       ...baseHandler,
       reachable_symbols: [sym("hmac.new", "hmac")],
     };
-    expect(
-      await zendeskMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await zendeskMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null for non-zendesk provider (contract-violation: predicate must be provider-scoped)", async () => {
     const handler: WebhookHandler = { ...baseHandler, provider: "stripe" };
-    expect(
-      await zendeskMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await zendeskMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null when inline-middleware sdk_verify_call evidence is present (provider-attributed)", async () => {
     // Adversary-shaped: middleware sets sdk_verify_call evidence with provider='zendesk'.
@@ -83,9 +77,7 @@ describe("zendeskMissingSignatureVerificationPredicate", () => {
       ...baseHandler,
       evidence: [ev("sdk_verify_call")],
     };
-    expect(
-      await zendeskMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await zendeskMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
   it("emits not-verified when sdk_verify_call evidence has wrong provider (adversary-shaped attribution)", async () => {
     // Boundary: cross-provider attribution must NOT satisfy zendesk verification.
@@ -105,9 +97,7 @@ describe("zendeskTimingUnsafeComparisonPredicate", () => {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(await zendeskTimingUnsafeComparisonPredicate(handler, {} as never)).toBe(
-      "not-verified",
-    );
+    expect(await zendeskTimingUnsafeComparisonPredicate(handler, {} as never)).toBe("not-verified");
   });
   it("returns null when crypto.timingSafeEqual reachable", async () => {
     const handler: WebhookHandler = {
@@ -157,9 +147,7 @@ describe("zendeskMissingTimestampCheckPredicate (D-91 non-null timestamp_header 
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(await zendeskMissingTimestampCheckPredicate(handler, {} as never)).toBe(
-      "manual-review",
-    );
+    expect(await zendeskMissingTimestampCheckPredicate(handler, {} as never)).toBe("manual-review");
   });
   it("returns null when Date.now reachable alongside manual HMAC (Node)", async () => {
     const handler: WebhookHandler = {

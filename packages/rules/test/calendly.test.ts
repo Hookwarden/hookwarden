@@ -56,15 +56,11 @@ describe("calendlyMissingSignatureVerificationPredicate", () => {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(
-      await calendlyMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await calendlyMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null for non-calendly provider (contract-violation)", async () => {
     const handler: WebhookHandler = { ...baseHandler, provider: "stripe" };
-    expect(
-      await calendlyMissingSignatureVerificationPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await calendlyMissingSignatureVerificationPredicate(handler, {} as never)).toBeNull();
   });
 });
 
@@ -132,9 +128,7 @@ describe("calendlyWrongHmacAlgorithmPredicate", () => {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto"), sym("hash.sha512")],
     };
-    expect(await calendlyWrongHmacAlgorithmPredicate(handler, {} as never)).toBe(
-      "not-verified",
-    );
+    expect(await calendlyWrongHmacAlgorithmPredicate(handler, {} as never)).toBe("not-verified");
   });
   it("returns null when expected algorithm (.sha256) reachable", async () => {
     const handler: WebhookHandler = {
@@ -164,22 +158,17 @@ describe("calendlySignatureHeaderParseMishandledPredicate (NEW Plan 14 rule)", (
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
       evidence: [ev("signature_header_read")],
     };
-    expect(
-      await calendlySignatureHeaderParseMishandledPredicate(handler, {} as never),
-    ).toBe("manual-review");
+    expect(await calendlySignatureHeaderParseMishandledPredicate(handler, {} as never)).toBe(
+      "manual-review",
+    );
   });
   it("returns null when String.prototype.split is reachable", async () => {
     const handler: WebhookHandler = {
       ...baseHandler,
-      reachable_symbols: [
-        sym("crypto.createHmac", "node:crypto"),
-        sym("String.prototype.split"),
-      ],
+      reachable_symbols: [sym("crypto.createHmac", "node:crypto"), sym("String.prototype.split")],
       evidence: [ev("signature_header_read")],
     };
-    expect(
-      await calendlySignatureHeaderParseMishandledPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await calendlySignatureHeaderParseMishandledPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null when PHP explode is reachable", async () => {
     const handler: WebhookHandler = {
@@ -187,27 +176,21 @@ describe("calendlySignatureHeaderParseMishandledPredicate (NEW Plan 14 rule)", (
       reachable_symbols: [sym("crypto.createHmac", "node:crypto"), sym("explode")],
       evidence: [ev("signature_header_read")],
     };
-    expect(
-      await calendlySignatureHeaderParseMishandledPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await calendlySignatureHeaderParseMishandledPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null when no manual HMAC reachable (only fires when verifying)", async () => {
     const handler: WebhookHandler = {
       ...baseHandler,
       evidence: [ev("signature_header_read")],
     };
-    expect(
-      await calendlySignatureHeaderParseMishandledPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await calendlySignatureHeaderParseMishandledPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null when no signature_header_read evidence", async () => {
     const handler: WebhookHandler = {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(
-      await calendlySignatureHeaderParseMishandledPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await calendlySignatureHeaderParseMishandledPredicate(handler, {} as never)).toBeNull();
   });
   it("returns null for non-calendly provider (contract-violation: provider-scoped)", async () => {
     const handler: WebhookHandler = {
@@ -216,8 +199,6 @@ describe("calendlySignatureHeaderParseMishandledPredicate (NEW Plan 14 rule)", (
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
       evidence: [ev("signature_header_read", "stripe")],
     };
-    expect(
-      await calendlySignatureHeaderParseMishandledPredicate(handler, {} as never),
-    ).toBeNull();
+    expect(await calendlySignatureHeaderParseMishandledPredicate(handler, {} as never)).toBeNull();
   });
 });

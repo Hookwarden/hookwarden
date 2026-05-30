@@ -53,11 +53,7 @@ function isEmptyStringLiteral(node: BabelNode | undefined): boolean {
   if (node.type === "TemplateLiteral") {
     const quasis = node["quasis"] as ReadonlyArray<BabelNode> | undefined;
     const expressions = node["expressions"] as ReadonlyArray<BabelNode> | undefined;
-    if (
-      quasis &&
-      quasis.length === 1 &&
-      (expressions === undefined || expressions.length === 0)
-    ) {
+    if (quasis && quasis.length === 1 && (expressions === undefined || expressions.length === 0)) {
       const cooked = (quasis[0]?.["value"] as { cooked?: string } | undefined)?.cooked;
       if (cooked === "") return true;
     }
@@ -111,7 +107,7 @@ interface EmptySecretMatch {
 function findEmptySecretConstructEventCalls(root: BabelNode): ReadonlyArray<EmptySecretMatch> {
   const matches: EmptySecretMatch[] = [];
   const stack: BabelNode[] = [root];
-  const SKIP_KEYS: ReadonlySet<string> = new Set(["loc", "type", "start", "end", "range"]);
+  const SkipKeys: ReadonlySet<string> = new Set(["loc", "type", "start", "end", "range"]);
 
   while (stack.length > 0) {
     const node = stack.pop();
@@ -126,9 +122,7 @@ function findEmptySecretConstructEventCalls(root: BabelNode): ReadonlyArray<Empt
         const secretArg = args[2];
         const variant = classifyEmptySecretArg(secretArg);
         if (variant !== null) {
-          const loc = node["loc"] as
-            | { start?: { line?: number; column?: number } }
-            | undefined;
+          const loc = node["loc"] as { start?: { line?: number; column?: number } } | undefined;
           matches.push({
             variant,
             location: {
@@ -141,7 +135,7 @@ function findEmptySecretConstructEventCalls(root: BabelNode): ReadonlyArray<Empt
     }
 
     for (const key of Object.keys(node)) {
-      if (SKIP_KEYS.has(key)) continue;
+      if (SkipKeys.has(key)) continue;
       const value = (node as unknown as Record<string, unknown>)[key];
       if (Array.isArray(value)) {
         for (const item of value) {
@@ -183,6 +177,7 @@ export const stripeEmptySecretPredicate: RulePredicate = async (
 // Export the variant classifier + AST walker for tests so the per-variant independence
 // assertions can interrogate the classification directly (the public predicate only
 // returns the aggregate verdict).
+// biome-ignore lint/style/useNamingConvention: __test_only is a deliberate test-export convention
 export const __test_only = {
   classifyEmptySecretArg,
   findEmptySecretConstructEventCalls,
