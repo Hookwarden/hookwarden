@@ -107,6 +107,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "express-middleware-ordering",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01) — shared sink lists spread from SHARED_VAS_SINKS.
     ...SHARED_VAS_SINKS,
@@ -143,6 +144,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "library-verified",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -185,6 +187,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "library-verified",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -228,6 +231,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "library-verified",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -267,6 +271,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "library-verified",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -307,6 +312,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "library-verified",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -351,6 +357,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -393,6 +400,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -442,6 +450,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -482,6 +491,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -519,6 +529,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -560,6 +571,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -598,6 +610,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -641,6 +654,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "octokit-cross-attribution",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -686,6 +700,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -729,6 +744,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "signature-header-parse-mishandled",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -771,6 +787,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -817,6 +834,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "signature-prefix-not-stripped",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -860,6 +878,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "multi-signature-rotation-mishandled",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -903,6 +922,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "header-confusion",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,
@@ -948,6 +968,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "unreachable-verification",
       "verify-after-side-effect",
       "verification-error-swallowed",
+      "test-mode-bypass",
     ],
     // v0.7 Rule Depth (VAS-01)
     ...SHARED_VAS_SINKS,

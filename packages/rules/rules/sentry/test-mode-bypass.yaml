@@ -1,0 +1,32 @@
+schema_version: 1
+rule_id: sentry/test-mode-bypass
+provider: sentry
+severity: high
+emits_state: not-verified
+message: |
+  Sentry webhook handler short-circuits on a dev-mode env check
+  (e.g. `process.env.NODE_ENV !== 'production'` or
+  `process.env.SKIP_VERIFICATION`) and returns a SUCCESS response BEFORE
+  any signature verification runs. This is unsafe even in development —
+  if the env var gets clobbered or the bypass ships unintentionally to
+  production, attackers can POST forged payloads and trigger the
+  short-circuit instead of being rejected.
+
+  Fix: remove the dev-mode bypass entirely, OR gate the bypass on a
+  PRODUCTION-checked positive condition (`process.env.ALLOW_DEV_BYPASS === '1'`)
+  and ensure the env never leaks into production builds.
+matcher: null
+predicate: sentry-test-mode-bypass
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+provider_docs_url: https://docs.sentry.io/organization/integrations/integration-platform/webhooks/
+references:
+  - https://hookdeck.com/webhooks/guides/webhook-security-vulnerabilities-guide
+  - https://owasp.org/www-project-top-ten/
+fix:
+  safety: manual-only
+  description: "Remove the dev-mode bypass OR gate on a positive prod-checked condition — see provider_docs_url"
+  codegen: null

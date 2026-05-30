@@ -121,6 +121,7 @@ import {
 import { sentryHeaderConfusionPredicate } from "./sentry-header-confusion.js";
 import { stripeEmptySecretPredicate } from "./stripe-empty-secret.js";
 import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-unsafe-comparison.js";
+import { createTestModeBypassPredicate } from "./test-mode-bypass.js";
 import {
   auth0TimingUnsafeComparisonPredicate,
   bitbucketTimingUnsafeComparisonPredicate,
@@ -303,6 +304,60 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
     PROVIDER_CATALOG["zoom"]!,
   ),
   "standardwebhooks-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "standardwebhooks",
+    PROVIDER_CATALOG["standardwebhooks"]!,
+  ),
+  "stripe-test-mode-bypass": createTestModeBypassPredicate("stripe", PROVIDER_CATALOG["stripe"]!),
+  "github-test-mode-bypass": createTestModeBypassPredicate("github", PROVIDER_CATALOG["github"]!),
+  "shopify-test-mode-bypass": createTestModeBypassPredicate(
+    "shopify",
+    PROVIDER_CATALOG["shopify"]!,
+  ),
+  "twilio-test-mode-bypass": createTestModeBypassPredicate("twilio", PROVIDER_CATALOG["twilio"]!),
+  "slack-test-mode-bypass": createTestModeBypassPredicate("slack", PROVIDER_CATALOG["slack"]!),
+  "square-test-mode-bypass": createTestModeBypassPredicate("square", PROVIDER_CATALOG["square"]!),
+  "zendesk-test-mode-bypass": createTestModeBypassPredicate(
+    "zendesk",
+    PROVIDER_CATALOG["zendesk"]!,
+  ),
+  "docusign-test-mode-bypass": createTestModeBypassPredicate(
+    "docusign",
+    PROVIDER_CATALOG["docusign"]!,
+  ),
+  "intercom-test-mode-bypass": createTestModeBypassPredicate(
+    "intercom",
+    PROVIDER_CATALOG["intercom"]!,
+  ),
+  "linear-test-mode-bypass": createTestModeBypassPredicate("linear", PROVIDER_CATALOG["linear"]!),
+  "hubspot-test-mode-bypass": createTestModeBypassPredicate(
+    "hubspot",
+    PROVIDER_CATALOG["hubspot"]!,
+  ),
+  "auth0-test-mode-bypass": createTestModeBypassPredicate("auth0", PROVIDER_CATALOG["auth0"]!),
+  "mailchimp-test-mode-bypass": createTestModeBypassPredicate(
+    "mailchimp",
+    PROVIDER_CATALOG["mailchimp"]!,
+  ),
+  "postmark-test-mode-bypass": createTestModeBypassPredicate(
+    "postmark",
+    PROVIDER_CATALOG["postmark"]!,
+  ),
+  "sentry-test-mode-bypass": createTestModeBypassPredicate("sentry", PROVIDER_CATALOG["sentry"]!),
+  "pagerduty-test-mode-bypass": createTestModeBypassPredicate(
+    "pagerduty",
+    PROVIDER_CATALOG["pagerduty"]!,
+  ),
+  "bitbucket-test-mode-bypass": createTestModeBypassPredicate(
+    "bitbucket",
+    PROVIDER_CATALOG["bitbucket"]!,
+  ),
+  "notion-test-mode-bypass": createTestModeBypassPredicate("notion", PROVIDER_CATALOG["notion"]!),
+  "calendly-test-mode-bypass": createTestModeBypassPredicate(
+    "calendly",
+    PROVIDER_CATALOG["calendly"]!,
+  ),
+  "zoom-test-mode-bypass": createTestModeBypassPredicate("zoom", PROVIDER_CATALOG["zoom"]!),
+  "standardwebhooks-test-mode-bypass": createTestModeBypassPredicate(
     "standardwebhooks",
     PROVIDER_CATALOG["standardwebhooks"]!,
   ),
