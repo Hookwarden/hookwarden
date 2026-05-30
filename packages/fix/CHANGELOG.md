@@ -1,5 +1,24 @@
 # @hookwarden/fix
 
+## 0.6.0
+
+### Minor Changes
+
+- c81cc40: Phase 8.3 rule pack expansion. 15 new provider rule packs (Zendesk, DocuSign,
+  Intercom, Linear, HubSpot, Auth0, Mailchimp, Postmark, Datadog, Sentry,
+  PagerDuty, Bitbucket, Notion, Calendly, Zoom) + CVE-2026-41432 Stripe
+  empty-secret bypass detector (JS/TS variants 1, 2, 3, 6 — variants 4 + 5 +
+  Python + PHP deferred to Plan 17b) + CVE-CORPUS-01 with 5 fixture pairs and a
+  drift-guard test asserting every CVE in the public corpus maps to a registered
+  rule. Effective provider coverage 9 → ~31 (including Standard Webhooks
+  conformant providers swept in via Phase 8.3 Plan 16). 517 → 700 rule pack
+  tests. See CHANGELOG.md for the full release notes.
+
+### Patch Changes
+
+- Updated dependencies [c81cc40]
+  - @hookwarden/engine@0.6.0
+
 ## 0.5.5
 
 ### Patch Changes

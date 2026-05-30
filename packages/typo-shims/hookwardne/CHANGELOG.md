@@ -1,5 +1,12 @@
 # hookwardne
 
+## 0.6.0
+
+### Patch Changes
+
+- Updated dependencies [c81cc40]
+  - hookwarden@0.6.0
+
 ## 0.5.5
 
 ### Patch Changes
