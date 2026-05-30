@@ -194,10 +194,22 @@ jobs:
           mcp-publisher --version
 
       - name: Register @hookwarden/mcp at registry.modelcontextprotocol.io (Plan 23-09)
-        # GitHub OIDC auth via the existing `id-token: write` permission.
-        # Dry-run FIRST per RESEARCH §Pitfall 6 — fails fast on namespace or
-        # schema mismatch (Plan 23-04 Task 2 CI gate already catches mcpName
-        # vs server.json#name mismatch at PR time; this is defense-in-depth).
+        # DISABLED 2026-05-30 — Plan 23-09 Tasks 2-5 pending.
+        #
+        # The commented-out commands below use `mcp-publisher login github`,
+        # which is INTERACTIVE device-code auth (prints "Go to github.com/
+        # login/device, enter code XXXX-XXXX"), NOT OIDC despite the original
+        # comment claim. In CI this sits 15min waiting for a human and times
+        # out, failing the whole Release workflow on every tag push.
+        #
+        # Re-enable once non-interactive auth is wired (DCR client credentials,
+        # pre-issued bearer token, or upstream adds an OIDC path). Restore the
+        # commands and remove the `echo`/exit-0 stub below.
+        #
+        # Plan 23-09 references:
+        #   - Tasks 2-5 in .planning/phases/23-hookwarden-mcp-developer-preview-scan-handler/
+        #   - SUMMARY at commit 7a84b8b notes "Tasks 0+1 done, 2-5 pending publish"
+        #
         # Supersedes D-23-15 per RESEARCH §Pitfall 2: NO PRs to fictional
         # catalog repos. Cursor Directory + Continue Hub both scrape this
         # registry on nightly schedule; aggregator visibility lags 24-48h
@@ -207,9 +219,12 @@ jobs:
           contains(steps.changesets.outputs.publishedPackages, '@hookwarden/mcp')
         working-directory: packages/mcp
         run: |
-          mcp-publisher login github
-          mcp-publisher publish --dry-run
-          mcp-publisher publish
+          echo "::warning::MCP registry publish skipped — Plan 23-09 Tasks 2-5 pending non-interactive auth."
+          echo "The mcp-publisher CLI requires interactive device-code login; CI cannot complete it."
+          echo "Restore the commands below once non-interactive auth is wired."
+          # mcp-publisher login github
+          # mcp-publisher publish --dry-run
+          # mcp-publisher publish
 
       # ----- Phase 4.1 channel fan-out (only when the `hookwarden` CLI was published) -----
       #
