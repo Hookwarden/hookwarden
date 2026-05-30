@@ -30,6 +30,14 @@ applies_to:
   - fastify
   - nextjs
 provider_docs_url: https://developers.intercom.com/docs/build-an-integration/learn-more/webhooks/signature/
+references:
+  - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
+  - https://cwe.mitre.org/data/definitions/345.html
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
 fix:
   safety: manual-only
   description: "Replace @octokit/webhooks with an Intercom-secret-keyed HMAC verification path"
