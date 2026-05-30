@@ -171,9 +171,10 @@ function renderVerboseHeader(
   } else if (rule !== undefined) {
     confidence = "(high confidence)";
   }
-  const lineB = confidence !== ""
-    ? `  ${dim(fileLink, opts)}  ${dim(confidence, opts)}`
-    : `  ${dim(fileLink, opts)}`;
+  const lineB =
+    confidence !== ""
+      ? `  ${dim(fileLink, opts)}  ${dim(confidence, opts)}`
+      : `  ${dim(fileLink, opts)}`;
 
   return `${lineA}\n${lineB}`;
 }
@@ -333,7 +334,7 @@ export function renderFindings(
   // Groups iterate in the canonical severity-desc order so output is stable
   // regardless of input order. Empty groups are skipped — no `─── medium ───`
   // header when zero medium findings exist.
-  const SECTION_WIDTH = 78; // matches the 78-col footer rule in summary.ts
+  const SectionWidth = 78; // matches the 78-col footer rule in summary.ts
   const groups = new Map<Severity, Finding[]>();
   for (const sev of ["critical", "high", "medium", "low", "info"] as Severity[]) {
     groups.set(sev, []);
@@ -347,7 +348,7 @@ export function renderFindings(
   for (const [sev, bucket] of groups) {
     if (bucket.length === 0) continue;
     const label = severityColor(sev, sev, opts);
-    const dashCount = Math.max(4, SECTION_WIDTH - sev.length - 5); // "─── " + " " + dashes
+    const dashCount = Math.max(4, SectionWidth - sev.length - 5); // "─── " + " " + dashes
     const divider = `${dim("─── ", opts)}${label} ${dim("─".repeat(dashCount), opts)}`;
     const renderedGroup = bucket.map((f) => renderFinding(f, rulesByID.get(f.rule_id), opts));
     sections.push(`${divider}\n\n${renderedGroup.join("\n\n")}`);

@@ -178,14 +178,16 @@ export function renderSummary(result: ScanResult, opts: RenderSummaryOptions): s
       if (f.suppressed != null) continue;
       verdictCounts[f.state] += 1;
     }
-    verdictLine = VERDICT_ORDER.map((v) =>
-      verdictColor(v, `${verdictCounts[v]} ${v}`, opts),
-    ).join(" · ");
+    verdictLine = VERDICT_ORDER.map((v) => verdictColor(v, `${verdictCounts[v]} ${v}`, opts)).join(
+      " · ",
+    );
     if (opts.exitCode !== undefined) {
       const code = opts.exitCode;
       const gate = opts.failOn !== undefined ? ` (fail-on=${opts.failOn})` : "";
       const codePainted =
-        code === 0 ? severityColor("info", `Exit: ${code}`, opts) : severityColor("critical", `Exit: ${code}`, opts);
+        code === 0
+          ? severityColor("info", `Exit: ${code}`, opts)
+          : severityColor("critical", `Exit: ${code}`, opts);
       exitLine = `${codePainted}${dim(gate, opts)}`;
     }
   }

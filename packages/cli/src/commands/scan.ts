@@ -23,6 +23,7 @@ import {
   renderSummary,
 } from "../render/index.js";
 import { countActiveAtOrAbove } from "../severity-threshold.js";
+import { shouldDisableTrivia, startTriviaTicker } from "../trivia.js";
 import { shouldUseAnsi } from "../walker/tty.js";
 
 export interface ScanArgs {
@@ -46,6 +47,7 @@ export interface ScanArgs {
   readonly provider?: string;
   readonly exclude?: string;
   readonly include?: string;
+  readonly "no-trivia"?: boolean;
 }
 
 const VALID_FAIL_ON: ReadonlySet<string> = new Set(["critical", "high", "medium", "low"]);
@@ -162,6 +164,19 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
   // Step 4 — Run the pipeline (Task 1).
   const baselineWrite = args.baseline === "write";
   const diffOnly = args["diff-only"] === true;
+
+  // v0.7.3 trivia ticker — rotating webhook-security tips on stderr during
+  // long scans. TTY-gated, opt-out via --no-trivia, never fires in CI or
+  // when stderr is piped. Zero-network: every tip is a local string.
+  // Only meaningful for text-format scans; JSON/SARIF callers pipe stdout
+  // and we don't want stray stderr in their machine-consumed output either,
+  // but the TTY check (isTTY on stderr) catches that automatically.
+  const stopTrivia = startTriviaTicker({
+    disabled: shouldDisableTrivia(
+      args["no-trivia"] === true ? { noTrivia: true } : {},
+    ),
+  });
+
   const scan = await runScan({
     rootPath: cwd,
     resolvedConfig,
@@ -185,6 +200,11 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
             .filter((s) => s !== "")
         : [],
   });
+
+  // Stop the trivia ticker before any further stderr/stdout output so
+  // the next caller's line starts clean (the stop() also clears via
+  // `\r\x1b[K`). Guaranteed to run on every code path below.
+  stopTrivia();
 
   if (scan.engineError !== null) {
     process.stderr.write(`engine error: ${scan.engineError.message}\n`);
@@ -342,6 +362,11 @@ export const scanCommand = defineCommand({
       description: "Path to hookwarden.config.yaml (overrides walk-up discovery)",
     },
     "no-config": { type: "boolean", description: "Bypass config-file discovery" },
+    "no-trivia": {
+      type: "boolean",
+      description:
+        "Suppress the rotating webhook-security tips that appear on stderr during long scans. Already auto-disabled in CI / non-TTY / NO_COLOR.",
+    },
     "strict-suppressions": {
       type: "boolean",
       description: "Promote stale suppressions to errors (D-67)",

@@ -35,8 +35,16 @@ export interface RenderScanBannerInputs {
  *   ╰─ scope: ./apps/webhooks · 7 handlers · 4 files
  */
 export function renderScanBanner(inputs: RenderScanBannerInputs): string {
-  const { useAnsi, metadata, ruleCount, providerCount, citedCount, scope, handlerCount, fileCount } =
-    inputs;
+  const {
+    useAnsi,
+    metadata,
+    ruleCount,
+    providerCount,
+    citedCount,
+    scope,
+    handlerCount,
+    fileCount,
+  } = inputs;
 
   // Indigo `hookwarden vX.Y.Z` for brand anchor; everything else flows as
   // dim secondary text so the cited-coverage stat reads as a quiet boast,
