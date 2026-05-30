@@ -1,0 +1,5 @@
+# Wave 0 drift fixtures intentionally ship in-tree even though they live
+# under a `node_modules/` segment (Plan 23-03 drift integration test
+# resolves @hookwarden/engine from the fixture directory). No fixture
+# file is gitignored — biome.json#files.includes exclusion is what
+# protects byte-identical stub contents from lint-staged --write.
