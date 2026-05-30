@@ -1,34 +1,38 @@
-# Known false negative — catch-block-swallow
+# Catch-block-swallow — historical false negative, now caught
 
-This fixture demonstrates a scanner limitation: the engine reports
-`verified` because `stripe.webhooks.constructEvent` is reachable from the
-handler, but the surrounding `try`/`catch` defeats the verification by
-silently returning `200 OK` from the catch handler.
+## Historical context (v0.5)
 
-## Current verdict
+This fixture demonstrated a scanner limitation: the engine reported
+`verified` because `stripe.webhooks.constructEvent` was reachable from the
+handler, but the surrounding `try`/`catch` defeated the verification by
+silently returning `200 OK` from the catch handler. The bug was real; the
+engine couldn't see it.
+
+The directory name (`-known-fn` suffix) preserves the v0.5 breadcrumb so
+the fixture stays visible in git history and the smoke harness keeps
+pointing at the same path across releases.
+
+## Current behavior (v0.7+)
+
+The `stripe/verification-error-swallowed` rule (part of the v0.7 ERS —
+Error-Swallowing — rule class) catches this pattern. Scan output:
 
 ```
-· info  server.js:14:1  stripe/library-verified  verified
-Found 0 critical · 0 high · 0 medium · 0 low · 1 info · 0 manual-review
+! high      server.js:16:1  stripe/verification-error-swallowed  not-verified
+i info      server.js:16:1  stripe/library-verified              verified
 ```
 
-## Expected future verdict
+The two findings together document both the SDK import (info, positive
+signal) and the structural defect (high, exploitable). The handler verdict
+resolves to `not-verified` and exit code is `1` (default `--fail-on high`).
 
-```
-! high  server.js:14:1  stripe/swallowed-verification-error  manual-review
-```
+## Detection design (what changed v0.5 → v0.7)
 
-(Or: `library-verified` downgraded to `manual-review` via a new
-`verify_call_in_swallowing_catch` evidence kind.)
+The v0.5 design discussion identified three blockers:
 
-## Why this isn't fixed yet
-
-Detecting this pattern correctly requires:
-
-1. Try/catch ancestry tracking on every `CallExpression` (engine doesn't
-   have this in v0.5).
+1. Try/catch ancestry tracking on every `CallExpression`.
 2. A catch-handler "swallows" classifier that distinguishes the bug from
-   legitimate patterns like:
+   legitimate patterns:
    - `catch (e) { return res.status(400).send('bad sig'); }` (correct)
    - `catch (e) { throw e; }` (rethrow, fine)
    - `catch (e) { next(e); }` (Express error pipeline, fine)
@@ -36,10 +40,6 @@ Detecting this pattern correctly requires:
      retry, legitimate but visually identical to a swallow)
 3. Cross-provider extension (6 providers, not just Stripe).
 
-A heuristic that fires on every `try`/`catch` around a verify call would
-add >5% false-positives — outside the project's correctness moat.
-
-The right fix is a new `verify_call_in_swallowing_catch` evidence kind
-emitted by `build.ts`, consumed by `library-verified-recognition` to
-downgrade `verified` → `manual-review`. Estimated ~half a day of careful
-work + test fixtures.
+All three landed as part of the v0.7 rule depth expansion. The rule
+description spells out exactly which catch-handler shapes suppress the
+finding — keeping false-positive rate inside the <5% correctness moat.

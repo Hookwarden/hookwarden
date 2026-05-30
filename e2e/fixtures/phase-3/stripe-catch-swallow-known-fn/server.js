@@ -1,12 +1,12 @@
-// KNOWN FALSE NEGATIVE — see e2e/fixtures/phase-3/stripe-catch-swallow-known-fn/README.md.
-// Engine currently marks this handler `verified` because stripe.webhooks.constructEvent is
-// reachable. The catch block silently swallows verification failures and returns 200, which
-// defeats the entire purpose of verification — but detecting this requires try/catch ancestry
-// tracking + catch-handler "swallows" classification that the engine doesn't have in v0.5.
+// HISTORICAL FALSE NEGATIVE — NOW CAUGHT. Directory name preserves the
+// breadcrumb. See e2e/fixtures/phase-3/stripe-catch-swallow-known-fn/README.md
+// for the v0.5 design discussion and v0.7 resolution.
 //
-// Expected future behavior: when `verify_call_in_swallowing_catch` evidence is emitted by a
-// future build.ts overlay, library-verified-recognition should downgrade `verified` →
-// `manual-review`. See open issue (TODO: file URL) for the design discussion.
+// Current behavior (v0.7+): the `stripe/verification-error-swallowed` rule
+// (part of the v0.7 ERS — Error-Swallowing — rule class) fires at high
+// severity / not-verified. The handler still emits an info-level
+// `stripe/library-verified` because the SDK call is reachable — together
+// they document both the SDK import AND the structural defect.
 
 const express = require('express');
 const Stripe = require('stripe');

@@ -195,9 +195,10 @@ assert_scan "1.4 seeded-secret → info + critical (both rules fire)" any \
   /fixtures/seeded-secret --include-tests \
   "stripe/hardcoded-secret-prefix" "i info" "not-verified"
 
-assert_scan "1.5 stripe-catch-swallow-known-fn → known FN (verified)" 0 \
+assert_scan "1.5 stripe-catch-swallow-known-fn → CAUGHT (was FN, now fires verification-error-swallowed)" 1 \
   /fixtures/stripe-catch-swallow-known-fn \
-  "stripe/library-verified" "verified"
+  "stripe/verification-error-swallowed" "not-verified" \
+  "stripe/library-verified"
 
 assert_scan "1.6 stripe-inline-middleware-verify → scan completes" 0 \
   /fixtures/stripe-inline-middleware-verify \
