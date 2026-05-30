@@ -280,6 +280,56 @@ describe("renderJson — D-59 envelope", () => {
     expect(parsed.schema_version).toBe("1.0");
   });
 
+  // v0.7.1 references emission — JSON envelope surfaces external citations
+  // from rule.references on each finding so consumers (CI, dashboards, audit
+  // exports) can render them without re-loading the rule pack.
+  describe("v0.7.1 references field", () => {
+    const ruleSetWithRefs = {
+      schema_version: 1,
+      rule_pack_version: "0.7.1",
+      providers: {},
+      predicates: {},
+      rules: [
+        {
+          rule_id: "stripe/missing-verification",
+          provider: "stripe",
+          severity: "critical" as Severity,
+          emits_state: "not-verified" as Verdict,
+          message: "test",
+          matcher: null,
+          predicate_name: "stripe-missing",
+          applies_to: "all" as const,
+          provider_docs_url: "https://stripe.com/docs/webhooks",
+          path_severity_overrides: null,
+          fix: null,
+          references: [
+            "https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/",
+            "CWE-345",
+          ],
+        },
+      ],
+    };
+
+    it("emits references[] populated from the rule pack", () => {
+      const findings = [
+        makeFinding({ rule_id: "stripe/missing-verification", primary_location_line_hash: "h1" }),
+      ];
+      const out = renderJson({ scanResult: makeResult(findings), ruleSet: ruleSetWithRefs, stale: [] });
+      const parsed = JSON.parse(out);
+      expect(parsed.scan.findings[0].references).toEqual([
+        "https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/",
+        "CWE-345",
+      ]);
+    });
+
+    it("emits empty references[] (not omitted) when ruleSet is null — consumers can length-check", () => {
+      const findings = [makeFinding({ primary_location_line_hash: "h1" })];
+      const out = renderJson({ scanResult: makeResult(findings), ruleSet: null, stale: [] });
+      const parsed = JSON.parse(out);
+      expect(parsed.scan.findings[0].references).toEqual([]);
+    });
+  });
+
   it("snapshot — canonical mixed scan with active + suppressed findings", () => {
     const findings = [
       makeFinding({

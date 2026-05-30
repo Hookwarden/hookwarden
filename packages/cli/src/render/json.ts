@@ -3,6 +3,7 @@
 
 import type {
   Finding,
+  RuleDefinition,
   RuleSet,
   ScanResult,
   Severity,
@@ -27,6 +28,10 @@ interface FindingPayload {
   readonly location: { readonly line: number; readonly col: number };
   readonly primary_location_line_hash: string;
   readonly message: string;
+  // v0.7.1+ — external citations from the rule (CWE, RFC, Svix, etc.).
+  // Empty array (not omitted) for rules without references so consumers can
+  // rely on the field's presence and length-check rather than null-check.
+  readonly references: ReadonlyArray<string>;
   readonly redacted_snippet: string | null;
   readonly suppressed: Finding["suppressed"];
 }
@@ -81,7 +86,7 @@ function findingId(f: Finding): string {
   return `${f.rule_id}@${f.primary_location_line_hash}`;
 }
 
-function toFindingPayload(f: Finding): FindingPayload {
+function toFindingPayload(f: Finding, rule: RuleDefinition | undefined): FindingPayload {
   return {
     finding_id: findingId(f),
     rule_id: f.rule_id,
@@ -92,9 +97,17 @@ function toFindingPayload(f: Finding): FindingPayload {
     location: { line: f.location.line, col: f.location.col },
     primary_location_line_hash: f.primary_location_line_hash,
     message: f.message,
+    references: rule?.references ?? [],
     redacted_snippet: f.snippet, // D-39: engine.snippet is the redacted slice
     suppressed: f.suppressed ?? null,
   };
+}
+
+function indexRules(ruleSet: RuleSet | null): Map<string, RuleDefinition> {
+  const m = new Map<string, RuleDefinition>();
+  if (ruleSet === null) return m;
+  for (const r of ruleSet.rules) m.set(r.rule_id, r);
+  return m;
 }
 
 function toHandlerPayload(h: WebhookHandler): unknown {
@@ -116,9 +129,10 @@ function sortKeysDeep(value: unknown): unknown {
 }
 
 export function renderJson(inputs: RenderJsonInputs): string {
-  const { scanResult, stale } = inputs;
+  const { scanResult, ruleSet, stale } = inputs;
+  const rulesByID = indexRules(ruleSet);
   const sortedFindings = [...scanResult.findings].sort(compareFindings);
-  const findingsPayload = sortedFindings.map(toFindingPayload);
+  const findingsPayload = sortedFindings.map((f) => toFindingPayload(f, rulesByID.get(f.rule_id)));
   const counts = tabulate(scanResult.findings);
   const meta = scanResult.metadata;
 

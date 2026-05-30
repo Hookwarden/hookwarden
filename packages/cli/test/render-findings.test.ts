@@ -270,4 +270,68 @@ describe("renderFindings", () => {
     });
     expect(out).not.toContain("next ›");
   });
+
+  // v0.7.1 references rendering — external citations from rule.references
+  describe("v0.7.1 references block (`refs ›`)", () => {
+    const stripeRuleWithRefs: RuleDefinition = {
+      ...stripeRule,
+      references: [
+        "https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/",
+        "https://hookdeck.com/webhooks/guides/webhook-security-vulnerabilities-guide",
+        "CWE-345 — Insufficient Verification of Data Authenticity",
+      ],
+    };
+    const ruleSetWithRefs: RuleSet = { ...RULE_SET, rules: [stripeRuleWithRefs, githubRule] };
+
+    it("emits `refs ›` prefix with the first reference inline", () => {
+      const out = renderFindings(mkResult([stripeFinding]), ruleSetWithRefs, {
+        useAnsi: false,
+        cwd: "/tmp",
+      });
+      expect(out).toContain(
+        "refs › https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/",
+      );
+    });
+
+    it("renders continuation references aligned under the first (7-space indent)", () => {
+      const out = renderFindings(mkResult([stripeFinding]), ruleSetWithRefs, {
+        useAnsi: false,
+        cwd: "/tmp",
+      });
+      // 2-space body indent + 7-space `refs › ` width = 9 chars before continuation
+      expect(out).toContain(
+        "         https://hookdeck.com/webhooks/guides/webhook-security-vulnerabilities-guide",
+      );
+      expect(out).toContain("         CWE-345 — Insufficient Verification of Data Authenticity");
+    });
+
+    it("renders refs block AFTER the docs › line — independent evidence sources, not a replacement", () => {
+      const out = renderFindings(mkResult([stripeFinding]), ruleSetWithRefs, {
+        useAnsi: false,
+        cwd: "/tmp",
+      });
+      const docsIdx = out.indexOf("docs › https://stripe.com/docs/webhooks");
+      const refsIdx = out.indexOf("refs ›");
+      expect(docsIdx).toBeGreaterThanOrEqual(0);
+      expect(refsIdx).toBeGreaterThan(docsIdx);
+    });
+
+    it("NEGATIVE: rule with references: null emits no refs block", () => {
+      const out = renderFindings(mkResult([stripeFinding]), RULE_SET, {
+        useAnsi: false,
+        cwd: "/tmp",
+      });
+      expect(out).not.toContain("refs ›");
+    });
+
+    it("NEGATIVE: rule with references: [] (empty) emits no refs block", () => {
+      const emptyRefsRule: RuleDefinition = { ...stripeRule, references: [] };
+      const ruleSet: RuleSet = { ...RULE_SET, rules: [emptyRefsRule, githubRule] };
+      const out = renderFindings(mkResult([stripeFinding]), ruleSet, {
+        useAnsi: false,
+        cwd: "/tmp",
+      });
+      expect(out).not.toContain("refs ›");
+    });
+  });
 });

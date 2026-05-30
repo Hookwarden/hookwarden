@@ -111,6 +111,14 @@ export interface RuleDefinition {
   // (rule has no fixable variant); a populated object is consumed by @hookwarden/fix.
   // Required in Plan 11 (B4 stage 2 — schema tightened after every YAML carries the key).
   readonly fix: FixMetadata | null;
+  // v0.7 Rule Depth + v0.7.1 backfill: external citations (CWE, RFC, Svix,
+  // Hookdeck, Stripe spec, etc.) that anchor a finding to a stable third-party
+  // authority. Distinct from `provider_docs_url` — that's the vendor's own
+  // page; references are independent evidence. Optional/nullable for backwards
+  // compatibility with pre-v0.7 rule packs (the YAML schema requires this on
+  // v0.7+ rules via a CI gate; older grandfathered rules carry null until
+  // backfilled — all 230 v0.7.1+ rules are populated).
+  readonly references: ReadonlyArray<string> | null;
 }
 
 export interface RuleSet {

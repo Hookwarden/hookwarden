@@ -58,6 +58,10 @@ function toRuleDefinition(doc: ParsedRuleDocument): RuleDefinition {
     // Phase 8.2 D-04: fix metadata flows through ParsedRuleDocument → RuleDefinition.
     // validateRuleDocument normalizes undefined → null, so doc.fix is always set here.
     fix: doc.fix ?? null,
+    // v0.7.1: forward external citations so the CLI renderer can emit a refs ›
+    // block per finding. null when the YAML omits the field (grandfathered);
+    // every v0.7.1+ rule carries at least one entry per the backfill sweep.
+    references: doc.references,
   };
 }
 

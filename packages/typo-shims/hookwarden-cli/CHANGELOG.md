@@ -1,5 +1,63 @@
 # hookwarden-cli
 
+## 0.7.2
+
+### Patch Changes
+
+- ## v0.7.2 — Surface references in CLI + JSON output
+
+  v0.7.1 backfilled `references:` on 142 grandfathered rules — 230 cited end to end — but the renderer never read the field, so the citations lived in the YAML and were invisible to anyone running `hookwarden scan`. This release closes that loop.
+
+  ### Text renderer — new `refs ›` block per finding
+
+  After the existing `docs › <provider docs URL>` line, every finding now emits its rule's external citations on a `refs ›` block. The first reference rides on the prefix line; continuations align under it.
+
+  ```
+  × critical  apps/api/webhook.js:7:1  stripe/missing-signature-verification  not-verified
+    Stripe webhook handler does not appear to verify the signature header...
+    fix › pass the raw request body, the Stripe-Signature header, and...
+    docs › https://stripe.com/docs/webhooks
+    refs › https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
+           https://hookdeck.com/webhooks/guides/webhook-security-vulnerabilities-guide
+  ```
+
+  URL references render as OSC-8 hyperlinks (clickable in modern terminals); non-URL references (e.g. `CWE-345 — ...`) render as plain text. `docs ›` and `refs ›` are deliberately distinct roles — `docs ›` is the vendor's canonical security page; `refs ›` is independent evidence (CWE / RFC / Svix / Hookdeck guides) that auditors follow back to a stable external authority.
+
+  ### JSON renderer — new `references[]` field per finding
+
+  `scan.findings[].references: string[]` is now part of the JSON envelope. Always present (empty array when ruleSet is unavailable or the rule has none) so CI consumers can length-check without null guards.
+
+  ```json
+  {
+    "scan": {
+      "findings": [
+        {
+          "rule_id": "stripe/missing-signature-verification",
+          "severity": "critical",
+          "state": "not-verified",
+          "references": [
+            "https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/",
+            "https://hookdeck.com/webhooks/guides/webhook-security-vulnerabilities-guide"
+          ]
+        }
+      ]
+    }
+  }
+  ```
+
+  ### Type change
+
+  `RuleDefinition.references: ReadonlyArray<string> | null` is now part of `@hookwarden/engine`'s public type. Existing consumers continue to compile — the field is nullable, not required. The v0.7+ rule pack populates it on every rule; older rule packs (pre-v0.7.1) carried null.
+
+  ### Not changed
+
+  - No new rule classes, no new providers, no rule re-grading
+  - SARIF renderer not yet updated — SARIF has its own `references` schema slot which needs structural mapping (deferred to a follow-up)
+  - `@hookwarden/mcp` not in the fixed-version group; ships v0.8.3 via transitive patch from the engine/rules bumps (bundles the v0.7.2 rule pack inline)
+
+- Updated dependencies
+  - hookwarden@0.7.2
+
 ## 0.7.1
 
 ### Patch Changes

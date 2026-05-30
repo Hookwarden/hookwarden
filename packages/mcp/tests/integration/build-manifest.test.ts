@@ -31,13 +31,13 @@ describe("dist/build-manifest.json — shape contract (Test 1)", () => {
     manifest = JSON.parse(raw) as BuildManifest;
   });
 
-  it("declares engine.version = 0.7.1 with content_hash null", () => {
-    expect(manifest.engine.version).toBe("0.7.1");
+  it("declares engine.version = 0.7.2 with content_hash null", () => {
+    expect(manifest.engine.version).toBe("0.7.2");
     expect(manifest.engine.content_hash).toBeNull();
   });
 
-  it("declares rules.version = 0.7.1 with a 64-char SHA-256 hex content_hash", () => {
-    expect(manifest.rules.version).toBe("0.7.1");
+  it("declares rules.version = 0.7.2 with a 64-char SHA-256 hex content_hash", () => {
+    expect(manifest.rules.version).toBe("0.7.2");
     expect(manifest.rules.content_hash).toMatch(/^[0-9a-f]{64}$/);
   });
 

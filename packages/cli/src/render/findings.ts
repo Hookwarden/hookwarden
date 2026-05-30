@@ -82,6 +82,10 @@ function collapseWhitespace(s: string): string {
   return s.replace(/\s+/g, " ").trim();
 }
 
+function isUrl(s: string): boolean {
+  return s.startsWith("http://") || s.startsWith("https://");
+}
+
 /**
  * Soft-wrap a long single line to a target column at word boundaries,
  * prefixing every output line with `indent`. Preserves words that exceed
@@ -159,6 +163,24 @@ function renderFinding(
     const docsPrefix = actionPrefix("docs", opts);
     const linked = ansiLink(rule.provider_docs_url, rule.provider_docs_url, opts);
     lines.push(`${indent}${docsPrefix} ${linked}`);
+  }
+
+  // References block (v0.7.1+) — external citations beyond the provider's own
+  // docs page. Distinct from `docs ›` because the roles differ: docs › is the
+  // vendor's canonical security page; refs › are independent authorities
+  // (CWE, RFCs, Svix/Hookdeck guides) that auditors follow back to a stable
+  // external source. Continuation lines align under the first reference.
+  if (rule?.references != null && rule.references.length > 0) {
+    const refsPrefix = actionPrefix("refs", opts);
+    const firstRef = rule.references[0] ?? "";
+    const firstRendered = isUrl(firstRef) ? ansiLink(firstRef, firstRef, opts) : firstRef;
+    lines.push(`${indent}${refsPrefix} ${firstRendered}`);
+    for (let i = 1; i < rule.references.length; i += 1) {
+      const ref = rule.references[i] ?? "";
+      const rendered = isUrl(ref) ? ansiLink(ref, ref, opts) : ref;
+      // 7 spaces = "refs › " visible width, so continuation aligns under the first ref.
+      lines.push(`${indent}       ${rendered}`);
+    }
   }
 
   // manual-review verdicts mean the engine can't statically prove the

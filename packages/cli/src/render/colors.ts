@@ -125,7 +125,7 @@ export function stateText(state: Verdict, opts: ColorOptions): string {
  * Accent-tinted (locked palette `#6366F1`) so the eye lands on the
  * actionable line, not the explanatory paragraph above it.
  */
-export function actionPrefix(label: "fix" | "docs" | "next", opts: ColorOptions): string {
+export function actionPrefix(label: "fix" | "docs" | "next" | "refs", opts: ColorOptions): string {
   return paint(RGB.accent, `${label} ›`, opts, true);
 }
 
