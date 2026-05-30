@@ -1,5 +1,12 @@
 # @hookwarden/mcp
 
+## 0.8.6
+
+### Patch Changes
+
+- @hookwarden/engine@0.7.5
+- @hookwarden/rules@0.7.5
+
 ## 0.8.5
 
 ### Patch Changes

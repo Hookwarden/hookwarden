@@ -6,6 +6,7 @@
 // Call-time drift gate (D-23-12) returns isError:true with the same 4-field
 // payload Plan 23-02 boot-time gate emits.
 
+import { ENGINE_VERSION } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
 
 import { loadBuildManifest } from "../../src/drift-check.js";
@@ -76,7 +77,9 @@ describe("scan_handler — call-time drift gate (Test 12)", () => {
     expect(sc.error).toBe("engine_drift");
     expect(sc.component).toBe("engine");
     expect(sc.pinned).toBe("9.99.99");
-    expect(sc.current).toBe("0.7.4");
+    // current === live ENGINE_VERSION (drift gate compares pinned-vs-current).
+    // Hardcoded "0.7.4" turned every Changesets release into a failing preflight.
+    expect(sc.current).toBe(ENGINE_VERSION);
     expect(sc.suggestion).toContain("npm i -g @hookwarden/mcp@latest");
     expect(sc.rationale.length).toBeGreaterThan(0);
   });

@@ -1,5 +1,12 @@
 # hookwardn
 
+## 0.7.5
+
+### Patch Changes
+
+- Updated dependencies
+  - hookwarden@0.7.5
+
 ## 0.7.4
 
 ### Patch Changes

@@ -1,5 +1,30 @@
 # hookwarden
 
+## 0.7.5
+
+### Patch Changes
+
+- CLI text-mode output no longer renders `engine/parse-error` as a `! high`
+  finding. Parse failures on non-webhook files (Vite configs, build scripts,
+  unreachable TypeScript) were colliding with the summary footer's legend
+  `high = exploitable verification weakness`, which produced contradictory
+  headlines like `Found 4 high — 0 webhook handlers across 0 files` on
+  large monorepos (cal.com, n8n).
+
+  Parse errors now render in a distinct trailing block with a neutral `?`
+  glyph and "parse error" label (dim, no severity color, no state badge),
+  and are excluded from the severity tally and manual-review count. A new
+  footer hint surfaces the count and reconciles it with the exit code:
+  `(N file(s) could not be parsed — counts toward --fail-on high)`.
+
+  Verbose mode appends a `─── parse errors ───` group divider after the
+  severity groups. JSON, SARIF, baseline, exit-code, and `--fail-on`
+  semantics are unchanged — only the text-mode display layer differs.
+
+  - @hookwarden/engine@0.7.5
+  - @hookwarden/rules@0.7.5
+  - @hookwarden/fix@0.7.5
+
 ## 0.7.4
 
 ### Patch Changes
