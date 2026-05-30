@@ -27,6 +27,14 @@ export default defineConfig({
           ],
         },
         {
+          label: "MCP",
+          items: [
+            { label: "Getting started", link: "/mcp/getting-started/" },
+            { label: "scan_handler tool", link: "/mcp/scan-handler/" },
+            { label: "Drift detection", link: "/mcp/drift-detection/" },
+          ],
+        },
+        {
           label: "Rules",
           items: [
             { label: "Coverage matrix", link: "/rules/" },

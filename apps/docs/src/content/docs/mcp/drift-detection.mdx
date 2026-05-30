@@ -1,0 +1,102 @@
+---
+title: Drift detection
+description: How @hookwarden/mcp prevents stale-rule-pack false confidence (MCP-04).
+---
+
+## Why drift detection matters
+
+Agent verdicts depend on the rule pack at scan time. An agent calling `scan_handler` against a stale rule pack returns false-clean results — and the agent has no way to know. MCP-04 makes that failure mode structurally impossible.
+
+Every `@hookwarden/mcp` invocation cross-checks the runtime-resolved engine + rule-pack content against the build-time pin shipped in the published tarball. Mismatch fails closed — at boot, the server refuses to start with a structured stderr message; at call time, `scan_handler` returns `isError: true` with the same structured payload. The agent sees the error, can surface it to the user, and there's a single concrete remediation: reinstall.
+
+## How it works
+
+### Step 1 — Build time (`scripts/emit-build-manifest.mjs`)
+
+At `pnpm build` / `pnpm prepack`, the emitter resolves the installed `@hookwarden/engine` + `@hookwarden/rules` versions and computes the rule-pack content hash via the same primitive `drift-check.ts` uses at runtime. Output lands at `packages/mcp/dist/build-manifest.json`:
+
+```json
+{
+  "engine": { "version": "0.7.0", "content_hash": null },
+  "rules": {
+    "version": "0.7.0",
+    "content_hash": "e05c30e841b1f9b244b5db22fe5f808137cd81f96361848722eac11e68246d4a"
+  },
+  "built_at": "2026-05-30T15:54:34.527Z"
+}
+```
+
+Regenerated on every build. Ships in the published tarball under `files: ["dist", ...]`.
+
+### Step 2 — Boot time (`bootServer`)
+
+On stdio MCP server boot, `loadBuildManifest()` reads the manifest and `checkDrift()` compares against the runtime-resolved constants:
+
+- `ENGINE_VERSION` (imported from `@hookwarden/engine`)
+- `RULES_PACK_VERSION` (imported from `@hookwarden/rules`)
+- `computeContentHash(PROVIDER_CATALOG, parsedRules)` against the manifest's `rules.content_hash`
+
+Mismatch crashes the server with a 5-line stderr message and exit code 1:
+
+```
+hookwarden-mcp: engine_drift detected at boot.
+  component: engine
+  pinned:    0.7.0
+  current:   0.6.5
+  fix:       npm i -g @hookwarden/mcp@latest
+```
+
+The agent's MCP client logs the stderr — Claude Desktop surfaces the message in the MCP server diagnostics panel.
+
+### Step 3 — Call time (`scan_handler`)
+
+Every tool invocation re-runs `checkDrift()`. Mismatch returns `isError: true` `Tool.result`:
+
+```json
+{
+  "isError": true,
+  "content": [
+    { "type": "text", "text": "hookwarden-mcp: engine_drift" },
+    { "type": "text", "text": "{...}" }
+  ],
+  "structuredContent": {
+    "error": "engine_drift",
+    "component": "engine",
+    "pinned": "0.7.0",
+    "current": "0.6.5",
+    "suggestion": "npm i -g @hookwarden/mcp@latest",
+    "rationale": "Rule verdicts depend on engine version; running with a different engine than the one tested at release risks stale-rule-pack false confidence."
+  }
+}
+```
+
+The dual-shape contract (structuredContent + companion text block) is the same here as for successful tool calls — clients see structured drift, NOT a transport-level failure.
+
+## Structured drift payload
+
+Every `engine_drift` / `rules_drift` payload carries six fields:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `error` | `"engine_drift" \| "rules_drift"` | Classifies the drift dimension. |
+| `component` | `"engine" \| "rules"` | Which package mismatched. |
+| `pinned` | string | What the build-time manifest declared. |
+| `current` | string | What runtime resolution found. |
+| `suggestion` | string | One-line remediation — always `"npm i -g @hookwarden/mcp@latest"`. |
+| `rationale` | string | Why this drift matters — for the agent / user to read. |
+
+For `rules_drift` triggered by a content-hash mismatch, `pinned` and `current` are SHA-256 hex strings (64 lowercase hex chars). For version-equality drift, they are semver strings.
+
+## Known limitations
+
+In v0.8.0, engine drift is detected on version mismatch only. The v0.7.0 engine does not export a content hash, so an engine package republished under the same version with mutated artifacts would not be flagged. Full engine content-hash drift detection ships in a future engine release. Rules drift is detected on full content hash and is unaffected.
+
+The build manifest's `engine.content_hash` field is set to `null` to reflect this — the type contract is honest about what's covered today. When `@hookwarden/engine` adds a content-hash export, the manifest field will populate without changing the user-facing drift-detection API.
+
+## Why no env-var override
+
+`checkDrift()` accepts no opt-out parameter (D-23-13). Opting out of drift detection in a security tool's MCP server defeats the purpose. Power users who want a specific engine + rule-pack combo for testing should downgrade `@hookwarden/mcp` (or pin via `npx @hookwarden/mcp@0.8.0`).
+
+## What this proves end-to-end
+
+The same `rule_pack_content_hash` shows up in CLI scan output, SaaS evidence packs, and MCP `scan_metadata`. An auditor can verify the rule pack the MCP server scanned is byte-for-byte the rule pack that shipped with `@hookwarden/mcp@0.8.0`. The integrity claim is structural — not policy, not docs — and the test gate at `pnpm --filter @hookwarden/mcp test --run tests/integration/build-manifest.test.ts` proves the build-time emit and the runtime check agree on the hash byte-for-byte.

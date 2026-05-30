@@ -1,0 +1,141 @@
+---
+title: scan_handler tool
+description: The one tool — input shapes, structuredContent output, verdict vocabulary, error payloads.
+---
+
+`scan_handler` is the only tool `@hookwarden/mcp` registers in v0.8.0. It takes webhook handler code (single blob or multi-file map) and returns hookwarden's deterministic findings in MCP `Tool.result` shape.
+
+## Inputs
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `code` | string | one-of | Single-blob mode. Defaults to TypeScript; override with `language`. Mutually exclusive with `files`. |
+| `files` | `Record<string, string>` | one-of | Multi-file mode. Keys are virtual file paths (e.g. `"app.ts"`, `"routes/webhook.ts"`); language inferred from extension. |
+| `language` | string | optional | `"js"`, `"ts"`, or `"python"`. `"php"` is rejected with `language_not_in_preview` until v0.8.1. |
+| `provider` | string | optional | Provider id (case-insensitive). `"stripe"` matches `"Stripe"` and `"STRIPE"`. Filters the rule set to that provider only. |
+
+Provide either `code` OR `files` (not both, not neither).
+
+## Output (`Tool.result.structuredContent`)
+
+Every successful call returns `structuredContent` first-class (MCP spec 2025-06-18) plus a companion `content[1]` text block that stringifies the same payload for backwards compatibility.
+
+Worked example — the canonical Stripe `express.json()` middleware-ordering bug:
+
+```json
+{
+  "verdict_summary": {
+    "verified": 0,
+    "not_verified": 1,
+    "manual_review": 0,
+    "parse_error": 0
+  },
+  "findings": [
+    {
+      "rule_id": "stripe/missing-signature-verification",
+      "provider": "stripe",
+      "severity": "critical",
+      "verdict": "not-verified",
+      "file": "__handler.ts",
+      "line_start": 7,
+      "line_end": 9,
+      "message": "Webhook handler reads req.body without calling stripe.webhooks.constructEvent...",
+      "provider_docs_url": null,
+      "rule_pack_version": "0.7.0"
+    }
+  ],
+  "scan_metadata": {
+    "engine_version": "0.7.0",
+    "rule_pack_version": "0.7.0",
+    "rule_pack_content_hash": "e05c30e841b1f9b244b5db22fe5f808137cd81f96361848722eac11e68246d4a"
+  }
+}
+```
+
+### Verdict vocabulary
+
+| Verdict | What the engine proved |
+|---|---|
+| `verified` | Handler invokes the provider's documented signature verification (e.g. `stripe.webhooks.constructEvent`) before any side effects. |
+| `not-verified` | Handler does NOT verify the signature, OR verifies after the side effects (verify-after-side-effect class). |
+| `manual-review` | Engine has structural evidence but cannot decide without human eyes — review the snippet. |
+
+3-state vocabulary preserved verbatim from the CLI per engine D-29. The MCP layer never remaps.
+
+### Parse errors as findings
+
+Syntactically broken input does NOT crash the tool. Parse failures emit as a finding with `rule_id: "engine/parse-error"`, severity `high`, and increment `verdict_summary.parse_error`. The transport-level call still returns `isError: false` — parse failures are data, not errors (per engine D-23-06 + ENGINE-07).
+
+### `scan_metadata` provenance
+
+The `scan_metadata` block flows the same engine + rule-pack hashes that appear in every CLI / SaaS / evidence-pack output. An auditor can verify byte-for-byte that the MCP server scanned the same rule pack the release was tested against.
+
+## Error payloads (`isError: true`)
+
+Tool failures return as `Tool.result` values with `isError: true` — never as transport exceptions (per D-23-08).
+
+### `empty_input`
+
+```json
+{ "error": "empty_input" }
+```
+
+Neither `code` nor `files` provided.
+
+### `exclusive_input_modes`
+
+```json
+{ "error": "exclusive_input_modes" }
+```
+
+Both `code` and `files` provided — pick one.
+
+### `language_not_in_preview`
+
+```json
+{
+  "error": "language_not_in_preview",
+  "suggestion": "PHP support ships in v0.8.1; for now invoke the CLI: npx hookwarden scan"
+}
+```
+
+`language: "php"` is rejected in v0.8.0. PHP scanning ships in v0.8.1.
+
+### `unsupported_language`
+
+```json
+{ "error": "unsupported_language", "got": "ruby" }
+```
+
+`language` outside the known set (`js`, `ts`, `python`, `php`).
+
+### `unknown_provider`
+
+```json
+{
+  "error": "unknown_provider",
+  "got": "bogus",
+  "known": ["adyen", "azure-devops", "discord", "github", "..."]
+}
+```
+
+`provider` not in the rule pack. The response includes the sorted known list.
+
+### `engine_drift` / `rules_drift`
+
+```json
+{
+  "error": "engine_drift",
+  "component": "engine",
+  "pinned": "0.7.0",
+  "current": "0.6.5",
+  "suggestion": "npm i -g @hookwarden/mcp@latest",
+  "rationale": "Rule verdicts depend on engine version; running with a different engine than the one tested at release risks stale-rule-pack false confidence."
+}
+```
+
+See [drift-detection](/mcp/drift-detection/) for the full MCP-04 contract.
+
+## PHP status
+
+PHP scanning is deferred to v0.8.1. `language: "php"` returns `language_not_in_preview`. Until then, run `npx hookwarden scan` directly against PHP codebases — the CLI's PHP support ships in v0.7.x.

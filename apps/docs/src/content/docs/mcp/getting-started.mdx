@@ -1,0 +1,149 @@
+---
+title: Getting started
+description: Install @hookwarden/mcp and register it in your MCP client (Claude Desktop, Cursor, Continue, or Anthropic Agent SDK).
+---
+
+## What is `@hookwarden/mcp`?
+
+`@hookwarden/mcp` is the first MCP server doing webhook signature verification. AI coding agents call its `scan_handler` tool on pasted handler code and get back a deterministic, structured finding (`verified` / `not-verified` / `manual-review`) for Stripe, GitHub, Shopify, Twilio, and 17 other providers. The same engine and rule pack the [hookwarden CLI](https://www.npmjs.com/package/hookwarden) ships — same content hashes, end-to-end provenance — exposed through the Model Context Protocol so agents can use it without leaving the editor.
+
+Runs entirely client-side. Zero network egress from the MCP process. Zero auth.
+
+## Install in one command
+
+```bash
+npx @hookwarden/mcp init
+```
+
+The init helper detects your installed MCP clients (Claude Desktop / Cursor / Continue), writes the canonical config to each one with `.bak` backups, and prints a verdict-first summary table:
+
+```
+hookwarden-mcp init
+
+  ✓ claude-desktop  added          Restart Claude Desktop to load
+    ~/Library/Application Support/Claude/claude_desktop_config.json
+  ✓ cursor          added          Cursor reloads on next chat
+    ~/.cursor/mcp.json
+  ✓ continue-dev    added          Continue picks up new YAML on next chat
+    ~/.continue/mcpServers/hookwarden.yaml
+
+  — Anthropic SDK    (programmatic — copy snippet from README)
+
+Backups: 3 .bak files written next to each modified config.
+```
+
+Flags: `--all` (non-interactive), `--dry-run` (preview), `--force` (overwrite existing `mcpServers.hookwarden`), `--clients claude-desktop,cursor` (subset).
+
+## Manual configuration
+
+### Claude Desktop
+
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "hookwarden": {
+      "command": "npx",
+      "args": ["-y", "@hookwarden/mcp"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop to load.
+
+### Cursor
+
+`~/.cursor/mcp.json` — identical shape:
+
+```json
+{
+  "mcpServers": {
+    "hookwarden": {
+      "command": "npx",
+      "args": ["-y", "@hookwarden/mcp"]
+    }
+  }
+}
+```
+
+### Continue.dev
+
+Per-server YAML at `~/.continue/mcpServers/hookwarden.yaml`:
+
+```yaml
+name: hookwarden
+command: npx
+args: [-y, "@hookwarden/mcp"]
+```
+
+### Anthropic Agent SDK
+
+Programmatic — no config file. Drop into your code:
+
+```ts
+import { query } from "@anthropic-ai/claude-agent-sdk";
+
+for await (const message of query({
+  prompt: "Audit this webhook handler for missing signature verification...",
+  options: {
+    mcpServers: {
+      hookwarden: {
+        command: "npx",
+        args: ["-y", "@hookwarden/mcp"],
+      },
+    },
+  },
+})) {
+  console.log(message);
+}
+```
+
+## Your first scan (Claude Desktop)
+
+1. Restart Claude Desktop after registering the server.
+2. Open a new chat and paste a Stripe webhook handler — for example:
+
+   ```ts
+   import express from "express";
+   import Stripe from "stripe";
+   const app = express();
+   const stripe = new Stripe(process.env.STRIPE_SECRET!);
+
+   app.post("/webhook", express.json(), (req, res) => {
+     const event = req.body; // missing verification
+     res.json({ received: true });
+   });
+   ```
+3. Ask Claude: *"Audit this webhook handler — does it verify Stripe signatures correctly?"*
+4. Claude calls `scan_handler`. The structured response looks like:
+
+   ```json
+   {
+     "verdict_summary": { "verified": 0, "not_verified": 1, "manual_review": 0, "parse_error": 0 },
+     "findings": [
+       {
+         "rule_id": "stripe/missing-signature-verification",
+         "verdict": "not-verified",
+         "severity": "critical",
+         "file": "__handler.ts",
+         "line_start": 7,
+         "message": "Webhook handler reads req.body without calling stripe.webhooks.constructEvent..."
+       }
+     ],
+     "scan_metadata": {
+       "engine_version": "0.7.0",
+       "rule_pack_version": "0.7.0",
+       "rule_pack_content_hash": "e05c30e841b1f9b244b5db22fe5f808137cd81f96361848722eac11e68246d4a"
+     }
+   }
+   ```
+
+Claude renders the finding in the UI. The `scan_metadata` block carries the same engine + rule-pack hashes that appear in every CLI scan output — same provenance everywhere.
+
+## Next steps
+
+- [scan_handler tool reference](/mcp/scan-handler/) — inputs, outputs, all 6 error payloads
+- [Drift detection (MCP-04)](/mcp/drift-detection/) — how the integrity claim is enforced, plus the v0.8.0 limitations
