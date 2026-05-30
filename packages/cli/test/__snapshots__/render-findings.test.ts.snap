@@ -11,7 +11,7 @@ exports[`renderFindings > snapshot — mixed severities + manual-review + parse-
   next › review the handler in context. If the missing check lives outside this file (gateway, dedupe table,
          conditional verification), run \`hookwarden scan --baseline write\` to accept it.
 
-· low       src/broken.ts:1:1  engine/parse-error  manual-review
+?  src/broken.ts:1:1  parse error
   Parse error: unexpected token
 
 "

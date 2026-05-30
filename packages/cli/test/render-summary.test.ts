@@ -369,3 +369,102 @@ describe("renderSummary — Phase 4 footer extension", () => {
     expect(out).not.toContain("manual-review = ");
   });
 });
+
+// Parse-error display contract — engine/parse-error is engine telemetry, not
+// a webhook-verification finding. It must not count toward the severity tally
+// (orange `! high` glyph would contradict the "high = exploitable verification
+// weakness" legend) and must not count toward the manual-review tally (there's
+// no handler to review). The cal.com / n8n public-scan output regressed before
+// this contract — see bugs-in-the-wild.md.
+describe("renderSummary — engine/parse-error exclusion + footer line", () => {
+  const parseErrorFinding: Finding = {
+    ...baseFinding,
+    id: "pe1",
+    rule_id: "engine/parse-error",
+    provider: "unknown",
+    severity: "high",
+    state: "manual-review",
+    file_path: "src/broken.ts",
+    primary_location_line_hash: "pe1",
+  };
+
+  it("engine/parse-error finding does NOT increment sevCounts.high", () => {
+    const result: ScanResult = {
+      findings: [parseErrorFinding],
+      inventory: [],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    // The contradictory "1 high" headline (with no rule finding behind it) is
+    // exactly what made the cal.com / n8n public scans look broken. With zero
+    // rule findings the entire severity tally line drops out — handlers-only
+    // headline is the clean shape.
+    expect(out).not.toContain("1 high");
+    expect(out).not.toContain("1 manual-review");
+    // And the "high = exploitable verification weakness" legend must not render
+    // because there are no rule findings at high severity — only engine telemetry.
+    expect(out).not.toContain("high = exploitable verification weakness");
+  });
+
+  it("engine/parse-error finding does NOT increment manualReviewCount", () => {
+    const result: ScanResult = {
+      findings: [parseErrorFinding],
+      inventory: [],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    // 0 manual-review surfaces the all-zeros line, which the summary drops
+    // entirely when no rule findings exist — so headline = handlers-only.
+    expect(out).not.toContain("manual-review");
+  });
+
+  it("appends '(N files could not be parsed — counts toward --fail-on high)' when parse-error finding present", () => {
+    const result: ScanResult = {
+      findings: [parseErrorFinding],
+      inventory: [],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    expect(out).toContain("(1 file could not be parsed");
+    expect(out).toContain("counts toward --fail-on high");
+  });
+
+  it("singularizes / pluralizes the parse-error footer", () => {
+    const result: ScanResult = {
+      findings: [
+        parseErrorFinding,
+        { ...parseErrorFinding, id: "pe2", primary_location_line_hash: "pe2", file_path: "b.ts" },
+      ],
+      inventory: [],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    expect(out).toContain("(2 files could not be parsed");
+    expect(out).not.toContain("(2 file could not be parsed");
+  });
+
+  it("NEGATIVE: no parse-error footer when zero engine/parse-error findings", () => {
+    const result: ScanResult = {
+      findings: [{ ...baseFinding, severity: "critical", state: "not-verified" }],
+      inventory: [],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    expect(out).not.toContain("could not be parsed");
+  });
+
+  it("rule findings + parse-error mix: rule findings drive sevCounts, parse-error drives footer only", () => {
+    const result: ScanResult = {
+      findings: [
+        { ...baseFinding, id: "f1", severity: "critical", state: "not-verified" },
+        parseErrorFinding,
+      ],
+      inventory: [],
+      metadata: META,
+    };
+    const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
+    expect(out).toContain("1 critical");
+    expect(out).toContain("0 high"); // parse-error excluded
+    expect(out).toContain("(1 file could not be parsed");
+  });
+});

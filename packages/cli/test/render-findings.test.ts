@@ -76,11 +76,16 @@ const manualReviewFinding: Finding = {
   metadata: {},
 };
 
+// Fixture mirrors the production engine output exactly: severity=high (locked
+// per D-27 + ENGINE-07), state=manual-review, provider=unknown. The CLI render
+// layer separates this from rule findings precisely so the high orange glyph
+// + "high = exploitable verification weakness" legend stop contradicting each
+// other on parse-error-only scans (the cal.com / n8n public scan case).
 const parseErrorFinding: Finding = {
   id: "f3",
   rule_id: "engine/parse-error",
-  provider: "engine",
-  severity: "low",
+  provider: "unknown",
+  severity: "high",
   state: "manual-review",
   file_path: "src/broken.ts",
   location: { line: 1, col: 1, end_line: 1, end_col: 2 },
@@ -269,6 +274,70 @@ describe("renderFindings", () => {
       cwd: "/tmp",
     });
     expect(out).not.toContain("next ›");
+  });
+
+  // Parse-error display contract — engine telemetry rendered distinctly from
+  // rule findings so the orange `! high` glyph never collides with the
+  // "high = exploitable verification weakness" legend in the summary footer.
+  describe("engine/parse-error display block", () => {
+    it("renders parse-error with `?` glyph + 'parse error' label, NOT the severity-high glyph", () => {
+      const out = renderFindings(mkResult([parseErrorFinding]), RULE_SET, {
+        useAnsi: false,
+        cwd: "/tmp",
+      });
+      expect(out).toContain("?  src/broken.ts:1:1  parse error");
+      // The high-severity glyph + label MUST NOT appear for parse-error findings;
+      // that orange `! high` is what made the cal.com / n8n scans contradictory.
+      expect(out).not.toContain("! high");
+      expect(out).not.toContain("manual-review");
+      expect(out).not.toContain("engine/parse-error  manual-review");
+    });
+
+    it("includes the parse-error message body under the header", () => {
+      const out = renderFindings(mkResult([parseErrorFinding]), RULE_SET, {
+        useAnsi: false,
+        cwd: "/tmp",
+      });
+      expect(out).toContain("Parse error: unexpected token");
+    });
+
+    it("renders rule findings BEFORE the parse-error block (severity-first reading order)", () => {
+      const out = renderFindings(mkResult([parseErrorFinding, stripeFinding]), RULE_SET, {
+        useAnsi: false,
+        cwd: "/tmp",
+      });
+      const stripeIdx = out.indexOf("× critical");
+      const parseIdx = out.indexOf("?  src/broken.ts:1:1");
+      expect(stripeIdx).toBeGreaterThanOrEqual(0);
+      expect(parseIdx).toBeGreaterThanOrEqual(0);
+      expect(stripeIdx).toBeLessThan(parseIdx);
+    });
+
+    it("returns 'No findings.' when result has zero findings of either kind", () => {
+      const out = renderFindings(mkResult([]), RULE_SET, { useAnsi: false, cwd: "/tmp" });
+      expect(out).toBe("No findings.\n");
+    });
+
+    it("verbose mode appends a `─── parse errors ───` group after severity groups", () => {
+      const out = renderFindings(mkResult([stripeFinding, parseErrorFinding]), RULE_SET, {
+        useAnsi: false,
+        cwd: "/tmp",
+        verbose: true,
+      });
+      const criticalGroupIdx = out.indexOf("─── critical");
+      const parseErrorsGroupIdx = out.indexOf("─── parse errors");
+      expect(criticalGroupIdx).toBeGreaterThanOrEqual(0);
+      expect(parseErrorsGroupIdx).toBeGreaterThanOrEqual(0);
+      expect(criticalGroupIdx).toBeLessThan(parseErrorsGroupIdx);
+    });
+
+    it("OSC-8 hyperlink still emits on the parse-error file path when useAnsi", () => {
+      const out = renderFindings(mkResult([parseErrorFinding]), RULE_SET, {
+        useAnsi: true,
+        cwd: "/tmp",
+      });
+      expect(out).toContain("]8;;file:///tmp/src/broken.ts:1:1");
+    });
   });
 
   // v0.7.1 references rendering — external citations from rule.references

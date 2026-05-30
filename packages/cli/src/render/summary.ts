@@ -45,8 +45,17 @@ export function renderSummary(result: ScanResult, opts: RenderSummaryOptions): s
     info: 0,
   };
   let manualReviewCount = 0;
+  let parseErrorTally = 0;
   for (const f of result.findings) {
     if (f.suppressed != null) continue; // D-66: suppressed never count toward severity tally.
+    // engine/parse-error is engine telemetry, not a webhook-verification finding.
+    // The "high = exploitable verification weakness" legend would directly
+    // contradict counting a parse error as `high`, so route them through a
+    // dedicated footer line instead. Finding shape unchanged for JSON/SARIF.
+    if (f.rule_id === "engine/parse-error") {
+      parseErrorTally++;
+      continue;
+    }
     sevCounts[f.severity]++;
     if (f.state === "manual-review") manualReviewCount++;
   }
@@ -121,6 +130,12 @@ export function renderSummary(result: ScanResult, opts: RenderSummaryOptions): s
   }
   if ((opts.testExcludedCount ?? 0) > 0) {
     line2 += `\n(${opts.testExcludedCount} test/fixture file${opts.testExcludedCount === 1 ? "" : "s"} auto-excluded; use --include-tests to scan)`;
+  }
+  // Parse-error footer hint. Excluded from severity tally above; surface as a
+  // distinct line so the reader sees the count + understands the exit-code
+  // semantic ("yes, this still trips --fail-on high"). Singularize at 1.
+  if (parseErrorTally > 0) {
+    line2 += `\n(${parseErrorTally} file${parseErrorTally === 1 ? "" : "s"} could not be parsed — counts toward --fail-on high)`;
   }
 
   // Severity + state legends: render one line per tier with a finding in

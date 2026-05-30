@@ -312,21 +312,69 @@ function renderFinding(
   return lines.join("\n");
 }
 
+/**
+ * Render an engine/parse-error finding as a neutral telemetry line, not a
+ * severity-glyphed finding. The orange `! high` glyph would directly
+ * contradict the "high = exploitable verification weakness" legend that
+ * the summary footer prints; a parse error isn't an exploitable weakness,
+ * it's "the engine couldn't read this file." Shape:
+ *
+ *   ? <file:line:col>  parse error
+ *     <message>
+ *
+ * No state badge (state=manual-review on a parse-error means nothing
+ * actionable to a user — there's no handler to review). No rule_id badge
+ * either; the literal label "parse error" is enough.
+ */
+function renderParseError(f: Finding, opts: RenderFindingsOptions): string {
+  const absPath = path.resolve(opts.cwd, f.file_path);
+  const locText = `${f.file_path}:${f.location.line}:${f.location.col}`;
+  const fileLink = ansiLink(
+    `file://${absPath}:${f.location.line}:${f.location.col}`,
+    locText,
+    opts,
+  );
+  const glyph = dim("?", opts);
+  const label = dim("parse error", opts);
+  const header = `${glyph}  ${fileLink}  ${label}`;
+  const body = `  ${collapseWhitespace(f.message)}`;
+  return `${header}\n${body}`;
+}
+
 export function renderFindings(
   result: ScanResult,
   ruleSet: RuleSet | null,
   opts: RenderFindingsOptions,
 ): string {
-  if (result.findings.length === 0) return "No findings.\n";
+  // Split parse-error findings (engine telemetry) from rule findings (webhook
+  // verification verdicts). Rule findings drive the severity tally + glyphs;
+  // parse errors render in a distinct trailing block so the headline severity
+  // counts don't contradict their own legend.
+  const ruleFindings = result.findings.filter((f) => f.rule_id !== "engine/parse-error");
+  const parseErrorFindings = result.findings.filter((f) => f.rule_id === "engine/parse-error");
+
+  if (ruleFindings.length === 0 && parseErrorFindings.length === 0) return "No findings.\n";
+
   const rulesByID = indexRules(ruleSet);
-  const sorted = [...result.findings].sort(compareFindings);
+  const sorted = [...ruleFindings].sort(compareFindings);
+  const sortedParseErrors = [...parseErrorFindings].sort((a, b) => {
+    if (a.file_path !== b.file_path) return a.file_path < b.file_path ? -1 : 1;
+    if (a.location.line !== b.location.line) return a.location.line - b.location.line;
+    return a.location.col - b.location.col;
+  });
 
   // Default mode (existing layout — every test/snapshot relies on this shape):
-  // findings flow as a flat list separated by blank lines; severity is
+  // rule findings flow as a flat list separated by blank lines; severity is
   // carried by the inline glyph + color in each finding's one-line header.
+  // Parse-error findings (if any) render as a trailing block with `?` glyph.
   if (opts.verbose !== true) {
-    const rendered = sorted.map((f) => renderFinding(f, rulesByID.get(f.rule_id), opts));
-    return `${rendered.join("\n\n")}\n\n`;
+    const renderedRules = sorted.map((f) => renderFinding(f, rulesByID.get(f.rule_id), opts));
+    const renderedParseErrors = sortedParseErrors.map((f) => renderParseError(f, opts));
+    const blocks: string[] = [];
+    if (renderedRules.length > 0) blocks.push(renderedRules.join("\n\n"));
+    if (renderedParseErrors.length > 0) blocks.push(renderedParseErrors.join("\n\n"));
+    if (blocks.length === 0) return "No findings.\n";
+    return `${blocks.join("\n\n")}\n\n`;
   }
 
   // Verbose mode (Stitch CLI design): findings grouped by severity with a
@@ -351,6 +399,16 @@ export function renderFindings(
     const dashCount = Math.max(4, SectionWidth - sev.length - 5); // "─── " + " " + dashes
     const divider = `${dim("─── ", opts)}${label} ${dim("─".repeat(dashCount), opts)}`;
     const renderedGroup = bucket.map((f) => renderFinding(f, rulesByID.get(f.rule_id), opts));
+    sections.push(`${divider}\n\n${renderedGroup.join("\n\n")}`);
+  }
+  // Parse-error block lives below the severity groups — engine telemetry,
+  // distinct from rule findings. Same divider treatment, dim label since
+  // parse errors don't carry severity-colored signal.
+  if (sortedParseErrors.length > 0) {
+    const peLabel = "parse errors";
+    const dashCount = Math.max(4, SectionWidth - peLabel.length - 5);
+    const divider = `${dim("─── ", opts)}${dim(peLabel, opts)} ${dim("─".repeat(dashCount), opts)}`;
+    const renderedGroup = sortedParseErrors.map((f) => renderParseError(f, opts));
     sections.push(`${divider}\n\n${renderedGroup.join("\n\n")}`);
   }
   // Trailing double-newline so the summary footer renders flush against a clean blank.
