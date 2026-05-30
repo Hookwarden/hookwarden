@@ -172,9 +172,7 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
   // and we don't want stray stderr in their machine-consumed output either,
   // but the TTY check (isTTY on stderr) catches that automatically.
   const stopTrivia = startTriviaTicker({
-    disabled: shouldDisableTrivia(
-      args["no-trivia"] === true ? { noTrivia: true } : {},
-    ),
+    disabled: shouldDisableTrivia(args["no-trivia"] === true ? { noTrivia: true } : {}),
   });
 
   const scan = await runScan({
