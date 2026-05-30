@@ -30,6 +30,11 @@ provider_docs_url: https://shopify.dev/docs/apps/build/webhooks/subscribe/https
 references:
   - https://hookdeck.com/webhooks/guides/webhook-security-vulnerabilities-guide
   - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
 fix:
   safety: manual-only
   description: "Re-order the handler so every side effect runs AFTER verification succeeds — see provider_docs_url"
