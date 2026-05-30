@@ -1,6 +1,6 @@
 {
   "name": "hookwarden-cli",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Did you mean `hookwarden`? This is a typo-defense package. See https://hookwarden.dev",
   "main": "./index.cjs",
   "type": "commonjs",
