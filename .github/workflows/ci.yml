@@ -23,6 +23,12 @@ jobs:
         run: pnpm purity
       - name: Build (tsc -b)
         run: pnpm exec tsc --build
+      - name: Emit @hookwarden/mcp build-manifest (Plan 23-03 — drift-check needs it)
+        # Root vitest config picks up packages/mcp/tests/**, and several mcp
+        # tests call loadBuildManifest() which reads dist/build-manifest.json.
+        # The tsc --build step above compiles TS but doesn't invoke the per-
+        # package build script that emits the manifest. Mirrors release.yml.
+        run: pnpm --filter @hookwarden/mcp build
       - name: Test (vitest)
         run: pnpm test
         env:
