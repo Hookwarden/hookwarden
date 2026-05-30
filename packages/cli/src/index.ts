@@ -71,7 +71,10 @@ const HELP_TEXT =
   `      --write                  Write fixes to disk via atomic staging. Default: dry-run.\n` +
   `      --mode M                 safe | all | manual-only-explain (default: safe).\n` +
   `      --only IDS               Comma-separated rule IDs to filter.\n` +
-  `      --accept-unsafe          Required for --mode all in non-TTY (D-12).\n`;
+  `      --accept-unsafe          Required for --mode all in non-TTY (D-12).\n\n` +
+  `Inventory-only flags (v0.7.6):\n` +
+  `      --all                    Show every route candidate, including handlers with zero webhook evidence.\n` +
+  `  -v, --verbose                Add an 'evidence' column showing per-handler signal count.\n`;
 
 interface ParsedFlags {
   path?: string;
@@ -103,6 +106,8 @@ interface ParsedFlags {
   // `hookwarden update`
   yes?: boolean;
   "dry-run"?: boolean;
+  // `hookwarden inventory` (v0.7.6) — opt back into the unfiltered candidate list.
+  all?: boolean;
 }
 
 interface ParseResult {
@@ -146,6 +151,8 @@ const BOOLEAN_FLAGS: ReadonlyArray<{
   // `hookwarden update` flags.
   { long: "--yes", key: "yes" },
   { long: "--dry-run", key: "dry-run" },
+  // `hookwarden inventory` (v0.7.6) — bypass the default webhook-evidence filter.
+  { long: "--all", key: "all" },
 ];
 
 function parseFlags(argv: ReadonlyArray<string>): ParseResult {
