@@ -13,6 +13,10 @@ const META: ScanMetadata = {
   total_files_count: 1,
 };
 
+// v0.7.6: every baseHandler-derived fixture carries 1 sdk_import evidence
+// signal so existing tests survive the default 0-evidence filter. Tests
+// that need to exercise the filter pass an explicit evidence-free handler
+// (`bareCandidate` below) or set `all: true`.
 const baseHandler: WebhookHandler = {
   id: "h1",
   framework: "express",
@@ -24,11 +28,32 @@ const baseHandler: WebhookHandler = {
   handler_function_name: "handleStripe",
   provider: "stripe",
   verification_state: "not-verified",
-  evidence: [],
+  evidence: [
+    {
+      kind: "sdk_import",
+      provider: "stripe",
+      location: { line: 1, col: 1, end_line: 1, end_col: 7 },
+      detail: "stripe",
+    },
+  ],
   middleware_chain: [],
   reachable_symbols: [],
   findings_ref: [],
   redacted_snippet: "",
+};
+
+// Adapter-detected POST route with NO webhook evidence — represents the
+// cal.com /api/auth/signup / /api/cron/* case. Default render filters
+// this out; --all keeps it.
+const bareCandidate: WebhookHandler = {
+  ...baseHandler,
+  id: "bare1",
+  file_path: "app/api/auth/signup/route.ts",
+  route_pattern: "/api/auth/signup",
+  framework: "nextjs",
+  provider: "unknown",
+  verification_state: "manual-review",
+  evidence: [],
 };
 
 function mkResult(inventory: ReadonlyArray<WebhookHandler>): ScanResult {
@@ -181,5 +206,106 @@ describe("renderInventory (DISCOVERY-01)", () => {
     ];
     const out = renderInventory(mkResult(handlers), { useAnsi: false, cwd: "/tmp" });
     expect(out).toMatchSnapshot();
+  });
+});
+
+// v0.7.6 webhook-evidence filter — addresses the cal.com over-reporting
+// case where /api/auth/signup, /api/cron/*, /api/cancel surfaced as
+// "webhook handlers" because the Next.js adapter labels every POST-export
+// route file as a candidate. Filter restores the provider-anchored
+// wedge-vs-grep promise.
+describe("renderInventory — evidence filter (v0.7.6)", () => {
+  it("default: drops handlers with zero webhook evidence", () => {
+    const out = renderInventory(mkResult([baseHandler, bareCandidate]), {
+      useAnsi: false,
+      cwd: "/tmp",
+    });
+    // baseHandler kept (1 sdk_import signal); bareCandidate dropped.
+    expect(out).toContain("/webhooks/stripe");
+    expect(out).not.toContain("/api/auth/signup");
+  });
+
+  it("default: surfaces a footer hint when ≥1 candidate was suppressed", () => {
+    const out = renderInventory(mkResult([baseHandler, bareCandidate]), {
+      useAnsi: false,
+      cwd: "/tmp",
+    });
+    expect(out).toContain("1 additional route candidate suppressed");
+    expect(out).toContain("--all");
+  });
+
+  it("default: pluralizes suppressed count correctly", () => {
+    const handlers: WebhookHandler[] = [
+      baseHandler,
+      bareCandidate,
+      { ...bareCandidate, id: "bare2", file_path: "app/api/cron/x/route.ts" },
+      { ...bareCandidate, id: "bare3", file_path: "app/api/cancel/route.ts" },
+    ];
+    const out = renderInventory(mkResult(handlers), { useAnsi: false, cwd: "/tmp" });
+    expect(out).toContain("3 additional route candidates suppressed");
+  });
+
+  it("default: when filter empties the inventory but raw set is non-empty, message says so", () => {
+    const out = renderInventory(mkResult([bareCandidate]), {
+      useAnsi: false,
+      cwd: "/tmp",
+    });
+    expect(out).toContain("No webhook handlers detected");
+    expect(out).toContain("1 route candidate carried no webhook evidence");
+    expect(out).toContain("--all");
+  });
+
+  it("default: pluralizes the empty-with-candidates message correctly", () => {
+    const handlers: WebhookHandler[] = [
+      bareCandidate,
+      { ...bareCandidate, id: "bare2", file_path: "app/api/cron/x/route.ts" },
+    ];
+    const out = renderInventory(mkResult(handlers), { useAnsi: false, cwd: "/tmp" });
+    expect(out).toContain("2 route candidates carried no webhook evidence");
+  });
+
+  it("--all: shows 0-evidence handlers and omits the footer hint", () => {
+    const out = renderInventory(mkResult([baseHandler, bareCandidate]), {
+      useAnsi: false,
+      cwd: "/tmp",
+      all: true,
+    });
+    expect(out).toContain("/webhooks/stripe");
+    expect(out).toContain("/api/auth/signup");
+    expect(out).not.toContain("suppressed");
+  });
+
+  it("--all on empty raw inventory still returns the original empty message", () => {
+    const out = renderInventory(mkResult([]), { useAnsi: false, cwd: "/tmp", all: true });
+    expect(out).toContain("No webhook handlers detected. Frameworks supported");
+  });
+
+  it("--verbose: appends an `evidence` column with per-handler signal count", () => {
+    const out = renderInventory(mkResult([baseHandler]), {
+      useAnsi: false,
+      cwd: "/tmp",
+      verbose: true,
+    });
+    expect(out).toContain("evidence");
+    // baseHandler has exactly 1 sdk_import signal in its evidence[].
+    expect(out).toMatch(/evidence[\s\S]*\b1\b/);
+  });
+
+  it("--verbose --all: evidence column shows '0' for bare candidates", () => {
+    const out = renderInventory(mkResult([baseHandler, bareCandidate]), {
+      useAnsi: false,
+      cwd: "/tmp",
+      verbose: true,
+      all: true,
+    });
+    // Both rows present, evidence column carries 1 and 0 respectively.
+    expect(out).toContain("/webhooks/stripe");
+    expect(out).toContain("/api/auth/signup");
+    expect(out).toContain("evidence");
+  });
+
+  it("NEGATIVE --verbose: no `evidence` column when verbose is unset", () => {
+    const out = renderInventory(mkResult([baseHandler]), { useAnsi: false, cwd: "/tmp" });
+    expect(out).not.toContain("evidence");
   });
 });
