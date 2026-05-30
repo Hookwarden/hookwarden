@@ -7,6 +7,7 @@ import { explainCommand, runExplainCommand } from "./commands/explain.js";
 import { type FixArgs, fixCommand, runFixCommand } from "./commands/fix.js";
 import { type InventoryArgs, inventoryCommand, runInventoryCommand } from "./commands/inventory.js";
 import { runScanCommand, type ScanArgs, scanCommand } from "./commands/scan.js";
+import { runUpdateCommand, type UpdateArgs } from "./commands/update.js";
 import { renderLogo } from "./logo.js";
 // VERSION is generated from package.json by scripts/sync-version.mjs (runs in
 // `prepare` + `prepack` + CI before `bun build --compile`). Generating a TS
@@ -43,6 +44,7 @@ const HELP_TEXT =
   `  hookwarden inventory [path]  List every detected webhook handler.\n` +
   `  hookwarden explain <rule>    Print full documentation for a single rule.\n` +
   `  hookwarden fix [path]        Apply mechanical fixes for safety:safe findings (dry-run by default).\n` +
+  `  hookwarden update            Print the upgrade command for your install channel (use --yes to run it).\n` +
   `  hookwarden logo              Print the hookwarden mascot + wordmark.\n\n` +
   `Common flags:\n` +
   `  -v, --verbose                Verbose output (scan only).\n` +
@@ -96,6 +98,9 @@ interface ParsedFlags {
   mode?: string;
   only?: string;
   "accept-unsafe"?: boolean;
+  // `hookwarden update`
+  yes?: boolean;
+  "dry-run"?: boolean;
 }
 
 interface ParseResult {
@@ -136,6 +141,9 @@ const BOOLEAN_FLAGS: ReadonlyArray<{
   // Phase 8.2 — `hookwarden fix` flags.
   { long: "--write", key: "write" },
   { long: "--accept-unsafe", key: "accept-unsafe" },
+  // `hookwarden update` flags.
+  { long: "--yes", key: "yes" },
+  { long: "--dry-run", key: "dry-run" },
 ];
 
 function parseFlags(argv: ReadonlyArray<string>): ParseResult {
@@ -288,6 +296,24 @@ export async function main(argv: ReadonlyArray<string>): Promise<number> {
         return 0;
       }
       return await runFixCommand(flags as FixArgs);
+    }
+    if (sub === "update") {
+      const { flags, error } = parseFlags(argv.slice(1));
+      if (error !== null) {
+        process.stderr.write(`error: ${error}\n`);
+        return 3;
+      }
+      if (flags.help === true) {
+        process.stdout.write(
+          `Usage: hookwarden update [--yes] [--dry-run] [--no-color]\n\n` +
+            `Detects how hookwarden was installed (brew, scoop, npm-global, npx,\n` +
+            `standalone binary) and prints the upgrade command for that channel.\n\n` +
+            `  --yes       Run the upgrade command (only on high-confidence detections).\n` +
+            `  --dry-run   Force print-only even with --yes.\n`,
+        );
+        return 0;
+      }
+      return await runUpdateCommand(flags as UpdateArgs);
     }
     if (sub === "logo") {
       const noColor = argv.includes("--no-color");
