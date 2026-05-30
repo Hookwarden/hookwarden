@@ -145,8 +145,28 @@ jobs:
           steps.changesets.outputs.published == 'true' &&
           contains(steps.changesets.outputs.publishedPackages, '@hookwarden/mcp')
         run: |
-          sleep 30  # npm registry propagation
-          npm i @hookwarden/mcp --dry-run --prefer-online
+          # npm CDN propagation race — the publish endpoint and the read CDN
+          # are different layers; the read side can lag 30-90s after
+          # `changeset publish` returns 200. A flat `sleep 30` hit
+          # "Cannot read properties of null (reading 'matches')" on v0.7.2
+          # because the tarball metadata wasn't visible yet. Poll for the
+          # exact just-published version for up to ~90s.
+          VERSION=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[] | select(.name=="@hookwarden/mcp") | .version')
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not extract @hookwarden/mcp version from publishedPackages output"
+            exit 1
+          fi
+          echo "Waiting for @hookwarden/mcp@$VERSION to be queryable on npm..."
+          for attempt in 1 2 3 4 5 6 7 8 9; do
+            FOUND=$(npm view "@hookwarden/mcp@$VERSION" version 2>/dev/null || true)
+            if [ "$FOUND" = "$VERSION" ]; then
+              echo "Visible after ${attempt} attempt(s) (~$((attempt * 10))s)"
+              break
+            fi
+            echo "Attempt $attempt: not yet visible (got '$FOUND'); sleeping 10s"
+            sleep 10
+          done
+          npm i "@hookwarden/mcp@$VERSION" --dry-run --prefer-online
 
       - name: Install mcp-publisher CLI (Plan 23-09 — pinned to MCP_PUBLISHER_VERSION)
         # WARNING #4 fix: pinned to a specific GitHub Release tag, NEVER
