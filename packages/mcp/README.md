@@ -128,13 +128,13 @@ Returns `Tool.result` with `structuredContent` first-class (MCP spec 2025-06-18)
       "line_end": 9,
       "message": "Webhook handler reads req.body without calling stripe.webhooks.constructEvent...",
       "provider_docs_url": null,
-      "rule_pack_version": "0.7.0"
+      "rule_pack_version": "0.7.1"
     }
   ],
   "scan_metadata": {
-    "engine_version": "0.7.0",
-    "rule_pack_version": "0.7.0",
-    "rule_pack_content_hash": "e05c30e841b1f9b244b5db22fe5f808137cd81f96361848722eac11e68246d4a"
+    "engine_version": "0.7.1",
+    "rule_pack_version": "0.7.1",
+    "rule_pack_content_hash": "938f7565e29f19e0cbd34594731d1de2b0ffd40ee87aacaa8be2435fc1f47f32"
   }
 }
 ```

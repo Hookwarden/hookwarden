@@ -196,7 +196,7 @@ npx hookwarden fix ./your-app --write
 
 - `--mode safe` (default) — only applies rules marked `safety: safe` in the rule pack (10 rules: timing-unsafe comparisons across all 3 langs, raw-body misuse across JS/TS + PHP). Constant-time `crypto.timingSafeEqual` / `hmac.compare_digest` / `hash_equals` replacements; `req.body` → `req.rawBody`; `$_POST` / `Input::all` → `file_get_contents("php://input")`.
 - `--mode all` — applies `safe` plus `unsafe` rules. Refuses in CI/non-TTY unless `--accept-unsafe` is also passed.
-- `--mode manual-only-explain` — emits the per-finding fix prose for rules where mechanical rewrite isn't safe (missing-signature-verification, wrong-hmac-algorithm, etc. — 35 rules ship as manual-only in v0.5).
+- `--mode manual-only-explain` — emits the per-finding fix prose for rules where mechanical rewrite isn't safe (missing-signature-verification, wrong-hmac-algorithm, etc. — 188 of 230 rules ship as manual-only in v0.7.1; 42 ship `safety: safe` with mechanical codegen).
 
 **Safety contract:**
 
@@ -216,7 +216,7 @@ Use `hookwarden scan` for the read path, `hookwarden fix` for the write path —
 
 ## 📺 Real output
 
-Output below is captured verbatim from `hookwarden v0.4.0` — each line is what
+Output below is captured verbatim from `hookwarden v0.7.1` — each line is what
 you'll see in your terminal, not a stylised mockup.
 
 **Clean scan — exits 0:**
@@ -226,7 +226,7 @@ $ hookwarden scan ./your-app
 No findings.
 ────────────
 Found 0 critical · 0 high · 0 medium · 0 low · 0 info · 0 manual-review — 0 webhook handlers across 0 files
-Scanned in 0.0 s · 1 / 1 candidates parsed (100.0% coverage) · engine v0.4.0 · rules v0.4.0
+Scanned in 0.0 s · 1 / 1 candidates parsed (100.0% coverage) · engine v0.7.1 · rules v0.7.1
 ```
 
 **Scan with the canonical Express middleware-ordering bug — exits 1:**
@@ -260,7 +260,7 @@ $ hookwarden scan ./your-app
 
 ────────────
 Found 3 critical · 0 high · 0 medium · 0 low · 0 info · 0 manual-review — 1 webhook handler across 1 file
-Scanned in 0.0 s · 1 / 1 candidates parsed (100.0% coverage) · engine v0.4.0 · rules v0.4.0
+Scanned in 0.0 s · 1 / 1 candidates parsed (100.0% coverage) · engine v0.7.1 · rules v0.7.1
 ```
 
 Notice: one Express middleware bug produces **three** findings — middleware-ordering, missing-signature-verification, and raw-body-misuse — because that single mistake violates three distinct invariants. Fixing one (re-ordering the middleware) clears all three at once. The rule-pack isn't double-counting; it's giving you three lenses on the same root cause so any one of them can be the entry point in code review.
@@ -279,7 +279,7 @@ $ hookwarden scan ./your-php-app
 
 ────────────
 Found 1 critical · 0 high · 0 medium · 0 low · 0 info · 0 manual-review — 1 webhook handler across 1 file
-Scanned in 0.0 s · 1 / 1 candidates parsed (100.0% coverage) · engine v0.4.0 · rules v0.4.0
+Scanned in 0.0 s · 1 / 1 candidates parsed (100.0% coverage) · engine v0.7.1 · rules v0.7.1
 ```
 
 PHP's `strcmp()` (and `===` / `==`) are not constant-time; the equivalent safe call is `hash_equals($expected, $sig)`. The fix prose currently quotes the Node/Python equivalents — PHP-specific copy lands in a follow-up.
@@ -585,15 +585,19 @@ pre-commit hook · Homebrew tap · Scoop/WinGet manifests · standalone binaries
 
 **✅ v0.5 — `hookwarden fix` auto-remediation.** The mechanical fixes (`===` → `crypto.timingSafeEqual`, `==` → `hash_equals`, etc.) applied with a real AST-rewrite engine. Safe / unsafe / manual-only classification per rule. Three-state verdicts already classified which fixes are safe to auto-apply — `hookwarden fix` makes that machine-actionable. **[See Auto-fix above](#-auto-fix-v05).**
 
-**v0.6 — More providers.** Adyen, Zendesk, Mailgun — each measured against the 200-repo OSS regression corpus before release, with a published false-positive rate.
+**✅ v0.6 — Rule-pack expansion.** 15 new provider rule packs (Zendesk, DocuSign, PagerDuty, Bitbucket, Notion, Calendly, Zoom, …) plus the Standard Webhooks spec sweep covering Clerk, Resend, Mux, Lob. CVE-2026-41432 Stripe empty-secret detector landed here.
 
-**v0.7 — Corpus integrity.** `verify-changeset-delta` — every PR's rule changes run against the full corpus and the `findings_delta` block must match the actual delta before merge.
+**✅ v0.7 — Rule Depth.** 5 new rule classes (VAS / BYP / ERS / LEAK / RPL families) across all 21 providers; rule pack grew 142 → 230 YAML rules.
+
+**✅ v0.7.1 — Rule-pack polish.** References backfilled on 142 grandfathered rules → 230 cited (CWE / RFC / Svix / Stripe spec). Test-path severity overrides on 219 rules — fixtures in `**/{test,tests,__tests__,spec,specs}/**` and `*.{test,spec}.*` no longer false-fire as critical.
+
+**✅ v0.8 — `@hookwarden/mcp` developer preview.** Model Context Protocol server exposing `scan_handler` to Claude Code, Cursor, Continue, and the Anthropic Agent SDK. Paste any webhook handler into your AI coding agent → 3-state verdict back, fully local. → [`@hookwarden/mcp` on npm](https://www.npmjs.com/package/@hookwarden/mcp).
 
 ---
 
 ## 🤝 Contributing
 
-Rule-pack PRs are the highest-value contribution. Adding a new provider is a catalog edit plus N rule YAMLs — the factory architecture means most providers ship without any new TypeScript. See the existing six providers in [`packages/rules/rules/`](https://github.com/Hookwarden/hookwarden/tree/main/packages/rules/rules) as worked examples.
+Rule-pack PRs are the highest-value contribution. Adding a new provider is a catalog edit plus N rule YAMLs — the factory architecture means most providers ship without any new TypeScript. See the existing 21 providers in [`packages/rules/rules/`](https://github.com/Hookwarden/hookwarden/tree/main/packages/rules/rules) as worked examples.
 
 Bug reports and feature requests: [open an issue](https://github.com/Hookwarden/hookwarden/issues).
 
