@@ -2,3 +2,7 @@ dist/
 src/version.ts
 node_modules/
 wasm/
+# Drift integration test stubs at tests/fixtures/drift/node_modules/** are
+# force-added (git add -f) so the unanchored root `node_modules/` rule does
+# not swallow them. Once tracked, gitignore stops applying. Future
+# fixture-node_modules paths require the same force-add.
