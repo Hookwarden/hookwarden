@@ -214,6 +214,68 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     // outbound-side-effect check.
     provider_api_hosts: [],
   },
+  // Phase 25 (AGENT-02) — Anthropic Agent SDK agentic-callback ruleset. Mirrors the
+  // n8n entry: the named critical detector (`anthropic-agent-sdk/tool-callback-no-verification`)
+  // reuses the v0.7 VAS-01 side-effect classifier via `createVerifyAfterSideEffectPredicate`,
+  // re-parameterized for "anthropic-agent-sdk". The detector fires when an
+  // `@anthropic-ai/claude-agent-sdk` `tool()` handler acts on its `args` payload at a T1
+  // side-effect sink (DB / outbound HTTP / event emit / agent-LLM invocation) BEFORE any
+  // HMAC verification. A `crypto.createHmac` + `crypto.timingSafeEqual` check earlier in
+  // the handler clears it (SC#2 zero-FP on the mitigated shape) via `sdk_verify_calls`.
+  //
+  // Provider attribution is by the `@anthropic-ai/claude-agent-sdk` import sniff +
+  // `createSdkMcpServer`/`tool()` content, NOT by path — the conventional_paths are
+  // strictly NAMESPACED (never bare "/webhook", which substring-collides into
+  // provider:multiple and zeroes out findings — the Phase 24 Stripe regression).
+  "anthropic-agent-sdk": {
+    // App-defined signature header (the SDK has no first-party header); the common
+    // shapes an agent tool() handler reads when verifying an inbound callback.
+    signature_header: ["x-signature", "x-hub-signature-256"],
+    sdk_packages: ["@anthropic-ai/claude-agent-sdk"],
+    // VAS-01 short-circuit suppression anchors (SC#2): a createHmac + timingSafeEqual
+    // verification reachable before the sink clears the named detector + the baselines.
+    sdk_verify_calls: ["timingSafeEqual", "crypto.timingSafeEqual", "createHmac"],
+    secret_env_prefix: ["ANTHROPIC_WEBHOOK", "ANTHROPIC_SIGNING", "AGENT_WEBHOOK"],
+    secret_literal_prefix: [],
+    // NAMESPACED only — never bare "/webhook" (24-04 fix). The provider is attributed by
+    // SDK import + createSdkMcpServer/tool() content sniff, not by path.
+    conventional_paths: ["/webhooks/anthropic-agent", "/api/agent/callback"],
+    hmac_algorithm: "sha256",
+    signing_input_format: "raw_body",
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [
+      "tool-callback-no-verification",
+      "webhook-trigger-no-authentication",
+      "missing-signature-verification",
+      "missing-timestamp-check",
+      "missing-timing-safe-equal",
+      "raw-body-misuse",
+      "hardcoded-secret-prefix",
+      "secret-in-log-or-error",
+    ],
+    // v0.7 Rule Depth (VAS-01) shared sinks (DB / HTTP / event / notification) PLUS the
+    // SAME agentic-sink list n8n uses: an agent/tool/LLM invocation on the unverified
+    // tool() args is exactly the T1 side effect the named detector keys on (RESEARCH OQ#1).
+    ...SHARED_VAS_SINKS,
+    http_sink_calls: [
+      ...SHARED_VAS_SINKS.http_sink_calls,
+      "chain.invoke",
+      "agent.invoke",
+      "agent.call",
+      "executor.invoke",
+      "AgentExecutor.invoke",
+      "tool.invoke",
+      "tool.call",
+      "llm.invoke",
+      "llm.call",
+      "openai.chat.completions.create",
+      "anthropic.messages.create",
+    ],
+    // Self-hosted agent service; no first-party API host to exclude from the
+    // outbound-side-effect check.
+    provider_api_hosts: [],
+  },
   shopify: {
     signature_header: ["x-shopify-hmac-sha256"],
     sdk_packages: ["@shopify/shopify-api", "@shopify/shopify-app-express", "Shopify\\"],
