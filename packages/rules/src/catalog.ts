@@ -154,6 +154,66 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     ...SHARED_VAS_SINKS,
     provider_api_hosts: ["api.github.com"],
   },
+  // Phase 24 (AGENT-01) — n8n agentic-callback ruleset. The catalog entry feeds
+  // two surfaces:
+  //   (1) detector #1 (`n8n/webhook-trigger-no-authentication`) fires on the
+  //       JSON-workflow synthetic handler via the `n8n-trigger-no-auth` predicate,
+  //       which reads `n8n_node_param` evidence — it does NOT consult these fields.
+  //   (2) detector #2 + the 6 baseline rules run against TS custom-node handlers
+  //       tagged `provider:n8n` (Plan 24-03). Those reuse the v0.7 VAS-01 /
+  //       side-effect-classifier + the per-provider baseline factories, which DO
+  //       read sdk_verify_calls / sink lists / secret_literal_prefix below.
+  //
+  // n8n has no first-party webhook-verification SDK — a custom node verifies the
+  // request in code via `IWebhookFunctions.getHeaderData()` + crypto.timingSafeEqual,
+  // or an HMAC over the raw body. `sdk_verify_calls` therefore lists the n8n
+  // header-access + constant-time-compare shapes that count as verification (clearing
+  // detector #2 on the mitigated handler — SC#2). The agent/tool/LLM call names live
+  // in the sink lists so the side-effect classifier treats "agent invoked on the
+  // unverified body before any header check" as a T1 side-effect-before-verify.
+  n8n: {
+    signature_header: ["x-n8n-signature", "x-webhook-token"],
+    sdk_packages: ["n8n-workflow", "n8n-core"],
+    sdk_verify_calls: ["getHeaderData", "timingSafeEqual", "crypto.timingSafeEqual"],
+    secret_env_prefix: ["N8N_WEBHOOK", "N8N_SIGNING", "WEBHOOK_TOKEN"],
+    secret_literal_prefix: ["n8n_api_"],
+    conventional_paths: ["/webhook", "/webhook-test", "/webhooks/n8n"],
+    hmac_algorithm: "sha256",
+    signing_input_format: "raw_body",
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [
+      "webhook-trigger-no-authentication",
+      "agent-tool-acts-on-unverified-payload",
+      "missing-signature-verification",
+      "missing-timestamp-check",
+      "missing-timing-safe-equal",
+      "raw-body-misuse",
+      "hardcoded-secret-prefix",
+      "secret-in-log-or-error",
+    ],
+    // v0.7 Rule Depth (VAS-01) shared sinks (DB / HTTP / event / notification) PLUS
+    // the n8n agentic sinks: an agent/tool/LLM invocation on the unverified webhook
+    // body is exactly the T1 side effect detector #2 keys on (RESEARCH OQ4).
+    ...SHARED_VAS_SINKS,
+    http_sink_calls: [
+      ...SHARED_VAS_SINKS.http_sink_calls,
+      "chain.invoke",
+      "agent.invoke",
+      "agent.call",
+      "executor.invoke",
+      "AgentExecutor.invoke",
+      "tool.invoke",
+      "tool.call",
+      "llm.invoke",
+      "llm.call",
+      "openai.chat.completions.create",
+      "anthropic.messages.create",
+    ],
+    // n8n is self-hosted; there is no first-party API host to exclude from the
+    // outbound-side-effect check.
+    provider_api_hosts: [],
+  },
   shopify: {
     signature_header: ["x-shopify-hmac-sha256"],
     sdk_packages: ["@shopify/shopify-api", "@shopify/shopify-app-express", "Shopify\\"],

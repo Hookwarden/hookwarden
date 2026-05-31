@@ -48,6 +48,10 @@ import {
 } from "./library-verified-recognition.js";
 import { mailchimpUrlSecretInPathPredicate } from "./mailchimp-url-secret-in-path.js";
 import { n8nTriggerNoAuthPredicate } from "./n8n-trigger-auth.js";
+import { createMissingSignatureVerificationPredicate } from "./missing-signature-verification.js";
+import { createMissingTimestampCheckPredicate } from "./missing-timestamp-check.js";
+import { createRawBodyMisusePredicate } from "./raw-body-misuse.js";
+import { createTimingUnsafeComparisonPredicate } from "./timing-unsafe-comparison.js";
 import {
   auth0MissingSignatureVerificationPredicate,
   bitbucketMissingSignatureVerificationPredicate,
@@ -749,4 +753,37 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   // on "none" or absent, silent on headerAuth/basicAuth/jwtAuth. Provider + n8n-workflow
   // framework guarded so a TS custom-node handler (detector #2) is never caught here.
   "n8n-trigger-no-auth": n8nTriggerNoAuthPredicate,
+  // Phase 24 Plan 04 (AGENT-01) — n8n detector #2 + the 6 baseline rules. These run
+  // against TS custom-node handlers tagged `provider:n8n` (Plan 24-03), reusing the
+  // v0.7 VAS-01 / side-effect-classifier + the per-provider baseline factories,
+  // parameterized for "n8n" with the n8n catalog entry.
+  //
+  // Detector #2: agent-tool-acts-on-unverified-payload — reuses the VAS-01
+  // `side_effect_before_verify` evidence machinery. The n8n catalog entry adds the
+  // agent/tool/LLM call names to the sink lists, so "agent invoked on the unverified
+  // webhook body before any header check" is a T1 side-effect-before-verify. A
+  // `getHeaderData()`-based verification earlier in the handler clears it (SC#2).
+  "n8n-agent-tool-acts-on-unverified-payload": createVerifyAfterSideEffectPredicate("n8n"),
+  "n8n-missing-signature-verification": createMissingSignatureVerificationPredicate(
+    "n8n",
+    PROVIDER_CATALOG["n8n"] as ProviderCatalogEntry,
+  ),
+  "n8n-missing-timestamp-check": createMissingTimestampCheckPredicate(
+    "n8n",
+    PROVIDER_CATALOG["n8n"] as ProviderCatalogEntry,
+  ),
+  // n8n/missing-timing-safe-equal reuses the constant-time-comparison detector
+  // (timing-unsafe equality on attacker-influenced credential/HMAC input).
+  "n8n-timing-safe-equal": createTimingUnsafeComparisonPredicate(
+    "n8n",
+    PROVIDER_CATALOG["n8n"] as ProviderCatalogEntry,
+  ),
+  "n8n-raw-body-misuse": createRawBodyMisusePredicate(
+    "n8n",
+    PROVIDER_CATALOG["n8n"] as ProviderCatalogEntry,
+  ),
+  "n8n-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "n8n",
+    PROVIDER_CATALOG["n8n"] as ProviderCatalogEntry,
+  ),
 };

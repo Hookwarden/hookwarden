@@ -1,0 +1,44 @@
+schema_version: 1
+rule_id: n8n/agent-tool-acts-on-unverified-payload
+provider: n8n
+severity: high
+emits_state: manual-review
+message: |
+  n8n custom-node webhook handler appears to act on the unverified request
+  body. The webhook payload (`this.getBodyData()` / `items[0].json`) reaches
+  an agent / tool / LLM invocation (e.g. `chain.invoke`, `agent.invoke`,
+  `AgentExecutor.invoke`, `openai.chat.completions.create`) BEFORE any
+  header-based verification runs in the handler.
+
+  An attacker who can POST to the (often unauthenticated) Webhook trigger
+  controls the JSON that drives the agent — the second half of the Cisco
+  Talos "n8n n8mare" agentic-callback chain.
+
+  This rule ships at `manual-review`: the engine reports the observed call
+  order, and the auditor confirms the body is not verified upstream
+  (middleware, a credential check, or an `IWebhookFunctions.getHeaderData()`
+  comparison) before it reaches the agent sink.
+
+  Fix: validate the configured webhook header
+  (`this.getHeaderData()['x-...']` compared with `crypto.timingSafeEqual`)
+  and reject the request BEFORE the body reaches any agent / tool / LLM call.
+matcher: null
+predicate: n8n-agent-tool-acts-on-unverified-payload
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+provider_docs_url: https://docs.n8n.io/integrations/creating-nodes/build/reference/http-helpers/
+references:
+  - https://blog.talosintelligence.com/the-n8n-n8mare/
+  - https://thehackernews.com/2026/04/n8n-webhooks-abused-since-october-2025.html
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs}"
+    severity: info
+fix:
+  safety: manual-only
+  description: "Verify the configured webhook header and reject before the body reaches any agent/tool/LLM call — see provider_docs_url"
+  codegen: null

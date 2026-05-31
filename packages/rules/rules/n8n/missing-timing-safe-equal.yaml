@@ -1,0 +1,34 @@
+schema_version: 1
+rule_id: n8n/missing-timing-safe-equal
+provider: n8n
+severity: critical
+emits_state: not-verified
+message: |
+  n8n custom-node webhook handler compares the request credential or HMAC
+  with a non-constant-time equality (`===`, `==`, `!=`, `Buffer.equals` on
+  attacker-influenced input). String/buffer equality short-circuits on the
+  first differing byte, leaking timing that can be used to forge a valid
+  signature byte-by-byte.
+
+  Fix: compare the configured header / computed HMAC against the expected
+  value with `crypto.timingSafeEqual` (Node) — never `===`.
+matcher: null
+predicate: n8n-timing-safe-equal
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+provider_docs_url: https://docs.n8n.io/integrations/creating-nodes/build/reference/http-helpers/
+references:
+  - https://blog.talosintelligence.com/the-n8n-n8mare/
+  - https://codahale.com/a-lesson-in-timing-attacks/
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs}"
+    severity: info
+fix:
+  safety: safe
+  description: "Replace insecure equality with a constant-time comparison (crypto.timingSafeEqual)"
+  codegen: dispatch-timing-unsafe-comparison

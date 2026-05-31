@@ -1,0 +1,35 @@
+schema_version: 1
+rule_id: n8n/raw-body-misuse
+provider: n8n
+severity: critical
+emits_state: not-verified
+message: |
+  n8n custom-node webhook handler reads a signature/credential header but
+  does not appear to receive the request body as raw bytes. An HMAC is
+  computed over the exact bytes sent — once the framework JSON-parses and
+  re-serializes the payload, the bytes used for the HMAC differ from what the
+  sender signed, so verification silently fails (or is bypassed).
+
+  Fix: verify against the raw request body (`this.getBodyData()` over the raw
+  buffer, or the framework's raw-body accessor), not a re-serialized parsed
+  object.
+matcher: null
+predicate: n8n-raw-body-misuse
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+provider_docs_url: https://docs.n8n.io/integrations/creating-nodes/build/reference/http-helpers/
+references:
+  - https://blog.talosintelligence.com/the-n8n-n8mare/
+  - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs}"
+    severity: info
+fix:
+  safety: safe
+  description: "Verify against the raw request body instead of a re-serialized parsed object"
+  codegen: dispatch-replace-raw-body-misuse

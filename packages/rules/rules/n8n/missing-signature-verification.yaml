@@ -1,0 +1,38 @@
+schema_version: 1
+rule_id: n8n/missing-signature-verification
+provider: n8n
+severity: critical
+emits_state: not-verified
+message: |
+  n8n custom-node webhook handler does not appear to verify the incoming
+  request before acting on it. No `IWebhookFunctions.getHeaderData()`-based
+  credential check, HMAC verification (`crypto.createHmac` +
+  `crypto.timingSafeEqual`), or SDK verifier is reachable from this handler.
+
+  n8n's Webhook node enforces only the trigger-level `Authentication` setting
+  — a custom node that processes the payload itself must verify the request
+  in code.
+
+  Fix: read the configured header via `this.getHeaderData()` and compare it
+  against the credential with `crypto.timingSafeEqual`, or compute and verify
+  an HMAC over the raw body, before processing the payload.
+matcher: null
+predicate: n8n-missing-signature-verification
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+provider_docs_url: https://docs.n8n.io/integrations/creating-nodes/build/reference/http-helpers/
+references:
+  - https://blog.talosintelligence.com/the-n8n-n8mare/
+  - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs}"
+    severity: info
+fix:
+  safety: manual-only
+  description: "Verify the request header or HMAC before processing the payload — see provider_docs_url"
+  codegen: null
