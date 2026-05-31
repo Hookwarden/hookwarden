@@ -17,7 +17,12 @@ export type Framework =
   | "laravel"
   | "symfony"
   | "slim"
-  | "vanilla-php";
+  | "vanilla-php"
+  // Phase 24 (AGENT-01): the n8n JSON-workflow synthetic handler. NOT an AST-backed
+  // code framework — the n8n adapter emits these directly (no babel/tree-sitter parse).
+  // MUST stay in sync with the Ajv `applies_to` enum in @hookwarden/rules schema.ts;
+  // rule loading throws if a rule targets a framework the engine union does not declare.
+  | "n8n-workflow";
 
 // D-32 multi-signal evidence. Engine computes; rules query thresholds.
 // `side_effect_before_verify` is the v0.7 Rule Depth extension — emitted by the
@@ -36,7 +41,12 @@ export type WebhookEvidenceKind =
   | "body_as_bytes_or_buffer"
   | "secret_env_var_reference"
   | "secret_literal_match"
-  | "side_effect_before_verify";
+  | "side_effect_before_verify"
+  // Phase 24 (AGENT-01): n8n synthetic-handler node parameters, emitted by the n8n
+  // adapter/model wiring (Plan 24-03) one per Webhook trigger node. `detail` encodes a
+  // single key=value node param (e.g. "authentication=none", "httpMethod=POST"). The
+  // n8n trigger-auth predicate reads "authentication=<value>" off this kind.
+  | "n8n_node_param";
 
 export interface WebhookEvidence {
   readonly kind: WebhookEvidenceKind;

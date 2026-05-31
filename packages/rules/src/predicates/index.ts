@@ -47,6 +47,7 @@ import {
   twilioLibraryVerifiedPredicate,
 } from "./library-verified-recognition.js";
 import { mailchimpUrlSecretInPathPredicate } from "./mailchimp-url-secret-in-path.js";
+import { n8nTriggerNoAuthPredicate } from "./n8n-trigger-auth.js";
 import {
   auth0MissingSignatureVerificationPredicate,
   bitbucketMissingSignatureVerificationPredicate,
@@ -742,4 +743,10 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "standardwebhooks-missing-timestamp-check": standardwebhooksMissingTimestampCheckPredicate,
   "standardwebhooks-wrong-hmac-algorithm": standardwebhooksWrongHmacAlgorithmPredicate,
   "standardwebhooks-unreachable-verification": standardwebhooksUnreachableVerificationPredicate,
+  // Phase 24 Plan 02 (AGENT-01) — n8n detector #1: webhook-trigger-no-authentication.
+  // Self-contained predicate (NOT a matcher-union variant). Reads the synthetic n8n
+  // handler's `n8n_node_param` evidence ("authentication=<value>"); fires not-verified
+  // on "none" or absent, silent on headerAuth/basicAuth/jwtAuth. Provider + n8n-workflow
+  // framework guarded so a TS custom-node handler (detector #2) is never caught here.
+  "n8n-trigger-no-auth": n8nTriggerNoAuthPredicate,
 };

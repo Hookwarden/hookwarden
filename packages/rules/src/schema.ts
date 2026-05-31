@@ -126,6 +126,10 @@ const SCHEMA = {
               "symfony",
               "slim",
               "vanilla-php",
+              // Phase 24 (AGENT-01): the n8n JSON-workflow synthetic handler. Mirrors the engine
+              // Framework union member in types/handler.ts; both MUST move together or rule loading
+              // throws when a rule targets `applies_to: [n8n-workflow]`.
+              "n8n-workflow",
             ],
           },
         },
