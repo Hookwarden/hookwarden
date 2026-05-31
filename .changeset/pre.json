@@ -17,7 +17,5 @@
     "hookwardn": "0.7.5",
     "hookwardne": "0.7.5"
   },
-  "changesets": [
-    "n8n-agentic-callback-ruleset"
-  ]
+  "changesets": ["n8n-agentic-callback-ruleset"]
 }

@@ -14,9 +14,9 @@
 import { describe, expect, it } from "vitest";
 import { buildProjectModel } from "../src/model/build.js";
 import { parseJsTs } from "../src/parsers/babel.js";
+import type { Config } from "../src/types/config.js";
 import type { ParsedFile } from "../src/types/project-model.js";
 import type { RuleSet } from "../src/types/rule-set.js";
-import type { Config } from "../src/types/config.js";
 
 const config: Config = {
   reachability_max_depth: 3,

@@ -134,7 +134,8 @@ function findMatchingBrace(source: string, openOffset: number): number {
   for (let i = openOffset; i < source.length; i++) {
     const ch = source[i];
     if (inString) {
-      if (ch === "\\") i++; // skip escaped char
+      if (ch === "\\")
+        i++; // skip escaped char
       else if (ch === '"') inString = false;
       continue;
     }

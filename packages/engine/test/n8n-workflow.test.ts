@@ -78,7 +78,7 @@ describe("isN8nWorkflow — content sniff", () => {
     expect(isN8nWorkflow(result.document)).toBe(true);
   });
 
-  it("returns false for plain JSON config ({\"name\":\"x\"})", () => {
+  it('returns false for plain JSON config ({"name":"x"})', () => {
     const result = parseN8nWorkflow(`{ "name": "x" }`, "config.json");
     expect(isN8nWorkflow(result.document)).toBe(false);
   });

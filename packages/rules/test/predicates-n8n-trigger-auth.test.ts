@@ -81,10 +81,16 @@ describe("n8n-trigger-auth predicate — silent (mitigated / out-of-scope)", () 
 
   it("returns null for basicAuth and jwtAuth (any non-'none' configured auth clears)", async () => {
     expect(
-      await n8nTriggerNoAuthPredicate(makeHandler({ evidence: [authEvidence("basicAuth")] }), {} as never),
+      await n8nTriggerNoAuthPredicate(
+        makeHandler({ evidence: [authEvidence("basicAuth")] }),
+        {} as never,
+      ),
     ).toBeNull();
     expect(
-      await n8nTriggerNoAuthPredicate(makeHandler({ evidence: [authEvidence("jwtAuth")] }), {} as never),
+      await n8nTriggerNoAuthPredicate(
+        makeHandler({ evidence: [authEvidence("jwtAuth")] }),
+        {} as never,
+      ),
     ).toBeNull();
   });
 
