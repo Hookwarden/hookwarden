@@ -1,5 +1,12 @@
 # @hookwarden/fix
 
+## 0.8.0-beta.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @hookwarden/engine@0.8.0-beta.0
+
 ## 0.7.5
 
 ### Patch Changes

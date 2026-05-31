@@ -1,0 +1,23 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@hookwarden/docs": "0.0.0",
+    "@hookwarden/web": "0.0.0",
+    "hookwarden": "0.7.5",
+    "@hookwarden/engine": "0.7.5",
+    "@hookwarden/fix": "0.7.5",
+    "@hookwarden/github-action": "0.7.5",
+    "@hookwarden/mcp": "0.8.6",
+    "@hookwarden/pr-renderer": "1.0.0",
+    "@hookwarden/rules": "0.7.5",
+    "hook-warden": "0.7.5",
+    "hookwarden-cli": "0.7.5",
+    "hookwardens": "0.7.5",
+    "hookwardn": "0.7.5",
+    "hookwardne": "0.7.5"
+  },
+  "changesets": [
+    "n8n-agentic-callback-ruleset"
+  ]
+}
