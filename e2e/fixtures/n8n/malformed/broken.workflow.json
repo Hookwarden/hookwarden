@@ -1,0 +1,14 @@
+{
+  "name": "Broken Inbound Workflow",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "inbound" },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+    },
+  ],
+  "connections": {
+    "Webhook": { "main": [[]] },
+  },
+}

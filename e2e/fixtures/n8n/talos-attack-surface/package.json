@@ -1,0 +1,14 @@
+{
+  "name": "n8n-nodes-inbound-agent-vulnerable",
+  "version": "1.0.0",
+  "description": "Talos n8n n8mare attack-surface fixture — unauthenticated webhook trigger feeding an agent tool.",
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "nodes": [
+      "dist/nodes/InboundAgent.node.js"
+    ]
+  },
+  "devDependencies": {
+    "n8n-workflow": "*"
+  }
+}

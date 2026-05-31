@@ -1,0 +1,14 @@
+{
+  "name": "n8n-nodes-inbound-agent-mitigated",
+  "version": "1.0.0",
+  "description": "Talos n8n n8mare mitigated fixture — header-authenticated webhook trigger; handler verifies before the agent call.",
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "nodes": [
+      "dist/nodes/InboundAgent.node.js"
+    ]
+  },
+  "devDependencies": {
+    "n8n-workflow": "*"
+  }
+}

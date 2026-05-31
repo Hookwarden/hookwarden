@@ -83,20 +83,14 @@ export async function buildProjectModel(input: BuildProjectModelInput): Promise<
     }
   }
 
-  // 3. For each candidate, compute id + evidence (with sdk_verify_call overlay) + reachability +
-  //    middleware_chain + redacted snippet.
-  const handlers: WebhookHandler[] = [];
-  for (const { cand, file } of candidates) {
-    handlers.push(await assembleHandler(cand, file, input));
-  }
-
-  // 3a. Phase 24 (AGENT-01) — n8n custom-node TS tagging. A handler is re-attributed provider:n8n
-  //     when EITHER the project-level custom-node signal is set (package.json#n8n.nodes, supplied
-  //     by the caller) OR its own file content-sniffs as an n8n custom node (imports INodeType /
-  //     IWebhookFunctions from n8n-workflow). This is a per-file content signal, never glob/path
-  //     based — non-n8n TS files are never tagged. Tagging is additive: it only overrides provider,
-  //     leaving every other handler field (evidence, verdict baseline, location) intact, so it
-  //     cannot change findings on any non-n8n handler.
+  // 3pre. Phase 24 (AGENT-01) — compute the set of files that signal an n8n custom node, BEFORE
+  //     assembly. A file qualifies when EITHER the project-level custom-node signal is set
+  //     (package.json#n8n.nodes, supplied by the caller) OR its own content sniffs as an n8n
+  //     custom node (imports INodeType / IWebhookFunctions from n8n-workflow). This is a per-file
+  //     content signal, never glob/path based — non-n8n TS files never qualify. Computing it up
+  //     front lets assembleHandler force provider:n8n for these files so the VAS-01 verify-ordering
+  //     overlay consults the n8n agentic sink list (chain.invoke / agent.invoke / …) and classifies
+  //     "agent invoked on the unverified body before a getHeaderData() guard" as a T1 side effect.
   const n8nSignalFiles = new Set<string>();
   if (input.customNodeSignal === true) {
     for (const f of input.parsedFiles) n8nSignalFiles.add(f.file_path);
@@ -104,6 +98,19 @@ export async function buildProjectModel(input: BuildProjectModelInput): Promise<
   for (const f of input.parsedFiles) {
     if (fileHasN8nCustomNodeSignal(f)) n8nSignalFiles.add(f.file_path);
   }
+
+  // 3. For each candidate, compute id + evidence (with sdk_verify_call overlay) + reachability +
+  //    middleware_chain + redacted snippet. For n8n-signalled files the provider is forced to n8n
+  //    so the verify-ordering overlay uses the n8n sink list (see assembleHandler).
+  const handlers: WebhookHandler[] = [];
+  for (const { cand, file } of candidates) {
+    handlers.push(await assembleHandler(cand, file, input, n8nSignalFiles.has(file.file_path)));
+  }
+
+  // 3a. Phase 24 (AGENT-01) — final provider tagging. Re-attribute provider:n8n on every handler
+  //     whose file signalled an n8n custom node. Tagging is additive: it only overrides provider,
+  //     leaving every other handler field (evidence, verdict baseline, location) intact, so it
+  //     cannot change findings on any non-n8n handler.
   if (n8nSignalFiles.size > 0) {
     for (let i = 0; i < handlers.length; i++) {
       const h = handlers[i];
@@ -252,6 +259,9 @@ async function assembleHandler(
   cand: CandidateHandler,
   file: ParsedFile,
   input: BuildProjectModelInput,
+  // Phase 24 (AGENT-01) — when the handler's file signals an n8n custom node, force provider:n8n
+  // BEFORE the verify-ordering overlay so it consults the n8n agentic sink list.
+  forceN8nProvider = false,
 ): Promise<WebhookHandler> {
   const id = await computeHandlerId({
     file_path: cand.file_path,
@@ -302,7 +312,12 @@ async function assembleHandler(
     ...phpVerifyEvidence,
   ];
   // Recompute provider attribution since sdk_verify_call evidence may shift the count.
-  const provider = recomputeProvider(preCfgEvidence, baseEvidence.provider);
+  // For n8n custom-node files the provider is forced to "n8n" so the verify-ordering overlay
+  // below consults the n8n agentic sink list (the final 3a tagging is now redundant for these
+  // but kept as the single source of truth for handler.provider).
+  const provider = forceN8nProvider
+    ? "n8n"
+    : recomputeProvider(preCfgEvidence, baseEvidence.provider);
   // v0.7 Rule Depth handler-cfg overlay (VAS-01) — emits `side_effect_before_verify`
   // evidence for each T1/T2 side effect appearing BEFORE a verification call in
   // handler scope. JS/TS only at v0.7.0; PHP/Python emit empty evidence. The

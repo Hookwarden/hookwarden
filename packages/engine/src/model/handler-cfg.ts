@@ -150,6 +150,14 @@ function extractTopLevelStatements(node: unknown): ReadonlyArray<Statement> | nu
     case "BlockStatement": {
       return (node as BlockStatement).body;
     }
+    // Phase 24 (AGENT-01) — n8n custom-node `webhook()` is a ClassMethod / ObjectMethod whose
+    // `.body` is a BlockStatement. Reach its top-level statements so the body→agent-sink ordering
+    // is classified just like an Express arrow-function handler.
+    case "ClassMethod":
+    case "ObjectMethod": {
+      const method = node as unknown as { body: BlockStatement };
+      return method.body.body;
+    }
     default:
       return null;
   }
@@ -183,6 +191,10 @@ function buildVerificationSet(
   const out = new Set<string>();
   for (const c of sdkVerifyCalls) {
     out.add(c);
+    // n8n custom-node verification methods are invoked on the IWebhookFunctions receiver as
+    // `this.getHeaderData()` etc. — qualifiedCallName renders that as "this.getHeaderData", so
+    // register the `this.`-prefixed form of every catalog verify call too (Phase 24, AGENT-01).
+    if (!c.includes(".")) out.add(`this.${c}`);
   }
   for (const q of reachableQnames) {
     for (const c of sdkVerifyCalls) {

@@ -60,6 +60,19 @@ export function classifyStatement(input: ClassifyStatementInput): ClassifiedStat
   // structural pattern test; the caller decides whether the test condition
   // is dev-mode-gated (BYP-01) vs legitimate early-validation.
   if (input.statement.type === "IfStatement") {
+    // A verification gate written as `if (!verify(...)) return …` is verification, NOT a
+    // short-circuit: the IfStatement's TEST condition calls a verification function and the
+    // consequent rejects unverified requests. Inspect the condition for a verification call
+    // first so this clears VAS-01 (the body that follows only runs for verified requests).
+    // (Phase 24, AGENT-01 — n8n mitigated handlers verify the header in an `if` guard.)
+    for (const call of collectCallExpressions(
+      { type: "ExpressionStatement", expression: input.statement.test } as Statement,
+    )) {
+      const qname = qualifiedCallName(call);
+      if (qname !== null && input.verificationCallNames.has(qname)) {
+        return { kind: "verification", severity: null, detail: qname };
+      }
+    }
     if (containsEarlyReturn(input.statement.consequent)) {
       return { kind: "short_circuit", severity: null, detail: null };
     }
