@@ -9,7 +9,11 @@ export { ALL_ADAPTERS, type FrameworkAdapter } from "./adapters/index.js";
 // n8n workflow-JSON ingestion (Phase 24, AGENT-01) — first non-AST input path.
 export { n8nAdapter } from "./adapters/n8n.js";
 export { evaluate } from "./evaluate.js";
-export { type BuildProjectModelInput, buildProjectModel } from "./model/index.js";
+export {
+  type BuildProjectModelInput,
+  buildProjectModel,
+  type N8nWorkflowFileInput,
+} from "./model/index.js";
 export { type ParseJsTsInput, parseJsTs } from "./parsers/babel.js";
 export {
   isN8nWorkflow,

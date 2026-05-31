@@ -8,7 +8,10 @@
 //   - The sdk_verify_call evidence overlay — completes D-32's 7th signal.
 //   - The raw-body middleware evidence overlay — prevents FP on express.raw / bodyParser.raw chains.
 
+import { n8nAdapter } from "../adapters/n8n.js";
 import { computeHandlerId } from "../findings/fingerprint.js";
+import { isN8nWorkflow, parseN8nWorkflow } from "../parsers/n8n-workflow.js";
+import type { N8nSyntheticHandler } from "../types/n8n.js";
 import { extractBabelLiterals } from "../parsers/literals.js";
 import { extractPythonLiterals } from "../parsers/python-literals.js";
 import { walkBabelAst } from "../parsers/walk.js";
@@ -33,10 +36,29 @@ import { collectVerifyOrderingEvidence } from "./handler-cfg.js";
 import { extractMiddlewareChain } from "./middleware.js";
 import { computeReachableSymbols } from "./reachability.js";
 
+export interface N8nWorkflowFileInput {
+  readonly file_path: string; // repo-relative
+  readonly source_text: string; // raw *.workflow.json text — engine never reads files (D-03)
+}
+
 export interface BuildProjectModelInput {
   readonly parsedFiles: ReadonlyArray<ParsedFile>;
   readonly ruleSet: RuleSet;
   readonly config: Config;
+  // Phase 24 (AGENT-01) — content-driven n8n detection inputs. Both optional; absent => identical
+  // behavior to pre-n8n builds (the n8n path is purely additive; existing providers untouched).
+  //
+  // workflowFiles: raw *.workflow.json candidates surfaced by the CLI walker (the engine is pure —
+  // it never reads files; the caller hands us the source text). Each is content-sniffed via
+  // isN8nWorkflow; ONLY n8n-shaped documents route through n8nAdapter into synthetic handlers. A
+  // random *.workflow.json that does NOT sniff as n8n yields zero handlers (FP moat — T-24-06;
+  // glob presence alone never fires).
+  readonly workflowFiles?: ReadonlyArray<N8nWorkflowFileInput>;
+  // customNodeSignal: true when the project is an n8n community/custom-node project — set by the
+  // caller from package.json#n8n.nodes. The engine ALSO derives a per-file TS signal from
+  // INodeType / IWebhookFunctions imports (see fileHasN8nCustomNodeSignal). Either signal tags a
+  // file's handlers provider:n8n so Plan 24-04's detector-2 rule applies to them.
+  readonly customNodeSignal?: boolean;
   // Plan 07 adapters (Next.js / Django / FastAPI) plug in here. Each returns CandidateHandler[].
   readonly bespokeAdapters?: ReadonlyArray<
     (file: ParsedFile, allFiles: ReadonlyArray<ParsedFile>) => ReadonlyArray<CandidateHandler>
@@ -68,6 +90,42 @@ export async function buildProjectModel(input: BuildProjectModelInput): Promise<
     handlers.push(await assembleHandler(cand, file, input));
   }
 
+  // 3a. Phase 24 (AGENT-01) — n8n custom-node TS tagging. A handler is re-attributed provider:n8n
+  //     when EITHER the project-level custom-node signal is set (package.json#n8n.nodes, supplied
+  //     by the caller) OR its own file content-sniffs as an n8n custom node (imports INodeType /
+  //     IWebhookFunctions from n8n-workflow). This is a per-file content signal, never glob/path
+  //     based — non-n8n TS files are never tagged. Tagging is additive: it only overrides provider,
+  //     leaving every other handler field (evidence, verdict baseline, location) intact, so it
+  //     cannot change findings on any non-n8n handler.
+  const n8nSignalFiles = new Set<string>();
+  if (input.customNodeSignal === true) {
+    for (const f of input.parsedFiles) n8nSignalFiles.add(f.file_path);
+  }
+  for (const f of input.parsedFiles) {
+    if (fileHasN8nCustomNodeSignal(f)) n8nSignalFiles.add(f.file_path);
+  }
+  if (n8nSignalFiles.size > 0) {
+    for (let i = 0; i < handlers.length; i++) {
+      const h = handlers[i];
+      if (h !== undefined && n8nSignalFiles.has(h.file_path) && h.provider !== "n8n") {
+        handlers[i] = { ...h, provider: "n8n" };
+      }
+    }
+  }
+
+  // 3b. Phase 24 (AGENT-01) — n8n workflow-JSON synthetic handlers. Each *.workflow.json candidate
+  //     is content-sniffed (isN8nWorkflow); only n8n-shaped documents are walked by n8nAdapter and
+  //     lifted into full WebhookHandlers. These bypass assembleHandler entirely — they have NO AST,
+  //     so the babel/tree-sitter overlays in assembleHandler do not apply (RESEARCH: route the
+  //     synthetic handler directly into ProjectModel.handlers). Glob presence alone never fires.
+  for (const wf of input.workflowFiles ?? []) {
+    const parsed = parseN8nWorkflow(wf.source_text, wf.file_path);
+    if (!isN8nWorkflow(parsed.document)) continue;
+    for (const descriptor of n8nAdapter(parsed)) {
+      handlers.push(await assembleN8nHandler(descriptor));
+    }
+  }
+
   // 4. Aggregate middleware registrations at the project level (engine-internal index — Phase 8
   //    rule authors who need cross-handler middleware ordering can query this).
   const middlewareRegistrations: ReadonlyArray<MiddlewareRegistration> = [];
@@ -77,6 +135,88 @@ export async function buildProjectModel(input: BuildProjectModelInput): Promise<
     handlers,
     middleware_registrations: middlewareRegistrations,
     import_graph: importGraph,
+  };
+}
+
+// Phase 24 (AGENT-01) — per-file n8n custom-node content sniff. True when the file imports any of
+// the canonical n8n node interfaces from the `n8n-workflow` package (INodeType / IWebhookFunctions /
+// INodeTypeDescription). The babel parser already records import edges with their imported names,
+// so this is a pure read over ParsedFile.imports — no extra parse. Drift-tolerant: matches on the
+// `n8n-workflow` module + any recognized interface name, never on a specific package version.
+const N8N_NODE_INTERFACE_NAMES: ReadonlySet<string> = new Set([
+  "INodeType",
+  "IWebhookFunctions",
+  "INodeTypeDescription",
+]);
+
+function fileHasN8nCustomNodeSignal(file: ParsedFile): boolean {
+  if (file.parse_error !== null) return false;
+  for (const edge of file.imports) {
+    if (edge.to_module !== "n8n-workflow") continue;
+    for (const named of edge.imported_names) {
+      if (N8N_NODE_INTERFACE_NAMES.has(named.source)) return true;
+    }
+  }
+  return false;
+}
+
+// Phase 24 (AGENT-01) — lift an n8n synthetic-handler descriptor into a full WebhookHandler WITHOUT
+// running the AST overlays in assembleHandler (the n8n workflow node has no AST). The descriptor's
+// node params become `n8n_node_param` evidence — the binding contract Plan 24-02's
+// `n8n-trigger-no-auth` predicate reads (`detail = "authentication=<value>"`). verification_state
+// stays at the manual-review baseline (PITFALLS #3); the evaluator promotes it when a rule fires.
+async function assembleN8nHandler(
+  descriptor: N8nSyntheticHandler,
+): Promise<WebhookHandler> {
+  const routePattern = descriptor.attrs.path !== null ? `/${descriptor.attrs.path}` : "/";
+  const httpMethods = descriptor.attrs.httpMethod !== null ? [descriptor.attrs.httpMethod.toUpperCase()] : ["POST"];
+  const handlerFunctionName = descriptor.nodeName;
+  const id = await computeHandlerId({
+    file_path: descriptor.file,
+    route_pattern: routePattern,
+    http_methods: httpMethods,
+    handler_function_name: handlerFunctionName,
+  });
+  // One n8n_node_param evidence row per node param (Plan 24-02 contract: detail = "key=value").
+  // authentication is FIRST and always present (the adapter normalized absent -> "none").
+  const evidence: WebhookEvidence[] = [
+    {
+      kind: "n8n_node_param",
+      provider: "n8n",
+      location: descriptor.range,
+      detail: `authentication=${descriptor.attrs.authentication}`,
+    },
+    {
+      kind: "n8n_node_param",
+      provider: "n8n",
+      location: descriptor.range,
+      detail: `nodeType=${descriptor.attrs.nodeType}`,
+    },
+  ];
+  if (descriptor.attrs.httpMethod !== null) {
+    evidence.push({
+      kind: "n8n_node_param",
+      provider: "n8n",
+      location: descriptor.range,
+      detail: `httpMethod=${descriptor.attrs.httpMethod}`,
+    });
+  }
+  return {
+    id,
+    framework: "n8n-workflow",
+    framework_version: null,
+    route_pattern: routePattern,
+    http_methods: httpMethods,
+    file_path: descriptor.file,
+    location: descriptor.range,
+    handler_function_name: handlerFunctionName,
+    provider: "n8n",
+    verification_state: "manual-review", // PITFALLS #3 baseline; evaluator promotes
+    evidence,
+    middleware_chain: [], // no AST — no middleware concept for a JSON node
+    reachable_symbols: [], // no AST — no reachability for a JSON node
+    findings_ref: [], // back-populated by the evaluator
+    redacted_snippet: "", // JSON node params are not free-text source; nothing to redact
   };
 }
 
