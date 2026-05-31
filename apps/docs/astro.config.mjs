@@ -46,6 +46,10 @@ export default defineConfig({
             { label: "Square", link: "/rules/square/" },
           ],
         },
+        {
+          label: "Agentic rulepacks",
+          items: [{ label: "n8n", link: "/agentic-rulepacks/n8n/" }],
+        },
       ],
       customCss: ["./src/styles/brand.css"],
     }),

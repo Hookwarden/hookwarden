@@ -89,8 +89,8 @@ export async function discoverN8nInputs(scanDir: string): Promise<N8nDiscovery> 
     try {
       const st = await fs.lstat(abs);
       if (!st.isFile() || st.size > MAX_WORKFLOW_BYTES) continue;
-      const source_text = await fs.readFile(abs, "utf-8");
-      workflowFiles.push({ file_path: rel, source_text });
+      const sourceText = await fs.readFile(abs, "utf-8");
+      workflowFiles.push({ file_path: rel, source_text: sourceText });
     } catch {
       // Unreadable / vanished between glob and read — skip; never fail the scan.
     }

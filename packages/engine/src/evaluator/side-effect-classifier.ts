@@ -65,9 +65,10 @@ export function classifyStatement(input: ClassifyStatementInput): ClassifiedStat
     // consequent rejects unverified requests. Inspect the condition for a verification call
     // first so this clears VAS-01 (the body that follows only runs for verified requests).
     // (Phase 24, AGENT-01 — n8n mitigated handlers verify the header in an `if` guard.)
-    for (const call of collectCallExpressions(
-      { type: "ExpressionStatement", expression: input.statement.test } as Statement,
-    )) {
+    for (const call of collectCallExpressions({
+      type: "ExpressionStatement",
+      expression: input.statement.test,
+    } as Statement)) {
       const qname = qualifiedCallName(call);
       if (qname !== null && input.verificationCallNames.has(qname)) {
         return { kind: "verification", severity: null, detail: qname };

@@ -1,8 +1,8 @@
 import type { CandidateHandler } from "../model/catalog.js";
 import type { ParsedFile } from "../types/project-model.js";
 import { djangoAdapter } from "./django.js";
-import { n8nCustomNodeAdapter } from "./n8n-custom-node.js";
 import { fastapiAdapter } from "./fastapi.js";
+import { n8nCustomNodeAdapter } from "./n8n-custom-node.js";
 import { nextjsAdapter } from "./nextjs.js";
 import { symfonyAdapter } from "./symfony.js";
 import { vanillaPhpAdapter } from "./vanilla-php.js";

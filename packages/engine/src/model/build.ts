@@ -10,9 +10,8 @@
 
 import { n8nAdapter } from "../adapters/n8n.js";
 import { computeHandlerId } from "../findings/fingerprint.js";
-import { isN8nWorkflow, parseN8nWorkflow } from "../parsers/n8n-workflow.js";
-import type { N8nSyntheticHandler } from "../types/n8n.js";
 import { extractBabelLiterals } from "../parsers/literals.js";
+import { isN8nWorkflow, parseN8nWorkflow } from "../parsers/n8n-workflow.js";
 import { extractPythonLiterals } from "../parsers/python-literals.js";
 import { walkBabelAst } from "../parsers/walk.js";
 import { redactSnippet } from "../redaction/structural.js";
@@ -23,6 +22,7 @@ import type {
   WebhookEvidence,
   WebhookHandler,
 } from "../types/handler.js";
+import type { N8nSyntheticHandler } from "../types/n8n.js";
 import type {
   ImportEdge,
   MiddlewareRegistration,
@@ -200,11 +200,10 @@ function fileHasN8nCustomNodeSignal(file: ParsedFile): boolean {
 // node params become `n8n_node_param` evidence — the binding contract Plan 24-02's
 // `n8n-trigger-no-auth` predicate reads (`detail = "authentication=<value>"`). verification_state
 // stays at the manual-review baseline (PITFALLS #3); the evaluator promotes it when a rule fires.
-async function assembleN8nHandler(
-  descriptor: N8nSyntheticHandler,
-): Promise<WebhookHandler> {
+async function assembleN8nHandler(descriptor: N8nSyntheticHandler): Promise<WebhookHandler> {
   const routePattern = descriptor.attrs.path !== null ? `/${descriptor.attrs.path}` : "/";
-  const httpMethods = descriptor.attrs.httpMethod !== null ? [descriptor.attrs.httpMethod.toUpperCase()] : ["POST"];
+  const httpMethods =
+    descriptor.attrs.httpMethod !== null ? [descriptor.attrs.httpMethod.toUpperCase()] : ["POST"];
   const handlerFunctionName = descriptor.nodeName;
   const id = await computeHandlerId({
     file_path: descriptor.file,

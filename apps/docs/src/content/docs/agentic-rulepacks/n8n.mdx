@@ -1,0 +1,128 @@
+---
+title: n8n
+description: Scan n8n workflow JSON and custom-node TypeScript for the Talos "n8n n8mare" agentic-callback attack surface.
+---
+
+`hookwarden scan` audits [n8n](https://n8n.io) automation projects for the agentic-callback attack surface documented in Cisco Talos' [_n8n n8mare_](https://blog.talosintelligence.com/the-n8n-n8mare/) report: a public Webhook trigger with no authentication, feeding an AI Agent / tool node that acts on the attacker-controlled payload.
+
+This is the engine's first **non-code** input path. n8n `*.workflow.json` is structured data, so hookwarden parses it directly (no AST) and routes each Webhook trigger node through the same three-state finding pipeline as every other provider — with a real line/range on the JSON.
+
+## What hookwarden scans
+
+| Input | How it's detected | What fires |
+| ----- | ----------------- | ---------- |
+| `*.workflow.json` | content-sniff: `nodes[]` + `connections` + a `n8n-nodes-base.*` / `@n8n/*` node `type` | the workflow-trigger detector |
+| custom-node `.ts` | the file imports `IWebhookFunctions` / `INodeType` from `n8n-workflow`, **or** `package.json` declares `n8n.nodes` | the agent-tool detector |
+
+Detection is **content-driven** — a random `*.workflow.json` or unrelated `.ts` is never scanned as n8n. Glob presence alone never produces a finding.
+
+## The two detectors
+
+### `n8n/webhook-trigger-no-authentication` — critical
+
+Fires on a Webhook trigger node whose `authentication` parameter is `none` **or absent** (n8n's UI default, and the shape exported workflows most often carry). Any party can POST arbitrary JSON to the workflow's public webhook URL.
+
+### `n8n/agent-tool-acts-on-unverified-payload` — high
+
+Fires on a custom-node `webhook()` handler where the request body (`this.getBodyData()` / `items[0].json`) reaches an agent / tool / LLM call (`chain.invoke`, `agent.invoke`, `AgentExecutor.invoke`, `openai.chat.completions.create`, …) **before** any `this.getHeaderData()`-based verification runs in the handler. Ships at `manual-review`: hookwarden reports the observed call order and the auditor confirms the body is unverified upstream.
+
+## Try it
+
+Create a vulnerable n8n project:
+
+```jsonc
+// inbound.workflow.json
+{
+  "name": "Inbound Agent Callback",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "POST", "path": "inbound" },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {},
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1,
+      "position": [560, 300]
+    }
+  ],
+  "connections": { "Webhook": { "main": [[{ "node": "AI Agent", "type": "main", "index": 0 }]] } }
+}
+```
+
+```ts
+// nodes/InboundAgent.node.ts
+import type { INodeType, IWebhookFunctions, IWebhookResponseData } from "n8n-workflow";
+
+export class InboundAgent implements INodeType {
+  // ...description with a webhooks[] entry...
+  async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
+    const body = this.getBodyData();          // unverified payload
+    const result = await chain.invoke(body);  // agent invoked on it — no header check
+    return { workflowData: [[{ json: { result } }]] };
+  }
+}
+```
+
+```json
+// package.json — the n8n.nodes signal makes the .ts handler scan as n8n
+{ "n8n": { "nodes": ["dist/nodes/InboundAgent.node.js"] } }
+```
+
+Scan it:
+
+```bash
+npx hookwarden scan --verbose .
+```
+
+```text
+Handlers scanned — 2
+framework     route_pattern  provider  state           file:line
+n8n-workflow  /inbound       n8n       [not-verified]  inbound.workflow.json:4
+express       /webhook       n8n       [not-verified]  nodes/InboundAgent.node.ts:39
+
+× not-verified  n8n/webhook-trigger-no-authentication   inbound.workflow.json:4
+! manual-review n8n/agent-tool-acts-on-unverified-payload  nodes/InboundAgent.node.ts:39
+```
+
+`--verbose` prints the handler inventory first — the proof that each fixture content-sniffed as n8n and was actually scanned (not silently skipped).
+
+## Mitigated shape (zero findings)
+
+Add header auth to the trigger and verify before the agent call:
+
+```diff
+  // inbound.workflow.json — the Webhook node
+  "parameters": {
+    "httpMethod": "POST",
+    "path": "inbound",
++   "authentication": "headerAuth"
+  },
++ "credentials": { "httpHeaderAuth": { "id": "1", "name": "Inbound Header Auth" } }
+```
+
+```diff
+  async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
++   const headers = this.getHeaderData() as Record<string, string>;
++   const expected = (await this.getCredentials("httpHeaderAuth")).value;
++   const provided = Buffer.from(String(headers["x-webhook-token"] ?? ""));
++   if (provided.length !== Buffer.from(String(expected)).length ||
++       !timingSafeEqual(provided, Buffer.from(String(expected)))) {
++     return { workflowData: [[]] };          // reject before any agent call
++   }
+    const body = this.getBodyData();
+    const result = await chain.invoke(body);  // only reached for verified requests
+    return { workflowData: [[{ json: { result } }]] };
+  }
+```
+
+`authentication: headerAuth` clears the trigger detector; the `getHeaderData()` guard before the sink clears the agent-tool detector. The mitigated project emits **zero** `n8n/*` findings.
+
+## Limitations (beta)
+
+- **No cross-file correlation.** The two detectors run independently — the trigger detector on the workflow JSON, the agent-tool detector on the custom-node `.ts`. hookwarden does not statically resolve a workflow node's name to its custom-node implementation and trace the payload across the boundary. Each detector firing (or clearing) on its own file is sufficient for the Talos shape; correlated tracing is on the roadmap.
+- **Agent-tool detection is intra-handler.** A verification that lives outside the `webhook()` method (a gateway, a dedupe table, a shared middleware) is not seen by the per-handler scan — these findings ship at `manual-review` for exactly that reason.

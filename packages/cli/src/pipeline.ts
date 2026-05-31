@@ -47,8 +47,8 @@ import { loadHookwardenIgnore } from "./suppress/ignore-file.js";
 import type { InlineSuppressions } from "./suppress/inline-comments.js";
 import { extractInlineSuppressions } from "./suppress/inline-comments.js";
 import { detectStale, type StaleSuppression } from "./suppress/stale.js";
-import { discoverN8nInputs } from "./walker/n8n-discovery.js";
 import { type WalkResult, walkProject } from "./walker/index.js";
+import { discoverN8nInputs } from "./walker/n8n-discovery.js";
 import {
   loadPhpWasmBytes,
   loadPythonWasmBytes,
