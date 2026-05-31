@@ -12,6 +12,7 @@
       "**/*.json",
       "!e2e/fixtures",
       "!**/test/fixtures",
+      "!packages/canonical-json/test/cyberphone-vectors",
       "!**/tests/fixtures",
       "!assets/brand/demo-fixtures",
       "!**/*.fix-positive.expected.*",

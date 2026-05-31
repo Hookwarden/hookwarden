@@ -1,0 +1,54 @@
+{
+  "name": "@hookwarden/canonical-json",
+  "version": "0.1.0",
+  "description": "In-house RFC 8785 JSON Canonicalization Scheme (JCS) encoder. Zero runtime dependencies, pure ECMAScript, no Node built-ins. The byte-equality anchor for hookwarden's audit-log signing + evidence-pack verification — vendorable into cross-language auditor tooling.",
+  "keywords": [
+    "rfc8785",
+    "jcs",
+    "json-canonicalization",
+    "canonical-json",
+    "deterministic-json",
+    "webhook",
+    "audit",
+    "evidence",
+    "hookwarden"
+  ],
+  "homepage": "https://hookwarden.dev",
+  "bugs": {
+    "url": "https://github.com/Hookwarden/hookwarden/issues"
+  },
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hookwarden/hookwarden.git",
+    "directory": "packages/canonical-json"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "fast-check": "^4.8.0"
+  }
+}
