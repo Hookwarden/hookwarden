@@ -799,11 +799,10 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   // in-file order is observable -> the YAML ships at `not-verified` (critical) verdict.
   "anthropic-agent-sdk-tool-callback-no-verification":
     createVerifyAfterSideEffectPredicate("anthropic-agent-sdk"),
-  "anthropic-agent-sdk-missing-signature-verification":
-    createMissingSignatureVerificationPredicate(
-      "anthropic-agent-sdk",
-      PROVIDER_CATALOG["anthropic-agent-sdk"] as ProviderCatalogEntry,
-    ),
+  "anthropic-agent-sdk-missing-signature-verification": createMissingSignatureVerificationPredicate(
+    "anthropic-agent-sdk",
+    PROVIDER_CATALOG["anthropic-agent-sdk"] as ProviderCatalogEntry,
+  ),
   "anthropic-agent-sdk-missing-timestamp-check": createMissingTimestampCheckPredicate(
     "anthropic-agent-sdk",
     PROVIDER_CATALOG["anthropic-agent-sdk"] as ProviderCatalogEntry,

@@ -7,9 +7,9 @@ export {
 } from "./bundled-rules.js";
 export { PROVIDER_CATALOG } from "./catalog.js";
 export {
+  COMPLIANCE_FRAMEWORKS,
   type ComplianceCoverage,
   type ComplianceFramework,
-  COMPLIANCE_FRAMEWORKS,
   computeComplianceCoverage,
   countRulesWithAnyMapping,
   findCoverageRegressions,
