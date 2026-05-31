@@ -36,6 +36,7 @@
   "scripts": {
     "test": "vitest run",
     "build": "tsc --build",
+    "compliance-coverage": "node scripts/check-compliance-coverage.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "prepare": "node scripts/sync-version.mjs && node scripts/sync-bundle.mjs",
     "prepack": "node scripts/sync-version.mjs && node scripts/sync-bundle.mjs"

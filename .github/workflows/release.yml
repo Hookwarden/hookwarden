@@ -34,6 +34,14 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build
         run: pnpm exec tsc --build
+      - name: Compliance coverage regression gate (Plan 25-04 COMPLIANCE-01)
+        # D-03 / OQ#4 ratchet — FAILS the release if any compliance framework's
+        # mapped-rule count dropped below packages/rules/compliance-coverage-baseline.json.
+        # The baseline is bumped (committed) in the same PR that adds mappings,
+        # so coverage can only ever rise. Mirrors the block-release discipline of
+        # the bundle-inspection gates below. Requires the tsc build above (reads
+        # @hookwarden/rules dist).
+        run: pnpm --filter @hookwarden/rules compliance-coverage
       - name: Bundle inspection (pre-publish gate)
         run: pnpm inspect-bundle
       - name: Bundle inspection — @hookwarden/mcp (pre-publish gate, Plan 23-04)
@@ -93,6 +101,14 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build
         run: pnpm exec tsc --build
+      - name: Compliance coverage regression gate (Plan 25-04 COMPLIANCE-01)
+        # D-03 / OQ#4 ratchet — FAILS the release if any compliance framework's
+        # mapped-rule count dropped below packages/rules/compliance-coverage-baseline.json.
+        # The baseline is bumped (committed) in the same PR that adds mappings,
+        # so coverage can only ever rise. Mirrors the block-release discipline of
+        # the bundle-inspection gates below. Requires the tsc build above (reads
+        # @hookwarden/rules dist).
+        run: pnpm --filter @hookwarden/rules compliance-coverage
       - name: Bundle inspection (pre-publish gate)
         run: pnpm inspect-bundle
       - name: Bundle inspection — @hookwarden/mcp (pre-publish gate, Plan 23-04)
