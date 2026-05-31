@@ -62,6 +62,10 @@ function toRuleDefinition(doc: ParsedRuleDocument): RuleDefinition {
     // block per finding. null when the YAML omits the field (grandfathered);
     // every v0.7.1+ rule carries at least one entry per the backfill sweep.
     references: doc.references,
+    // Phase 25 COMPLIANCE-01 (D-03): forward the additive compliance mappings
+    // (null for unmapped low-signal rules). validateRuleDocument normalizes
+    // undefined → null, so doc.compliance_mappings is always set here.
+    compliance_mappings: doc.compliance_mappings,
   };
 }
 

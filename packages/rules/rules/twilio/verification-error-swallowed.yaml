@@ -29,6 +29,11 @@ provider_docs_url: https://www.twilio.com/docs/usage/webhooks/webhooks-security
 references:
   - https://github.com/clerk/javascript/security/advisories/GHSA-9mp4-77wg-rwx9
   - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
+compliance_mappings:
+  soc2_cc: ["CC7.1", "CC7.2"]
+  iso27001: ["A.8.24", "A.8.16"]
+  eu_ai_act_annex_iii: ["Art.12", "Art.15"]
+  nist_ai_rmf: ["MEASURE", "MANAGE"]
 path_severity_overrides:
   - patterns:
       - "**/{test,tests,__tests__,spec,specs}/**"

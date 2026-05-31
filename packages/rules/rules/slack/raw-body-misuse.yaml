@@ -32,6 +32,11 @@ provider_docs_url: https://api.slack.com/authentication/verifying-requests-from-
 references:
   - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
   - https://docs.stripe.com/webhooks#verify-events
+compliance_mappings:
+  soc2_cc: ["CC6.7", "CC7.1"]
+  iso27001: ["A.8.24"]
+  eu_ai_act_annex_iii: ["Art.15"]
+  nist_ai_rmf: ["MEASURE"]
 path_severity_overrides:
   - patterns:
       - "**/{test,tests,__tests__,spec,specs}/**"

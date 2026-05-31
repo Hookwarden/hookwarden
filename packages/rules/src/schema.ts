@@ -54,6 +54,22 @@ export interface ParsedRuleDocument {
   // CI gate `references-required.test.ts` enforces non-empty `references` on
   // YAMLs introduced from v0.7 onwards.
   readonly references: ReadonlyArray<string> | null;
+  // Phase 25 COMPLIANCE-01 (D-03): additive optional compliance control-ID
+  // mappings. Curated on the high-signal rule classes (production-bypass +
+  // agentic + core-verification); low-signal rules stay unmapped but are still
+  // counted in the coverage denominator (keeps the --version --verbose stat
+  // honest). ADDITIVE — schema_version stays `const: 1` (loaders ignore unknown
+  // keys, D-03). Same optional/normalize discipline as `references`.
+  // - soc2_cc:             SOC2 Common-Criteria control IDs (CC6.x / CC7.x)
+  // - iso27001:            ISO/IEC 27001:2022 Annex A controls (e.g. A.8.24)
+  // - eu_ai_act_annex_iii: EU AI Act binding ARTICLES (Art.9 / Art.12 / Art.15) — never raw "Annex III"
+  // - nist_ai_rmf:         NIST AI RMF top-level functions only (GOVERN / MAP / MEASURE / MANAGE)
+  readonly compliance_mappings: {
+    readonly soc2_cc?: ReadonlyArray<string>;
+    readonly iso27001?: ReadonlyArray<string>;
+    readonly eu_ai_act_annex_iii?: ReadonlyArray<string>;
+    readonly nist_ai_rmf?: ReadonlyArray<string>;
+  } | null;
 }
 
 const SCHEMA = {
@@ -197,6 +213,28 @@ const SCHEMA = {
         },
       ],
     },
+    // Phase 25 COMPLIANCE-01 (D-03): additive optional compliance mappings.
+    // Object with four optional string-array sub-keys; NOT in `required[]`.
+    // undefined → null normalized in validateRuleDocument (parallel to `references`).
+    compliance_mappings: {
+      anyOf: [
+        { type: "null" },
+        {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            soc2_cc: { type: "array", items: { type: "string", minLength: 1 }, minItems: 1 },
+            iso27001: { type: "array", items: { type: "string", minLength: 1 }, minItems: 1 },
+            eu_ai_act_annex_iii: {
+              type: "array",
+              items: { type: "string", minLength: 1 },
+              minItems: 1,
+            },
+            nist_ai_rmf: { type: "array", items: { type: "string", minLength: 1 }, minItems: 1 },
+          },
+        },
+      ],
+    },
   },
 } as const;
 
@@ -219,6 +257,7 @@ export function validateRuleDocument(input: unknown): ParsedRuleDocument {
     path_severity_overrides?: unknown;
     fix?: unknown;
     references?: unknown;
+    compliance_mappings?: unknown;
   };
   const normalizedFix: ParsedRuleDocument["fix"] =
     raw.fix === undefined ? null : (raw.fix as ParsedRuleDocument["fix"]);
@@ -230,6 +269,11 @@ export function validateRuleDocument(input: unknown): ParsedRuleDocument {
         : (raw.path_severity_overrides as ParsedRuleDocument["path_severity_overrides"]),
     references:
       raw.references === undefined ? null : (raw.references as ParsedRuleDocument["references"]),
+    // Phase 25 COMPLIANCE-01 (D-03): undefined → null, mirroring `references`.
+    compliance_mappings:
+      raw.compliance_mappings === undefined
+        ? null
+        : (raw.compliance_mappings as ParsedRuleDocument["compliance_mappings"]),
     ...(normalizedFix !== undefined ? { fix: normalizedFix } : {}),
   } as ParsedRuleDocument;
   // A rule must have at least one of matcher or predicate.

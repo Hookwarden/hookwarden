@@ -23,6 +23,11 @@ provider_docs_url: https://code.claude.com/docs/en/agent-sdk/custom-tools
 references:
   - https://www.microsoft.com/en-us/security/blog/2026/05/07/prompts-become-shells-rce-vulnerabilities-ai-agent-frameworks/
   - https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
+compliance_mappings:
+  soc2_cc: ["CC6.7", "CC7.1"]
+  iso27001: ["A.8.24"]
+  eu_ai_act_annex_iii: ["Art.15"]
+  nist_ai_rmf: ["MEASURE"]
 path_severity_overrides:
   - patterns:
       - "**/{test,tests,__tests__,spec,specs}/**"
