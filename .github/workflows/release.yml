@@ -275,7 +275,7 @@ jobs:
         run: node scripts/verify-npm-installable.mjs "${{ steps.version.outputs.version }}"
 
       - name: Wait for PyPI publish workflow (release-py.yml triggered by the tag push)
-        if: steps.cli-published.outputs.cli == 'true'
+        if: steps.cli-published.outputs.cli == 'true' && !contains(steps.version.outputs.version, '-beta')
         run: |
           # Changesets pushes the tag; release-py.yml runs on tag. Poll until it completes.
           # B2 FIX: GHA `gh run list --json headBranch` for tag-triggered runs may return
@@ -310,7 +310,7 @@ jobs:
 
       - name: Mint GitHub App token (homebrew-tap + scoop-bucket + hookwarden-action)
         id: app-token
-        if: steps.cli-published.outputs.cli == 'true'
+        if: steps.cli-published.outputs.cli == 'true' && !contains(steps.version.outputs.version, '-beta')
         uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ vars.HOOKWARDEN_BOT_APP_ID }}
@@ -323,7 +323,7 @@ jobs:
 
       - name: Bump Homebrew formula
         id: bump-homebrew
-        if: steps.cli-published.outputs.cli == 'true'
+        if: steps.cli-published.outputs.cli == 'true' && !contains(steps.version.outputs.version, '-beta')
         run: |
           set -euo pipefail
           # tail -n1: defends against stray stdout from the script's git invocations
@@ -337,7 +337,7 @@ jobs:
 
       - name: Bump Scoop manifest
         id: bump-scoop
-        if: steps.cli-published.outputs.cli == 'true'
+        if: steps.cli-published.outputs.cli == 'true' && !contains(steps.version.outputs.version, '-beta')
         run: |
           set -euo pipefail
           sha=$(scripts/release/bump-scoop.sh | tail -n1)
@@ -348,7 +348,7 @@ jobs:
 
       - name: Build + bump hookwarden-action
         id: bump-action
-        if: steps.cli-published.outputs.cli == 'true'
+        if: steps.cli-published.outputs.cli == 'true' && !contains(steps.version.outputs.version, '-beta')
         run: |
           set -euo pipefail
           # D-79: ncc bundles src/index.ts + workspace `hookwarden` dep + @actions/* runtime deps
@@ -371,7 +371,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
 
       - name: Channel-parity SHA gate
-        if: steps.cli-published.outputs.cli == 'true'
+        if: steps.cli-published.outputs.cli == 'true' && !contains(steps.version.outputs.version, '-beta')
         run: bash scripts/release/verify-channel-parity.sh
         env:
           VERSION: ${{ steps.version.outputs.version }}

@@ -403,9 +403,15 @@ jobs:
           # aggregation job is the first publisher to the Release, so the
           # Release may not yet exist when we upload assets.
           if ! gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            # Mark prerelease GH Releases (e.g. v0.8.0-beta) as prerelease so
+            # downstream `release: published` consumers (WinGet) can skip them and
+            # never bump the stable WinGet channel to a beta. Stable tags stay --latest.
+            PRERELEASE_FLAG="--latest"
+            case "$VERSION" in *-beta*|*-alpha*|*-rc*) PRERELEASE_FLAG="--prerelease" ;; esac
             gh release create "$VERSION" \
               --repo "$GITHUB_REPOSITORY" \
               --title "$VERSION" \
+              $PRERELEASE_FLAG \
               --generate-notes
           fi
           # --clobber: idempotent on partial-state reruns.

@@ -17,6 +17,14 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Skip prerelease GH Releases (e.g. v0.8.0-beta). release-binaries.yml
+    # marks beta tags with --prerelease, so github.event.release.prerelease is
+    # true for them; never bump the stable WinGet channel to a beta. The tag-name
+    # check also covers workflow_dispatch reruns where the release object is absent.
+    if: >-
+      github.event.release.prerelease != true &&
+      !contains(github.event.release.tag_name, '-beta') &&
+      !contains(inputs.tag, '-beta')
     steps:
       - name: Resolve tag
         id: tag
