@@ -1,0 +1,11 @@
+{
+  "name": "anthropic-agent-sdk-unverified-tool-callback",
+  "version": "1.0.0",
+  "description": "Anthropic Agent SDK attack-surface fixture — a tool() handler acting on its unverified args payload at a side-effect sink.",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "*",
+    "express": "*",
+    "zod": "*"
+  }
+}
