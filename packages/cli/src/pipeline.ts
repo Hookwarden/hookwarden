@@ -47,6 +47,7 @@ import { loadHookwardenIgnore } from "./suppress/ignore-file.js";
 import type { InlineSuppressions } from "./suppress/inline-comments.js";
 import { extractInlineSuppressions } from "./suppress/inline-comments.js";
 import { detectStale, type StaleSuppression } from "./suppress/stale.js";
+import { discoverN8nInputs } from "./walker/n8n-discovery.js";
 import { type WalkResult, walkProject } from "./walker/index.js";
 import {
   loadPhpWasmBytes,
@@ -299,6 +300,18 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
     total_files_count: walkResult.total_files_count,
   };
 
+  // Phase 24 (AGENT-01) — n8n I/O seam. The engine is pure (D-03) and never reads files; the CLI
+  // discovers *.workflow.json source text + the package.json#n8n.nodes signal here and hands them
+  // to buildProjectModel. The engine content-sniffs each workflow (isN8nWorkflow) — a random
+  // *.workflow.json yields zero handlers (FP moat). Discovery is best-effort (never throws), so a
+  // non-n8n project pays only one cheap glob + package.json read and gets an empty result.
+  // fileList override (Phase 8.2 rescan) bypasses the full walk; skip n8n discovery there too —
+  // the rescan loop targets explicit code paths, not whole-project workflow discovery.
+  const n8nInputs =
+    input.fileList !== undefined && input.fileList.length > 0
+      ? { workflowFiles: [], customNodeSignal: false }
+      : await discoverN8nInputs(scanDir);
+
   let rawResult: ScanResult;
   try {
     const model: ProjectModel = await buildProjectModel({
@@ -306,6 +319,8 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
       ruleSet,
       config,
       bespokeAdapters: ALL_ADAPTERS,
+      workflowFiles: n8nInputs.workflowFiles,
+      customNodeSignal: n8nInputs.customNodeSignal,
     });
     rawResult = await evaluate(model, ruleSet, config);
   } catch (e) {

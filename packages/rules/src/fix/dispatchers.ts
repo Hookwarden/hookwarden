@@ -32,6 +32,8 @@ export function dispatchTimingUnsafeComparison(
       return pythonReplaceBinaryEquality(parsedFile, finding);
     case "tree-sitter-php":
       return phpReplaceBinaryEqualityOrStrcmp(parsedFile, finding);
+    case "n8n-json":
+      return null; // n8n workflow JSON is structured config, not code — no autofix codegen.
   }
 }
 
@@ -46,6 +48,8 @@ export function dispatchInsertNullishGuard(
       return pythonInsertNullishGuard(parsedFile, finding);
     case "tree-sitter-php":
       return null; // PHP nullish-guard is manual-only in v0.5 (PHP idiom rationale).
+    case "n8n-json":
+      return null; // n8n workflow JSON is structured config, not code — no autofix codegen.
   }
 }
 
@@ -60,6 +64,8 @@ export function dispatchReplaceRawBodyMisuse(
       return phpReplaceInputWithRawBody(parsedFile, finding);
     case "tree-sitter-python":
       return null; // Python raw-body is manual-only in v0.5 (B3 — D-11 cond. 2).
+    case "n8n-json":
+      return null; // n8n workflow JSON is structured config, not code — no autofix codegen.
   }
 }
 
@@ -74,5 +80,7 @@ export function dispatchInsertSecretPresenceCheck(
       return pythonInsertSecretPresenceCheck(parsedFile, finding);
     case "tree-sitter-php":
       return phpInsertSecretPresenceCheck(parsedFile, finding);
+    case "n8n-json":
+      return null; // n8n workflow JSON is structured config, not code — no autofix codegen.
   }
 }

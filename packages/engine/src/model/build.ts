@@ -118,8 +118,30 @@ export async function buildProjectModel(input: BuildProjectModelInput): Promise<
   //     lifted into full WebhookHandlers. These bypass assembleHandler entirely — they have NO AST,
   //     so the babel/tree-sitter overlays in assembleHandler do not apply (RESEARCH: route the
   //     synthetic handler directly into ProjectModel.handlers). Glob presence alone never fires.
+  //     A workflow file that fails JSON.parse must NOT be silently dropped (T-24-13): we lift it
+  //     into a synthetic parse-error ParsedFile so the existing evaluate.ts parse-error loop emits
+  //     exactly one `engine/parse-error` finding (mirrors the babel/tree-sitter contract). A
+  //     well-formed-but-not-n8n-shaped file is a clean negative — it yields zero handlers and zero
+  //     parse errors (FP moat; only a genuine syntax error surfaces).
+  const n8nParseErrorFiles: ParsedFile[] = [];
   for (const wf of input.workflowFiles ?? []) {
     const parsed = parseN8nWorkflow(wf.source_text, wf.file_path);
+    if (parsed.parseError !== null) {
+      n8nParseErrorFiles.push({
+        file_path: wf.file_path,
+        language: "json",
+        dialect: "n8n-json",
+        source_text: wf.source_text,
+        raw_ast: null,
+        imports: [],
+        parse_error: {
+          message: parsed.parseError.message,
+          location: parsed.parseError.location,
+          source: "json",
+        },
+      });
+      continue;
+    }
     if (!isN8nWorkflow(parsed.document)) continue;
     for (const descriptor of n8nAdapter(parsed)) {
       handlers.push(await assembleN8nHandler(descriptor));
@@ -131,7 +153,13 @@ export async function buildProjectModel(input: BuildProjectModelInput): Promise<
   const middlewareRegistrations: ReadonlyArray<MiddlewareRegistration> = [];
 
   return {
-    parsed_files: input.parsedFiles,
+    // Synthetic n8n parse-error files are appended so evaluate.ts emits their `engine/parse-error`
+    // finding via the same loop the AST parsers use. They carry parse_error !== null, so they are
+    // never handler-detected and never enter the AST overlays (those run over input.parsedFiles).
+    parsed_files:
+      n8nParseErrorFiles.length > 0
+        ? [...input.parsedFiles, ...n8nParseErrorFiles]
+        : input.parsedFiles,
     handlers,
     middleware_registrations: middlewareRegistrations,
     import_graph: importGraph,
