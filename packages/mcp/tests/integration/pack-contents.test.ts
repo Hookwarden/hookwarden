@@ -26,6 +26,7 @@ interface PackageJson {
 const ALLOWED_DEPS = new Set([
   "@hookwarden/engine",
   "@hookwarden/rules",
+  "@hookwarden/canonical-json",
   "@modelcontextprotocol/sdk",
   "web-tree-sitter",
   "citty",
@@ -67,7 +68,7 @@ describe("pack-contents — published tarball shape (PC-MCP-1..6)", () => {
     expect(pkg.files ?? []).toContain("wasm");
   });
 
-  it("PC-MCP-6: package.json#dependencies keys are a subset of the 7-pkg allowlist", () => {
+  it("PC-MCP-6: package.json#dependencies keys are a subset of the 8-pkg allowlist", () => {
     const deps = Object.keys(pkg.dependencies ?? {});
     for (const dep of deps) {
       expect(ALLOWED_DEPS).toContain(dep);

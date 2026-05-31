@@ -26,6 +26,11 @@ provider_docs_url: https://www.standardwebhooks.com/
 references:
   - https://hookdeck.com/webhooks/guides/webhook-security-vulnerabilities-guide
   - https://owasp.org/www-project-top-ten/
+compliance_mappings:
+  soc2_cc: ["CC6.1", "CC6.8"]
+  iso27001: ["A.8.24", "A.8.31"]
+  eu_ai_act_annex_iii: ["Art.15"]
+  nist_ai_rmf: ["MAP", "MANAGE"]
 path_severity_overrides:
   - patterns:
       - "**/{test,tests,__tests__,spec,specs}/**"

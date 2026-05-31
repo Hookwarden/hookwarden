@@ -12,7 +12,8 @@ import { z } from "zod";
 
 import { checkDrift, loadBuildManifest } from "./drift-check.js";
 import { scanHandler } from "./tools/scan-handler.js";
-import type { BuildManifest, ScanHandlerInput } from "./types.js";
+import { verifyAuditChain } from "./tools/verify-audit-chain.js";
+import type { BuildManifest, ScanHandlerInput, VerifyAuditChainInput } from "./types.js";
 import { VERSION } from "./version.js";
 
 const REINSTALL = "npm i -g @hookwarden/mcp@latest";
@@ -63,6 +64,27 @@ export async function bootServer(): Promise<number> {
     // delta between the interfaces.
     async (args) =>
       (await scanHandler(args as ScanHandlerInput, manifest)) as unknown as Awaited<
+        ReturnType<Parameters<typeof server.registerTool>[2]>
+      >,
+  );
+
+  // ── 3b. Register verify_audit_chain (Plan 25-02 / MCP-02) ───────────────
+  // Pure-crypto evidence-pack verifier: walks the per-row hash chain,
+  // roundtrips the manifest hash, and verifies the ECDSA-P256 Merkle-root +
+  // manifest signatures OFFLINE (node:crypto, no AWS, no auth). Unlike
+  // scan_handler it does NOT re-run the drift gate at call time — it has no
+  // engine/rule-pack dependency (D-23-12). The `as unknown as Awaited<...>`
+  // cast is load-bearing for the same SDK CallToolResult structural-match
+  // delta documented above.
+  server.registerTool(
+    "verify_audit_chain",
+    {
+      description:
+        "Verify a hookwarden evidence pack's hash chain + KMS-signed Merkle roots offline (no network, no auth).",
+      inputSchema: { evidence_pack_json: z.string() },
+    },
+    async (args) =>
+      verifyAuditChain(args as VerifyAuditChainInput) as unknown as Awaited<
         ReturnType<Parameters<typeof server.registerTool>[2]>
       >,
   );

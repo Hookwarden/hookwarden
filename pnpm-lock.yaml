@@ -70,6 +70,12 @@ importers:
         specifier: ^4.0.0
         version: 4.3.0
 
+  packages/canonical-json:
+    devDependencies:
+      fast-check:
+        specifier: ^4.8.0
+        version: 4.8.0
+
   packages/cli:
     dependencies:
       '@hookwarden/engine':
@@ -199,6 +205,9 @@ importers:
 
   packages/mcp:
     dependencies:
+      '@hookwarden/canonical-json':
+        specifier: workspace:*
+        version: link:../canonical-json
       '@hookwarden/engine':
         specifier: workspace:*
         version: link:../engine

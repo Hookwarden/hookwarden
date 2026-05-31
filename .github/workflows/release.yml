@@ -34,6 +34,14 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build
         run: pnpm exec tsc --build
+      - name: Compliance coverage regression gate (Plan 25-04 COMPLIANCE-01)
+        # D-03 / OQ#4 ratchet — FAILS the release if any compliance framework's
+        # mapped-rule count dropped below packages/rules/compliance-coverage-baseline.json.
+        # The baseline is bumped (committed) in the same PR that adds mappings,
+        # so coverage can only ever rise. Mirrors the block-release discipline of
+        # the bundle-inspection gates below. Requires the tsc build above (reads
+        # @hookwarden/rules dist).
+        run: pnpm --filter @hookwarden/rules compliance-coverage
       - name: Bundle inspection (pre-publish gate)
         run: pnpm inspect-bundle
       - name: Bundle inspection — @hookwarden/mcp (pre-publish gate, Plan 23-04)
@@ -93,6 +101,14 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build
         run: pnpm exec tsc --build
+      - name: Compliance coverage regression gate (Plan 25-04 COMPLIANCE-01)
+        # D-03 / OQ#4 ratchet — FAILS the release if any compliance framework's
+        # mapped-rule count dropped below packages/rules/compliance-coverage-baseline.json.
+        # The baseline is bumped (committed) in the same PR that adds mappings,
+        # so coverage can only ever rise. Mirrors the block-release discipline of
+        # the bundle-inspection gates below. Requires the tsc build above (reads
+        # @hookwarden/rules dist).
+        run: pnpm --filter @hookwarden/rules compliance-coverage
       - name: Bundle inspection (pre-publish gate)
         run: pnpm inspect-bundle
       - name: Bundle inspection — @hookwarden/mcp (pre-publish gate, Plan 23-04)
@@ -175,6 +191,46 @@ jobs:
           # giving us the same "is this really published?" gate without the
           # false negative.
           npm pack --dry-run "@hookwarden/mcp@$VERSION"
+
+      - name: Verify @hookwarden/canonical-json installability (Plan 25-01 — pipeline-green != published)
+        # Mirror of the @hookwarden/mcp lane above. canonical-json is an
+        # independently-versioned Apache-2.0 package (NOT in the Changesets
+        # `fixed` group), published by the shared `pnpm changeset publish`
+        # step once it is non-private. Per [[project_release_pipeline_fix_pkg_blocker]]
+        # every new package needs its OWN OIDC Trusted Publisher binding on
+        # npmjs.com (one-time, registered before first publish) — without it
+        # the publish 404s and downstream consumers (api/worker/verifier +
+        # Plan 02 MCP tool) become uninstallable even though earlier steps
+        # went green. This step confirms the tarball is actually fetchable
+        # AFTER changesets claims success, gated on canonical-json appearing
+        # in the published set.
+        if: |
+          steps.changesets.outputs.published == 'true' &&
+          contains(steps.changesets.outputs.publishedPackages, '@hookwarden/canonical-json')
+        run: |
+          # npm CDN propagation race — the read CDN can lag 30-90s after
+          # `changeset publish` returns 200. Poll for the exact just-published
+          # version for up to ~90s before the tarball-fetch assertion.
+          VERSION=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[] | select(.name=="@hookwarden/canonical-json") | .version')
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not extract @hookwarden/canonical-json version from publishedPackages output"
+            exit 1
+          fi
+          echo "Waiting for @hookwarden/canonical-json@$VERSION to be queryable on npm..."
+          for attempt in 1 2 3 4 5 6 7 8 9; do
+            FOUND=$(npm view "@hookwarden/canonical-json@$VERSION" version 2>/dev/null || true)
+            if [ "$FOUND" = "$VERSION" ]; then
+              echo "Visible after ${attempt} attempt(s) (~$((attempt * 10))s)"
+              break
+            fi
+            echo "Attempt $attempt: not yet visible (got '$FOUND'); sleeping 10s"
+            sleep 10
+          done
+          # `npm pack --dry-run` exercises the tarball-fetch path without the
+          # install-time resolver (which hits an upstream npm null-deref bug),
+          # giving the same "is this really published?" gate without the false
+          # negative — same rationale as the @hookwarden/mcp lane above.
+          npm pack --dry-run "@hookwarden/canonical-json@$VERSION"
 
       - name: Install mcp-publisher CLI (Plan 23-09 — pinned to MCP_PUBLISHER_VERSION)
         # WARNING #4 fix: pinned to a specific GitHub Release tag, NEVER

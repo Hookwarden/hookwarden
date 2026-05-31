@@ -1,0 +1,55 @@
+schema_version: 1
+rule_id: anthropic-agent-sdk/tool-callback-no-verification
+provider: anthropic-agent-sdk
+severity: critical
+emits_state: manual-review
+message: |
+  An `@anthropic-ai/claude-agent-sdk` agent callback handler appears to act on
+  the unverified request body. The attacker-influenceable callback payload
+  reaches a side-effect sink — a DB write, an outbound HTTP call, an event emit,
+  or a downstream agent / tool / LLM invocation (e.g. `chain.invoke`,
+  `agent.invoke`, `anthropic.messages.create`) — BEFORE any HMAC verification
+  runs in the handler.
+
+  An attacker who can POST to the agent's callback URL controls the JSON that
+  drives the tool, and the agent loop continues to act on the unverified state
+  delta. This is the agentic-callback class flagged by the Microsoft "prompts
+  become shells" RCE chain — OWASP Agentic ASI07 (Insecure Inter-Agent
+  Communication) is the primary mapping; ASI04 (Agentic Supply Chain) is
+  secondary.
+
+  This rule ships at `manual-review`: the engine reports the observed call order
+  (side effect before any verification), and the auditor confirms the body is
+  not verified upstream (middleware, an HMAC check) before it reaches the agent
+  sink. It shares the VAS-01 conservative verdict; promotion to `not-verified`
+  is gated on corpus FP-rate validation.
+
+  Fix: verify an HMAC over the raw callback body
+  (`crypto.createHmac('sha256', secret).update(args.raw_body).digest()` compared
+  with `crypto.timingSafeEqual`) and reject the request BEFORE `args` reaches
+  any side-effect sink.
+matcher: null
+predicate: anthropic-agent-sdk-tool-callback-no-verification
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+provider_docs_url: https://code.claude.com/docs/en/agent-sdk/custom-tools
+references:
+  - https://www.microsoft.com/en-us/security/blog/2026/05/07/prompts-become-shells-rce-vulnerabilities-ai-agent-frameworks/
+  - https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
+compliance_mappings:
+  soc2_cc: ["CC6.1", "CC7.1"]
+  iso27001: ["A.8.24", "A.8.16"]
+  eu_ai_act_annex_iii: ["Art.12", "Art.15"]
+  nist_ai_rmf: ["MEASURE", "MANAGE"]
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs}"
+    severity: info
+fix:
+  safety: manual-only
+  description: "Verify an HMAC over the raw callback body and reject before args reach any side-effect sink — see provider_docs_url"
+  codegen: null

@@ -86,3 +86,34 @@ export interface ScanHandlerOutput {
   structuredContent: ScanHandlerStructuredContent | (Record<string, unknown> & { error: string });
   isError?: boolean;
 }
+
+// ─── verify_audit_chain tool contracts (Plan 25-02 / MCP-02) ───────────────
+//
+// Offline, no-auth verification of a hookwarden evidence pack: walk the
+// per-row hash chain, roundtrip the manifest hash, and (for v1.1 packs that
+// embed the signing CMK's SPKI public key) verify the ECDSA-P256 Merkle-root
+// + manifest signatures with node:crypto — no AWS call, no credentials.
+export interface VerifyAuditChainInput {
+  readonly evidence_pack_json: string;
+}
+
+export interface VerifyAuditChainStructuredContent {
+  // true iff the hash chain is intact AND the manifest hash roundtrips AND
+  // all signatures that COULD be verified offline verified.
+  readonly valid: boolean;
+  // The `seq` of the first row whose chain hash did not match, or null if the
+  // chain is intact. Signature validity is independent of chain integrity.
+  readonly broken_at_row: number | null;
+  // Count of offline-verified signatures: N Merkle-root signatures + 1
+  // manifest signature (N+1). 0 for v1.0 packs (no embedded public key).
+  readonly signatures_verified: number;
+}
+
+// Same content/structuredContent/isError shape as ScanHandlerOutput.
+export interface VerifyAuditChainOutput {
+  content: Array<{ type: "text"; text: string }>;
+  structuredContent:
+    | VerifyAuditChainStructuredContent
+    | (Record<string, unknown> & { error: string });
+  isError?: boolean;
+}

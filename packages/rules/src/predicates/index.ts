@@ -786,4 +786,37 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
     "n8n",
     PROVIDER_CATALOG["n8n"] as ProviderCatalogEntry,
   ),
+  // Phase 25 Plan 03 (AGENT-02) — Anthropic Agent SDK detector + the baseline rules.
+  // Same machinery as n8n detector #2, re-parameterized for "anthropic-agent-sdk".
+  //
+  // Named detector: tool-callback-no-verification — reuses the VAS-01
+  // `side_effect_before_verify` evidence machinery. The anthropic-agent-sdk catalog
+  // entry adds the agent/tool/LLM call names to the sink lists, so "a tool() handler
+  // acts on its unverified `args` payload at a side-effect sink before any HMAC check"
+  // is a T1 side-effect-before-verify. A createHmac + timingSafeEqual verification
+  // reachable before the sink clears it (SC#2). Unlike n8n (cross-file uncertainty ->
+  // manual-review), the tool() handler is a single self-contained closure, so the
+  // in-file order is observable -> the YAML ships at `not-verified` (critical) verdict.
+  "anthropic-agent-sdk-tool-callback-no-verification":
+    createVerifyAfterSideEffectPredicate("anthropic-agent-sdk"),
+  "anthropic-agent-sdk-missing-signature-verification": createMissingSignatureVerificationPredicate(
+    "anthropic-agent-sdk",
+    PROVIDER_CATALOG["anthropic-agent-sdk"] as ProviderCatalogEntry,
+  ),
+  "anthropic-agent-sdk-missing-timestamp-check": createMissingTimestampCheckPredicate(
+    "anthropic-agent-sdk",
+    PROVIDER_CATALOG["anthropic-agent-sdk"] as ProviderCatalogEntry,
+  ),
+  "anthropic-agent-sdk-timing-safe-equal": createTimingUnsafeComparisonPredicate(
+    "anthropic-agent-sdk",
+    PROVIDER_CATALOG["anthropic-agent-sdk"] as ProviderCatalogEntry,
+  ),
+  "anthropic-agent-sdk-raw-body-misuse": createRawBodyMisusePredicate(
+    "anthropic-agent-sdk",
+    PROVIDER_CATALOG["anthropic-agent-sdk"] as ProviderCatalogEntry,
+  ),
+  "anthropic-agent-sdk-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "anthropic-agent-sdk",
+    PROVIDER_CATALOG["anthropic-agent-sdk"] as ProviderCatalogEntry,
+  ),
 };

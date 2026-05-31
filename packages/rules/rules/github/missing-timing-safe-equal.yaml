@@ -19,6 +19,11 @@ provider_docs_url: https://docs.github.com/en/webhooks/using-webhooks/validating
 references:
   - https://codahale.com/a-lesson-in-timing-attacks/
   - https://cwe.mitre.org/data/definitions/208.html
+compliance_mappings:
+  soc2_cc: ["CC6.1", "CC6.7"]
+  iso27001: ["A.8.24"]
+  eu_ai_act_annex_iii: ["Art.15"]
+  nist_ai_rmf: ["MEASURE"]
 path_severity_overrides:
   - patterns:
       - "**/{test,tests,__tests__,spec,specs}/**"

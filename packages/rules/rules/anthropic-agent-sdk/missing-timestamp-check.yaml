@@ -1,0 +1,39 @@
+schema_version: 1
+rule_id: anthropic-agent-sdk/missing-timestamp-check
+provider: anthropic-agent-sdk
+severity: high
+emits_state: manual-review
+message: |
+  An `@anthropic-ai/claude-agent-sdk` agent callback handler computes an HMAC
+  over the request but no replay-defense surface (timestamp tolerance check, or
+  per-delivery nonce/ID lookup against a Map, Set, Redis, or DB) is reachable. A
+  captured callback can be replayed against the agent tool.
+
+  Recommended: reject requests whose timestamp is outside a short tolerance
+  window, or persist and reject previously-seen delivery IDs, before `args`
+  reaches any side-effect sink.
+matcher: null
+predicate: anthropic-agent-sdk-missing-timestamp-check
+applies_to:
+  - express
+  - hono
+  - fastify
+  - nextjs
+provider_docs_url: https://code.claude.com/docs/en/agent-sdk/custom-tools
+references:
+  - https://www.microsoft.com/en-us/security/blog/2026/05/07/prompts-become-shells-rce-vulnerabilities-ai-agent-frameworks/
+  - https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/
+compliance_mappings:
+  soc2_cc: ["CC6.7", "CC7.1"]
+  iso27001: ["A.8.24"]
+  eu_ai_act_annex_iii: ["Art.15"]
+  nist_ai_rmf: ["MEASURE"]
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs}"
+    severity: info
+fix:
+  safety: manual-only
+  description: "Add a timestamp-tolerance check or per-delivery replay defense — see provider_docs_url"
+  codegen: null

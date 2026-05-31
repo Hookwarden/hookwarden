@@ -31,6 +31,11 @@ provider_docs_url: https://www.twilio.com/docs/usage/webhooks/webhooks-security
 references:
   - https://docs.stripe.com/webhooks#replay-attacks
   - https://www.standardwebhooks.com/
+compliance_mappings:
+  soc2_cc: ["CC6.7", "CC7.1"]
+  iso27001: ["A.8.24"]
+  eu_ai_act_annex_iii: ["Art.15"]
+  nist_ai_rmf: ["MEASURE"]
 fix:
   safety: manual-only
   description: "Apply the fix manually per the provider documentation — see provider_docs_url"

@@ -119,6 +119,17 @@ export interface RuleDefinition {
   // v0.7+ rules via a CI gate; older grandfathered rules carry null until
   // backfilled — all 230 v0.7.1+ rules are populated).
   readonly references: ReadonlyArray<string> | null;
+  // Phase 25 COMPLIANCE-01 (D-03): additive optional compliance control-ID
+  // mappings forwarded from the YAML. null for unmapped (low-signal) rules.
+  // Consumed by the compliance-coverage tally + the --version --verbose stat;
+  // additive so no schema_version bump. eu_ai_act_annex_iii carries binding
+  // ARTICLES (Art.9/12/15), nist_ai_rmf top-level functions only.
+  readonly compliance_mappings: {
+    readonly soc2_cc?: ReadonlyArray<string>;
+    readonly iso27001?: ReadonlyArray<string>;
+    readonly eu_ai_act_annex_iii?: ReadonlyArray<string>;
+    readonly nist_ai_rmf?: ReadonlyArray<string>;
+  } | null;
 }
 
 export interface RuleSet {

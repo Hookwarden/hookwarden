@@ -1,14 +1,6 @@
 // hookwarden CLI entry. D-45 citty defineCommand. D-46 sibling scan + inventory.
 // D-47 no-arg help. D-48 zero-config flags. D-49 exit 0/1/2/3/4 (Phase 4 expanded matrix).
 
-import { defineCommand } from "citty";
-import { renderBanner, shouldShowBanner } from "./banner.js";
-import { explainCommand, runExplainCommand } from "./commands/explain.js";
-import { type FixArgs, fixCommand, runFixCommand } from "./commands/fix.js";
-import { type InventoryArgs, inventoryCommand, runInventoryCommand } from "./commands/inventory.js";
-import { runScanCommand, type ScanArgs, scanCommand } from "./commands/scan.js";
-import { runUpdateCommand, type UpdateArgs } from "./commands/update.js";
-import { renderLogo } from "./logo.js";
 // VERSION is generated from package.json by scripts/sync-version.mjs (runs in
 // `prepare` + `prepack` + CI before `bun build --compile`). Generating a TS
 // constant bakes the literal into both the npm-published dist/ AND the Bun
@@ -17,8 +9,38 @@ import { renderLogo } from "./logo.js";
 // because the Changesets release bumps package.json#version, sync-version
 // regenerates src/version.ts before publish/compile, and any drift is a
 // build-time error rather than a runtime surprise.
+import {
+  computeComplianceCoverage,
+  countRulesWithAnyMapping,
+  formatComplianceCoverageLine,
+} from "@hookwarden/rules";
+import { defineCommand } from "citty";
+import { renderBanner, shouldShowBanner } from "./banner.js";
+import { explainCommand, runExplainCommand } from "./commands/explain.js";
+import { type FixArgs, fixCommand, runFixCommand } from "./commands/fix.js";
+import { type InventoryArgs, inventoryCommand, runInventoryCommand } from "./commands/inventory.js";
+import { runScanCommand, type ScanArgs, scanCommand } from "./commands/scan.js";
+import { runUpdateCommand, type UpdateArgs } from "./commands/update.js";
+import { loadRulesFromDir } from "./load-rules.js";
+import { renderLogo } from "./logo.js";
 import { VERSION } from "./version.js";
 import { shouldUseAnsi } from "./walker/tty.js";
+
+// Phase 25 COMPLIANCE-01: build the auditor-facing coverage stat line from the
+// loaded rule pack. Loads the bundled RuleSet, tallies per-framework mapped
+// counts over the full denominator, and renders the single-line stat. Best
+// effort — a load failure must NOT make `--version` non-zero, so it degrades to
+// a short note rather than throwing.
+async function formatComplianceCoverageStat(): Promise<string> {
+  try {
+    const ruleSet = await loadRulesFromDir();
+    const coverage = computeComplianceCoverage(ruleSet);
+    const anyMapped = countRulesWithAnyMapping(ruleSet);
+    return `${formatComplianceCoverageLine(coverage, anyMapped)}\n`;
+  } catch {
+    return "compliance_mappings: coverage unavailable (rule pack failed to load)\n";
+  }
+}
 
 // Public registration of the citty command tree (consumed by hosts that prefer citty's runMain).
 export const root = defineCommand({
@@ -237,6 +259,14 @@ export async function main(argv: ReadonlyArray<string>): Promise<number> {
   // Top-level --version / -V → print and exit 0.
   if (argv[0] === "--version" || argv[0] === "-V") {
     process.stdout.write(`${VERSION}\n`);
+    // Phase 25 COMPLIANCE-01: `--version --verbose` (or `-v`) additionally prints
+    // the compliance-coverage stat over the loaded rule pack — the auditor-facing
+    // "X of Y rules carry compliance_mappings" line. Verbose-only so the plain
+    // `--version` machine-readable output (used by installers) stays a bare semver.
+    const verbose = argv.slice(1).some((a) => a === "--verbose" || a === "-v");
+    if (verbose) {
+      process.stdout.write(await formatComplianceCoverageStat());
+    }
     return 0;
   }
 

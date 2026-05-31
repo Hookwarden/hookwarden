@@ -6,6 +6,15 @@ export {
   type BundledRuleDocument,
 } from "./bundled-rules.js";
 export { PROVIDER_CATALOG } from "./catalog.js";
+export {
+  COMPLIANCE_FRAMEWORKS,
+  type ComplianceCoverage,
+  type ComplianceFramework,
+  computeComplianceCoverage,
+  countRulesWithAnyMapping,
+  findCoverageRegressions,
+  formatComplianceCoverageLine,
+} from "./compliance-coverage.js";
 export { ALL_CODEGEN_ROUTINES, type CodegenRoutine } from "./fix/index.js";
 export { computeContentHash, type LoadRuleSetInput, loadRuleSet } from "./loader.js";
 export { ALL_PREDICATES } from "./predicates/index.js";

@@ -1,0 +1,8 @@
+{
+  "_comment": "Phase 25 COMPLIANCE-01 (D-03 / OQ#4) coverage ratchet baseline. Counts = number of shipped rules carrying a non-empty mapping per framework; total_rules = full denominator (ALL shipped rules, mapped or not). The release.yml coverage-regression gate FAILS if any framework count drops below these numbers. Bump these counts (commit) in the same PR that adds mappings so the ratchet only ever rises.",
+  "soc2_cc": 162,
+  "iso27001": 162,
+  "eu_ai_act_annex_iii": 162,
+  "nist_ai_rmf": 162,
+  "total_rules": 246
+}

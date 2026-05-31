@@ -25,6 +25,11 @@ provider_docs_url: https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes
 references:
   - https://blog.talosintelligence.com/the-n8n-n8mare/
   - https://thehackernews.com/2026/04/n8n-webhooks-abused-since-october-2025.html
+compliance_mappings:
+  soc2_cc: ["CC6.1"]
+  iso27001: ["A.8.24", "A.5.15"]
+  eu_ai_act_annex_iii: ["Art.15"]
+  nist_ai_rmf: ["MEASURE", "MANAGE"]
 fix:
   safety: manual-only
   description: "Set the Webhook node's Authentication to Header Auth (or Basic/JWT) and attach the matching credential — see provider_docs_url"

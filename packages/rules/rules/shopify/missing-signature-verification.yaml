@@ -35,6 +35,11 @@ provider_docs_url: https://shopify.dev/docs/apps/webhooks/configuration/https#st
 references:
   - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
   - https://hookdeck.com/webhooks/guides/webhook-security-vulnerabilities-guide
+compliance_mappings:
+  soc2_cc: ["CC6.1", "CC6.7"]
+  iso27001: ["A.8.24", "A.5.14"]
+  eu_ai_act_annex_iii: ["Art.15"]
+  nist_ai_rmf: ["MEASURE", "MANAGE"]
 path_severity_overrides:
   - patterns:
       - "**/{test,tests,__tests__,spec,specs}/**"

@@ -33,6 +33,11 @@ provider_docs_url: https://docs.n8n.io/integrations/creating-nodes/build/referen
 references:
   - https://blog.talosintelligence.com/the-n8n-n8mare/
   - https://thehackernews.com/2026/04/n8n-webhooks-abused-since-october-2025.html
+compliance_mappings:
+  soc2_cc: ["CC6.1", "CC7.1"]
+  iso27001: ["A.8.24", "A.8.16"]
+  eu_ai_act_annex_iii: ["Art.12", "Art.15"]
+  nist_ai_rmf: ["MEASURE", "MANAGE"]
 path_severity_overrides:
   - patterns:
       - "**/{test,tests,__tests__,spec,specs}/**"

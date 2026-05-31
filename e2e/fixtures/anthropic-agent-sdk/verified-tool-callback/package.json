@@ -1,0 +1,11 @@
+{
+  "name": "anthropic-agent-sdk-verified-tool-callback",
+  "version": "1.0.0",
+  "description": "Anthropic Agent SDK MITIGATED fixture — a tool() handler that HMAC-verifies the raw body before the agent sink.",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "*",
+    "express": "*",
+    "zod": "*"
+  }
+}
