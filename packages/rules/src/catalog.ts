@@ -177,7 +177,7 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     sdk_verify_calls: ["getHeaderData", "timingSafeEqual", "crypto.timingSafeEqual"],
     secret_env_prefix: ["N8N_WEBHOOK", "N8N_SIGNING", "WEBHOOK_TOKEN"],
     secret_literal_prefix: ["n8n_api_"],
-    conventional_paths: ["/webhook", "/webhook-test", "/webhooks/n8n"],
+    conventional_paths: ["/webhooks/n8n"], // namespaced (24-04 fix): bare "/webhook" collided with every provider route via substring match; n8n is attributed by SDK/import + workflow-JSON sniff, not path
     hmac_algorithm: "sha256",
     signing_input_format: "raw_body",
     timestamp_header: null,
