@@ -55,14 +55,26 @@ describe("Phase 1 — Foundation & Defensive Registration: Success Criteria", ()
     // mcp added in phase 23 (v0.8) — Model Context Protocol server exposing
     // scan_handler for AI coding agents (Claude Desktop / Cursor / Continue /
     // Anthropic Agent SDK); pinned engine + rules deps for drift detection.
-    for (const name of ["engine", "cli", "github-action", "rules", "pr-renderer", "fix", "mcp"]) {
+    // canonical-json added in phase 25 (25-01) — RFC 8785 JCS, published as
+    // @hookwarden/canonical-json@0.1.0; the byte-equality anchor shared by the
+    // evidence-pack writer/verifier and the verify_audit_chain MCP tool (25-02).
+    for (const name of [
+      "engine",
+      "cli",
+      "github-action",
+      "rules",
+      "pr-renderer",
+      "fix",
+      "mcp",
+      "canonical-json",
+    ]) {
       const path = join(ROOT, "packages", name, "package.json");
       expect(existsSync(path), `packages/${name}/package.json missing`).toBe(true);
     }
     const root = JSON.parse(readFileSync(join(ROOT, "tsconfig.json"), "utf8"));
     // Bump this count whenever a new packages/* project reference lands in
     // the root tsconfig.json — see packages list above.
-    expect(root.references.length).toBe(7);
+    expect(root.references.length).toBe(8);
   });
 
   it("Success Criterion 2: dep-cruiser blocks fs import in packages/engine", () => {

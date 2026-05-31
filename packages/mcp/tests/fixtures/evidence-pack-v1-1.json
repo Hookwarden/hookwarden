@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.1",
+  "pack_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "exported_at": "2026-05-29T12:00:00.000Z",
+  "workspace_id": "11111111-1111-1111-1111-111111111111",
+  "scope": {
+    "endpoints": [
+      {
+        "id": "ep-1",
+        "provider": "stripe",
+        "framework": "hono",
+        "routePattern": "/webhooks/stripe",
+        "filePath": "src/webhooks/stripe.ts",
+        "verificationStatus": "verified"
+      }
+    ],
+    "rotations": [
+      {
+        "id": "rot-1",
+        "provider": "stripe",
+        "currentState": "completed",
+        "startedAt": "2026-05-01T00:00:00.000Z",
+        "completedAt": "2026-05-01T01:00:00.000Z"
+      }
+    ],
+    "leaks": [
+      {
+        "id": "leak-1",
+        "fingerprintHex": "deadbeefcafebabe",
+        "state": "resolved",
+        "sourceLocator": "cloudwatch/log-group/x:42",
+        "firstSeenAt": "2026-04-01T00:00:00.000Z",
+        "lastSeenAt": "2026-04-02T00:00:00.000Z"
+      }
+    ],
+    "findings": [
+      {
+        "id": "fnd-1",
+        "ruleId": "stripe-missing-signature",
+        "severity": "critical",
+        "state": "fixed",
+        "filePath": "src/webhooks/stripe.ts",
+        "routePattern": "/webhooks/stripe"
+      },
+      {
+        "id": "fnd-2",
+        "ruleId": "github-timing-unsafe-compare",
+        "severity": "high",
+        "state": "new",
+        "filePath": "src/webhooks/github.ts",
+        "routePattern": "/webhooks/github"
+      }
+    ],
+    "audit_log": {
+      "rows": [
+        {
+          "seq": "1",
+          "kind": "workspace_provisioned",
+          "payload": {
+            "actor_user_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+          },
+          "createdAt": "2026-04-01T00:00:00.000Z",
+          "hashHex": "b83950ff468d0b3686830ee7b4539196e625b40763efc26710d3f4cc0a46f01c",
+          "prevHashHex": null
+        },
+        {
+          "seq": "2",
+          "kind": "rotation_started",
+          "payload": {
+            "rotation_id": "rot-1",
+            "actor_user_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+          },
+          "createdAt": "2026-05-01T00:00:00.000Z",
+          "hashHex": "683739a127363cf939b31ed0e856a91f800140a36aa3fad348035fced11ca4a3",
+          "prevHashHex": "b83950ff468d0b3686830ee7b4539196e625b40763efc26710d3f4cc0a46f01c"
+        }
+      ],
+      "signed_batches": [
+        {
+          "batchStartSeq": "1",
+          "batchEndSeq": "2",
+          "merkleRootHex": "417322f6866398b5e9744507b7e9c3087159a15feed2881c07389a6e47079015",
+          "signatureDerB64": "MEUCIQDDemaXgYdmSApuXaUll7PV8cImZP5JBAnbnzolqAqZ9QIgLMvvJznpND2Bwtir6onRBCo/7d2ivVGbr9t6PyIXX/Q=",
+          "signingAlgorithm": "ECDSA_SHA_256",
+          "signedAt": "2026-05-31T01:00:00.000Z"
+        }
+      ]
+    }
+  },
+  "soc2_mapping": {
+    "CC6.1": ["leak-1"],
+    "CC6.7": ["fnd-1", "fnd-2"],
+    "CC7.1": ["rot-1"]
+  },
+  "iso27001_mapping": {
+    "A.5.17": ["leak-1", "fnd-1", "fnd-2"],
+    "A.8.24": ["rot-1", "fnd-1", "fnd-2"]
+  },
+  "signature": {
+    "signing_cmk_arn": "arn:aws:kms:eu-central-1:000000000000:alias/hookwarden-tenant-test-ws",
+    "signing_algorithm": "ECDSA_SHA_256",
+    "manifest_hash_hex": "0b126337ef080a99849b7824e0442d5b5273a01e68f2b7632341bf8ae485fb5a",
+    "signature_der_b64": "MEYCIQCks4vnoIIy+0Jp/ZEECxe7SVHd41YZeo8qwUSbdUAmBwIhANHDZIP2bK+7QlZHLHX5rAEQCUW0BFaLfzogk8Sfnqqh",
+    "signing_public_key_spki_b64": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEO0tHjvBtvsPRHOe2zk+wXMUIrl8zrGe+SLD0//bIBuWwkz8AFxqmIDSBNyvMOnThDQgMY1yPp/tJ2Ix0rFkoZA=="
+  }
+}

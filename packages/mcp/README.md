@@ -16,7 +16,10 @@
 
 ## What it does
 
-`@hookwarden/mcp` exposes hookwarden's deterministic webhook-verification engine as an MCP tool. AI coding agents — Claude Desktop, Cursor, Continue, and apps built on the Anthropic Agent SDK — can call `scan_handler` on pasted webhook handler code and get back a structured finding (`verified` / `not-verified` / `manual-review`) for Stripe, GitHub, Shopify, Twilio, and 17 other providers.
+`@hookwarden/mcp` exposes hookwarden's deterministic webhook-verification engine as MCP tools. AI coding agents — Claude Desktop, Cursor, Continue, and apps built on the Anthropic Agent SDK — get two tools:
+
+- **`scan_handler`** — scan pasted webhook handler code and get back a structured finding (`verified` / `not-verified` / `manual-review`) for Stripe, GitHub, Shopify, Twilio, and 17 other providers.
+- **`verify_audit_chain`** — verify a hookwarden evidence pack's hash chain + KMS-signed Merkle roots **offline** (no network, no auth), returning `{ valid, broken_at_row, signatures_verified }`.
 
 Runs entirely client-side. Zero network egress from the MCP process. Zero auth. The same engine the [hookwarden CLI](https://www.npmjs.com/package/hookwarden) ships — same rule pack, same content hashes, end-to-end provenance.
 
@@ -26,7 +29,7 @@ Runs entirely client-side. Zero network egress from the MCP process. Zero auth. 
 npx @hookwarden/mcp init
 ```
 
-That command detects your installed MCP clients (Claude Desktop / Cursor / Continue), prints a per-OS summary table, and writes the canonical config to each one. `.bak` files land alongside every config it touches. Restart the relevant client and `scan_handler` appears in the tool list.
+That command detects your installed MCP clients (Claude Desktop / Cursor / Continue), prints a per-OS summary table, and writes the canonical config to each one. `.bak` files land alongside every config it touches. Restart the relevant client and `scan_handler` + `verify_audit_chain` appear in the tool list.
 
 Pass `--all` for non-interactive use, `--dry-run` to preview, `--force` to overwrite an existing `mcpServers.hookwarden` entry, or `--clients claude-desktop,cursor` to limit the set.
 
@@ -165,6 +168,38 @@ Same 3-state vocabulary as the CLI. No remapping in the MCP layer.
 | `engine_drift` / `rules_drift` | Boot or call-time drift — see [drift-detection](https://docs.hookwarden.dev/mcp/drift-detection). |
 
 Parse failures don't crash the transport — they emit as `rule_id: "engine/parse-error"` findings with severity `high` and increment `verdict_summary.parse_error`.
+
+## The `verify_audit_chain` tool
+
+Verify a hookwarden evidence pack's integrity **offline** — no network, no AWS, no credentials. "Verify the chain without trusting hookwarden." The tool walks the per-row hash chain, roundtrips the manifest hash, and — for v1.1 packs that embed the signing CMK's SPKI public key — verifies the ECDSA-P256 (`MessageType:DIGEST`) Merkle-root + manifest signatures with `node:crypto`.
+
+### Inputs
+
+| Field | Type | Notes |
+|---|---|---|
+| `evidence_pack_json` | string | The full evidence-pack JSON (the file hookwarden's evidence export produces). Both v1.0 and v1.1 packs are accepted. |
+
+### Output
+
+```json
+{
+  "valid": true,
+  "broken_at_row": null,
+  "signatures_verified": 2
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `valid` | `true` iff the hash chain is intact AND the manifest hash roundtrips AND every signature that could be verified offline verified. |
+| `broken_at_row` | The `seq` of the first row whose chain hash didn't match, or `null` if the chain is intact. Signature validity is independent of chain integrity. |
+| `signatures_verified` | Count of offline-verified signatures: N Merkle-root signatures + 1 manifest signature (N+1). `0` for v1.0 packs (no embedded public key) — the tool emits a `signatures not verifiable offline (v1.0 pack)` note instead of failing. |
+
+### Trust model
+
+The v1.1 pack carries its own SPKI public key. The signature proves the pack was not altered after signing **by the holder of that key** — it is trust-on-first-use. To pin trust to a specific signer out-of-band, an auditor can cross-check `signature.signing_cmk_arn` against AWS KMS `GetPublicKey` and confirm the embedded SPKI key matches. Malformed pack JSON returns `isError: true` (`error: "invalid_pack_json"`) — the tool never throws past its boundary.
+
+This tool imports only `@hookwarden/canonical-json` (the shared RFC 8785 byte-equality anchor) + `node:crypto`. It does **not** load the engine or rule pack and does not run the drift gate.
 
 ## Integrity claims
 

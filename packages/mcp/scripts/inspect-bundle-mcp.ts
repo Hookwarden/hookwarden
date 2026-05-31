@@ -47,6 +47,7 @@ const FORBIDDEN_SCRIPTS = [
 const HOOKWARDEN_OWN_PKGS = new Set([
   "@hookwarden/engine", // pure-functional rule evaluator (browser-safe per D-01)
   "@hookwarden/rules", // YAML rule pack + content-hash primitive
+  "@hookwarden/canonical-json", // RFC 8785 JCS — pure, no-network; the verify_audit_chain byte-equality anchor (Plan 25-02)
 ]);
 
 const SDK_TRANSITIVE_ALLOWLIST = new Set([
