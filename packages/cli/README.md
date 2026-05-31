@@ -359,7 +359,7 @@ PHP 8.0+ syntax floor. Python 3.10+ recommended. TypeScript: strict + non-strict
 
 ## 🔐 Provider coverage
 
-45 rules across 6 providers, each applicable across the relevant subset of the 11 frameworks above. Every rule carries fix guidance quoted verbatim from the provider's canonical security documentation.
+230 rules across 21 providers, each applicable across the relevant subset of the 11 frameworks above. Every rule carries fix guidance quoted verbatim from the provider's canonical security documentation.
 
 <p align="center">
   <a href="https://github.com/Hookwarden/hookwarden/tree/main/packages/rules/rules/stripe"><img src="https://img.shields.io/badge/Stripe-6366F1?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe" /></a>
@@ -483,7 +483,7 @@ Hookwarden is **specialized on purpose.** Webhook signature verification is the 
 | **GitGuardian** | Secret leak detection in git history and CI | Finds hardcoded secrets; does not audit whether verification logic is correct |
 | **TruffleHog** | Secret scanning across sources | Same as GitGuardian — leak focus, not logic focus |
 | **Datadog Static Analysis** | Broad SAST; good AWS/cloud signal | No webhook verification specialization; generic SAST rules produce low-signal findings for this class of bug |
-| **hookwarden** | Webhook verification logic only | 45 rules, 6 providers, three-state verdicts, <5% FP rate measured against a 200-repo OSS corpus |
+| **hookwarden** | Webhook verification logic only | 230 rules (100% cited), 21 providers, three-state verdicts, <5% FP on a 200-repo corpus |
 
 If you're already running semgrep or snyk: hookwarden is additive, not a replacement. It finds the class of bug those tools were not built to find.
 
