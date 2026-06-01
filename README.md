@@ -70,7 +70,7 @@ npx hookwarden scan ./your-app
 
 A handler that accepts an unsigned payload, compares HMACs with `==`, or skips the signature check on a `?test=true` path silently routes attacker traffic into your business logic. The bug is one line in a 50K-line app, and it looks plausible — not the shape general-purpose SAST tools are tuned to flag. They were built for SQL injection and prototype pollution; webhook verification falls between their default rule packs.
 
-hookwarden does one thing. It walks your repo, parses every webhook handler across 11 frameworks, and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix quoted from provider docs. The catalog (21 named providers — Stripe, GitHub, Shopify, Slack, Twilio, Square, Sentry, Zendesk, DocuSign, PagerDuty, Notion, plus Standard Webhooks conformant providers like Clerk, Resend, Mux) encodes signature quirks no generic scanner has the surface area to know: Stripe's 5-minute timestamp tolerance, Slack's `v0:${ts}:${body}` scheme, Twilio's SHA-1 outlier.
+hookwarden does one thing. It walks your repo, parses every webhook handler across 11 frameworks, and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix quoted from provider docs. The catalog (21 named providers — Stripe, GitHub, Shopify, Slack, Twilio, Square, Sentry, Zendesk, DocuSign, PagerDuty, Notion, Auth0, HubSpot, Intercom, Linear, Zoom, Calendly, Bitbucket, Mailchimp, Postmark, plus Standard Webhooks conformant providers like Clerk, Resend, Mux) encodes signature quirks no generic scanner has the surface area to know: Stripe's 5-minute timestamp tolerance, Slack's `v0:${ts}:${body}` scheme, Twilio's SHA-1 outlier.
 
 **The three-state verdict is not a hedge.** `manual-review` is what you get when hookwarden can't *prove* safety or unsafety from the source alone — a handler inside a middleware chain the analyzer couldn't unroll, say. It's how the false-positive rate stays honest (<5%, measured against a 200-repo OSS corpus). A tool that reports every gray area as a bug isn't a security tool; it's noise. → [How the verdict works](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/index.mdx)
 
@@ -107,7 +107,7 @@ hookwarden --version   # check what you have
 | **npx** (no install) | `npx hookwarden@latest scan .` — `@latest` bypasses the npx cache |
 | **direct binary** | re-download from [Releases](https://github.com/Hookwarden/hookwarden/releases/latest) |
 
-Rule pack versions move with the CLI (engine, rules, and CLI ship as a fixed group — `0.7.2` everywhere). Pin in CI with `npx hookwarden@0.7.2 scan .` if you want byte-stable verdicts across runs.
+Rule pack versions move with the CLI (engine, rules, and CLI ship as a fixed group — `0.7.5` everywhere). Pin in CI with `npx hookwarden@0.7.5 scan .` if you want byte-stable verdicts across runs.
 
 ---
 
