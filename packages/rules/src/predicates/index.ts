@@ -98,6 +98,7 @@ import {
 import { n8nTriggerNoAuthPredicate } from "./n8n-trigger-auth.js";
 import { notionVerificationTokenOnlyPredicate } from "./notion-verification-token-only.js";
 import { pagerdutyMultiSignatureRotationMishandledPredicate } from "./pagerduty-multi-signature.js";
+import { standardwebhooksMultiSignatureRotationMishandledPredicate } from "./standardwebhooks-multi-signature.js";
 import {
   postmarkMissingBasicAuthPredicate,
   postmarkMissingIpAllowlistPredicate,
@@ -744,8 +745,9 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "zoom-wrong-hmac-algorithm": zoomWrongHmacAlgorithmPredicate,
   "zoom-unreachable-verification": zoomUnreachableVerificationPredicate,
   // Phase 8.3 Plan 16 Standard Webhooks spec (signing_input_format: 'custom' — dispatches
-  // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Library-prong
-  // detection only; hand-rolled structural AST detection deferred to Plan 16b.
+  // via D-92 custom slot at predicates/custom/standardwebhooks-signing.ts). Plan 16 shipped the
+  // library prong; Plan 16b added the hand-rolled prong (the three-way split inside the custom
+  // predicate — the Clerk CVE-2025-53548 catch) plus the multi-signature-mishandled rule below.
   "standardwebhooks-library-verified": standardwebhooksLibraryVerifiedPredicate,
   "standardwebhooks-missing-signature-verification":
     standardwebhooksMissingSignatureVerificationPredicate,
@@ -754,6 +756,9 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   "standardwebhooks-missing-timestamp-check": standardwebhooksMissingTimestampCheckPredicate,
   "standardwebhooks-wrong-hmac-algorithm": standardwebhooksWrongHmacAlgorithmPredicate,
   "standardwebhooks-unreachable-verification": standardwebhooksUnreachableVerificationPredicate,
+  // Plan 16b — net-new sibling: v1,<sig1> v1,<sig2> rotation list mishandled (pagerduty analog).
+  "standardwebhooks-multi-signature-mishandled":
+    standardwebhooksMultiSignatureRotationMishandledPredicate,
   // Phase 24 Plan 02 (AGENT-01) — n8n detector #1: webhook-trigger-no-authentication.
   // Self-contained predicate (NOT a matcher-union variant). Reads the synthetic n8n
   // handler's `n8n_node_param` evidence ("authentication=<value>"); fires not-verified

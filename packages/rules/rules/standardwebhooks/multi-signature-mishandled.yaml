@@ -1,0 +1,58 @@
+schema_version: 1
+rule_id: standardwebhooks/multi-signature-mishandled
+provider: standardwebhooks
+severity: high
+emits_state: manual-review
+message: |
+  Standard Webhooks sends `webhook-signature: v1,<sig1> v1,<sig2>` — multiple
+  SPACE-separated signatures during a secret rotation window (the comma is INSIDE
+  each `v1,<sig>` token; the separator between signatures is a space). This handler
+  computes a manual HMAC but no iteration symbol (.split, .forEach, .map, .some,
+  .every, explode, ...) is reachable from the handler entry — so it likely treats the
+  header value as a single signature OR only verifies the first token.
+
+  Both failure modes are silent at first: during normal operation the header carries
+  exactly one signature and verification succeeds. Then the endpoint secret is rotated,
+  the header gains a second `v1,<sig>` token, and EITHER (a) the handler verifies the
+  whole `v1,... v1,...` string as one signature (every request fails), OR (b) it checks
+  only the first token (rotation is silent until the old secret is retired, then every
+  request fails).
+
+  Recommended: split `webhook-signature` on spaces, take the base64 part after `v1,`
+  in each token, and accept if ANY token matches the computed HMAC using a constant-time
+  comparison — or use the `standardwebhooks` library, which handles rotation for you.
+matcher: null
+predicate: standardwebhooks-multi-signature-mishandled
+applies_to:
+  - express
+  - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://www.standardwebhooks.com/
+references:
+  - https://www.standardwebhooks.com/
+  - https://docs.stripe.com/webhooks#roll-webhook-endpoint-secrets
+compliance_mappings:
+  soc2_cc: ["CC6.1", "CC6.7"]
+  iso27001: ["A.8.24", "A.5.14"]
+  eu_ai_act_annex_iii: ["Art.15"]
+  nist_ai_rmf: ["MEASURE", "MANAGE"]
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
+fix:
+  safety: manual-only
+  description: "Split webhook-signature on spaces, extract the base64 after v1, in each token, and accept on any constant-time match — or use the standardwebhooks library"
+  codegen: null

@@ -4,10 +4,19 @@ provider: standardwebhooks
 severity: critical
 emits_state: not-verified
 message: |
-  Standard Webhooks handler does not appear to verify the `webhook-signature`
-  header before processing the request. Neither the `standardwebhooks` library's
-  `Webhook.verify()` (npm / PyPI / Packagist) nor a manual HMAC entry-point is
-  reachable from this handler within 3 hops.
+  Standard Webhooks handler does not verify the `webhook-signature` header before
+  processing the request. This fires on two shapes:
+
+  1. No verification is reachable at all — neither the `standardwebhooks` library's
+     `Webhook.verify()` (npm / PyPI / Packagist) nor a manual HMAC entry-point is
+     reachable from this handler within 3 hops.
+  2. Hand-rolled spec re-implementation with the comparison missing — the Clerk
+     CVE-2025-53548 shape. The handler computes an HMAC-SHA256 over the canonical
+     `{msg_id}.{timestamp}.{body}` string but never compares the result against the
+     `webhook-signature` value, so every forged request is accepted. (When a comparison
+     IS reachable this rule defers — timing-unsafe-comparison / missing-timestamp-check
+     grade it; when only an undecidable local wrapper is reachable the finding is
+     downgraded to manual-review.)
 
   Fix: import and use the canonical library —
   `import { Webhook } from 'standardwebhooks'; new Webhook(secret).verify(rawBody, headers)`
@@ -36,6 +45,7 @@ provider_docs_url: https://www.standardwebhooks.com/
 references:
   - https://www.svix.com/blog/common-failure-modes-for-webhook-signatures/
   - https://hookdeck.com/webhooks/guides/webhook-security-vulnerabilities-guide
+  - https://nvd.nist.gov/vuln/detail/CVE-2025-53548
 compliance_mappings:
   soc2_cc: ["CC6.1", "CC6.7"]
   iso27001: ["A.8.24", "A.5.14"]
