@@ -1,8 +1,37 @@
 import { readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import type { ProviderCatalogEntry } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
 import { PROVIDER_CATALOG } from "../src/catalog.js";
+
+// Phase 8.5 (SC#4) — runtime guard mirroring the ASYMMETRIC_PROVIDERS contract on
+// ProviderCatalogEntry. The catalog is a static TS object (type-enforced at build), but tests are
+// not tsc-checked (rules tsconfig includes src/ only), so a runtime guard is the executable
+// negative-test surface per [[feedback_negative_tests_required]]. Returns true iff the asymmetric
+// fields are well-formed: signature_scheme ∈ {hmac, ed25519} when present; asymmetric_verify_calls a
+// string[] when present; public_key_encoding ∈ {hex, base64} when present.
+function asymmetricFieldsWellFormed(entry: Record<string, unknown>): boolean {
+  if (
+    "signature_scheme" in entry &&
+    !["hmac", "ed25519"].includes(entry.signature_scheme as string)
+  )
+    return false;
+  if (
+    "asymmetric_verify_calls" in entry &&
+    !(
+      Array.isArray(entry.asymmetric_verify_calls) &&
+      entry.asymmetric_verify_calls.every((v) => typeof v === "string")
+    )
+  )
+    return false;
+  if (
+    "public_key_encoding" in entry &&
+    !["hex", "base64"].includes(entry.public_key_encoding as string)
+  )
+    return false;
+  return true;
+}
 
 const here = dirname(fileURLToPath(import.meta.url));
 const RULES_DIR = join(here, "..", "rules");
@@ -69,6 +98,72 @@ describe("PROVIDER_CATALOG D-91 signing-recipe shape", () => {
     for (const provider of Object.keys(PROVIDER_CATALOG)) {
       const entry = PROVIDER_CATALOG[provider];
       expect(allowed.has(entry?.signing_input_format ?? "")).toBe(true);
+    }
+  });
+});
+
+describe("PROVIDER_CATALOG Phase 8.5 ASYMMETRIC_PROVIDERS branch (SC#4)", () => {
+  // A complete HMAC entry with NO signature_scheme — proves the default-hmac / backward-compat path.
+  const hmacEntry: ProviderCatalogEntry = {
+    signature_header: ["x-sig"],
+    sdk_packages: [],
+    sdk_verify_calls: [],
+    secret_env_prefix: ["ACME_WEBHOOK"],
+    secret_literal_prefix: [],
+    conventional_paths: ["/webhooks/acme"],
+    hmac_algorithm: "sha256",
+    signing_input_format: "raw_body",
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [],
+  };
+
+  // An asymmetric (Ed25519) entry — the Discord-shaped case Plan 05 will populate.
+  const asymmetricEntry: ProviderCatalogEntry = {
+    ...hmacEntry,
+    conventional_paths: ["/api/discord/interactions"],
+    signature_scheme: "ed25519",
+    asymmetric_verify_calls: ["verifyKey", "nacl.sign.detached.verify"],
+    public_key_encoding: "hex",
+  };
+
+  it("validates an HMAC entry with signature_scheme ABSENT (default-hmac backward compat)", () => {
+    expect(hmacEntry.signature_scheme).toBeUndefined();
+    expect(asymmetricFieldsWellFormed(hmacEntry)).toBe(true);
+  });
+
+  it("validates an Ed25519 entry with the asymmetric branch populated", () => {
+    expect(asymmetricEntry.signature_scheme).toBe("ed25519");
+    expect(asymmetricEntry.asymmetric_verify_calls).toContain("verifyKey");
+    expect(asymmetricEntry.public_key_encoding).toBe("hex");
+    expect(asymmetricFieldsWellFormed(asymmetricEntry)).toBe(true);
+  });
+
+  // NEGATIVE (SOC2 evidence): malformed asymmetric metadata must be rejected, not silently accepted.
+  it("rejects an out-of-enum signature_scheme", () => {
+    expect(asymmetricFieldsWellFormed({ ...hmacEntry, signature_scheme: "rsa" })).toBe(false);
+  });
+
+  it("rejects asymmetric_verify_calls supplied as a bare string instead of string[]", () => {
+    expect(
+      asymmetricFieldsWellFormed({ ...asymmetricEntry, asymmetric_verify_calls: "verifyKey" }),
+    ).toBe(false);
+  });
+
+  it("rejects an out-of-enum public_key_encoding", () => {
+    expect(asymmetricFieldsWellFormed({ ...asymmetricEntry, public_key_encoding: "der" })).toBe(
+      false,
+    );
+  });
+
+  // No-regression guarantee for SC#4: every REAL catalog entry today is HMAC-compatible
+  // (signature_scheme absent or "hmac") and well-formed under the asymmetric guard.
+  it("every existing catalog entry stays HMAC-compatible and well-formed", () => {
+    for (const provider of Object.keys(PROVIDER_CATALOG)) {
+      const entry = PROVIDER_CATALOG[provider] as ProviderCatalogEntry;
+      const scheme = entry.signature_scheme ?? "hmac";
+      expect(scheme).toBe("hmac");
+      expect(asymmetricFieldsWellFormed(entry as unknown as Record<string, unknown>)).toBe(true);
     }
   });
 });

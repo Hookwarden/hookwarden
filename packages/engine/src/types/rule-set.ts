@@ -52,6 +52,21 @@ export interface ProviderCatalogEntry {
   readonly event_sink_calls?: ReadonlyArray<string>;
   readonly notification_sink_calls?: ReadonlyArray<string>;
   readonly provider_api_hosts?: ReadonlyArray<string>;
+  // Phase 8.5 (DISCORD-01 / ASYMMETRIC_PROVIDERS) — additive-optional asymmetric-signature
+  // branch. Same additive idiom as the v0.7 fields above: existing HMAC entries omit these and
+  // keep their `hmac_algorithm`/`signing_input_format`/`signature_encoding` fields unchanged.
+  //
+  // signature_scheme: ABSENT ⇒ "hmac" (the default for every v1 provider). Set to "ed25519" for
+  // asymmetric providers (Discord today; the branch is generic enough that SendGrid ECDSA + Plaid
+  // JWT-ES256 become catalog-data-only follow-ups). HMAC entries leave this absent.
+  readonly signature_scheme?: "hmac" | "ed25519";
+  // asymmetric_verify_calls: qualified verify-call names that count as a verifying call for an
+  // asymmetric provider — e.g. ["verifyKey", "nacl.sign.detached.verify", "nacl.signing.VerifyKey",
+  // "sodium_crypto_sign_verify_detached"]. Only consulted when signature_scheme === "ed25519".
+  readonly asymmetric_verify_calls?: ReadonlyArray<string>;
+  // public_key_encoding: how the provider's verification public key is encoded (Discord's app public
+  // key is hex). Only meaningful when signature_scheme === "ed25519".
+  readonly public_key_encoding?: "hex" | "base64";
 }
 
 export type ProviderCatalog = Readonly<Record<string, ProviderCatalogEntry>>;
