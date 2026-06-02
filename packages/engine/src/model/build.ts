@@ -34,6 +34,7 @@ import { type CandidateHandler, detectCatalogHandlers } from "./catalog.js";
 import { computeEvidence } from "./evidence.js";
 import { collectVerifyOrderingEvidence } from "./handler-cfg.js";
 import { extractMiddlewareChain } from "./middleware.js";
+import { isQueueVerificationReachable } from "./queue-reachability.js";
 import { computeReachableSymbols } from "./reachability.js";
 
 export interface N8nWorkflowFileInput {
@@ -303,12 +304,33 @@ async function assembleHandler(
   // so PHP scoped-call / member-call verify shapes never surface in reachable_symbols. Walk the
   // handler-bearing file's PHP tree for matching call shapes against catalog sdk_verify_calls.
   const phpVerifyEvidence = collectPhpSdkVerifyEvidence(cand, file, input.ruleSet);
+  // Phase 8.5 REACH-01 — queue-handler reachability overlay. Emits `queue_verification_reachable`
+  // when the handler enqueues the raw body via a known backend AND a verifying consumer is reachable.
+  // The evaluator downgrades not-verified → manual-review on this signal (never verified).
+  const queueReachabilityEvidence: ReadonlyArray<WebhookEvidence> = isQueueVerificationReachable({
+    handler_body_node: cand.handler_body_node,
+    handler_file: file,
+    all_files: input.parsedFiles,
+    imports: file.imports,
+    maxDepth: input.config.reachability_max_depth,
+    providerCatalog: input.ruleSet.providers,
+  })
+    ? [
+        {
+          kind: "queue_verification_reachable",
+          provider: "unknown",
+          location: cand.location,
+          detail: "verification deferred to queue consumer",
+        },
+      ]
+    : [];
   const preCfgEvidence: ReadonlyArray<WebhookEvidence> = [
     ...baseEvidence.evidence,
     ...sdkVerifyEvidence,
     ...rawBodyMwEvidence,
     ...inlineMwVerifyEvidence,
     ...phpVerifyEvidence,
+    ...queueReachabilityEvidence,
   ];
   // Recompute provider attribution since sdk_verify_call evidence may shift the count.
   // For n8n custom-node files the provider is forced to "n8n" so the verify-ordering overlay

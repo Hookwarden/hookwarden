@@ -44,10 +44,16 @@ export async function evaluate(
   const inventory: WebhookHandler[] = [];
   for (const handler of model.handlers) {
     const out = await evaluateRulesForHandler({ handler, ruleSet, model });
+    // Phase 8.5 REACH-01 — when the handler carries `queue_verification_reachable` evidence (it
+    // enqueues the raw body and a verifying consumer is reachable), downgrade a `not-verified`
+    // verdict to `manual-review`. The engine can't prove the consumer verifies the SAME payload
+    // across the queue boundary, so the honest output is manual-review — never verified.
+    const queueDeferred = handler.evidence.some((e) => e.kind === "queue_verification_reachable");
     for (const f of out.findings) {
       const rule = rulesById.get(f.rule_id);
       // D-57 path_severity_overrides applied post-emit; identity when rule has no overrides.
-      findings.push(rule ? applyPathSeverityOverrides(f, rule) : f);
+      const adjusted = rule ? applyPathSeverityOverrides(f, rule) : f;
+      findings.push(maybeDowngradeQueueDeferred(adjusted, queueDeferred));
     }
     // Resolve the handler verdict. `out.worst_state` is optimistic ("verified") when no rule
     // fired, so it is only authoritative once at least one rule produced a verdict. With zero
@@ -56,7 +62,9 @@ export async function evaluate(
     // library-verified) now correctly resolves the handler to [verified] instead of being
     // pinned below the baseline by the old `max(worst, baseline)` rank comparison.
     const baseline: Verdict = handler.verification_state;
-    const verdict: Verdict = out.findings.length > 0 ? out.worst_state : baseline;
+    let verdict: Verdict = out.findings.length > 0 ? out.worst_state : baseline;
+    // Mirror the per-finding downgrade onto the handler verdict (REACH-01).
+    if (queueDeferred && verdict === "not-verified") verdict = "manual-review";
     inventory.push({
       ...handler,
       verification_state: verdict,
@@ -78,6 +86,18 @@ export async function evaluate(
   };
 
   return { findings, inventory, metadata };
+}
+
+// Phase 8.5 REACH-01 — downgrade a not-verified finding to manual-review when the handler defers
+// verification to a queue consumer. Annotates metadata so the CLI/JSON can explain the shift
+// ("verification deferred to queue consumer — manual review"). Identity for any other state.
+function maybeDowngradeQueueDeferred(finding: Finding, queueDeferred: boolean): Finding {
+  if (!queueDeferred || finding.state !== "not-verified") return finding;
+  return {
+    ...finding,
+    state: "manual-review",
+    metadata: { ...finding.metadata, queue_verification_deferred: true },
+  };
 }
 
 // Same canonicalization algorithm as @hookwarden/rules' computeContentHash. Engine re-implements

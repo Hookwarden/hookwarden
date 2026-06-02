@@ -46,7 +46,13 @@ export type WebhookEvidenceKind =
   // adapter/model wiring (Plan 24-03) one per Webhook trigger node. `detail` encodes a
   // single key=value node param (e.g. "authentication=none", "httpMethod=POST"). The
   // n8n trigger-auth predicate reads "authentication=<value>" off this kind.
-  | "n8n_node_param";
+  | "n8n_node_param"
+  // Phase 8.5 (REACH-01): the handler enqueues the raw request body via a known queue backend
+  // (bullmq/sqs/inngest/kafka) AND a consumer of that backend has signature verification reachable.
+  // Emitted by the queue-reachability overlay in assembleHandler. The evaluator downgrades a
+  // not-verified verdict on such a handler to manual-review (never verified — same-payload
+  // verification can't be proven across the queue boundary). `detail` names the backend.
+  | "queue_verification_reachable";
 
 export interface WebhookEvidence {
   readonly kind: WebhookEvidenceKind;
