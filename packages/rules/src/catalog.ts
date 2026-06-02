@@ -1125,4 +1125,39 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     ...SHARED_VAS_SINKS,
     provider_api_hosts: ["zendesk.com"],
   },
+  // Phase 8.5 (DISCORD-01) — the first ASYMMETRIC provider (Ed25519, verified against the app's
+  // PUBLIC key, not a shared secret). Uses the Plan 01 asymmetric branch.
+  // Docs: https://discord.com/developers/docs/events/webhook-events
+  discord: {
+    signature_header: ["x-signature-ed25519"],
+    sdk_packages: ["discord-interactions", "discord-interactions-js", "tweetnacl", "nacl"],
+    // JS/TS + Python verify calls — populated so the existing library-verified Path A
+    // (reachable_symbols) + sdk_verify_call evidence overlay light up. PHP's bare global
+    // `sodium_crypto_sign_verify_detached` is detected by the dedicated discord predicate
+    // (predicates/discord-ed25519.ts) via the handler snippet, NOT here — adding a bare global to
+    // sdk_verify_calls would let the shared PHP overlay's text match contaminate other providers.
+    sdk_verify_calls: ["verifyKey", "nacl.sign.detached.verify", "VerifyKey.verify"],
+    secret_env_prefix: ["DISCORD_PUBLIC_KEY", "DISCORD_APP_PUBLIC_KEY"],
+    secret_literal_prefix: [],
+    // NAMESPACED — never bare "/interactions" (substring-resolver contamination, see
+    // [[project_provider_catalog_conventional_paths]]; a bare path collided with every provider
+    // route and caused a flagship Stripe regression in Phase 24).
+    conventional_paths: ["/api/discord/interactions", "/discord/interactions", "/api/interactions"],
+    // Asymmetric branch (Plan 01). signature_scheme drives the verdict path; hmac_* below are INERT
+    // for ed25519 (carried only because Plan 01 kept them required + the catalog-shape test asserts
+    // them for every entry). No HMAC rule applies to discord.
+    signature_scheme: "ed25519",
+    asymmetric_verify_calls: [
+      "verifyKey",
+      "nacl.sign.detached.verify",
+      "VerifyKey.verify",
+      "sodium_crypto_sign_verify_detached",
+    ],
+    public_key_encoding: "hex",
+    hmac_algorithm: "sha256", // inert (ed25519)
+    signing_input_format: "custom", // timestamp + raw body, verified asymmetrically
+    timestamp_header: "x-signature-timestamp",
+    signature_encoding: "hex",
+    applicable_rules: ["library-verified", "missing-signature-verification"],
+  },
 };

@@ -33,6 +33,10 @@ import type { ProviderCatalogEntry, RulePredicate } from "@hookwarden/engine";
 import { PROVIDER_CATALOG } from "../catalog.js";
 import { bitbucketSignaturePrefixNotStrippedPredicate } from "./bitbucket-signature-prefix.js";
 import { calendlySignatureHeaderParseMishandledPredicate } from "./calendly-header-parse.js";
+import {
+  discordLibraryVerifiedPredicate,
+  discordMissingVerificationPredicate,
+} from "./discord-ed25519.js";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
 import { githubPhpTimingSafeEqualPredicate } from "./github-php-timing-safe-equal.js";
 import { githubTimingSafeEqualPredicate } from "./github-timing-safe-equal.js";
@@ -202,6 +206,9 @@ import { zoomUrlValidationOnlyPredicate } from "./zoom-url-validation-only.js";
 export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   // Phase 2 / Wave 1
   "github-timing-safe-equal": githubTimingSafeEqualPredicate,
+  // Phase 8.5 (DISCORD-01) — Ed25519 verify recognition (JS/TS + Python + PHP).
+  "discord-library-verified": discordLibraryVerifiedPredicate,
+  "discord-missing-signature-verification": discordMissingVerificationPredicate,
   // Wave 2 cross-cutting
   "express-middleware-ordering": expressMiddlewareOrderingPredicate,
   // v0.7 Rule Depth (VAS-01) — per-provider factory that emits manual-review

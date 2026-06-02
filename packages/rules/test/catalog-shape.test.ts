@@ -156,14 +156,16 @@ describe("PROVIDER_CATALOG Phase 8.5 ASYMMETRIC_PROVIDERS branch (SC#4)", () => 
     );
   });
 
-  // No-regression guarantee for SC#4: every REAL catalog entry today is HMAC-compatible
-  // (signature_scheme absent or "hmac") and well-formed under the asymmetric guard.
-  it("every existing catalog entry stays HMAC-compatible and well-formed", () => {
+  // No-regression guarantee for SC#4: every entry is well-formed; scheme is hmac (absent⇒hmac) for
+  // all HMAC providers, and the only asymmetric (ed25519) entry is the declared one (discord). Guards
+  // against an HMAC provider being accidentally flipped to ed25519 (Phase 8.5 added discord).
+  it("every catalog entry is well-formed; only declared asymmetric providers are ed25519", () => {
+    const asymmetric: string[] = [];
     for (const provider of Object.keys(PROVIDER_CATALOG)) {
       const entry = PROVIDER_CATALOG[provider] as ProviderCatalogEntry;
-      const scheme = entry.signature_scheme ?? "hmac";
-      expect(scheme).toBe("hmac");
       expect(asymmetricFieldsWellFormed(entry as unknown as Record<string, unknown>)).toBe(true);
+      if ((entry.signature_scheme ?? "hmac") === "ed25519") asymmetric.push(provider);
     }
+    expect(asymmetric.sort()).toEqual(["discord"]);
   });
 });

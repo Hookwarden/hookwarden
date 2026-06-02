@@ -1,0 +1,39 @@
+schema_version: 1
+rule_id: discord/library-verified
+provider: discord
+severity: info
+emits_state: verified
+message: |
+  Ed25519 verification detected for this Discord interactions handler. One of
+  `verifyKey` (discord-interactions-js), `nacl.sign.detached.verify` (tweetnacl),
+  `nacl.signing.VerifyKey(...).verify(...)` (PyNaCl), or
+  `sodium_crypto_sign_verify_detached` (PHP libsodium) is reachable. Discord signs
+  `X-Signature-Ed25519` over `timestamp + rawBody`, verified against the app's
+  PUBLIC key (hex) — an asymmetric scheme, not a shared HMAC secret.
+matcher: null
+predicate: discord-library-verified
+applies_to:
+  - express
+  - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://discord.com/developers/docs/events/webhook-events
+references:
+  - https://discord.com/developers/docs/interactions/overview#setting-up-an-endpoint-validating-security-request-headers
+  - https://github.com/discord/discord-interactions-js
+compliance_mappings:
+  soc2_cc: ["CC6.1", "CC6.7"]
+  iso27001: ["A.8.24", "A.5.14"]
+  eu_ai_act_annex_iii: ["Art.15"]
+  nist_ai_rmf: ["MEASURE", "MANAGE"]
+fix: null

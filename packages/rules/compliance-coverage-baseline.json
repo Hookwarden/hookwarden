@@ -1,8 +1,8 @@
 {
-  "_comment": "Phase 25 COMPLIANCE-01 (D-03 / OQ#4) coverage ratchet baseline. Counts = number of shipped rules carrying a non-empty mapping per framework; total_rules = full denominator (ALL shipped rules, mapped or not). The release.yml coverage-regression gate FAILS if any framework count drops below these numbers. Bump these counts (commit) in the same PR that adds mappings so the ratchet only ever rises.",
-  "soc2_cc": 162,
-  "iso27001": 162,
-  "eu_ai_act_annex_iii": 162,
-  "nist_ai_rmf": 162,
-  "total_rules": 246
+  "_comment": "Phase 25 COMPLIANCE-01 (D-03 / OQ#4) coverage ratchet baseline. Counts = number of shipped rules carrying a non-empty mapping per framework; total_rules = full denominator (ALL shipped rules, mapped or not). The release.yml coverage-regression gate FAILS if any framework count drops below these numbers. Bump these counts (commit) in the same PR that adds mappings so the ratchet only ever rises. 2026-06-02: +2 each framework + total 246->248 for Phase 8.5 DISCORD-01 (discord/library-verified + discord/missing-signature-verification, both mapped).",
+  "soc2_cc": 164,
+  "iso27001": 164,
+  "eu_ai_act_annex_iii": 164,
+  "nist_ai_rmf": 164,
+  "total_rules": 248
 }
