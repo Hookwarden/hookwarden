@@ -115,12 +115,15 @@ describe("standardwebhooksSigningPredicate (custom-predicate slot for missing-ve
     };
     expect(await standardwebhooksSigningPredicate(handler, {} as never)).toBeNull();
   });
-  it("returns null when manual HMAC entry reachable (defers to other rules)", async () => {
+  // 08.3 Plan 16b changed this contract: manual HMAC reachable with ZERO comparison-shaped
+  // symbol is now the CVE-2025-53548 hand-rolled catch → not-verified (was null under the
+  // library-prong-only Plan 16). Full hand-rolled coverage lives in standardwebhooks-handrolled.test.ts.
+  it("emits not-verified when manual HMAC reachable but no comparison reachable (CVE-2025-53548)", async () => {
     const handler: WebhookHandler = {
       ...baseHandler,
       reachable_symbols: [sym("crypto.createHmac", "node:crypto")],
     };
-    expect(await standardwebhooksSigningPredicate(handler, {} as never)).toBeNull();
+    expect(await standardwebhooksSigningPredicate(handler, {} as never)).toBe("not-verified");
   });
   it("returns null when inline-middleware sdk_verify_call evidence is present (Path B)", async () => {
     const handler: WebhookHandler = {

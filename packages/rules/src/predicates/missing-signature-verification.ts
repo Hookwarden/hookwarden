@@ -30,6 +30,15 @@ import { type PhpSyntaxNode, type PhpTree, walkPhpCalls } from "./_helpers-php.j
 // finish initializing before any custom predicate body runs.
 export const CUSTOM_SIGNING_PREDICATES: Record<string, RulePredicate> = {};
 
+// 08.3 Plan 16b — PHP-aware custom-signing dispatch. The factory's PHP path
+// (evaluatePhpMissingVerification) intentionally does NOT consult CUSTOM_SIGNING_PREDICATES
+// because most custom predicates read `reachable_symbols`, which is empty for PHP. A custom
+// predicate that DOES handle PHP (i.e. walks the handler's tree-sitter-php AST itself) opts in
+// by registering here; the PHP branch below routes to it instead of the generic PHP logic. Only
+// standardwebhooks registers here today — twilio is absent, so its PHP behaviour is unchanged.
+// Keeps the custom predicate the single source of truth across JS/TS + Python + PHP for opt-ins.
+export const CUSTOM_PHP_SIGNING_PREDICATES: Record<string, RulePredicate> = {};
+
 export function createMissingSignatureVerificationPredicate(
   provider: string,
   catalog: ProviderCatalogEntry,
@@ -42,6 +51,10 @@ export function createMissingSignatureVerificationPredicate(
     // manual hash_hmac OR the build.ts PHP overlay's sdk_verify_call evidence (Plan 07).
     const parsedFile = model?.parsed_files?.find((f) => f.file_path === handler.file_path);
     if (parsedFile?.dialect === "tree-sitter-php") {
+      // 08.3 Plan 16b — route PHP through a PHP-aware custom predicate when one opted in
+      // (standardwebhooks). Its own PHP path walks the handler AST for the hand-rolled catch.
+      const phpCustom = CUSTOM_PHP_SIGNING_PREDICATES[provider];
+      if (phpCustom !== undefined) return phpCustom(handler, model);
       return evaluatePhpMissingVerification(handler, parsedFile, catalog, provider, model);
     }
 

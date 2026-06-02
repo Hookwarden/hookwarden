@@ -30,6 +30,36 @@ export function isConstantTimeCompare(name: string): boolean {
   );
 }
 
+// 08.3 Plan 16b — the hand-rolled prong's three-way split (in custom/standardwebhooks-signing.ts)
+// needs to tell a comparison whose semantics the codebase can statically reason about apart from
+// a comparison-SHAPED-but-unrecognized user symbol (a project-local wrapper).
+//
+// isRecognizedComparisonSymbol: a KNOWN compare happened — defer to timing-unsafe / other grading
+// rules. Includes the constant-time set PLUS the common broad/insecure compare shapes
+// (`.equals` / `.compare` / `Buffer.compare`, and the bare `equals` / `compare` names). This is
+// NOT a safe-vs-unsafe judgement — timing-unsafe-comparison.ts owns that. It answers only
+// "did a compare we recognize happen?".
+export function isRecognizedComparisonSymbol(name: string): boolean {
+  return (
+    isConstantTimeCompare(name) ||
+    name === "Buffer.compare" ||
+    name.endsWith(".equals") ||
+    name.endsWith(".compare") ||
+    name === "equals" ||
+    name === "compare"
+  );
+}
+
+// isUnrecognizedComparisonShapedSymbol: a compare-SHAPED symbol whose body the predicate cannot
+// statically inspect — a project-local verification wrapper (e.g. `safeCompare()`, `verifySig()`,
+// `validateSignature()`). Name matches the comparison-intent regex but is NOT in the recognized
+// set above. The hand-rolled prong routes these to `manual-review` (not `not-verified`) so a real
+// but undecidable verification path does not become a false positive — protecting the <5% FP moat.
+const COMPARISON_SHAPED_NAME_RE = /verify|valid|check|compare|equal/i;
+export function isUnrecognizedComparisonShapedSymbol(name: string): boolean {
+  return COMPARISON_SHAPED_NAME_RE.test(name) && !isRecognizedComparisonSymbol(name);
+}
+
 // Date / time / int symbols that gate timestamp-tolerance comparisons.
 const TIMESTAMP_SYMBOLS: ReadonlyArray<string> = [
   "Date.now",
