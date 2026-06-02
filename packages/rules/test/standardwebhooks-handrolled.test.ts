@@ -13,9 +13,9 @@ import { fileURLToPath } from "node:url";
 import {
   initPhpRuntime,
   type ParsedFile,
-  parsePhp,
   type PhpRuntime,
   type ProjectModel,
+  parsePhp,
   type ReachableSymbol,
   type WebhookHandler,
 } from "@hookwarden/engine";

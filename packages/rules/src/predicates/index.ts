@@ -98,7 +98,6 @@ import {
 import { n8nTriggerNoAuthPredicate } from "./n8n-trigger-auth.js";
 import { notionVerificationTokenOnlyPredicate } from "./notion-verification-token-only.js";
 import { pagerdutyMultiSignatureRotationMishandledPredicate } from "./pagerduty-multi-signature.js";
-import { standardwebhooksMultiSignatureRotationMishandledPredicate } from "./standardwebhooks-multi-signature.js";
 import {
   postmarkMissingBasicAuthPredicate,
   postmarkMissingIpAllowlistPredicate,
@@ -130,6 +129,7 @@ import {
 import { createReplayWindowTooPermissivePredicate } from "./replay-window-too-permissive.js";
 import { createSecretInLogOrErrorPredicate } from "./secret-in-log-or-error.js";
 import { sentryHeaderConfusionPredicate } from "./sentry-header-confusion.js";
+import { standardwebhooksMultiSignatureRotationMishandledPredicate } from "./standardwebhooks-multi-signature.js";
 import { stripeEmptySecretPredicate } from "./stripe-empty-secret.js";
 import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-unsafe-comparison.js";
 import { createTestModeBypassPredicate } from "./test-mode-bypass.js";

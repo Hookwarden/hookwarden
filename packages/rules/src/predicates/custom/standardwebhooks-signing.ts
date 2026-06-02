@@ -40,7 +40,10 @@ import {
   type PhpTree,
   walkPhpCalls,
 } from "../_helpers-php.js";
-import { CUSTOM_PHP_SIGNING_PREDICATES, CUSTOM_SIGNING_PREDICATES } from "../missing-signature-verification.js";
+import {
+  CUSTOM_PHP_SIGNING_PREDICATES,
+  CUSTOM_SIGNING_PREDICATES,
+} from "../missing-signature-verification.js";
 
 const STANDARDWEBHOOKS_CATALOG =
   PROVIDER_CATALOG["standardwebhooks"] ??
