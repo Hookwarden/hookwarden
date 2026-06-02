@@ -613,10 +613,38 @@ function qualifiedNameOf(node: import("@babel/types").Node): string | null {
   return null;
 }
 
-function recomputeProvider(evidence: ReadonlyArray<WebhookEvidence>, fallback: string): string {
+// Generic stdlib crypto primitives (manual-HMAC entry + constant-time compare) are NOT
+// provider-identifying. A few catalog entries (anthropic-agent-sdk, n8n) list them in
+// `sdk_verify_calls` as VAS-01 suppression anchors — the side-effect classifier reads those
+// from the catalog directly (provider-gated via handler-cfg.buildVerificationSet), so the
+// anchors keep working there. But the matching `sdk_verify_call` EVIDENCE must NOT drive
+// provider attribution: a correctly-verified hand-rolled handler of ANY provider does
+// `createHmac` + `timingSafeEqual`, which would otherwise out-vote its true provider's single
+// header signal and mis-attribute it (e.g. a hand-rolled Standard Webhooks handler → anthropic).
+// Excluded here from the attribution tally only. detail === the catalog sdk_verify_calls entry.
+function isGenericVerifyPrimitiveDetail(detail: string): boolean {
+  const d = detail.startsWith("\\") ? detail.slice(1) : detail;
+  return (
+    d === "createHmac" ||
+    d.endsWith(".createHmac") ||
+    d === "timingSafeEqual" ||
+    d.endsWith(".timingSafeEqual") ||
+    d === "compare_digest" ||
+    d.endsWith(".compare_digest") ||
+    d === "hash_hmac" ||
+    d === "hash_equals"
+  );
+}
+
+export function recomputeProvider(
+  evidence: ReadonlyArray<WebhookEvidence>,
+  fallback: string,
+): string {
   const counts = new Map<string, number>();
   for (const e of evidence) {
     if (e.provider === "unknown") continue;
+    // Generic-crypto sdk_verify_call evidence is non-identifying — skip it for attribution.
+    if (e.kind === "sdk_verify_call" && isGenericVerifyPrimitiveDetail(e.detail)) continue;
     counts.set(e.provider, (counts.get(e.provider) ?? 0) + 1);
   }
   let topProvider = "unknown";
