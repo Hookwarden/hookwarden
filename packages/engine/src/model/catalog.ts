@@ -230,7 +230,18 @@ function isWebhookishPath(path: string): boolean {
   // The catalog's `conventional_paths` is also used for evidence; the prefilter is just to keep
   // noise low so we don't enumerate every route in the project.
   const lower = path.toLowerCase();
-  return lower.includes("webhook") || lower.includes("/hook") || lower.includes("/hooks");
+  // Phase 8.5 (DISCORD-01): Discord interaction endpoints don't use a "webhook"-ish keyword —
+  // they live at `/api/discord/interactions` etc. Add `interaction` + `discord` to the prefilter so
+  // these become candidates. This only widens CANDIDACY; provider attribution + per-provider rules
+  // still gate the verdict, so a non-discord `/interactions` route attributes to provider:unknown
+  // and produces no discord finding.
+  return (
+    lower.includes("webhook") ||
+    lower.includes("/hook") ||
+    lower.includes("/hooks") ||
+    lower.includes("interaction") ||
+    lower.includes("discord")
+  );
 }
 
 function extractFunctionName(node: Node): string | null {
