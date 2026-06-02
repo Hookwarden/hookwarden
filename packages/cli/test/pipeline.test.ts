@@ -226,3 +226,50 @@ describe("runScan — diff-only (CLI-08, D-72)", () => {
     expect(out.diffBase).toBe("HEAD");
   });
 });
+
+// Phase 19 v0.7.1 (RD-RELEASE-01) — --severity-class rule filter.
+// A verified Stripe handler that ALSO logs the webhook secret: unfiltered it
+// produces a leak (secret-in-log-or-error) finding; under --severity-class
+// production-bypass the leak class is filtered out (negative). The
+// missing-verification bug stays (positive).
+const STRIPE_VERIFIED_BUT_LEAKS_SECRET = `
+import express from 'express';
+import Stripe from 'stripe';
+const app = express();
+const stripe = new Stripe('sk_test');
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+
+app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+  console.log(STRIPE_WEBHOOK_SECRET);
+  const event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], STRIPE_WEBHOOK_SECRET);
+  res.json({ received: true, id: event.id });
+});
+`;
+
+describe("runScan — --severity-class production-bypass filter (Phase 19)", () => {
+  it("keeps the missing-verification (production-bypass) finding under the filter", async () => {
+    await writeFile("webhook.ts", STRIPE_BUG_SOURCE);
+    const out = await runScan({ ...scanInput(), severityClassGroup: "production-bypass" });
+    expect(out.result.findings.length).toBeGreaterThan(0);
+    // Every emitted finding must belong to the production-bypass class set.
+    expect(out.result.findings.every((f) => !f.rule_id.endsWith("secret-in-log-or-error"))).toBe(
+      true,
+    );
+  });
+
+  it("drops the secret-in-log (leak) finding that is present unfiltered", async () => {
+    await writeFile("webhook.ts", STRIPE_VERIFIED_BUT_LEAKS_SECRET);
+
+    const unfiltered = await runScan(scanInput());
+    const leakUnfiltered = unfiltered.result.findings.filter((f) =>
+      f.rule_id.endsWith("secret-in-log-or-error"),
+    );
+    expect(leakUnfiltered.length).toBeGreaterThan(0); // precondition: the leak fires
+
+    const filtered = await runScan({ ...scanInput(), severityClassGroup: "production-bypass" });
+    const leakFiltered = filtered.result.findings.filter((f) =>
+      f.rule_id.endsWith("secret-in-log-or-error"),
+    );
+    expect(leakFiltered.length).toBe(0); // negative: filtered out
+  });
+});

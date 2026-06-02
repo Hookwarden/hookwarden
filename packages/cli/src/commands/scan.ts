@@ -6,7 +6,7 @@
 
 import * as path from "node:path";
 import type { Severity } from "@hookwarden/engine";
-import { PROVIDER_CATALOG } from "@hookwarden/rules";
+import { PROVIDER_CATALOG, SEVERITY_CLASS_GROUP_NAMES } from "@hookwarden/rules";
 import { defineCommand } from "citty";
 import { ConfigError, loadConfigFromCwd } from "../config/loader.js";
 import { type ResolvedConfig, resolveConfig } from "../config/precedence.js";
@@ -47,6 +47,7 @@ export interface ScanArgs {
   readonly "min-parse-coverage"?: string;
   readonly "include-tests"?: boolean;
   readonly provider?: string;
+  readonly "severity-class"?: string;
   readonly exclude?: string;
   readonly include?: string;
   readonly "no-trivia"?: boolean;
@@ -56,6 +57,7 @@ export interface ScanArgs {
 const VALID_FAIL_ON: ReadonlySet<string> = new Set(["critical", "high", "medium", "low"]);
 const VALID_FORMAT: ReadonlySet<string> = new Set(["text", "json", "sarif"]);
 const VALID_PROVIDERS: ReadonlySet<string> = new Set(Object.keys(PROVIDER_CATALOG));
+const VALID_SEVERITY_CLASSES: ReadonlySet<string> = new Set(SEVERITY_CLASS_GROUP_NAMES);
 
 export async function runScanCommand(args: ScanArgs): Promise<number> {
   const cwd = path.resolve(args.path ?? ".");
@@ -112,6 +114,17 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
       return 3;
     }
     providerFilter = new Set(raw);
+  }
+  let severityClassGroup: string | null = null;
+  if (args["severity-class"] !== undefined && args["severity-class"].trim() !== "") {
+    const requested = args["severity-class"].trim();
+    if (!VALID_SEVERITY_CLASSES.has(requested)) {
+      process.stderr.write(
+        `error: --severity-class must be one of ${[...VALID_SEVERITY_CLASSES].sort().join(", ")} (got "${requested}")\n`,
+      );
+      return 3;
+    }
+    severityClassGroup = requested;
   }
   let parsedMinCoverage: number | undefined;
   if (args["min-parse-coverage"] !== undefined) {
@@ -198,6 +211,7 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
     baselineWrite,
     verbose,
     providerFilter,
+    severityClassGroup,
     excludeGlobs:
       args.exclude !== undefined && args.exclude.trim() !== ""
         ? args.exclude
@@ -411,6 +425,11 @@ export const scanCommand = defineCommand({
       type: "string",
       description:
         "Comma-separated provider filter (e.g., 'stripe' or 'stripe,github'). When set, only rules for the listed providers run — useful for phased rollout. Valid: stripe, github, shopify, slack, twilio, square.",
+    },
+    "severity-class": {
+      type: "string",
+      description:
+        "Restrict the scan to a rule-class group. 'production-bypass' = the classes where a forged or replayed request would be accepted in production (verification missing, defeated, bypassable, or replay-able); excludes secret-leak and positive-signal rules.",
     },
     exclude: {
       type: "string",

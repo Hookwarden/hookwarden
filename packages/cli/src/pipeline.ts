@@ -29,6 +29,7 @@ import {
   type RuleSet,
   type ScanResult,
 } from "@hookwarden/engine";
+import { ruleInSeverityClassGroup } from "@hookwarden/rules";
 import pLimit from "p-limit";
 import {
   applyBaseline,
@@ -65,6 +66,11 @@ export interface RunScanInput {
   // Phased-rollout filter — when non-null, only rules whose `provider` is in this set run.
   // Validated against PROVIDER_CATALOG at flag-parse time (commands/scan.ts).
   readonly providerFilter?: ReadonlySet<string> | null;
+  // Phase 19 v0.7.1 — when non-null, only rules whose class is in the named
+  // severity-class group run (e.g. "production-bypass"). Filters rules like
+  // providerFilter, so findings AND --fail-on both respect it. Validated
+  // against SEVERITY_CLASS_GROUP_NAMES at flag-parse time (commands/scan.ts).
+  readonly severityClassGroup?: string | null;
   // User-supplied gitignore-style globs from --exclude / --include. Comma-split + trimmed
   // in commands/scan.ts; empty arrays = no-op.
   readonly excludeGlobs?: ReadonlyArray<string>;
@@ -290,6 +296,16 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
     ruleSet = {
       ...ruleSet,
       rules: ruleSet.rules.filter((r) => providerFilter.has(r.provider)),
+    };
+  }
+  // Severity-class filter (Phase 19 v0.7.1) — same rule-level filtering as
+  // providerFilter so excluded classes neither emit findings nor count toward
+  // --fail-on. The group name is validated at flag-parse time.
+  const severityClassGroup = input.severityClassGroup ?? null;
+  if (severityClassGroup !== null) {
+    ruleSet = {
+      ...ruleSet,
+      rules: ruleSet.rules.filter((r) => ruleInSeverityClassGroup(r.rule_id, severityClassGroup)),
     };
   }
 

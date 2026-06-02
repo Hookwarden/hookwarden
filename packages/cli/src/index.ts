@@ -12,6 +12,7 @@
 import {
   computeComplianceCoverage,
   countRulesWithAnyMapping,
+  enumerateRuleClasses,
   formatComplianceCoverageLine,
 } from "@hookwarden/rules";
 import { defineCommand } from "citty";
@@ -39,6 +40,26 @@ async function formatComplianceCoverageStat(): Promise<string> {
     return `${formatComplianceCoverageLine(coverage, anyMapped)}\n`;
   } catch {
     return "compliance_mappings: coverage unavailable (rule pack failed to load)\n";
+  }
+}
+
+// Phase 19 v0.7.1 (RD-RELEASE-01): `--version --verbose` additionally enumerates
+// the bundled rule classes with counts, flagging the production-bypass set —
+// the auditor/operator-facing "what does this rule pack actually detect" view.
+// Best effort: a load failure degrades to a short note, never a non-zero exit.
+async function formatRuleClassEnumeration(): Promise<string> {
+  try {
+    const ruleSet = await loadRulesFromDir();
+    const classes = enumerateRuleClasses(ruleSet.rules.map((r) => r.rule_id));
+    const bypass = classes.filter((c) => c.production_bypass);
+    const bypassTotal = bypass.reduce((n, c) => n + c.count, 0);
+    const lines = [
+      `rule_classes: ${classes.length} (${ruleSet.rules.length} rules; ${bypassTotal} in production-bypass)`,
+      ...classes.map((c) => `  ${c.production_bypass ? "⚠" : " "} ${c.cls.padEnd(34)} ${c.count}`),
+    ];
+    return `${lines.join("\n")}\n`;
+  } catch {
+    return "rule_classes: enumeration unavailable (rule pack failed to load)\n";
   }
 }
 
@@ -88,7 +109,9 @@ const HELP_TEXT =
   `      --no-config              Bypass config-file discovery.\n` +
   `      --strict-suppressions    Promote stale suppressions to errors.\n` +
   `      --min-parse-coverage N   Minimum parse-coverage ratio 0..1 (default 0.95).\n` +
-  `      --include-tests          Scan test/fixture/mock paths too (excluded by default).\n\n` +
+  `      --include-tests          Scan test/fixture/mock paths too (excluded by default).\n` +
+  `      --severity-class C       Restrict to a rule-class group: production-bypass.\n` +
+  `      --version --verbose      Print rule-class enumeration + compliance coverage.\n\n` +
   `Fix-only flags (Phase 8.2):\n` +
   `      --write                  Write fixes to disk via atomic staging. Default: dry-run.\n` +
   `      --mode M                 safe | all | manual-only-explain (default: safe).\n` +
@@ -117,6 +140,7 @@ interface ParsedFlags {
   "min-parse-coverage"?: string;
   "include-tests"?: boolean;
   provider?: string;
+  "severity-class"?: string;
   exclude?: string;
   include?: string;
   help?: boolean;
@@ -150,6 +174,7 @@ const STRING_FLAGS: ReadonlyArray<{
   { long: "--config", key: "config" },
   { long: "--min-parse-coverage", key: "min-parse-coverage" },
   { long: "--provider", key: "provider" },
+  { long: "--severity-class", key: "severity-class" },
   { long: "--exclude", key: "exclude" },
   { long: "--include", key: "include" },
   // Phase 8.2 — `hookwarden fix` flags.
@@ -266,6 +291,7 @@ export async function main(argv: ReadonlyArray<string>): Promise<number> {
     const verbose = argv.slice(1).some((a) => a === "--verbose" || a === "-v");
     if (verbose) {
       process.stdout.write(await formatComplianceCoverageStat());
+      process.stdout.write(await formatRuleClassEnumeration());
     }
     return 0;
   }

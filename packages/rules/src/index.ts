@@ -18,6 +18,15 @@ export {
 export { ALL_CODEGEN_ROUTINES, type CodegenRoutine } from "./fix/index.js";
 export { computeContentHash, type LoadRuleSetInput, loadRuleSet } from "./loader.js";
 export { ALL_PREDICATES } from "./predicates/index.js";
+export {
+  enumerateRuleClasses,
+  PRODUCTION_BYPASS_CLASSES,
+  type RuleClassCount,
+  ruleClassOf,
+  ruleInSeverityClassGroup,
+  SEVERITY_CLASS_GROUP_NAMES,
+  SEVERITY_CLASS_GROUPS,
+} from "./rule-class.js";
 export { type ParsedMatcher, type ParsedRuleDocument, validateRuleDocument } from "./schema.js";
 
 // RULES_PACK_VERSION is generated from package.json by scripts/sync-version.mjs
