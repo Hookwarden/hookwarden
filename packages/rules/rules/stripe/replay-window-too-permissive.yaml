@@ -23,6 +23,9 @@ predicate: stripe-replay-window-too-permissive
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
 provider_docs_url: https://stripe.com/docs/webhooks

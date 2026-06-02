@@ -20,6 +20,9 @@ predicate: github-missing-signature-verification
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
   - flask

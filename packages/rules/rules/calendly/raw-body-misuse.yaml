@@ -20,6 +20,9 @@ predicate: calendly-raw-body-misuse
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
   - flask

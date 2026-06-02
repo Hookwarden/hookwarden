@@ -17,6 +17,9 @@ predicate: square-timing-unsafe-comparison
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
   - flask

@@ -1,6 +1,7 @@
 import type { CandidateHandler } from "../model/catalog.js";
 import type { ParsedFile } from "../types/project-model.js";
 import { djangoAdapter } from "./django.js";
+import { edgeRuntimeAdapter } from "./edge-runtime.js";
 import { fastapiAdapter } from "./fastapi.js";
 import { n8nCustomNodeAdapter } from "./n8n-custom-node.js";
 import { nextjsAdapter } from "./nextjs.js";
@@ -17,6 +18,10 @@ export type FrameworkAdapter = (
 // fire only on files with zero framework imports.
 export const ALL_ADAPTERS: ReadonlyArray<FrameworkAdapter> = [
   nextjsAdapter,
+  // Phase 8.5 (REACH-02) — edge-runtime entry points (Workers/Vercel Edge/Deno). Export-shape-gated
+  // (only fires on `export default {fetch}` / `export const config={runtime:'edge'}` / `Deno.serve`),
+  // so it sits with the other import/export-gated adapters, before the heuristic catch-alls.
+  edgeRuntimeAdapter,
   fastapiAdapter,
   djangoAdapter,
   symfonyAdapter,
@@ -28,6 +33,7 @@ export const ALL_ADAPTERS: ReadonlyArray<FrameworkAdapter> = [
 
 export {
   djangoAdapter,
+  edgeRuntimeAdapter,
   fastapiAdapter,
   n8nCustomNodeAdapter,
   nextjsAdapter,

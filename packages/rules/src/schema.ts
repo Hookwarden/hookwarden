@@ -135,6 +135,10 @@ const SCHEMA = {
               "hono",
               "fastify",
               "nextjs",
+              // Phase 8.5 (REACH-02) edge runtimes — keep in sync with engine Framework union.
+              "cloudflare-workers",
+              "vercel-edge",
+              "deno",
               "flask",
               "fastapi",
               "django",

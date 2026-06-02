@@ -25,6 +25,9 @@ predicate: sentry-header-confusion
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
   - flask

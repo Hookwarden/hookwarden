@@ -16,6 +16,9 @@ predicate: github-timing-safe-equal
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
   - flask

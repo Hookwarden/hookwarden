@@ -26,6 +26,9 @@ predicate: bitbucket-signature-prefix-not-stripped
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
   - flask

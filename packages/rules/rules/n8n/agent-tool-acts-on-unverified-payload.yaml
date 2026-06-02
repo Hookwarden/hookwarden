@@ -27,6 +27,9 @@ predicate: n8n-agent-tool-acts-on-unverified-payload
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
 provider_docs_url: https://docs.n8n.io/integrations/creating-nodes/build/reference/http-helpers/

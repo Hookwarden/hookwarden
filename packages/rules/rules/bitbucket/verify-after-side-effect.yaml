@@ -24,6 +24,9 @@ predicate: bitbucket-verify-after-side-effect
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
 provider_docs_url: https://support.atlassian.com/bitbucket-cloud/docs/manage-webhooks/

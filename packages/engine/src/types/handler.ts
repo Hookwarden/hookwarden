@@ -11,6 +11,13 @@ export type Framework =
   | "hono"
   | "fastify"
   | "nextjs"
+  // Phase 8.5 (REACH-02): edge-runtime entry points without a framework router —
+  // Cloudflare Workers (`export default { fetch }`), Vercel Edge (`runtime: 'edge'`),
+  // and Deno (`Deno.serve`). MUST stay in sync with the Ajv `applies_to` enum in
+  // @hookwarden/rules schema.ts (both move together or rule loading throws).
+  | "cloudflare-workers"
+  | "vercel-edge"
+  | "deno"
   | "flask"
   | "fastapi"
   | "django"

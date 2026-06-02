@@ -33,6 +33,9 @@ predicate: anthropic-agent-sdk-tool-callback-no-verification
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
 provider_docs_url: https://code.claude.com/docs/en/agent-sdk/custom-tools

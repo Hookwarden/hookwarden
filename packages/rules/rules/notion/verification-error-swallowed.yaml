@@ -23,6 +23,9 @@ predicate: notion-verification-error-swallowed
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
 provider_docs_url: https://developers.notion.com/reference/webhooks

@@ -27,6 +27,9 @@ predicate: pagerduty-multi-signature-rotation-mishandled
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
   - flask

@@ -34,6 +34,9 @@ predicate: zoom-url-validation-only
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
   - flask

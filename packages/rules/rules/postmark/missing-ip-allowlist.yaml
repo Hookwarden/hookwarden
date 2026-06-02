@@ -20,6 +20,9 @@ predicate: postmark-missing-ip-allowlist
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
   - flask

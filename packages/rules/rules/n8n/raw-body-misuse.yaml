@@ -18,6 +18,9 @@ predicate: n8n-raw-body-misuse
 applies_to:
   - express
   - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
   - fastify
   - nextjs
 provider_docs_url: https://docs.n8n.io/integrations/creating-nodes/build/reference/http-helpers/
