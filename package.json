@@ -11,7 +11,7 @@
     "lint:fix": "biome check --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "purity": "depcruise --config .dependency-cruiser.cjs packages",
+    "purity": "node -e \"for (const e of ['js','js.map','d.ts','d.ts.map']) require('fs').rmSync('packages/engine/dist/__purity-fixture.'+e,{force:true})\" && depcruise --config .dependency-cruiser.cjs packages",
     "preflight": "pnpm lint && pnpm purity && pnpm build && pnpm test",
     "inspect-bundle": "pnpm --filter hookwarden exec tsx scripts/inspect-bundle.ts",
     "prepare": "simple-git-hooks"
