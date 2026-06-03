@@ -149,3 +149,54 @@ describe("real-app false-positive regressions (full pipeline, real catalog)", ()
     expect(out.result.findings.filter((f) => f.severity === "critical")).toEqual([]);
   });
 });
+
+// Remix support — documenso's real Stripe webhook (a Remix `action` under app/routes/) was
+// previously invisible (0 handlers → silent "clean", a false negative). The adapter detects it and
+// rules apply via the nextjs piggyback (both receive a Web Fetch Request).
+describe("Remix adapter", () => {
+  it("detects a Remix action webhook and attributes the provider (no longer a silent FN)", async () => {
+    await write(
+      "app/routes/api+/stripe.webhook.ts",
+      `export async function action({ request }: { request: Request }) {
+         const body = await request.json();   // delegated/none here — point is it's DETECTED
+         return Response.json({ ok: true, body });
+       }\n`,
+    );
+    const out = await scan();
+    const remix = out.result.inventory.filter((h) => h.framework === "remix");
+    expect(remix.length).toBe(1);
+    expect(remix[0]?.route_pattern).toBe("/api/stripe/webhook"); // api+/ folder + `.` separator
+    expect(remix[0]?.provider).toBe("stripe"); // conventional path attributes
+  });
+
+  it("anti-vacuity: an UNVERIFIED Remix stripe webhook IS flagged (nextjs rules apply to remix)", async () => {
+    await write(
+      "app/routes/webhooks.stripe.ts",
+      `export async function action({ request }: { request: Request }) {
+         const event = await request.json();   // no verification
+         return Response.json({ ok: true, event });
+       }\n`,
+    );
+    const out = await scan();
+    expect(
+      out.result.findings.some((f) => f.severity === "critical" && f.provider === "stripe"),
+    ).toBe(true);
+  });
+
+  it("a correctly-verified Remix stripe webhook (req.text + constructEvent inline) fires NO critical", async () => {
+    await write(
+      "app/routes/webhooks.stripe.ts",
+      `import Stripe from "stripe";
+       import { stripe } from "~/lib/stripe";
+       export async function action({ request }: { request: Request }) {
+         const buf = await request.text();
+         const sig = request.headers.get("stripe-signature") as string;
+         const event = stripe.webhooks.constructEvent(buf, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+         void event;
+         return Response.json({ ok: true });
+       }\n`,
+    );
+    const out = await scan();
+    expect(out.result.findings.filter((f) => f.severity === "critical")).toEqual([]);
+  });
+});

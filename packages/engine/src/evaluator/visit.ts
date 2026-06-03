@@ -50,7 +50,12 @@ function ruleAppliesToFramework(
   framework: WebhookHandler["framework"],
 ): boolean {
   if (rule.applies_to === "all") return true;
-  return rule.applies_to.includes(framework);
+  if (rule.applies_to.includes(framework)) return true;
+  // A Remix `action` receives a Web Fetch API Request, identical to a Next.js App Router handler —
+  // every rule that applies to nextjs applies to remix. This lets remix piggyback nextjs's coverage
+  // without listing "remix" in 247 rule YAMLs (rule YAMLs MAY still target it explicitly).
+  if (framework === "remix" && rule.applies_to.includes("nextjs")) return true;
+  return false;
 }
 
 async function runRule(

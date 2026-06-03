@@ -11,6 +11,10 @@ export type Framework =
   | "hono"
   | "fastify"
   | "nextjs"
+  // Remix `action`/`loader` route modules under app/routes/. Receive a Web Fetch API Request,
+  // identical to Next.js App Router — the engine matches nextjs rules to remix handlers
+  // (ruleAppliesToFramework), so rule YAMLs need not list "remix" individually.
+  | "remix"
   // Phase 8.5 (REACH-02): edge-runtime entry points without a framework router —
   // Cloudflare Workers (`export default { fetch }`), Vercel Edge (`runtime: 'edge'`),
   // and Deno (`Deno.serve`). MUST stay in sync with the Ajv `applies_to` enum in

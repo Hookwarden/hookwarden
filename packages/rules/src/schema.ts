@@ -135,6 +135,9 @@ const SCHEMA = {
               "hono",
               "fastify",
               "nextjs",
+              // Remix route modules — mirrors the engine Framework union. Rules need not list it
+              // (remix piggybacks nextjs in ruleAppliesToFramework); present so YAMLs MAY target it.
+              "remix",
               // Phase 8.5 (REACH-02) edge runtimes — keep in sync with engine Framework union.
               "cloudflare-workers",
               "vercel-edge",
