@@ -73,7 +73,9 @@ const SHARED_VAS_SINKS = {
 export const PROVIDER_CATALOG: ProviderCatalog = {
   stripe: {
     signature_header: ["stripe-signature"],
-    sdk_packages: ["stripe", "@stripe/stripe-js", "Stripe\\"],
+    // Phase 27: "github.com/stripe/stripe-go" is the Go module prefix (tolerates /vNN and the
+    // /webhook subpackage) — matched by import-path PREFIX in evidence.ts Signal B.
+    sdk_packages: ["stripe", "@stripe/stripe-js", "Stripe\\", "github.com/stripe/stripe-go"],
     sdk_verify_calls: [
       "webhooks.constructEvent",
       // Async variant (Edge/Workers runtimes use the WebCrypto-backed async API).
@@ -88,6 +90,11 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "Webhook::constructEvent",
       "Stripe\\WebhookSignature::verifyHeader",
       "WebhookSignature::verifyHeader",
+      // Phase 27 Go (stripe-go/webhook): package-qualified verify calls. Matched against Go
+      // reachable_symbols + the Go inline-verify overlay (import-gated on stripe-go).
+      "webhook.ConstructEvent",
+      "webhook.ConstructEventWithTolerance",
+      "webhook.ConstructEventIgnoringTolerance",
     ],
     secret_env_prefix: ["STRIPE_WEBHOOK", "STRIPE_SIGNING"],
     secret_literal_prefix: ["whsec_"],
@@ -127,8 +134,12 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     // GitHub has no canonical PHP webhook SDK (knplabs/github-api ships no webhook verifier).
     // PHP detections rely on language-agnostic hash_hmac + hash_equals shapes caught by
     // the github-timing-safe-equal rule (Plan 08). No PHP namespace prefix appended here.
-    sdk_packages: ["@octokit/webhooks", "@octokit/webhooks-methods"],
-    sdk_verify_calls: ["verify", "verifyRequest"],
+    // Phase 27: "github.com/google/go-github" is the Go module prefix (tolerates the /vNN/github
+    // segment, e.g. .../go-github/v62/github) — matched by import-path PREFIX in Signal B.
+    sdk_packages: ["@octokit/webhooks", "@octokit/webhooks-methods", "github.com/google/go-github"],
+    // Phase 27 Go (go-github): package-qualified validate calls (github.ValidatePayload /
+    // github.ValidateSignature). The bare "verify"/"verifyRequest" entries stay for JS.
+    sdk_verify_calls: ["verify", "verifyRequest", "github.ValidatePayload", "github.ValidateSignature"],
     secret_env_prefix: ["GITHUB_WEBHOOK", "GH_WEBHOOK"],
     secret_literal_prefix: ["ghs_", "github_pat_"],
     conventional_paths: [
@@ -470,7 +481,18 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
   // with non-trivial false-positive risk.
   standardwebhooks: {
     signature_header: ["webhook-signature"],
-    sdk_packages: ["standardwebhooks", "standard-webhooks/php", "StandardWebhooks\\"],
+    // Phase 27: the Svix Go SDK and the Standard Webhooks Go library — matched by import-path
+    // PREFIX. The Go verify is an instance method `wh.Verify(payload, headers)`; because the
+    // receiver name varies, it is detected by the import-gated Go inline-verify overlay
+    // (build.ts collectGoSdkVerifyEvidence), NOT by a static catalog string (a bare "Verify"
+    // in sdk_verify_calls would over-match any .Verify() via reachable_symbols).
+    sdk_packages: [
+      "standardwebhooks",
+      "standard-webhooks/php",
+      "StandardWebhooks\\",
+      "github.com/svix/svix-webhooks/go",
+      "github.com/standard-webhooks/standard-webhooks/libraries/go",
+    ],
     sdk_verify_calls: [
       "Webhook.verify",
       "verify",

@@ -44,6 +44,11 @@ const RE_BODY_READ = /\b(?:io|ioutil)\.ReadAll\s*\(/;
 const RE_HMAC = /\bhmac\.New\s*\(/;
 // (c) signature-header read: r.Header.Get("...Signature...") (case-insensitive on the header name).
 const RE_SIGNATURE_HEADER = /\.Header\.Get\s*\(\s*"[^"]*[Ss]ignature[^"]*"\s*\)/;
+// (d) a known Go webhook-SDK verify call — SDK-delegated handlers read the body + signature inside
+// the SDK, so they carry none of (a)/(b)/(c) but are unambiguously webhook receivers
+// (stripe-go webhook.ConstructEvent, go-github ValidatePayload/ValidateSignature, svix wh.Verify).
+const RE_SDK_VERIFY =
+  /\.(ConstructEvent|ConstructEventWithTolerance|ConstructEventIgnoringTolerance|ValidatePayload|ValidateSignature|Verify)\s*\(/;
 
 export function netHttpGoAdapter(
   file: ParsedFile,
@@ -121,6 +126,7 @@ function countReceivingSignals(bodyText: string): number {
   if (RE_BODY_READ.test(bodyText)) count++;
   if (RE_HMAC.test(bodyText)) count++;
   if (RE_SIGNATURE_HEADER.test(bodyText)) count++;
+  if (RE_SDK_VERIFY.test(bodyText)) count++;
   return count;
 }
 

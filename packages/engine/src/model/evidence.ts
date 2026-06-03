@@ -35,6 +35,15 @@ const GENERIC_SIGNATURE_HEADERS: ReadonlySet<string> = new Set([
   "cookie",
 ]);
 
+// A Go module import path: a dotted domain authority followed by `/` (e.g. "github.com/stripe/
+// stripe-go", "gopkg.in/foo"). Distinguishes Go module paths from npm scoped packages
+// ("@octokit/webhooks" starts with @, no leading domain) and PHP namespaces (use "\\"). Go
+// packages are matched by PREFIX so a catalog entry "github.com/google/go-github" matches an
+// import "github.com/google/go-github/v62/github" — the /vNN/ version-segment tolerance (Pitfall 3).
+export function isGoImportPath(pkg: string): boolean {
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)+\//.test(pkg);
+}
+
 export interface ComputeEvidenceOutput {
   readonly evidence: ReadonlyArray<WebhookEvidence>;
   readonly provider: string; // resolved provider | "unknown" | "multiple"
@@ -72,8 +81,9 @@ export function computeEvidence(input: ComputeEvidenceInput): ComputeEvidenceOut
   for (const [providerName, entry] of Object.entries(input.providerCatalog)) {
     for (const pkg of entry.sdk_packages) {
       const isPhpNamespace = pkg.includes("\\");
+      const isGoPath = isGoImportPath(pkg);
       const matched = input.imports.some((i) =>
-        isPhpNamespace ? i.to_module.startsWith(pkg) : i.to_module === pkg,
+        isPhpNamespace || isGoPath ? i.to_module.startsWith(pkg) : i.to_module === pkg,
       );
       if (matched) {
         out.push({

@@ -178,6 +178,17 @@ function buildSymbolTable(file: ParsedFile): Map<string, unknown> {
         if (methodName) out.set(`${className}.${methodName}`, fn);
       }
     }
+  } else if (file.dialect === "tree-sitter-go") {
+    // Phase 27 (RULES-GO-01): index top-level func declarations + methods by name so the BFS
+    // (expandFrontierEntry Branch B) can resolve a handler's call to a local helper —
+    // `func StripeWebhook(...) { verifyStripe(body, sig) }` → walk verifyStripe's body for the
+    // hmac.Equal / webhook.ConstructEvent inside it (util-extracted verification, the first
+    // collectCalls extension since Python).
+    const tree = file.raw_ast as { rootNode: PySyntaxNode };
+    for (const fn of tree.rootNode.descendantsOfType(["function_declaration", "method_declaration"])) {
+      const name = fn.childForFieldName("name")?.text;
+      if (name) out.set(name, fn);
+    }
   }
   return out;
 }
@@ -213,6 +224,7 @@ function collectTopLevelSymbols(stmt: Node, out: Map<string, unknown>): void {
 function collectCalls(body: unknown, dialect: ParsedFile["dialect"]): ReadonlyArray<string> {
   if (dialect === "babel") return collectCallsBabel(body as Node);
   if (dialect === "tree-sitter-python") return collectCallsPython(body);
+  if (dialect === "tree-sitter-go") return collectCallsGo(body);
   return [];
 }
 
@@ -259,6 +271,31 @@ function collectCallsPython(body: unknown): ReadonlyArray<string> {
   for (const c of node.descendantsOfType(["call"])) {
     const fn = c.childForFieldName("function");
     if (fn?.text) out.push(fn.text);
+  }
+  return out;
+}
+
+// Phase 27 (RULES-GO-01): mirrors collectCallsPython for the Go grammar. A Go call is a
+// `call_expression` whose `function` field is either a plain identifier (`verifyStripe(...)`) or a
+// `selector_expression` (`webhook.ConstructEvent(...)`, `next.ServeHTTP(...)`, `hmac.Equal(...)`).
+// For selectors the qualified name is `operand.text + "." + field.text` so package-qualified SDK
+// verify calls resolve against the catalog (webhook.ConstructEvent / github.ValidatePayload), and
+// `next.ServeHTTP` surfaces the middleware-wrapper continuation as a reachable symbol.
+function collectCallsGo(body: unknown): ReadonlyArray<string> {
+  if (!body || typeof body !== "object") return [];
+  const node = body as Partial<PySyntaxNode>;
+  if (typeof node.descendantsOfType !== "function") return [];
+  const out: string[] = [];
+  for (const c of node.descendantsOfType(["call_expression"])) {
+    const fn = c.childForFieldName("function");
+    if (!fn) continue;
+    if (fn.type === "selector_expression") {
+      const operand = fn.childForFieldName("operand");
+      const field = fn.childForFieldName("field");
+      if (field?.text) out.push(operand?.text ? `${operand.text}.${field.text}` : field.text);
+    } else if (fn.text) {
+      out.push(fn.text);
+    }
   }
   return out;
 }

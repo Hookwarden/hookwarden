@@ -31,7 +31,7 @@ import type {
 } from "../types/project-model.js";
 import type { RuleSet } from "../types/rule-set.js";
 import { type CandidateHandler, detectCatalogHandlers, isWebhookishPath } from "./catalog.js";
-import { computeEvidence } from "./evidence.js";
+import { computeEvidence, isGoImportPath } from "./evidence.js";
 import { collectVerifyOrderingEvidence } from "./handler-cfg.js";
 import { extractMiddlewareChain } from "./middleware.js";
 import { isQueueVerificationReachable } from "./queue-reachability.js";
@@ -304,6 +304,14 @@ async function assembleHandler(
   // so PHP scoped-call / member-call verify shapes never surface in reachable_symbols. Walk the
   // handler-bearing file's PHP tree for matching call shapes against catalog sdk_verify_calls.
   const phpVerifyEvidence = collectPhpSdkVerifyEvidence(cand, file, input.ruleSet);
+  // Go sdk_verify_call overlay — the documented inline-verify path (Open Question #1). Like the PHP
+  // overlay, it text-matches catalog verify shapes against the handler range, but is IMPORT-GATED:
+  // a provider's Go sdk_package must be imported (prefix) before any of its verify calls count.
+  // This is the FP moat for the receiver-name-variable Svix `wh.Verify(...)` method shape (which
+  // can't be a static catalog string). Package-qualified Go calls (webhook.ConstructEvent /
+  // github.ValidatePayload) ALSO resolve via reachable_symbols; the overlay guarantees detection
+  // even when reachability can't follow the call (e.g. inline verify in the handler body).
+  const goVerifyEvidence = collectGoSdkVerifyEvidence(cand, file, input.ruleSet);
   // Phase 8.5 REACH-01 — queue-handler reachability overlay. Emits `queue_verification_reachable`
   // when the handler enqueues the raw body via a known backend AND a verifying consumer is reachable.
   // The evaluator downgrades not-verified → manual-review on this signal (never verified).
@@ -330,6 +338,7 @@ async function assembleHandler(
     ...rawBodyMwEvidence,
     ...inlineMwVerifyEvidence,
     ...phpVerifyEvidence,
+    ...goVerifyEvidence,
     ...queueReachabilityEvidence,
   ];
   // Recompute provider attribution since sdk_verify_call evidence may shift the count.
@@ -494,6 +503,74 @@ function collectPhpSdkVerifyEvidence(
           provider: providerName,
           location: cand.location,
           detail: verifyCall,
+        });
+      }
+    }
+  }
+  return out;
+}
+
+// Phase 27 (RULES-GO-01) — Go sdk_verify_call detection, import-gated text overlay over the
+// handler range. Two match shapes (mirrors the PHP overlay's static + instance forms):
+//   (a) package-qualified Go func: a dotted catalog entry whose text appears in the handler
+//       (e.g. `webhook.ConstructEvent` from stripe-go, `github.ValidatePayload` from go-github).
+//   (b) instance method whose receiver name varies (Svix `wh.Verify(...)`): matched by `.Verify(`
+//       in the handler body, recognised ONLY for providers whose Go sdk_package is imported.
+// The import gate (a provider's `github.com/...` sdk_package must be imported) is the FP moat: a
+// bare `.Verify(` never attributes to Svix unless the Svix Go SDK is actually imported.
+function collectGoSdkVerifyEvidence(
+  cand: CandidateHandler,
+  file: ParsedFile,
+  ruleSet: RuleSet,
+): ReadonlyArray<WebhookEvidence> {
+  if (file.dialect !== "tree-sitter-go") return [];
+  if (file.raw_ast === null) return [];
+
+  const handlerText = file.source_text.slice(cand.handler_source_start, cand.handler_source_end);
+  const imports = file.imports;
+  const out: WebhookEvidence[] = [];
+  const seen = new Set<string>();
+  const hasDotVerify = /\.Verify\s*\(/.test(handlerText);
+
+  for (const [providerName, entry] of Object.entries(ruleSet.providers)) {
+    const goPkgs = entry.sdk_packages.filter(isGoImportPath);
+    if (goPkgs.length === 0) continue;
+    // Import gate — the provider's Go SDK module must be imported (prefix; tolerates /vN).
+    const imported = imports.some((i) => goPkgs.some((p) => i.to_module.startsWith(p)));
+    if (!imported) continue;
+
+    // Shape (a) — package-qualified Go verify call. Match by the FUNC-NAME suffix (`.Func(`) not
+    // the verbatim `pkg.Func` string, because Go import aliases rename the package
+    // (`gh "…/go-github/v62/github"` → `gh.ValidatePayload`). The import gate above is the FP
+    // moat, so matching the bare exported func name is safe.
+    for (const verifyCall of entry.sdk_verify_calls) {
+      if (verifyCall.includes("::") || verifyCall.includes("\\")) continue; // PHP shapes
+      const dot = verifyCall.lastIndexOf(".");
+      if (dot === -1) continue; // bare JS names — skip the Go overlay
+      const funcName = verifyCall.slice(dot + 1);
+      if (!/^[A-Z]/.test(funcName)) continue; // Go-exported funcs are Capitalized; skips JS camelCase
+      if (!new RegExp(`\\.${funcName}\\s*\\(`).test(handlerText)) continue;
+      const key = `${providerName}|${verifyCall}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({
+        kind: "sdk_verify_call",
+        provider: providerName,
+        location: cand.location,
+        detail: verifyCall,
+      });
+    }
+
+    // Shape (b) — Standard Webhooks / Svix Go instance verify `wh.Verify(...)`. Import-gated above.
+    if (providerName === "standardwebhooks" && hasDotVerify) {
+      const key = `${providerName}|Verify`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        out.push({
+          kind: "sdk_verify_call",
+          provider: providerName,
+          location: cand.location,
+          detail: "Verify",
         });
       }
     }
