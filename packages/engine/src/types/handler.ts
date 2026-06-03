@@ -33,7 +33,14 @@ export type Framework =
   // code framework — the n8n adapter emits these directly (no babel/tree-sitter parse).
   // MUST stay in sync with the Ajv `applies_to` enum in @hookwarden/rules schema.ts;
   // rule loading throws if a rule targets a framework the engine union does not declare.
-  | "n8n-workflow";
+  | "n8n-workflow"
+  // Phase 27 (RULES-GO-01): the four Go webhook frameworks. MUST stay in sync with the
+  // Ajv applies_to enum in @hookwarden/rules schema.ts; rule loading throws if a rule
+  // targets a framework the engine union does not declare.
+  | "net-http-go"
+  | "chi"
+  | "gin"
+  | "echo";
 
 // D-32 multi-signal evidence. Engine computes; rules query thresholds.
 // `side_effect_before_verify` is the v0.7 Rule Depth extension — emitted by the

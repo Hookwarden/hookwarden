@@ -153,6 +153,12 @@ const SCHEMA = {
               // Framework union member in types/handler.ts; both MUST move together or rule loading
               // throws when a rule targets `applies_to: [n8n-workflow]`.
               "n8n-workflow",
+              // Phase 27 (RULES-GO-01) Go frameworks — mirrors the engine Framework union member
+              // in types/handler.ts; both MUST move together or rule loading throws.
+              "net-http-go",
+              "chi",
+              "gin",
+              "echo",
             ],
           },
         },
