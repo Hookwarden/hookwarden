@@ -37,6 +37,16 @@ export async function loadBunEmbeddedPhpWasm(): Promise<Uint8Array> {
   return await Bun.file(wasmPath).bytes();
 }
 
+export async function loadBunEmbeddedGoWasm(): Promise<Uint8Array> {
+  const mod = await import(
+    // @ts-expect-error — Bun-only import attribute, resolved at compile time
+    "../../wasm/tree-sitter-go.wasm",
+    { with: { type: "file" } }
+  );
+  const wasmPath: string = mod.default ?? mod;
+  return await Bun.file(wasmPath).bytes();
+}
+
 export async function loadBunEmbeddedWebTreeSitterRuntimeWasm(): Promise<Uint8Array> {
   // Resolves at compile time to packages/cli/wasm/web-tree-sitter.wasm — a
   // local copy synced by scripts/sync-wasm.mjs from the web-tree-sitter npm

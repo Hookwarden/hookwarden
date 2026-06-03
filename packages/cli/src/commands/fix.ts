@@ -7,11 +7,14 @@
 import { promises as fs, statSync } from "node:fs";
 import * as path from "node:path";
 import {
+  type GoRuntime,
+  initGoRuntime,
   initPhpRuntime,
   initPythonRuntime,
   type ParsedFile,
   type PhpRuntime,
   type PythonRuntime,
+  parseGo,
   parseJsTs,
   parsePhp,
   parsePython,
@@ -35,7 +38,7 @@ import { ConfigError, loadConfigFromCwd } from "../config/loader.js";
 import { type ResolvedConfig, resolveConfig } from "../config/precedence.js";
 import { runScan } from "../pipeline.js";
 import { shouldUseAnsi } from "../walker/tty.js";
-import { loadPhpWasmBytes, loadPythonWasmBytes } from "../wasm/loader.js";
+import { loadGoWasmBytes, loadPhpWasmBytes, loadPythonWasmBytes } from "../wasm/loader.js";
 
 export interface FixArgs {
   readonly path?: string;
@@ -198,9 +201,11 @@ async function parseFilesByPath(
   const out: Record<string, ParsedFile> = {};
   let pyRuntime: PythonRuntime | null = null;
   let phpRuntime: PhpRuntime | null = null;
+  let goRuntime: GoRuntime | null = null;
   const ext = (f: string) => f.slice(f.lastIndexOf(".")).toLowerCase();
   const needPython = files.some((f) => ext(f) === ".py" || ext(f) === ".pyi");
   const needPhp = files.some((f) => ext(f) === ".php");
+  const needGo = files.some((f) => ext(f) === ".go");
   if (needPython) {
     const bytes = await loadPythonWasmBytes();
     if (bytes !== null) pyRuntime = await initPythonRuntime({ wasmBytes: bytes });
@@ -208,6 +213,10 @@ async function parseFilesByPath(
   if (needPhp) {
     const bytes = await loadPhpWasmBytes();
     if (bytes !== null) phpRuntime = await initPhpRuntime({ wasmBytes: bytes });
+  }
+  if (needGo) {
+    const bytes = await loadGoWasmBytes();
+    if (bytes !== null) goRuntime = await initGoRuntime({ wasmBytes: bytes });
   }
   for (const rel of files) {
     const abs = path.join(cwd, rel);
@@ -224,6 +233,9 @@ async function parseFilesByPath(
     } else if (e === ".php") {
       if (phpRuntime === null) continue;
       out[rel] = await parsePhp({ file_path: rel, source_text: source }, phpRuntime);
+    } else if (e === ".go") {
+      if (goRuntime === null) continue;
+      out[rel] = await parseGo({ file_path: rel, source_text: source }, goRuntime);
     } else {
       out[rel] = await parseJsTs({ file_path: rel, source_text: source });
     }

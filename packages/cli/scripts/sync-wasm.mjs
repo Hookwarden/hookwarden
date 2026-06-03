@@ -10,7 +10,11 @@
 //      tarball also ships tree-sitter-php_only.wasm (pure-PHP, no <?php
 //      opener) — we use the full grammar since real webhook handlers
 //      always have <?php opening tags.
-//   3. web-tree-sitter.wasm — the tree-sitter runtime itself. Bun's bundler
+//   3. tree-sitter-go.wasm — the Go grammar (Phase 27 ENG-GO-01). Same
+//      reasoning as Python/PHP: shipped as WASM only, no native binding.
+//      tree-sitter-go@0.25.0 has no `exports` map (all subpaths public), so
+//      `require.resolve("tree-sitter-go/package.json")` resolves like the others.
+//   4. web-tree-sitter.wasm — the tree-sitter runtime itself. Bun's bundler
 //      can't resolve `web-tree-sitter/web-tree-sitter.wasm` through pnpm's
 //      hoisted node_modules layout (`error: Could not resolve... maybe you
 //      need to bun install`), so we mirror the file into the same wasm/
@@ -61,6 +65,10 @@ copyAsset(dirname(require.resolve("tree-sitter-python/package.json")), "tree-sit
 // — exports field unset → all subpaths public), so package.json resolution works
 // the same way as Python.
 copyAsset(dirname(require.resolve("tree-sitter-php/package.json")), "tree-sitter-php.wasm");
+// tree-sitter-go@0.25.0 likewise has no `exports` map (verified via
+// `npm view tree-sitter-go@0.25.0` — exports field unset → all subpaths public),
+// so package.json resolution works the same way as Python/PHP.
+copyAsset(dirname(require.resolve("tree-sitter-go/package.json")), "tree-sitter-go.wasm");
 // web-tree-sitter has an `exports` map that whitelists ./web-tree-sitter.wasm;
 // resolve via that subpath to find the package directory.
 copyAsset(resolvePackageDir("web-tree-sitter", "web-tree-sitter.wasm"), "web-tree-sitter.wasm");

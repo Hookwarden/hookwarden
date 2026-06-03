@@ -17,12 +17,15 @@ import {
   type Config,
   evaluate,
   type Finding,
+  type GoRuntime,
+  initGoRuntime,
   initPhpRuntime,
   initPythonRuntime,
   type ParsedFile,
   type PhpRuntime,
   type ProjectModel,
   type PythonRuntime,
+  parseGo,
   parseJsTs,
   parsePhp,
   parsePython,
@@ -51,6 +54,7 @@ import { detectStale, type StaleSuppression } from "./suppress/stale.js";
 import { type WalkResult, walkProject } from "./walker/index.js";
 import { discoverN8nInputs } from "./walker/n8n-discovery.js";
 import {
+  loadGoWasmBytes,
   loadPhpWasmBytes,
   loadPythonWasmBytes,
   loadTreeSitterRuntimeWasmBytes,
@@ -97,6 +101,7 @@ export interface RunScanOutput {
 
 const PYTHON_EXTS: ReadonlySet<string> = new Set([".py", ".pyi"]);
 const PHP_EXTS: ReadonlySet<string> = new Set([".php"]);
+const GO_EXTS: ReadonlySet<string> = new Set([".go"]);
 
 function isPython(filePath: string): boolean {
   const idx = filePath.lastIndexOf(".");
@@ -108,6 +113,12 @@ function isPhp(filePath: string): boolean {
   const idx = filePath.lastIndexOf(".");
   if (idx < 0) return false;
   return PHP_EXTS.has(filePath.slice(idx).toLowerCase());
+}
+
+function isGo(filePath: string): boolean {
+  const idx = filePath.lastIndexOf(".");
+  if (idx < 0) return false;
+  return GO_EXTS.has(filePath.slice(idx).toLowerCase());
 }
 
 // Phase 8.2 fileList override: bypass the full walker when caller provides an
@@ -235,14 +246,18 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
   // grammars, so it loads once even if both Python and PHP files appear in the same scan.
   const hasPython = walkResult.files.some(isPython);
   const hasPhp = walkResult.files.some(isPhp);
+  const hasGo = walkResult.files.some(isGo);
   let pyRuntime: PythonRuntime | null = null;
   let phpRuntime: PhpRuntime | null = null;
-  if (hasPython || hasPhp) {
-    const [pythonWasmBytes, phpWasmBytes, treeSitterRuntimeWasmBytes] = await Promise.all([
-      hasPython ? loadPythonWasmBytes() : Promise.resolve(null),
-      hasPhp ? loadPhpWasmBytes() : Promise.resolve(null),
-      loadTreeSitterRuntimeWasmBytes(),
-    ]);
+  let goRuntime: GoRuntime | null = null;
+  if (hasPython || hasPhp || hasGo) {
+    const [pythonWasmBytes, phpWasmBytes, goWasmBytes, treeSitterRuntimeWasmBytes] =
+      await Promise.all([
+        hasPython ? loadPythonWasmBytes() : Promise.resolve(null),
+        hasPhp ? loadPhpWasmBytes() : Promise.resolve(null),
+        hasGo ? loadGoWasmBytes() : Promise.resolve(null),
+        loadTreeSitterRuntimeWasmBytes(),
+      ]);
     if (hasPython && pythonWasmBytes !== null) {
       pyRuntime = await initPythonRuntime(
         treeSitterRuntimeWasmBytes !== undefined
@@ -257,6 +272,13 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
           : { wasmBytes: phpWasmBytes },
       );
     }
+    if (hasGo && goWasmBytes !== null) {
+      goRuntime = await initGoRuntime(
+        treeSitterRuntimeWasmBytes !== undefined
+          ? { wasmBytes: goWasmBytes, treeSitterRuntimeWasmBytes }
+          : { wasmBytes: goWasmBytes },
+      );
+    }
   }
 
   const concurrency = Math.min(8, os.availableParallelism?.() ?? 4);
@@ -267,6 +289,10 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
       limit(async () => {
         const rel = path.relative(scanDir, abs);
         const sourceText = await fs.readFile(abs, "utf-8");
+        if (isGo(abs)) {
+          if (goRuntime === null) throw new Error("Go runtime not initialized");
+          return parseGo({ file_path: rel, source_text: sourceText }, goRuntime);
+        }
         if (isPhp(abs)) {
           if (phpRuntime === null) throw new Error("PHP runtime not initialized");
           return parsePhp({ file_path: rel, source_text: sourceText }, phpRuntime);

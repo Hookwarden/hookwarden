@@ -15,6 +15,7 @@ export const EXTENSION_ALLOWLIST: ReadonlySet<string> = new Set([
   ".py",
   ".pyi",
   ".php",
+  ".go",
 ]);
 
 export function isAllowlistedFile(filePath: string): boolean {

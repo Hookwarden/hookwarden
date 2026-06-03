@@ -54,6 +54,21 @@ export async function loadPhpWasmBytes(): Promise<Uint8Array> {
   return new Uint8Array(buf);
 }
 
+// Mirrors loadPythonWasmBytes / loadPhpWasmBytes — same dual-path shape for
+// tree-sitter-go.wasm. Phase 27 ENG-GO-01. The Go grammar artefact is populated
+// by the same scripts/sync-wasm.mjs invocation that populates the Python/PHP ones.
+export async function loadGoWasmBytes(): Promise<Uint8Array> {
+  if (isBunRuntime()) {
+    const { loadBunEmbeddedGoWasm } = await import("./bun-asset.js");
+    return await loadBunEmbeddedGoWasm();
+  }
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const wasmPath = path.join(__dirname, "..", "..", "wasm", "tree-sitter-go.wasm");
+  const buf = await fs.readFile(wasmPath);
+  return new Uint8Array(buf);
+}
+
 // Loads the bytes of `web-tree-sitter.wasm` (the tree-sitter runtime itself).
 // Returns `undefined` in Node mode — web-tree-sitter's emscripten loader finds
 // its own .wasm via the npm install layout, no caller intervention needed.
