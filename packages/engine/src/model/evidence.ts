@@ -129,8 +129,18 @@ export function computeEvidence(input: ComputeEvidenceInput): ComputeEvidenceOut
   // not raw bytes) but the rule's intent — "did you read body data in a shape compatible with
   // the provider's HMAC scheme?" — matches: Twilio HMACs the URL + sorted form params, so
   // $_POST is the correct read for Twilio webhooks.
+  //
+  // Web Fetch API raw-body reads — `.text()` / `.arrayBuffer()` on a request-like receiver. The
+  // receiver match `\w*req\w*` covers `req`, `request`, Hono's `c.req`, and `.clone()`d names like
+  // `clonedReq` / `rawReq` (body-logging middleware clones the request before reading), while
+  // deliberately NOT matching `response.text()` (a fetch-RESPONSE read — "response" contains no
+  // "req"), so we don't suppress a genuine misuse. This is the canonical raw-body access in Next.js
+  // App Router, Remix, and Web-standard handlers, and is exactly what Stripe's docs use
+  // (`const buf = await req.text(); stripe.webhooks.constructEvent(buf, sig, secret)`). Without it,
+  // correctly-verified App Router webhooks were flagged stripe/raw-body-misuse — a false-positive
+  // critical on textbook-correct code (found scanning dub: stripe/webhook + connect webhooks).
   if (
-    /(Buffer|Uint8Array|\braw\b|\bbytes\b|c\.req\.raw|request\.get_data\(\)|request\.body|php:\/\/input|->getContent\(\)|->getBody\(\)|\$_POST|->all\(\)|->input\(\))/i.test(
+    /(Buffer|Uint8Array|\braw\b|\bbytes\b|c\.req\.raw|request\.get_data\(\)|request\.body|php:\/\/input|->getContent\(\)|->getBody\(\)|\$_POST|->all\(\)|->input\(\)|\b\w*req\w*\.(?:text|arrayBuffer)\(\s*\)|\.rawBody\b)/i.test(
       handlerText,
     )
   ) {

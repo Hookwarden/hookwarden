@@ -113,6 +113,62 @@ describe("computeEvidence (D-32 — 6 of 7 signals; sdk_verify_call emitted in P
     expect(evidence.some((e) => e.kind === "body_as_bytes_or_buffer")).toBe(true);
   });
 
+  // Web Fetch API raw-body reads (Next.js App Router / Remix / Hono). Regression for the
+  // stripe/raw-body-misuse false-positive found scanning dub: `req.text()` and `clonedReq.text()`
+  // ARE raw-body access and must emit body_as_bytes_or_buffer so the misuse rule stays silent.
+  const RAW_BODY_READS: ReadonlyArray<{ label: string; read: string }> = [
+    {
+      label: "req.text() (App Router / Stripe docs pattern)",
+      read: "const buf = await req.text();",
+    },
+    { label: "req.arrayBuffer()", read: "const buf = await req.arrayBuffer();" },
+    {
+      label: "clonedReq.text() (cloned request — body-logging middleware)",
+      read: "const c = req.clone(); const buf = await c.text(); void buf; const r = await clonedReq.text();",
+    },
+  ];
+  for (const { label, read } of RAW_BODY_READS) {
+    it(`emits body_as_bytes_or_buffer for a Web-API raw read: ${label}`, async () => {
+      const file = await parseJsTs({
+        file_path: "x.ts",
+        source_text:
+          "app.post('/webhooks/stripe', async (req, res) => {\n" +
+          `  ${read}\n` +
+          "  res.send('ok');\n" +
+          "});\n",
+      });
+      const handlers = detectCatalogHandlers(file);
+      const { evidence } = computeEvidence({
+        handler: handlers[0]!,
+        parsedFile: file,
+        providerCatalog: TEST_CATALOG,
+        imports: file.imports,
+      });
+      expect(evidence.some((e) => e.kind === "body_as_bytes_or_buffer")).toBe(true);
+    });
+  }
+
+  it("does NOT treat response.text() as a raw-body read (no false suppression of a real misuse)", async () => {
+    const file = await parseJsTs({
+      file_path: "x.ts",
+      source_text:
+        "app.post('/webhooks/stripe', async (req, res) => {\n" +
+        "  const upstream = await fetch('https://x');\n" +
+        "  const body = await upstream.text();\n" + // a RESPONSE read — 'upstream' has no 'req'
+        "  void body;\n" +
+        "  res.send('ok');\n" +
+        "});\n",
+    });
+    const handlers = detectCatalogHandlers(file);
+    const { evidence } = computeEvidence({
+      handler: handlers[0]!,
+      parsedFile: file,
+      providerCatalog: TEST_CATALOG,
+      imports: file.imports,
+    });
+    expect(evidence.some((e) => e.kind === "body_as_bytes_or_buffer")).toBe(false);
+  });
+
   it("does NOT emit sdk_verify_call here — that is Plan 06b's responsibility", async () => {
     const file = await parseJsTs({
       file_path: "x.ts",
