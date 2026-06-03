@@ -8,8 +8,8 @@ import type { WebhookHandler } from "./handler.ts";
 // Engine internals down-cast based on `dialect`. Public surface keeps the type opaque.
 export interface ParsedFile {
   readonly file_path: string; // repo-relative
-  readonly language: "javascript" | "typescript" | "python" | "php" | "json";
-  readonly dialect: "babel" | "tree-sitter-python" | "tree-sitter-php" | "n8n-json";
+  readonly language: "javascript" | "typescript" | "python" | "php" | "go" | "json";
+  readonly dialect: "babel" | "tree-sitter-python" | "tree-sitter-php" | "n8n-json" | "tree-sitter-go";
   readonly source_text: string; // raw source; redaction happens later
   readonly raw_ast: unknown; // dialect-specific AST root; engine parsers cast internally
   readonly imports: ReadonlyArray<ImportEdge>;

@@ -14,6 +14,13 @@ export function resolvePythonWasmPath(): string {
   return join(dirname(pkgPath), "tree-sitter-python.wasm");
 }
 
+export function resolveGoWasmPath(): string {
+  // tree-sitter-go@0.25.0 ships tree-sitter-go.wasm at the package root (no exports gate),
+  // resolvable exactly like the python/php grammars.
+  const pkgPath = require.resolve("tree-sitter-go/package.json");
+  return join(dirname(pkgPath), "tree-sitter-go.wasm");
+}
+
 export function resolvePhpWasmPath(): string {
   // tree-sitter-php@0.24.2 ships two .wasm artefacts at package root:
   //   tree-sitter-php.wasm        — full PHP grammar (with <?php opener support)

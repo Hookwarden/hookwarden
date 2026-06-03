@@ -32,6 +32,8 @@ export function dispatchTimingUnsafeComparison(
       return pythonReplaceBinaryEquality(parsedFile, finding);
     case "tree-sitter-php":
       return phpReplaceBinaryEqualityOrStrcmp(parsedFile, finding);
+    case "tree-sitter-go":
+      return null; // TODO(27-04): wire goReplaceBinaryEquality (placeholder for exhaustiveness).
     case "n8n-json":
       return null; // n8n workflow JSON is structured config, not code — no autofix codegen.
   }
@@ -48,6 +50,8 @@ export function dispatchInsertNullishGuard(
       return pythonInsertNullishGuard(parsedFile, finding);
     case "tree-sitter-php":
       return null; // PHP nullish-guard is manual-only in v0.5 (PHP idiom rationale).
+    case "tree-sitter-go":
+      return null; // Go nullish-guard is manual-only (Go has no nullish-coalescing idiom).
     case "n8n-json":
       return null; // n8n workflow JSON is structured config, not code — no autofix codegen.
   }
@@ -62,6 +66,8 @@ export function dispatchReplaceRawBodyMisuse(
       return typescriptReplaceReqBodyWithRawBody(parsedFile, finding);
     case "tree-sitter-php":
       return phpReplaceInputWithRawBody(parsedFile, finding);
+    case "tree-sitter-go":
+      return null; // TODO(27-04): wire goReplaceBodyWithRaw (placeholder for exhaustiveness).
     case "tree-sitter-python":
       return null; // Python raw-body is manual-only in v0.5 (B3 — D-11 cond. 2).
     case "n8n-json":
@@ -80,6 +86,8 @@ export function dispatchInsertSecretPresenceCheck(
       return pythonInsertSecretPresenceCheck(parsedFile, finding);
     case "tree-sitter-php":
       return phpInsertSecretPresenceCheck(parsedFile, finding);
+    case "tree-sitter-go":
+      return null; // Go secret-presence-check is manual-only in this milestone (no Go codegen yet).
     case "n8n-json":
       return null; // n8n workflow JSON is structured config, not code — no autofix codegen.
   }

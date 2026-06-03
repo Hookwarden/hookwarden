@@ -10,6 +10,8 @@
 //   - tree-sitter-python:    triple-quoted string, comment
 //   - tree-sitter-php:       heredoc, nowdoc, encapsed_string, comment,
 //                            shell_command_expression
+//   - tree-sitter-go:        interpreted_string_literal, raw_string_literal,
+//                            rune_literal, comment
 //
 // Pure: no fs / http / network / process / node:* (D-28).
 
@@ -26,7 +28,9 @@ export interface ForbiddenRange {
     | "triple-quoted"
     | "comment"
     | "encapsed-string"
-    | "shell-command";
+    | "shell-command"
+    | "go-string"
+    | "rune";
 }
 
 const PHP_FORBIDDEN_NODE_KINDS: ReadonlySet<string> = new Set([
@@ -45,6 +49,20 @@ const PHP_NODE_KIND_TO_RANGE_KIND: Readonly<Record<string, ForbiddenRange["kind"
   shell_command_expression: "shell-command",
 };
 
+const GO_FORBIDDEN_NODE_KINDS: ReadonlySet<string> = new Set([
+  "comment",
+  "interpreted_string_literal",
+  "raw_string_literal",
+  "rune_literal",
+]);
+
+const GO_NODE_KIND_TO_RANGE_KIND: Readonly<Record<string, ForbiddenRange["kind"]>> = {
+  comment: "comment",
+  interpreted_string_literal: "go-string",
+  raw_string_literal: "go-string",
+  rune_literal: "rune",
+};
+
 export function buildForbiddenRanges(parsedFile: ParsedFile): ReadonlyArray<ForbiddenRange> {
   const out: ForbiddenRange[] = [];
   switch (parsedFile.dialect) {
@@ -56,6 +74,9 @@ export function buildForbiddenRanges(parsedFile: ParsedFile): ReadonlyArray<Forb
       break;
     case "tree-sitter-php":
       walkPhp(parsedFile.raw_ast as TsTree | null, out);
+      break;
+    case "tree-sitter-go":
+      walkGo(parsedFile.raw_ast as TsTree | null, out);
       break;
   }
   out.sort((a, b) => a.start - b.start);
@@ -183,6 +204,18 @@ function walkPhp(tree: TsTree | null, out: ForbiddenRange[]): void {
   walkTsCursor(tree.rootNode, (node) => {
     if (!PHP_FORBIDDEN_NODE_KINDS.has(node.type)) return;
     const kind = PHP_NODE_KIND_TO_RANGE_KIND[node.type];
+    if (kind === undefined) return;
+    out.push({ start: node.startIndex, end: node.endIndex, kind });
+  });
+}
+
+// ----- tree-sitter-go walker -----
+
+function walkGo(tree: TsTree | null, out: ForbiddenRange[]): void {
+  if (tree === null) return;
+  walkTsCursor(tree.rootNode, (node) => {
+    if (!GO_FORBIDDEN_NODE_KINDS.has(node.type)) return;
+    const kind = GO_NODE_KIND_TO_RANGE_KIND[node.type];
     if (kind === undefined) return;
     out.push({ start: node.startIndex, end: node.endIndex, kind });
   });
