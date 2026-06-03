@@ -1,4 +1,4 @@
-import type { Finding, Severity, SuppressedPayload } from "@hookwarden/engine";
+import type { Finding, Severity, SuppressedPayload, Verdict } from "@hookwarden/engine";
 import { describe, expect, it } from "vitest";
 import { countActiveAtOrAbove, isAtOrAbove } from "../src/severity-threshold.js";
 
@@ -13,13 +13,20 @@ const RANK: Record<Severity, number> = {
   info: 4,
 };
 
-function makeFinding(severity: Severity, suppressed?: SuppressedPayload | null): Finding {
+// Default state is "not-verified": the verdict for which gating is driven purely by severity.
+// State-aware gating (verified never gates; manual-review gates only at low/info) is exercised
+// by the dedicated "state-aware gating" block below.
+function makeFinding(
+  severity: Severity,
+  suppressed?: SuppressedPayload | null,
+  state: Verdict = "not-verified",
+): Finding {
   return {
-    id: `id-${severity}`,
+    id: `id-${severity}-${state}`,
     rule_id: "stripe/missing-verification",
     provider: "stripe",
     severity,
-    state: "verified",
+    state,
     file_path: "src/a.ts",
     location: { line: 1, col: 1, end_line: 1, end_col: 10 },
     snippet: "<snippet>",
@@ -92,11 +99,59 @@ describe("countActiveAtOrAbove", () => {
     expect(countActiveAtOrAbove(findings, "low")).toBe(0);
   });
 
-  it("counts parse-error findings (engine/parse-error rule_id, severity=high) — they are findings, not metadata", () => {
+  it("counts parse-error findings (engine/parse-error, severity=high, state=manual-review) at --fail-on high — an unparseable file is a blind spot, not a soft manual-review verdict", () => {
+    // Real parse-error findings are state="manual-review" (the engine can't classify a file it
+    // can't parse). They must STILL gate by severity, unlike verification manual-review findings.
     const parseError: Finding = {
-      ...makeFinding("high"),
+      ...makeFinding("high", null, "manual-review"),
       rule_id: "engine/parse-error",
     };
     expect(countActiveAtOrAbove([parseError], "high")).toBe(1);
+  });
+});
+
+// State-aware gating: exit-code behavior must match the documented summary legend
+// ("manual-review ... does not fail the build by default (use --fail-on low to gate)").
+// A `verified` finding is a positive signal and must never gate; a `manual-review`
+// finding gates only at --fail-on low/info; `not-verified` always gates by severity.
+describe("countActiveAtOrAbove — state-aware gating", () => {
+  it("verified-state findings NEVER count, even a critical at --fail-on critical", () => {
+    const findings = [makeFinding("critical", null, "verified")];
+    expect(countActiveAtOrAbove(findings, "critical")).toBe(0);
+  });
+
+  it("verified-state info finding does not gate even at --fail-on info (correct handler ≠ build failure)", () => {
+    const findings = [makeFinding("info", null, "verified")];
+    expect(countActiveAtOrAbove(findings, "info")).toBe(0);
+  });
+
+  it("manual-review high finding does NOT gate at the default --fail-on high", () => {
+    const findings = [makeFinding("high", null, "manual-review")];
+    expect(countActiveAtOrAbove(findings, "high")).toBe(0);
+  });
+
+  it("manual-review high finding DOES gate at --fail-on low (per the documented contract)", () => {
+    const findings = [makeFinding("high", null, "manual-review")];
+    expect(countActiveAtOrAbove(findings, "low")).toBe(1);
+  });
+
+  it("manual-review critical finding does not gate at high but gates at low", () => {
+    const findings = [makeFinding("critical", null, "manual-review")];
+    expect(countActiveAtOrAbove(findings, "high")).toBe(0);
+    expect(countActiveAtOrAbove(findings, "low")).toBe(1);
+  });
+
+  it("not-verified critical always gates at the default --fail-on high", () => {
+    const findings = [makeFinding("critical", null, "not-verified")];
+    expect(countActiveAtOrAbove(findings, "high")).toBe(1);
+  });
+
+  it("mixed report: only the not-verified critical gates at --fail-on high", () => {
+    const findings = [
+      makeFinding("critical", null, "verified"), // positive signal — never gates
+      makeFinding("critical", null, "not-verified"), // real bug — gates
+      makeFinding("high", null, "manual-review"), // needs human — gates only at low
+    ];
+    expect(countActiveAtOrAbove(findings, "high")).toBe(1);
   });
 });

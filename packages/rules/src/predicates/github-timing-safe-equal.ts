@@ -16,7 +16,16 @@ import {
 
 // "GitHub webhook handler whose reachable_symbols include neither
 // crypto.timingSafeEqual nor an SDK verify call → emits not-verified."
-// Otherwise emits verified (the rule still emits a verdict, per D-29).
+// Otherwise returns null — the rule does not fire.
+//
+// This predicate backs `critical`-severity rules (github/missing-timing-safe-equal +
+// github/timing-unsafe-comparison). The engine builds a Finding for ANY non-null verdict and
+// stamps it with the rule's fixed `critical` severity + "verification missing" message. So a
+// `critical` rule must return null — never "verified" — on the safe path, or a textbook-correct
+// hand-rolled handler (crypto.createHmac + crypto.timingSafeEqual) surfaces a false-positive
+// critical and fails the build. The positive "verified" signal is the job of the info-severity
+// github/library-verified rule, not this one. (The sibling github-php-timing-safe-equal predicate
+// already follows this null-on-safe-path convention.)
 //
 // Trusts the bounded-depth reachability set computed by the engine (D-34). Phase 6's full
 // GitHub rule will combine this with header / raw-body / replay checks.
@@ -44,14 +53,15 @@ export const githubTimingSafeEqualPredicate: RulePredicate = async (
     (s) =>
       s.import_source === "@octokit/webhooks" || s.import_source === "@octokit/webhooks-methods",
   );
-  if (hasTimingSafe || hasSdkVerify) return "verified";
+  // Safe path → null (no finding). See header note: a critical rule must not emit on a verified handler.
+  if (hasTimingSafe || hasSdkVerify) return null;
   return "not-verified";
 };
 
 function evaluatePhpGithubTimingSafeEqual(
   handler: WebhookHandler,
   parsedFile: { readonly parse_error: unknown; readonly raw_ast: unknown },
-): "verified" | "not-verified" | null {
+): "not-verified" | null {
   if (parsedFile.parse_error !== null || parsedFile.raw_ast === null) return null;
 
   const tree = parsedFile.raw_ast as PhpTree;
@@ -64,7 +74,7 @@ function evaluatePhpGithubTimingSafeEqual(
     const fnNode = c.node.childForFieldName("function");
     return fnNode !== null && isPhpHashEqualsCall(fnNode.text);
   });
-  if (usesHashEquals) return "verified";
+  if (usesHashEquals) return null; // safe path — see header note (null, never "verified", on a critical rule)
 
   // No hash_equals — check for insecure comparison. If any unsafe form is present, emit
   // not-verified. If no comparison at all, the rule does not apply (a handler with no

@@ -207,7 +207,10 @@ describe("computeContentHash (ENGINE-08, D-38)", () => {
 describe("smoke-test rule predicate (github-timing-safe-equal)", () => {
   type PredicateInput = Parameters<(typeof ALL_PREDICATES)["github-timing-safe-equal"]>[0];
 
-  it("returns 'verified' when crypto.timingSafeEqual is reachable", async () => {
+  // Safe path returns null (NOT "verified"): this predicate backs `critical` rules, and the engine
+  // builds a Finding for any non-null verdict — returning "verified" here surfaced a false-positive
+  // critical on a correctly-verified hand-rolled handler. See github-timing-safe-equal.test.ts.
+  it("returns null when crypto.timingSafeEqual is reachable (no false-positive critical)", async () => {
     const handler = {
       provider: "github",
       reachable_symbols: [
@@ -220,7 +223,7 @@ describe("smoke-test rule predicate (github-timing-safe-equal)", () => {
       ],
     } as unknown as PredicateInput;
     const verdict = await ALL_PREDICATES["github-timing-safe-equal"]?.(handler, {} as never);
-    expect(verdict).toBe("verified");
+    expect(verdict).toBeNull();
   });
 
   it("returns 'not-verified' when no verification is reachable", async () => {
