@@ -1,5 +1,105 @@
 # @hookwarden/engine
 
+## 0.8.0
+
+### Minor Changes
+
+- 46c2a97: Add the n8n agentic-callback ruleset. The engine gains a workflow-JSON adapter that ingests `*.workflow.json` files and n8n community custom-nodes (`package.json#n8n.nodes`, `INodeType`/`IWebhookFunctions` sources), synthesizing handler models from n8n trigger/webhook nodes. A new n8n rule pack detects unverified-body agent/tool sinks (VAS/BYP on `getBodyData()`, `$json`, `items[0].json` reaching agent-tool calls) while staying silent on mitigated, signature-verified shapes. The `hookwarden` CLI now scans n8n projects end-to-end (`scan` surfaces n8n findings and malformed-workflow parse errors).
+- 056ba21: Add queue-handler + edge-runtime reachability overlays and the first asymmetric (Ed25519) provider.
+
+  - **REACH-01 — queue-handler reachability**: a handler that enqueues the raw body via bullmq / SQS / inngest / Kafka and has a verifying consumer of that queue reachable now resolves to `manual-review` instead of `not-verified` (the engine can't prove same-payload verification across the queue boundary, so it never claims `verified`). A queue enqueue with no verifying consumer stays `not-verified`.
+  - **REACH-02 — edge-runtime detection**: webhook handlers on Cloudflare Workers (`export default { fetch }`), Vercel Edge (`runtime: 'edge'`), and Deno (`Deno.serve`) are now detected (Next.js App Router was already covered), so the HMAC-over-raw-body rules evaluate them instead of missing or mis-flagging. The full rule pack's `applies_to` now includes `cloudflare-workers` / `vercel-edge` / `deno`.
+  - **DISCORD-01 — Ed25519 provider**: Discord interactions are the first asymmetric provider (`signature_scheme: ed25519`, verified against the app public key). The rule recognizes `verifyKey` (discord-interactions-js), `nacl.sign.detached.verify` (tweetnacl), `nacl.signing.VerifyKey(...).verify(...)` (PyNaCl), and `sodium_crypto_sign_verify_detached` (PHP) as verified; a Discord handler with no Ed25519 verification is `not-verified`. Discord interaction paths are now detected.
+
+  Engine purity preserved; existing HMAC providers untouched.
+
+- c10427a: v0.8 launch — webhook integrity, from first line to final audit.
+
+  This is the stable v0.8 cut of the CLI + engine + rules cluster. It rolls up the
+  v0.8 milestone surface: the n8n agentic-callback ruleset (detecting unverified
+  agent/tool webhook sinks, shipped after the Cisco Talos n8n abuse report), the
+  Anthropic Agent SDK tool-callback ruleset, and the `compliance_mappings` schema
+  (SOC 2 + ISO 27001 + EU AI Act Annex III + NIST AI RMF) surfaced in
+  `hookwarden --version --verbose`, with the v1.1 evidence pack carrying the EU AI
+  Act Annex III high-risk classification and an embedded offline-verifiable
+  signing key.
+
+  The MCP server shipped earlier in the v0.8 cycle and versions independently of
+  this fixed cluster, so it is intentionally not part of this changeset.
+
+### Patch Changes
+
+- 8f8c131: Real-app correctness + scan-robustness + terminal-UX fixes (found auditing dub / cal.com / documenso):
+
+  - **engine: `req.text()` / `req.arrayBuffer()` now count as raw-body access.** The raw-body evidence
+    detector recognized `express.raw`, `req.body`, `php://input`, etc. but not the Web Fetch API reads
+    used by Next.js App Router / Remix / Hono — exactly the pattern Stripe's docs prescribe
+    (`const buf = await req.text(); stripe.webhooks.constructEvent(buf, sig, secret)`). Correctly-verified
+    App Router webhooks were flagged `stripe/raw-body-misuse` — a false-positive critical on textbook
+    code. Now recognized (incl. `.clone()`d request vars like `clonedReq.text()`), without
+    over-suppressing genuine misuse (`response.text()` still doesn't count).
+
+  - **`scan` fails loud on an unscannable target.** A nonexistent / unreadable / non-file-or-dir path
+    used to walk an empty tree → exit 0 "No findings" — a false all-clear for a CI security gate. It now
+    exits 3 with `error: cannot scan '<path>': …`. (`inventory`, a listing command, stays graceful.)
+    `/dev/null` and broken symlinks no longer leak an internal `ENOTDIR` baseline path.
+
+  - **`--no-trivia` / `--no-update-notifier` are now accepted.** Both were documented in `--help` and
+    consumed by `scan` but missing from the flag allowlist, so they were rejected as unknown flags.
+
+  - **file:line hyperlinks anchor correctly.** Scanning a single file emitted a doubled-basename link
+    (`…/x.js/x.js:3:1`); `inventory` resolved links against `process.cwd()` instead of the scan root.
+    Both now anchor to the scan directory.
+
+  - **footer tally trims zero tiers.** `Found 2 critical · 0 high · 0 medium · 0 low · 0 info · 0 manual-review`
+    → `Found 2 critical`. Only non-zero severities show; `manual-review` shows only when present.
+
+- ade4609: Cut real-app false positives from provider over-detection / mis-attribution (found scanning dub):
+
+  - **Generic HTTP headers no longer drive provider attribution.** Postmark's catalog `signature_header`
+    is `authorization` (its Basic-Auth scheme), but `Authorization` is read by nearly every
+    authenticated route — so OAuth token endpoints, cron jobs, and admin routes were attributed to
+    postmark and flagged as unverified postmark webhooks. A generic-header read (Authorization,
+    Content-Type, …) is now recorded provider-agnostically; real postmark webhooks are still attributed
+    by their specific signals (`/postmark/*` paths, SDK, `POSTMARK_*` env), and postmark's rules detect
+    Basic-Auth via reachable symbols, not this header.
+
+  - **Stripe v2 verify calls recognized.** `stripe.parseThinEvent(...)` (v2 API / thin events) and
+    `webhooks.constructEventAsync(...)` (Edge/Workers async API) are now treated as signature
+    verification, so correctly-verified v2 webhooks are no longer flagged
+    stripe/missing-signature-verification.
+
+  Combined with the `req.text()` raw-body fix, false-positive criticals on the dub codebase dropped
+  from 20 to 9 (the remaining 9 are genuine unverified webhook routes plus two non-webhook routes that
+  merely import the Stripe SDK — a separate over-detection class tracked for follow-up).
+
+- c7f1046: Add Remix support. Remix `action` route modules under `app/routes/**` receive a Web Fetch API
+  Request — identical to Next.js App Router — but were undetected, so a real Remix webhook scanned to
+  0 handlers and silently reported "clean" (a false negative; found scanning documenso, whose Stripe
+  webhook is `apps/remix/app/routes/api+/stripe.webhook.ts`). New `remixAdapter` detects `action`
+  exports and derives the route from the remix-flat-routes filename (`api+/stripe.webhook` →
+  `/api/stripe/webhook`); rules apply to remix via the nextjs equivalence in `ruleAppliesToFramework`
+  (no per-rule YAML churn). `remix` added to the engine Framework union + the rules `applies_to` enum.
+- 729c7a1: Stop flagging non-webhook routes that merely import a provider SDK (found scanning dub:
+  `billing/cancel`, `billing/payment-methods`). Next.js App Router admits every `route.ts` POST
+  regardless of path, so a route at a non-webhookish path whose only provider signal is `import Stripe`
+  (used to call `stripe.subscriptions.update`, not to receive webhooks) was attributed to stripe and
+  flagged stripe/missing-signature-verification — a false-positive critical. Such a route is
+  statically indistinguishable from a real webhook, so it's now demoted to provider `unknown` (no
+  provider rules fire), matching the engine's existing "ambiguous route → unknown → no finding" stance.
+  A webhookish path (the canonical `/webhook` bug, whose only stripe signal is also the import) or any
+  receiving signal (signature-header read, verify call, raw-body read, webhook secret, conventional
+  path) keeps the attribution. Combined with the earlier raw-body / generic-header / parseThinEvent
+  fixes, false-positive criticals on the dub codebase dropped from 20 to 7 (the 7 remaining are
+  genuine unverified webhook routes).
+- 1bd1791: Complete the Standard Webhooks detector with the hand-rolled prong (Clerk CVE-2025-53548) and fix a provider-attribution bug it surfaced.
+
+  - **STDWH-01 hand-rolled prong**: a handler that re-implements the Standard Webhooks spec by hand — HMAC-SHA256 over the canonical `{msg_id}.{timestamp}.{body}` string — is now graded three ways. With **no comparison reachable** it is `not-verified` (the Clerk CVE-2025-53548 shape, where the signature is computed but never checked); with only an **undecidable local compare wrapper** (`safeCompare()` / `verifySig()`) it is `manual-review`; with a **recognized constant-time compare** it defers. Covers JS/TS (Babel), Python (tree-sitter), and PHP (tree-sitter source-walk). Plan 16 shipped only the library-import prong, so hand-rolled re-implementations were previously missed.
+  - **`multi-signature-mishandled`**: a new rule for the `v1,<sig1> v1,<sig2>` rotation list — a manual-HMAC handler with no signature-iteration symbol reachable is `manual-review` (it likely breaks the moment a secret is rotated).
+  - **Provider-attribution fix**: a correctly-verified hand-rolled handler (`crypto.createHmac` + `crypto.timingSafeEqual`) was mis-attributed to `anthropic-agent-sdk` and graded by the wrong provider's rules. Generic stdlib crypto primitives that some catalog entries list as VAS-01 suppression anchors no longer drive provider attribution; the VAS-01 suppression itself is unchanged.
+
+  No `whsec_` hardcoded-secret rule is added — the existing Stripe rule already matches it provider-agnostically. Engine purity preserved.
+
 ## 0.8.0-beta.2
 
 ### Patch Changes

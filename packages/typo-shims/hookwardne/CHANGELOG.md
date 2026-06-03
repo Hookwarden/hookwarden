@@ -1,5 +1,20 @@
 # hookwardne
 
+## 0.8.0
+
+### Patch Changes
+
+- Updated dependencies [8f8c131]
+- Updated dependencies [a7424fc]
+- Updated dependencies [46c2a97]
+- Updated dependencies [ade4609]
+- Updated dependencies [056ba21]
+- Updated dependencies [c7f1046]
+- Updated dependencies [729c7a1]
+- Updated dependencies [1bd1791]
+- Updated dependencies [c10427a]
+  - hookwarden@0.8.0
+
 ## 0.8.0-beta.2
 
 ### Patch Changes
