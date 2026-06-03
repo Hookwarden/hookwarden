@@ -1,5 +1,15 @@
 # hook-warden
 
+## 0.8.0-beta.1
+
+### Patch Changes
+
+- Updated dependencies [a7424fc]
+- Updated dependencies [056ba21]
+- Updated dependencies [1bd1791]
+- Updated dependencies [c10427a]
+  - hookwarden@0.8.0-beta.1
+
 ## 0.8.0-beta.0
 
 ### Patch Changes

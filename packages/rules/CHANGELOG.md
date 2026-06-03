@@ -1,5 +1,62 @@
 # @hookwarden/rules
 
+## 0.8.0-beta.1
+
+### Minor Changes
+
+- 056ba21: Add queue-handler + edge-runtime reachability overlays and the first asymmetric (Ed25519) provider.
+
+  - **REACH-01 — queue-handler reachability**: a handler that enqueues the raw body via bullmq / SQS / inngest / Kafka and has a verifying consumer of that queue reachable now resolves to `manual-review` instead of `not-verified` (the engine can't prove same-payload verification across the queue boundary, so it never claims `verified`). A queue enqueue with no verifying consumer stays `not-verified`.
+  - **REACH-02 — edge-runtime detection**: webhook handlers on Cloudflare Workers (`export default { fetch }`), Vercel Edge (`runtime: 'edge'`), and Deno (`Deno.serve`) are now detected (Next.js App Router was already covered), so the HMAC-over-raw-body rules evaluate them instead of missing or mis-flagging. The full rule pack's `applies_to` now includes `cloudflare-workers` / `vercel-edge` / `deno`.
+  - **DISCORD-01 — Ed25519 provider**: Discord interactions are the first asymmetric provider (`signature_scheme: ed25519`, verified against the app public key). The rule recognizes `verifyKey` (discord-interactions-js), `nacl.sign.detached.verify` (tweetnacl), `nacl.signing.VerifyKey(...).verify(...)` (PyNaCl), and `sodium_crypto_sign_verify_detached` (PHP) as verified; a Discord handler with no Ed25519 verification is `not-verified`. Discord interaction paths are now detected.
+
+  Engine purity preserved; existing HMAC providers untouched.
+
+- 1bd1791: Complete the Standard Webhooks detector with the hand-rolled prong (Clerk CVE-2025-53548) and fix a provider-attribution bug it surfaced.
+
+  - **STDWH-01 hand-rolled prong**: a handler that re-implements the Standard Webhooks spec by hand — HMAC-SHA256 over the canonical `{msg_id}.{timestamp}.{body}` string — is now graded three ways. With **no comparison reachable** it is `not-verified` (the Clerk CVE-2025-53548 shape, where the signature is computed but never checked); with only an **undecidable local compare wrapper** (`safeCompare()` / `verifySig()`) it is `manual-review`; with a **recognized constant-time compare** it defers. Covers JS/TS (Babel), Python (tree-sitter), and PHP (tree-sitter source-walk). Plan 16 shipped only the library-import prong, so hand-rolled re-implementations were previously missed.
+  - **`multi-signature-mishandled`**: a new rule for the `v1,<sig1> v1,<sig2>` rotation list — a manual-HMAC handler with no signature-iteration symbol reachable is `manual-review` (it likely breaks the moment a secret is rotated).
+  - **Provider-attribution fix**: a correctly-verified hand-rolled handler (`crypto.createHmac` + `crypto.timingSafeEqual`) was mis-attributed to `anthropic-agent-sdk` and graded by the wrong provider's rules. Generic stdlib crypto primitives that some catalog entries list as VAS-01 suppression anchors no longer drive provider attribution; the VAS-01 suppression itself is unchanged.
+
+  No `whsec_` hardcoded-secret rule is added — the existing Stripe rule already matches it provider-agnostically. Engine purity preserved.
+
+- c10427a: v0.8 launch — webhook integrity, from first line to final audit.
+
+  This is the stable v0.8 cut of the CLI + engine + rules cluster. It rolls up the
+  v0.8 milestone surface: the n8n agentic-callback ruleset (detecting unverified
+  agent/tool webhook sinks, shipped after the Cisco Talos n8n abuse report), the
+  Anthropic Agent SDK tool-callback ruleset, and the `compliance_mappings` schema
+  (SOC 2 + ISO 27001 + EU AI Act Annex III + NIST AI RMF) surfaced in
+  `hookwarden --version --verbose`, with the v1.1 evidence pack carrying the EU AI
+  Act Annex III high-risk classification and an embedded offline-verifiable
+  signing key.
+
+  The MCP server shipped earlier in the v0.8 cycle and versions independently of
+  this fixed cluster, so it is intentionally not part of this changeset.
+
+### Patch Changes
+
+- a7424fc: Fix a false-positive `critical` on correctly-verified GitHub webhook handlers. The
+  `github-timing-safe-equal` predicate (backing `github/missing-timing-safe-equal` and
+  `github/timing-unsafe-comparison`) returned `"verified"` on the safe path; because the engine
+  builds a finding for any non-null verdict and stamps it with the rule's fixed `critical` severity
+  and "verification missing" message, a textbook-correct hand-rolled handler
+  (`crypto.createHmac` + `crypto.timingSafeEqual`, exactly per GitHub's docs) surfaced two
+  false-positive criticals and failed the build. The safe path now returns `null` (no finding) —
+  the positive signal remains the job of the info-severity `github/library-verified` rule, matching
+  the convention every other provider's critical rules already follow.
+
+  Also makes `--fail-on` gating state-aware so exit codes match the documented summary legend:
+  `verified` findings never gate (a correctly-verified handler is not a build failure),
+  `manual-review` findings gate only at `--fail-on low`/`info` (not the default `high`), and
+  `not-verified` findings continue to gate by severity.
+
+- Updated dependencies [056ba21]
+- Updated dependencies [1bd1791]
+- Updated dependencies [c10427a]
+  - @hookwarden/engine@0.8.0-beta.1
+  - @hookwarden/fix@0.8.0-beta.1
+
 ## 0.8.0-beta.0
 
 ### Minor Changes

@@ -15,7 +15,14 @@
     "hookwarden-cli": "0.7.5",
     "hookwardens": "0.7.5",
     "hookwardn": "0.7.5",
-    "hookwardne": "0.7.5"
+    "hookwardne": "0.7.5",
+    "@hookwarden/canonical-json": "0.1.0"
   },
-  "changesets": ["n8n-agentic-callback-ruleset"]
+  "changesets": [
+    "github-verified-false-positive",
+    "n8n-agentic-callback-ruleset",
+    "reachability-overlays-discord-ed25519",
+    "standardwebhooks-handrolled-prong",
+    "v0-8-launch"
+  ]
 }
