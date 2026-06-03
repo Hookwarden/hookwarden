@@ -1,5 +1,16 @@
 # @hookwarden/mcp
 
+## 0.8.8-beta.1
+
+### Patch Changes
+
+- Updated dependencies [8f8c131]
+- Updated dependencies [ade4609]
+- Updated dependencies [c7f1046]
+- Updated dependencies [729c7a1]
+  - @hookwarden/engine@0.8.0-beta.2
+  - @hookwarden/rules@0.8.0-beta.2
+
 ## 0.8.8-beta.0
 
 ### Patch Changes

@@ -1,5 +1,80 @@
 # hookwarden
 
+## 0.8.0-beta.2
+
+### Patch Changes
+
+- 8f8c131: Real-app correctness + scan-robustness + terminal-UX fixes (found auditing dub / cal.com / documenso):
+
+  - **engine: `req.text()` / `req.arrayBuffer()` now count as raw-body access.** The raw-body evidence
+    detector recognized `express.raw`, `req.body`, `php://input`, etc. but not the Web Fetch API reads
+    used by Next.js App Router / Remix / Hono — exactly the pattern Stripe's docs prescribe
+    (`const buf = await req.text(); stripe.webhooks.constructEvent(buf, sig, secret)`). Correctly-verified
+    App Router webhooks were flagged `stripe/raw-body-misuse` — a false-positive critical on textbook
+    code. Now recognized (incl. `.clone()`d request vars like `clonedReq.text()`), without
+    over-suppressing genuine misuse (`response.text()` still doesn't count).
+
+  - **`scan` fails loud on an unscannable target.** A nonexistent / unreadable / non-file-or-dir path
+    used to walk an empty tree → exit 0 "No findings" — a false all-clear for a CI security gate. It now
+    exits 3 with `error: cannot scan '<path>': …`. (`inventory`, a listing command, stays graceful.)
+    `/dev/null` and broken symlinks no longer leak an internal `ENOTDIR` baseline path.
+
+  - **`--no-trivia` / `--no-update-notifier` are now accepted.** Both were documented in `--help` and
+    consumed by `scan` but missing from the flag allowlist, so they were rejected as unknown flags.
+
+  - **file:line hyperlinks anchor correctly.** Scanning a single file emitted a doubled-basename link
+    (`…/x.js/x.js:3:1`); `inventory` resolved links against `process.cwd()` instead of the scan root.
+    Both now anchor to the scan directory.
+
+  - **footer tally trims zero tiers.** `Found 2 critical · 0 high · 0 medium · 0 low · 0 info · 0 manual-review`
+    → `Found 2 critical`. Only non-zero severities show; `manual-review` shows only when present.
+
+- ade4609: Cut real-app false positives from provider over-detection / mis-attribution (found scanning dub):
+
+  - **Generic HTTP headers no longer drive provider attribution.** Postmark's catalog `signature_header`
+    is `authorization` (its Basic-Auth scheme), but `Authorization` is read by nearly every
+    authenticated route — so OAuth token endpoints, cron jobs, and admin routes were attributed to
+    postmark and flagged as unverified postmark webhooks. A generic-header read (Authorization,
+    Content-Type, …) is now recorded provider-agnostically; real postmark webhooks are still attributed
+    by their specific signals (`/postmark/*` paths, SDK, `POSTMARK_*` env), and postmark's rules detect
+    Basic-Auth via reachable symbols, not this header.
+
+  - **Stripe v2 verify calls recognized.** `stripe.parseThinEvent(...)` (v2 API / thin events) and
+    `webhooks.constructEventAsync(...)` (Edge/Workers async API) are now treated as signature
+    verification, so correctly-verified v2 webhooks are no longer flagged
+    stripe/missing-signature-verification.
+
+  Combined with the `req.text()` raw-body fix, false-positive criticals on the dub codebase dropped
+  from 20 to 9 (the remaining 9 are genuine unverified webhook routes plus two non-webhook routes that
+  merely import the Stripe SDK — a separate over-detection class tracked for follow-up).
+
+- c7f1046: Add Remix support. Remix `action` route modules under `app/routes/**` receive a Web Fetch API
+  Request — identical to Next.js App Router — but were undetected, so a real Remix webhook scanned to
+  0 handlers and silently reported "clean" (a false negative; found scanning documenso, whose Stripe
+  webhook is `apps/remix/app/routes/api+/stripe.webhook.ts`). New `remixAdapter` detects `action`
+  exports and derives the route from the remix-flat-routes filename (`api+/stripe.webhook` →
+  `/api/stripe/webhook`); rules apply to remix via the nextjs equivalence in `ruleAppliesToFramework`
+  (no per-rule YAML churn). `remix` added to the engine Framework union + the rules `applies_to` enum.
+- 729c7a1: Stop flagging non-webhook routes that merely import a provider SDK (found scanning dub:
+  `billing/cancel`, `billing/payment-methods`). Next.js App Router admits every `route.ts` POST
+  regardless of path, so a route at a non-webhookish path whose only provider signal is `import Stripe`
+  (used to call `stripe.subscriptions.update`, not to receive webhooks) was attributed to stripe and
+  flagged stripe/missing-signature-verification — a false-positive critical. Such a route is
+  statically indistinguishable from a real webhook, so it's now demoted to provider `unknown` (no
+  provider rules fire), matching the engine's existing "ambiguous route → unknown → no finding" stance.
+  A webhookish path (the canonical `/webhook` bug, whose only stripe signal is also the import) or any
+  receiving signal (signature-header read, verify call, raw-body read, webhook secret, conventional
+  path) keeps the attribution. Combined with the earlier raw-body / generic-header / parseThinEvent
+  fixes, false-positive criticals on the dub codebase dropped from 20 to 7 (the 7 remaining are
+  genuine unverified webhook routes).
+- Updated dependencies [8f8c131]
+- Updated dependencies [ade4609]
+- Updated dependencies [c7f1046]
+- Updated dependencies [729c7a1]
+  - @hookwarden/engine@0.8.0-beta.2
+  - @hookwarden/rules@0.8.0-beta.2
+  - @hookwarden/fix@0.8.0-beta.2
+
 ## 0.8.0-beta.1
 
 ### Minor Changes

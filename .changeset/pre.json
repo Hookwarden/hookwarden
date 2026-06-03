@@ -19,9 +19,13 @@
     "@hookwarden/canonical-json": "0.1.0"
   },
   "changesets": [
+    "cli-ux-scan-robustness-rawbody-fp",
     "github-verified-false-positive",
     "n8n-agentic-callback-ruleset",
+    "over-detection-attribution-fps",
     "reachability-overlays-discord-ed25519",
+    "remix-adapter",
+    "sdk-import-over-detection",
     "standardwebhooks-handrolled-prong",
     "v0-8-launch"
   ]
