@@ -42,11 +42,31 @@ async function scan() {
   });
 }
 
+// NOTE: Next.js App Router detection requires an `app/` segment AND a `route.ts` filename
+// (ROUTE_FILE_RE in adapters/nextjs.ts). Fixtures MUST live under `app/api/.../route.ts` or no
+// handler is detected and the absence-assertions pass vacuously. The "anti-vacuity guard" below
+// proves detection works in this harness (a buggy webhook DOES get flagged), so the absence
+// assertions are meaningful.
 describe("real-app false-positive regressions (full pipeline, real catalog)", () => {
+  it("anti-vacuity guard: a buggy App Router webhook (/api/webhook) IS flagged — detection works", async () => {
+    await write(
+      "app/api/webhook/route.ts",
+      `import Stripe from "stripe";
+       export const POST = async (req: Request) => {
+         const event = await req.json();   // no verification — the canonical bug
+         return Response.json({ ok: true, event });
+       };\n`,
+    );
+    const out = await scan();
+    // Webhookish path keeps the stripe attribution (its only stripe signal is the import) → flagged.
+    // If this ever returns 0, App Router detection broke and the absence-tests below are vacuous.
+    expect(out.result.findings.some((f) => f.severity === "critical")).toBe(true);
+  });
+
   it("an OAuth route that reads Authorization is NOT flagged as a postmark webhook", async () => {
     // dub: apps/web/app/api/oauth/token/route.ts — a token exchange, not a Postmark webhook.
     await write(
-      "api/oauth/token/route.ts",
+      "app/api/oauth/token/route.ts",
       `export async function POST(req: Request) {
          const auth = req.headers.get("authorization");
          const form = Object.fromEntries(await req.formData());
@@ -55,8 +75,27 @@ describe("real-app false-positive regressions (full pipeline, real catalog)", ()
        }\n`,
     );
     const out = await scan();
-    const postmark = out.result.findings.filter((f) => f.provider === "postmark");
-    expect(postmark).toEqual([]);
+    expect(out.result.findings.filter((f) => f.provider === "postmark")).toEqual([]);
+  });
+
+  it("a non-webhook route that imports the Stripe SDK for an API call is NOT flagged (over-detection)", async () => {
+    // dub: apps/web/app/api/workspaces/[idOrSlug]/billing/cancel/route.ts — calls
+    // stripe.subscriptions.update; non-webhookish path; only signal is the SDK import.
+    await write(
+      "app/api/billing/cancel/route.ts",
+      `import Stripe from "stripe";
+       import { stripe } from "@/lib/stripe";
+       export async function POST(req: Request) {
+         const { id } = await req.json();
+         await stripe.subscriptions.update(id, { cancel_at_period_end: true });
+         return Response.json({ ok: true });
+       }\n`,
+    );
+    const out = await scan();
+    expect(out.result.findings.filter((f) => f.severity === "critical")).toEqual([]);
+    // Demoted to provider:unknown (not a webhook receiver), so no stripe rule fires.
+    const h = out.result.inventory.find((x) => x.file_path.includes("billing/cancel"));
+    if (h) expect(h.provider).toBe("unknown");
   });
 
   it("still attributes a genuine postmark webhook (path signal), so the fix didn't blind us", async () => {
@@ -76,7 +115,7 @@ describe("real-app false-positive regressions (full pipeline, real catalog)", ()
 
   it("a Stripe v2 webhook verified with parseThinEvent is NOT flagged missing-signature-verification", async () => {
     await write(
-      "api/stripe/connect/v2/webhook/route.ts",
+      "app/api/stripe/webhook/v2/route.ts",
       `import Stripe from "stripe";
        import { stripe } from "@/lib/stripe";
        export const POST = async (req: Request) => {
@@ -88,15 +127,14 @@ describe("real-app false-positive regressions (full pipeline, real catalog)", ()
        };\n`,
     );
     const out = await scan();
-    const missingSig = out.result.findings.filter(
-      (f) => f.rule_id === "stripe/missing-signature-verification",
-    );
-    expect(missingSig).toEqual([]);
+    expect(
+      out.result.findings.filter((f) => f.rule_id === "stripe/missing-signature-verification"),
+    ).toEqual([]);
   });
 
   it("a correct App Router Stripe webhook (req.text() + constructEvent) fires NO critical", async () => {
     await write(
-      "api/stripe/webhook/route.ts",
+      "app/api/stripe/webhook/route.ts",
       `import Stripe from "stripe";
        import { stripe } from "@/lib/stripe";
        export const POST = async (req: Request) => {
@@ -108,7 +146,6 @@ describe("real-app false-positive regressions (full pipeline, real catalog)", ()
        };\n`,
     );
     const out = await scan();
-    const crit = out.result.findings.filter((f) => f.severity === "critical");
-    expect(crit).toEqual([]);
+    expect(out.result.findings.filter((f) => f.severity === "critical")).toEqual([]);
   });
 });

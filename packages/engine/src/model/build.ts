@@ -30,7 +30,7 @@ import type {
   ProjectModel,
 } from "../types/project-model.js";
 import type { RuleSet } from "../types/rule-set.js";
-import { type CandidateHandler, detectCatalogHandlers } from "./catalog.js";
+import { type CandidateHandler, detectCatalogHandlers, isWebhookishPath } from "./catalog.js";
 import { computeEvidence } from "./evidence.js";
 import { collectVerifyOrderingEvidence } from "./handler-cfg.js";
 import { extractMiddlewareChain } from "./middleware.js";
@@ -336,9 +336,29 @@ async function assembleHandler(
   // For n8n custom-node files the provider is forced to "n8n" so the verify-ordering overlay
   // below consults the n8n agentic sink list (the final 3a tagging is now redundant for these
   // but kept as the single source of truth for handler.provider).
-  const provider = forceN8nProvider
+  const attributedProvider = forceN8nProvider
     ? "n8n"
     : recomputeProvider(preCfgEvidence, baseEvidence.provider);
+  // Over-detection guard. Next.js App Router admits EVERY route.ts POST regardless of path, so a
+  // route at a non-webhookish path whose ONLY provider signal is that it IMPORTS the provider's SDK
+  // (e.g. a billing route calling `stripe.subscriptions.update`) gets attributed + flagged as an
+  // unverified webhook — a false positive (found scanning dub: billing/cancel, payment-methods). An
+  // imported SDK means the package is used somewhere, not that this route RECEIVES webhooks, and
+  // such a route is statically indistinguishable from a real one. Demote it to "unknown" (no
+  // provider rules fire), matching the engine's existing "ambiguous route → unknown → no finding"
+  // stance. A webhookish path (the canonical `/webhook` bug, whose only stripe signal is also the
+  // import) or any receiving signal (path_pattern_match, signature_header_read, sdk_verify_call,
+  // body_as_bytes_or_buffer, secret_*) keeps the attribution.
+  const hasReceivingSignal = preCfgEvidence.some(
+    (e) => e.provider === attributedProvider && e.kind !== "sdk_import",
+  );
+  const provider =
+    attributedProvider !== "unknown" &&
+    !forceN8nProvider &&
+    !isWebhookishPath(cand.route_pattern) &&
+    !hasReceivingSignal
+      ? "unknown"
+      : attributedProvider;
   // v0.7 Rule Depth handler-cfg overlay (VAS-01) — emits `side_effect_before_verify`
   // evidence for each T1/T2 side effect appearing BEFORE a verification call in
   // handler scope. JS/TS only at v0.7.0; PHP/Python emit empty evidence. The

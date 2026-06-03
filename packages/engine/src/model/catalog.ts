@@ -225,7 +225,7 @@ function extractStringPath(node: Node): string | null {
   return null;
 }
 
-function isWebhookishPath(path: string): boolean {
+export function isWebhookishPath(path: string): boolean {
   // Pre-filter: catch obvious webhook paths and conventional provider paths.
   // The catalog's `conventional_paths` is also used for evidence; the prefilter is just to keep
   // noise low so we don't enumerate every route in the project.
