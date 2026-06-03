@@ -79,8 +79,42 @@ export function createMissingSignatureVerificationPredicate(
     if (handler.evidence.some((e) => e.kind === "sdk_verify_call" && e.provider === provider)) {
       return null;
     }
+    // Cross-package delegation guard. A handler that hands its RAW request object to an imported
+    // function the engine couldn't analyze (e.g. documenso's Remix action: `return
+    // stripeWebhookHandler(request)`, where stripeWebhookHandler is a workspace-aliased import that
+    // resolves+verifies internally) cannot be PROVEN unverified — the verification may live inside
+    // the opaque callee. The honest 3-state verdict is manual-review, not a not-verified critical.
+    // Tightly scoped: only the RAW request identifier passed as a call argument (not `req.json()`
+    // / `fn(req.body)` — those consume the body, so downstream verification is impossible → still
+    // not-verified) and only to an IMPORTED callee (local functions are already followed by the
+    // reachability pass, so a resolved local that doesn't verify stays not-verified).
+    if (delegatesRawRequestToImportedCallee(handler)) return "manual-review";
     return "not-verified";
   };
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// True when the handler hands its RAW request object to an IMPORTED callee — e.g.
+// `return stripeWebhookHandler(request)` where stripeWebhookHandler is imported. The callee is a
+// SPECIFIC imported-function name (from reachable_symbols with import_source set), so matching
+// `<callee>(request)` in the redacted snippet has no keyword/param-list collision. `request` must be
+// followed by `,` or `)` — so `req.json()` (request as receiver) and `fn(req.body)` (a parsed
+// property) do NOT match: those consume the body, making downstream verification impossible (still
+// not-verified). Uses redacted_snippet + reachable_symbols, both always present on the handler.
+function delegatesRawRequestToImportedCallee(handler: WebhookHandler): boolean {
+  const snippet = handler.redacted_snippet;
+  if (!snippet) return false;
+  for (const sym of handler.reachable_symbols) {
+    if (sym.import_source === null) continue;
+    const callee = sym.qualified_name.split(".").pop() ?? sym.qualified_name;
+    if (!callee) continue;
+    const re = new RegExp(`\\b${escapeRegExp(callee)}\\s*\\(\\s*(?:req|request)\\s*[,)]`);
+    if (re.test(snippet)) return true;
+  }
+  return false;
 }
 
 function evaluatePhpMissingVerification(

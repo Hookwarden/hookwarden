@@ -199,4 +199,31 @@ describe("Remix adapter", () => {
     const out = await scan();
     expect(out.result.findings.filter((f) => f.severity === "critical")).toEqual([]);
   });
+
+  it("a webhook that delegates the RAW request to an opaque imported fn → manual-review, not a false critical (documenso pattern)", async () => {
+    await write(
+      "app/routes/api+/stripe.webhook.ts",
+      `import { stripeWebhookHandler } from "@x/ee/stripe/webhook/handler";
+       export async function action({ request }: { request: Request }) {
+         return await stripeWebhookHandler(request);   // verification lives in the opaque import
+       }\n`,
+    );
+    const out = await scan();
+    const h = out.result.inventory.find((x) => x.route_pattern === "/api/stripe/webhook");
+    expect(h?.verification_state).toBe("manual-review");
+  });
+
+  it("a webhook passing the PARSED body to an imported fn stays not-verified — delegation guard doesn't over-suppress", async () => {
+    await write(
+      "app/routes/webhooks.stripe.ts",
+      `import { processEvent } from "@x/process";
+       export async function action({ request }: { request: Request }) {
+         const event = await request.json();   // body consumed → no downstream verification possible
+         return processEvent(event);
+       }\n`,
+    );
+    const out = await scan();
+    const h = out.result.inventory.find((x) => x.provider === "stripe");
+    expect(h?.verification_state).toBe("not-verified");
+  });
 });
