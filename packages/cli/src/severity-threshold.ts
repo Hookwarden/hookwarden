@@ -34,7 +34,11 @@ export function isAtOrAbove(severity: Severity, threshold: Severity): boolean {
 function findingGatesAtThreshold(f: Finding, threshold: Severity): boolean {
   if (f.state === "verified") return false;
   const isParseError = f.rule_id === "engine/parse-error";
-  if (!isParseError && f.state === "manual-review" && SEVERITY_RANK[threshold] < SEVERITY_RANK.low) {
+  if (
+    !isParseError &&
+    f.state === "manual-review" &&
+    SEVERITY_RANK[threshold] < SEVERITY_RANK.low
+  ) {
     return false;
   }
   return isAtOrAbove(f.severity, threshold);
