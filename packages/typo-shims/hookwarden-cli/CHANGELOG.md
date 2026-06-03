@@ -1,5 +1,11 @@
 # hookwarden-cli
 
+## 0.8.1
+
+### Patch Changes
+
+- hookwarden@0.8.1
+
 ## 0.8.0
 
 ### Patch Changes

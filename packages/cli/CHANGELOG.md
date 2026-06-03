@@ -1,5 +1,14 @@
 # hookwarden
 
+## 0.8.1
+
+### Patch Changes
+
+- Updated dependencies [3aa485c]
+  - @hookwarden/rules@0.8.1
+  - @hookwarden/engine@0.8.1
+  - @hookwarden/fix@0.8.1
+
 ## 0.8.0
 
 ### Minor Changes
