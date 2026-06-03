@@ -1,9 +1,11 @@
 import type { CandidateHandler } from "../model/catalog.js";
 import type { ParsedFile } from "../types/project-model.js";
+import { chiGinEchoGoAdapter } from "./chi-gin-echo-go.js";
 import { djangoAdapter } from "./django.js";
 import { edgeRuntimeAdapter } from "./edge-runtime.js";
 import { fastapiAdapter } from "./fastapi.js";
 import { n8nCustomNodeAdapter } from "./n8n-custom-node.js";
+import { netHttpGoAdapter } from "./net-http-go.js";
 import { nextjsAdapter } from "./nextjs.js";
 import { remixAdapter } from "./remix.js";
 import { symfonyAdapter } from "./symfony.js";
@@ -30,16 +32,23 @@ export const ALL_ADAPTERS: ReadonlyArray<FrameworkAdapter> = [
   djangoAdapter,
   symfonyAdapter,
   vanillaPhpAdapter,
+  // Phase 27 (RULES-GO-01) — Go adapters. chi/gin/echo is import-gated and MUST precede the
+  // net/http heuristic catch-all (mirrors symfony-before-vanilla); netHttpGoAdapter
+  // import-negative-gates the same chi/gin/echo prefixes so each Go file is owned by exactly one.
+  chiGinEchoGoAdapter,
+  netHttpGoAdapter,
   // Phase 24 (AGENT-01) — content-gated n8n custom-node webhook() method detector. Only fires on
   // files importing an n8n node interface from n8n-workflow; never on glob/path.
   n8nCustomNodeAdapter,
 ];
 
 export {
+  chiGinEchoGoAdapter,
   djangoAdapter,
   edgeRuntimeAdapter,
   fastapiAdapter,
   n8nCustomNodeAdapter,
+  netHttpGoAdapter,
   nextjsAdapter,
   remixAdapter,
   symfonyAdapter,

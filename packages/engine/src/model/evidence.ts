@@ -158,8 +158,12 @@ export function computeEvidence(input: ComputeEvidenceInput): ComputeEvidenceOut
   // (`const buf = await req.text(); stripe.webhooks.constructEvent(buf, sig, secret)`). Without it,
   // correctly-verified App Router webhooks were flagged stripe/raw-body-misuse — a false-positive
   // critical on textbook-correct code (found scanning dub: stripe/webhook + connect webhooks).
+  // Go additions: io.ReadAll / ioutil.ReadAll is the canonical raw-body read in net/http and
+  // chi/gin/echo handlers (`body, _ := io.ReadAll(r.Body)`); c.GetRawData() is gin's, and
+  // io.ReadAll(c.Request.Body) covers echo/gin too. The io(util).ReadAll tokens are Go-stdlib
+  // specific so they don't widen matches for the other dialects.
   if (
-    /(Buffer|Uint8Array|\braw\b|\bbytes\b|c\.req\.raw|request\.get_data\(\)|request\.body|php:\/\/input|->getContent\(\)|->getBody\(\)|\$_POST|->all\(\)|->input\(\)|\b\w*req\w*\.(?:text|arrayBuffer)\(\s*\)|\.rawBody\b)/i.test(
+    /(Buffer|Uint8Array|\braw\b|\bbytes\b|c\.req\.raw|request\.get_data\(\)|request\.body|php:\/\/input|->getContent\(\)|->getBody\(\)|\$_POST|->all\(\)|->input\(\)|\b\w*req\w*\.(?:text|arrayBuffer)\(\s*\)|\.rawBody\b|\b(?:io|ioutil)\.ReadAll\s*\(|\.GetRawData\(\))/i.test(
       handlerText,
     )
   ) {
