@@ -69,6 +69,8 @@ Hookwarden does one thing. It walks your repo, parses every webhook handler acro
 npx hookwarden scan .   # works everywhere, no install
 ```
 
+> **Reading this on npm?** Ignore the auto-generated `npm i hookwarden` in the install box at the top of the page — that adds hookwarden as a *local project dependency* (npm shows it for every package and it can't be changed). hookwarden is a **CLI, not a library**: run it with `npx hookwarden scan .`, or install it globally with `npm i -g hookwarden`.
+
 Or install natively via your OS package manager:
 
 | OS | Recommended | Alternates |
