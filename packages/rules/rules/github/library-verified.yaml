@@ -24,6 +24,12 @@ applies_to:
   - symfony
   - slim
   - vanilla-php
+  # Phase 27 (RULES-GO-01): Go frameworks — an SDK-verified Go handler (github.ValidatePayload,
+  # carrying sdk_verify_call evidence) emits the `verified` state instead of manual-review.
+  - net-http-go
+  - chi
+  - gin
+  - echo
 provider_docs_url: https://docs.github.com/en/webhooks/using-webhooks/validating-webhook-deliveries
 references:
   - https://www.svix.com/
