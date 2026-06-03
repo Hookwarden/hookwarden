@@ -4,6 +4,7 @@
 // Blocker 4: VALID_FAIL_ON / VALID_FORMAT / numeric range — gates raw CLI flag values BEFORE resolveConfig
 // so nonsense values exit 3 with actionable stderr, never reach the pipeline.
 
+import { statSync } from "node:fs";
 import * as path from "node:path";
 import type { Severity } from "@hookwarden/engine";
 import { PROVIDER_CATALOG, SEVERITY_CLASS_GROUP_NAMES } from "@hookwarden/rules";
@@ -61,6 +62,35 @@ const VALID_SEVERITY_CLASSES: ReadonlySet<string> = new Set(SEVERITY_CLASS_GROUP
 
 export async function runScanCommand(args: ScanArgs): Promise<number> {
   const cwd = path.resolve(args.path ?? ".");
+  // Directory context for config walk-up + file:line hyperlink rendering. The
+  // pipeline walks `cwd` (file or dir) directly, but anything resolved RELATIVE
+  // to the scan root — config discovery, and the OSC-8 links built from
+  // repo-relative file_paths — must anchor to the file's PARENT when the target
+  // is a single file, mirroring runScan's own file→dirname split. Without this,
+  // `hookwarden scan ./app/src/stripe.js` renders the link as
+  // file://…/stripe.js/stripe.js:3:1 (the basename doubled), since the renderer
+  // does path.resolve(cwd, file_path) and file_path is the basename relative to
+  // the file's dir. nonexistent paths fall through unchanged — the pipeline
+  // reports them.
+  // `scan` is a CI security gate: a nonexistent / unreadable / non-file-or-dir target must FAIL
+  // LOUDLY, never silently succeed. Previously a typo'd path (`hookwarden scan ./scr`) walked an
+  // empty tree → 0 candidates → "100% coverage" → exit 0 "No findings" — false all-clear, the
+  // worst failure mode for a security tool. (Note: `inventory`, a listing command, deliberately
+  // stays graceful on a missing path — docker-smoke 5.10 — so this hard-fail lives in `scan` only.)
+  let baseDir = cwd;
+  try {
+    const targetStat = statSync(cwd); // follows symlinks — a link to a real file/dir is valid
+    if (targetStat.isFile()) baseDir = path.dirname(cwd);
+    else if (!targetStat.isDirectory()) {
+      process.stderr.write(`error: cannot scan '${args.path ?? "."}': not a file or directory\n`);
+      return 3;
+    }
+  } catch (e) {
+    const code = (e as NodeJS.ErrnoException).code;
+    const reason = code === "ENOENT" ? "no such file or directory" : (e as Error).message;
+    process.stderr.write(`error: cannot scan '${args.path ?? "."}': ${reason}\n`);
+    return 3;
+  }
   // Color resolution precedence: --color always|never  >  --no-color  >
   // FORCE_COLOR env  >  TTY/NO_COLOR/CI auto-detection. `--color always` lets
   // you force the palette through a pipe or recorder; `auto` (default) keeps
@@ -142,7 +172,7 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
   try {
     const explicitPath = args.config;
     const loaded = await loadConfigFromCwd({
-      cwd,
+      cwd: baseDir,
       ...(explicitPath !== undefined ? { explicitPath } : {}),
       disabled: args["no-config"] === true,
     });
@@ -291,10 +321,12 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
         process.stdout.write(
           `${dim(`Handlers scanned — ${scan.result.inventory.length}`, { useAnsi })}\n`,
         );
-        process.stdout.write(renderInventory(scan.result, { useAnsi, cwd }));
+        process.stdout.write(renderInventory(scan.result, { useAnsi, cwd: baseDir }));
         process.stdout.write("\n");
       }
-      process.stdout.write(renderFindings(scan.result, scan.ruleSet, { useAnsi, cwd, verbose }));
+      process.stdout.write(
+        renderFindings(scan.result, scan.ruleSet, { useAnsi, cwd: baseDir, verbose }),
+      );
       process.stdout.write(
         renderSummary(scan.result, {
           useAnsi,

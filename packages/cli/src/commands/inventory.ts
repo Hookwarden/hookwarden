@@ -5,6 +5,8 @@
 // adds an `evidence` column with the per-handler signal count, so users
 // can see WHY each surviving handler made it through.
 
+import { statSync } from "node:fs";
+import * as path from "node:path";
 import { defineCommand } from "citty";
 import { CONFIG_DEFAULTS } from "../config/precedence.js";
 import { runScan } from "../pipeline.js";
@@ -23,7 +25,17 @@ export async function runInventoryCommand(args: InventoryArgs): Promise<number> 
   const rootPath = args.path ?? ".";
   const noColor = args["no-color"] === true;
   const useAnsi = noColor ? false : shouldUseAnsi(process.stdout);
-  const cwd = process.cwd();
+  // file:line hyperlinks resolve repo-relative file_paths against the SCAN ROOT
+  // (the pipeline's scanDir), not process.cwd() — those differ whenever the
+  // scanned path isn't the working directory, and using cwd produced links into
+  // the wrong directory. Mirror runScan's file→dirname split for single-file
+  // targets. nonexistent paths fall through to the pipeline's error handling.
+  let baseDir = path.resolve(rootPath);
+  try {
+    if (statSync(baseDir).isFile()) baseDir = path.dirname(baseDir);
+  } catch {
+    /* nonexistent / unreadable — pipeline surfaces the error */
+  }
 
   const resolvedConfig =
     args["rules-dir"] !== undefined
@@ -41,7 +53,7 @@ export async function runInventoryCommand(args: InventoryArgs): Promise<number> 
   process.stdout.write(
     renderInventory(scan.result, {
       useAnsi,
-      cwd,
+      cwd: baseDir,
       all: args.all === true,
       verbose: args.verbose === true,
     }),

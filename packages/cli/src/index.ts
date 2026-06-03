@@ -190,6 +190,11 @@ const BOOLEAN_FLAGS: ReadonlyArray<{
   { long: "--no-baseline", key: "no-baseline" },
   { long: "--diff-only", key: "diff-only" },
   { long: "--no-config", key: "no-config" },
+  // Documented in --help and consumed by `scan` (suppress stderr tips / update notice).
+  // Were missing from this allowlist, so the hand-rolled parser rejected them as unknown
+  // flags (exit 3) despite being valid — a documented flag the user could not actually pass.
+  { long: "--no-trivia", key: "no-trivia" },
+  { long: "--no-update-notifier", key: "no-update-notifier" },
   { long: "--strict-suppressions", key: "strict-suppressions" },
   { long: "--include-tests", key: "include-tests" },
   // Phase 8.2 — `hookwarden fix` flags.

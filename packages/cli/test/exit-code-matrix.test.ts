@@ -137,6 +137,51 @@ app.post('/webhook', express.json(), (req, res) => {
   });
 });
 
+// Audit hardening: a security gate must FAIL LOUD on an unscannable target, never silently
+// "pass". Previously a nonexistent path walked an empty tree → exit 0 "No findings" (false
+// all-clear). `inventory` (a listing command) stays graceful — that contract is unchanged.
+describe("scan bad-target hardening", () => {
+  it("nonexistent path → exit 3 with a clear, path-naming error (not a silent exit 0)", () => {
+    const r = runCli([path.join(tmp, "does-not-exist")]);
+    expect(r.code).toBe(3);
+    expect(r.stderr).toContain("cannot scan");
+    expect(r.stderr).toMatch(/no such file or directory/);
+    expect(r.stdout).not.toContain("No findings");
+  });
+
+  it("a non-file, non-directory target (e.g. /dev/null) → exit 3, no ENOTDIR leak", () => {
+    const r = runCli(["/dev/null"]);
+    expect(r.code).toBe(3);
+    expect(r.stderr).toContain("not a file or directory");
+    expect(r.stderr).not.toMatch(/\.hookwarden\.baseline\.json/); // no internal-path leak
+  });
+
+  it("broken symlink → exit 3, not a silent pass", async () => {
+    const link = path.join(tmp, "broken-link.js");
+    await fs.symlink(path.join(tmp, "nope-target.js"), link);
+    const r = runCli([link]);
+    expect(r.code).toBe(3);
+    expect(r.stdout).not.toContain("No findings");
+  });
+
+  it("empty directory stays graceful → exit 0 (only bad targets fail)", async () => {
+    const empty = await fs.mkdtemp(path.join(os.tmpdir(), "em-empty-"));
+    try {
+      const r = runCli([empty]);
+      expect(r.code).toBe(0);
+    } finally {
+      await fs.rm(empty, { recursive: true, force: true });
+    }
+  });
+
+  it("--no-trivia and --no-update-notifier are accepted (documented flags must parse)", async () => {
+    await fs.writeFile(path.join(tmp, "noop.js"), "// clean\n");
+    const r = runCli(["--no-trivia", "--no-update-notifier", tmp]);
+    expect(r.code).toBe(0); // clean fixture → 0; crucially NOT 3 "unknown flag"
+    expect(r.stderr).not.toContain("unknown flag");
+  });
+});
+
 describe("exit-code matrix — boundary + override conditions", () => {
   it("EM-bound-1: parse-coverage exactly at minimum (95%) → no exit 4 (boundary inclusive)", async () => {
     // 19 parseable + 1 unparseable = 95%. Use --fail-on critical so the parse-error finding

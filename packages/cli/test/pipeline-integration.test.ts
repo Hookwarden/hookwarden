@@ -313,13 +313,16 @@ describe("Phase 4 — edge cases and cross-cutting behavior", () => {
     expect(env.scan.findings.length).toBe(0);
   });
 
-  it("non-existent scan path: walker yields zero candidates → exit 0", async () => {
+  it("non-existent scan path → exit 3 (fails loud; a CI gate must not silently pass a typo'd path)", () => {
     const ghost = path.join(tmp, "does-not-exist");
     const r = runCli(["--format", "json", ghost]);
-    // The walker silently produces zero files for a missing directory.
-    expect(r.code).toBe(0);
-    const env = JSON.parse(r.stdout);
-    expect(env.scan.findings).toEqual([]);
+    // A missing target used to walk an empty tree → exit 0 "0 findings" — a false all-clear for a
+    // security gate. `scan` now fails loud; the scan never runs, so no JSON envelope is emitted.
+    // (`inventory`, a listing command, stays graceful on a missing path — that contract is unchanged.)
+    expect(r.code).toBe(3);
+    expect(r.stderr).toContain("cannot scan");
+    expect(r.stderr).toMatch(/no such file or directory/);
+    expect(r.stdout.trim()).toBe("");
   });
 
   it("JSON output: findings are sorted by (severity_rank, file_path, line, col, rule_id)", () => {
