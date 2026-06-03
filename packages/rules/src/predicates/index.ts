@@ -38,6 +38,7 @@ import {
   discordMissingVerificationPredicate,
 } from "./discord-ed25519.js";
 import { expressMiddlewareOrderingPredicate } from "./express-middleware-ordering.js";
+import { githubGoTimingUnsafeComparisonPredicate } from "./github-go-timing-unsafe-comparison.js";
 import { githubPhpTimingSafeEqualPredicate } from "./github-php-timing-safe-equal.js";
 import { githubTimingSafeEqualPredicate } from "./github-timing-safe-equal.js";
 import { intercomOctokitCrossAttributionPredicate } from "./intercom-octokit-cross-attribution.js";
@@ -131,6 +132,7 @@ import { createSecretInLogOrErrorPredicate } from "./secret-in-log-or-error.js";
 import { sentryHeaderConfusionPredicate } from "./sentry-header-confusion.js";
 import { standardwebhooksMultiSignatureRotationMishandledPredicate } from "./standardwebhooks-multi-signature.js";
 import { stripeEmptySecretPredicate } from "./stripe-empty-secret.js";
+import { stripeGoTimingUnsafeComparisonPredicate } from "./stripe-go-timing-unsafe-comparison.js";
 import { stripePhpTimingUnsafeComparisonPredicate } from "./stripe-php-timing-unsafe-comparison.js";
 import { createTestModeBypassPredicate } from "./test-mode-bypass.js";
 import {
@@ -558,6 +560,8 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   // reachability is bounded to babel + tree-sitter-python in v1).
   "stripe-php-timing-unsafe-comparison": stripePhpTimingUnsafeComparisonPredicate,
   "github-php-timing-safe-equal": githubPhpTimingSafeEqualPredicate,
+  "stripe-go-timing-unsafe-comparison": stripeGoTimingUnsafeComparisonPredicate,
+  "github-go-timing-unsafe-comparison": githubGoTimingUnsafeComparisonPredicate,
   // Phase 8.3 Plan 01 Zendesk pack (signing_input_format: 'timestamp_dot_body' — Slack analog).
   // No library-verified rule: Zendesk has no canonical first-party webhook SDK.
   "zendesk-missing-signature-verification": zendeskMissingSignatureVerificationPredicate,

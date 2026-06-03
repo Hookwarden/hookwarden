@@ -29,14 +29,22 @@ applies_to:
   - symfony
   - slim
   - vanilla-php
+  # Phase 27 (RULES-GO-01): Go frameworks
+  - net-http-go
+  - chi
+  - gin
+  - echo
 provider_docs_url: https://stripe.com/docs/webhooks/signatures
 references:
   - https://codahale.com/a-lesson-in-timing-attacks/
   - https://cwe.mitre.org/data/definitions/208.html
+  # Go: hmac.Equal is constant-time; bytes.Equal / == on a MAC is the CWE-208 bug.
+  - https://pkg.go.dev/crypto/hmac#Equal
 path_severity_overrides:
   - patterns:
       - "**/{test,tests,__tests__,spec,specs}/**"
       - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+      - "**/*_test.go"
     severity: info
 fix:
   safety: safe

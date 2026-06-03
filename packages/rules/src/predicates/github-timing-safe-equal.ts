@@ -6,6 +6,7 @@
 // tree-sitter-php. PHP's analog of `crypto.timingSafeEqual` is `hash_equals` (PHP 5.6+).
 
 import type { ProjectModel, RulePredicate, WebhookHandler } from "@hookwarden/engine";
+import { type GoSyntaxNode, type GoTree, goTimingUnsafeResult } from "./_helpers-go.js";
 import {
   findInsecureStringComparisons,
   isPhpHashEqualsCall,
@@ -42,6 +43,12 @@ export const githubTimingSafeEqualPredicate: RulePredicate = async (
     return evaluatePhpGithubTimingSafeEqual(handler, parsedFile);
   }
 
+  // Path C (Go, Phase 27) — bytes.Equal / ==-on-MAC → not-verified; hmac.Equal or an SDK verify
+  // (github.ValidatePayload, carrying sdk_verify_call evidence) → null.
+  if (parsedFile?.dialect === "tree-sitter-go") {
+    return evaluateGoGithubTimingSafeEqual(handler, parsedFile);
+  }
+
   // Path A (JS / Python) — reachable_symbols.
   const symbols = handler.reachable_symbols;
   const hasTimingSafe = symbols.some(
@@ -57,6 +64,21 @@ export const githubTimingSafeEqualPredicate: RulePredicate = async (
   if (hasTimingSafe || hasSdkVerify) return null;
   return "not-verified";
 };
+
+function evaluateGoGithubTimingSafeEqual(
+  handler: WebhookHandler,
+  parsedFile: { readonly parse_error: unknown; readonly raw_ast: unknown },
+): "not-verified" | null {
+  if (parsedFile.parse_error !== null || parsedFile.raw_ast === null) return null;
+  // SDK path exemption — github.ValidatePayload / ValidateSignature carry sdk_verify_call evidence.
+  if (handler.evidence.some((e) => e.kind === "sdk_verify_call" && e.provider === "github")) {
+    return null;
+  }
+  const tree = parsedFile.raw_ast as GoTree;
+  const scopeNode = (handler as unknown as { handler_body_node?: GoSyntaxNode }).handler_body_node;
+  const root: GoSyntaxNode = scopeNode ?? tree.rootNode;
+  return goTimingUnsafeResult(root);
+}
 
 function evaluatePhpGithubTimingSafeEqual(
   handler: WebhookHandler,

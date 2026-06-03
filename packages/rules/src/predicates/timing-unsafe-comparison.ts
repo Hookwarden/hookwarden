@@ -19,6 +19,7 @@ import type {
 } from "@hookwarden/engine";
 import { PROVIDER_CATALOG } from "../catalog.js";
 import { isConstantTimeCompare, isManualHmacEntry, reachesSdkVerifyCall } from "./_helpers.js";
+import { type GoSyntaxNode, type GoTree, goTimingUnsafeResult } from "./_helpers-go.js";
 import {
   findInsecureStringComparisons,
   isPhpHashEqualsCall,
@@ -39,6 +40,12 @@ export function createTimingUnsafeComparisonPredicate(
     const parsedFile = model?.parsed_files?.find((f) => f.file_path === handler.file_path);
     if (parsedFile?.dialect === "tree-sitter-php") {
       return evaluatePhpTimingUnsafe(handler, parsedFile, catalog);
+    }
+
+    // Path C (Go) — direct AST inspection (Phase 27). bytes.Equal / ==-on-MAC → not-verified;
+    // hmac.Equal / SDK-verified → null. Mirrors the PHP path so the factory's YAML fires on Go.
+    if (parsedFile?.dialect === "tree-sitter-go") {
+      return evaluateGoTimingUnsafe(handler, parsedFile, catalog);
     }
 
     // Path A (JS / Python) — reachable_symbols populated by engine reachability D-34.
@@ -97,6 +104,30 @@ function evaluatePhpTimingUnsafe(
   const insecure = findInsecureStringComparisons(root);
   if (insecure.length === 0) return null;
   return "not-verified";
+}
+
+function evaluateGoTimingUnsafe(
+  handler: WebhookHandler,
+  parsedFile: {
+    readonly dialect: string;
+    readonly parse_error: unknown;
+    readonly raw_ast: unknown;
+  },
+  catalog: ProviderCatalogEntry,
+): "not-verified" | null {
+  if (parsedFile.parse_error !== null || parsedFile.raw_ast === null) return null;
+  // SDK path exemption — sdk_verify_call evidence (webhook.ConstructEvent / github.ValidatePayload,
+  // plan 27-02) means the SDK compares internally; the handler renders verified via library-verified.
+  if (
+    catalog.sdk_verify_calls.length > 0 &&
+    handler.evidence.some((e) => e.kind === "sdk_verify_call" && e.provider === handler.provider)
+  ) {
+    return null;
+  }
+  const tree = parsedFile.raw_ast as GoTree;
+  const scopeNode = (handler as unknown as { handler_body_node?: GoSyntaxNode }).handler_body_node;
+  const root: GoSyntaxNode = scopeNode ?? tree.rootNode;
+  return goTimingUnsafeResult(root);
 }
 
 export const stripeTimingUnsafeComparisonPredicate: RulePredicate =
