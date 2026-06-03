@@ -18,6 +18,23 @@ export interface ComputeEvidenceInput {
   readonly imports: ReadonlyArray<ImportEdge>;
 }
 
+// Generic HTTP headers that are read by virtually every authenticated route (OAuth token
+// exchanges, cron jobs with bearer tokens, admin endpoints, …). A catalog may list one as its
+// `signature_header` — postmark uses `authorization` for its Basic-Auth scheme — but matching a
+// generic header must NOT attribute the handler to that provider, or every auth'd route gets
+// mis-detected as that provider's webhook (found scanning dub: OAuth/cron/admin routes flagged as
+// unverified postmark webhooks). The read is still recorded (provider "unknown"); real postmark
+// webhooks are attributed by their specific signals (path `/postmark/*`, SDK, `POSTMARK_*` env),
+// and postmark's rules detect Basic-Auth via reachable_symbols, not this header.
+const GENERIC_SIGNATURE_HEADERS: ReadonlySet<string> = new Set([
+  "authorization",
+  "content-type",
+  "accept",
+  "user-agent",
+  "host",
+  "cookie",
+]);
+
 export interface ComputeEvidenceOutput {
   readonly evidence: ReadonlyArray<WebhookEvidence>;
   readonly provider: string; // resolved provider | "unknown" | "multiple"
@@ -111,7 +128,9 @@ export function computeEvidence(input: ComputeEvidenceInput): ComputeEvidenceOut
       if (handlerLower.includes(hyphen) || handlerLower.includes(underscore)) {
         out.push({
           kind: "signature_header_read",
-          provider: providerName,
+          // A generic header (e.g. Authorization) doesn't identify a provider — keep it
+          // provider-agnostic so it can't drive attribution on its own (see GENERIC_SIGNATURE_HEADERS).
+          provider: GENERIC_SIGNATURE_HEADERS.has(hyphen) ? "unknown" : providerName,
           location: handlerLoc,
           detail: header,
         });

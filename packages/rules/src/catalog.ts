@@ -76,6 +76,12 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     sdk_packages: ["stripe", "@stripe/stripe-js", "Stripe\\"],
     sdk_verify_calls: [
       "webhooks.constructEvent",
+      // Async variant (Edge/Workers runtimes use the WebCrypto-backed async API).
+      "webhooks.constructEventAsync",
+      // Stripe v2 API (event destinations / thin events) — verifies sig over the raw body,
+      // same security contract as constructEvent. Without it, correctly-verified v2 webhooks
+      // (e.g. dub's stripe/connect/v2) were flagged stripe/missing-signature-verification.
+      "parseThinEvent",
       "Webhook.constructEvent",
       "Webhook.construct_event",
       "Stripe\\Webhook::constructEvent",
