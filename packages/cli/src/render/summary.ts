@@ -65,9 +65,12 @@ export function renderSummary(result: ScanResult, opts: RenderSummaryOptions): s
   // D-42: severity drives color. Paint each tally segment in its severity colour so the
   // footer count matches the per-finding glyphs (critical=red, high=orange, medium=amber,
   // low=slate, info=blue) instead of rendering the whole tally in plain foreground.
-  const sevLine = SEVERITY_ORDER.map((s) => severityColor(s, `${sevCounts[s]} ${s}`, opts)).join(
-    " · ",
-  );
+  // Only tiers with a non-zero count are shown — a row of `0 high · 0 medium · 0 low · 0 info`
+  // is pure noise and buries the count that matters. totalFindings > 0 (the only case this line
+  // renders) guarantees at least one tier survives the filter.
+  const sevLine = SEVERITY_ORDER.filter((s) => sevCounts[s] > 0)
+    .map((s) => severityColor(s, `${sevCounts[s]} ${s}`, opts))
+    .join(" · ");
   const handlersLine = `${plural(result.inventory.length, "webhook handler")} across ${plural(filesTouched.size, "file")}`;
   const totalFindings = SEVERITY_ORDER.reduce((n, s) => n + sevCounts[s], 0);
 
@@ -87,8 +90,15 @@ export function renderSummary(result: ScanResult, opts: RenderSummaryOptions): s
   } else {
     // Drop the all-zeros severity tally when there are no active findings;
     // otherwise lead with it. Filtered-out segments always follow.
+    // manual-review is a state subset (not a severity), shown only when present — "0 manual-review"
+    // is the same zero-noise the severity filter above removes.
     const line1Parts: string[] =
-      totalFindings > 0 ? [`Found ${sevLine}`, `${manualReviewCount} manual-review`] : [];
+      totalFindings > 0
+        ? [
+            `Found ${sevLine}`,
+            ...(manualReviewCount > 0 ? [`${manualReviewCount} manual-review`] : []),
+          ]
+        : [];
     line1Parts.push(...extraSegments);
     line1 = line1Parts.join(" · ");
     if (hiddenCount > 0 && opts.verbose !== true) {

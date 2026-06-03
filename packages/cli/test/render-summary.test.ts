@@ -47,7 +47,7 @@ const baseFinding: Finding = {
 };
 
 describe("renderSummary (D-44)", () => {
-  it("renders all severity counts + manual-review + handlers/files + scan-stats", () => {
+  it("renders non-zero severity counts + manual-review + handlers/files + scan-stats (zero tiers trimmed)", () => {
     const result: ScanResult = {
       findings: [
         { ...baseFinding, id: "f1", severity: "critical", state: "not-verified" },
@@ -65,14 +65,43 @@ describe("renderSummary (D-44)", () => {
     expect(out).toContain("1 critical");
     expect(out).toContain("1 high");
     expect(out).toContain("1 medium");
-    expect(out).toContain("0 low");
-    expect(out).toContain("0 info");
+    // Zero tiers are trimmed — a row of `0 low · 0 info` is noise that buries the real counts.
+    expect(out).not.toContain("0 low");
+    expect(out).not.toContain("0 info");
     expect(out).toContain("1 manual-review");
     expect(out).toContain("2 webhook handlers across 2 files");
     expect(out).toContain("Scanned in 1.2 s");
     expect(out).toContain("2 parse errors");
     expect(out).toContain("engine v0.0.1");
     expect(out).toContain("rules v0.0.1");
+  });
+
+  it("trims every zero tier — a single critical shows `Found 1 critical`, no zero segments", () => {
+    const result: ScanResult = {
+      findings: [{ ...baseFinding, id: "f1", severity: "critical", state: "not-verified" }],
+      inventory: [baseHandler],
+      metadata: { ...META },
+    };
+    const out = renderSummary(result, { useAnsi: false });
+    expect(out).toContain("Found 1 critical");
+    expect(out).not.toContain("0 high");
+    expect(out).not.toContain("0 medium");
+    expect(out).not.toContain("0 low");
+    expect(out).not.toContain("0 info");
+    // manual-review is a state subset, not a severity — omitted entirely when zero.
+    expect(out).not.toContain("manual-review");
+  });
+
+  it("omits the manual-review segment when zero but keeps it when present", () => {
+    const withMR: ScanResult = {
+      findings: [{ ...baseFinding, id: "f1", severity: "high", state: "manual-review" }],
+      inventory: [baseHandler],
+      metadata: { ...META },
+    };
+    const out = renderSummary(withMR, { useAnsi: false });
+    expect(out).toContain("Found 1 high");
+    expect(out).toContain("1 manual-review");
+    expect(out).not.toContain("0 manual-review");
   });
 
   it("colors each severity tally segment in its palette colour when useAnsi is true", () => {
@@ -251,8 +280,9 @@ describe("renderSummary — Phase 4 footer extension", () => {
       metadata: META,
     };
     const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
-    // Critical was suppressed → tally shows 0 critical, 1 high.
-    expect(out).toContain("0 critical");
+    // Critical was suppressed → it does not count, so no critical segment appears
+    // (zero tiers are trimmed); only the active high shows.
+    expect(out).not.toContain("critical");
     expect(out).toContain("1 high");
   });
 
@@ -464,7 +494,9 @@ describe("renderSummary — engine/parse-error exclusion + footer line", () => {
     };
     const out = renderSummary(result, { useAnsi: false, durationMs: 1000 });
     expect(out).toContain("1 critical");
-    expect(out).toContain("0 high"); // parse-error excluded
+    // parse-error (severity high) is routed to the footer line, NOT the severity tally — so no
+    // high segment appears (and zero tiers are trimmed). It would read "1 high" if miscounted.
+    expect(out).not.toContain("1 high");
     expect(out).toContain("(1 file could not be parsed");
   });
 });
