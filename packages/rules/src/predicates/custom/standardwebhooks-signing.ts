@@ -91,7 +91,13 @@ export const standardwebhooksSigningPredicate: RulePredicate = async (
     if (symbols.some((s) => isUnrecognizedComparisonShapedSymbol(s.qualified_name))) {
       return "manual-review";
     }
-    // Manual HMAC computed but NO comparison-shaped symbol of any kind → CVE-2025-53548 shape.
+    // A bare `===` / `!==` operator on signature material is a comparison too — it just isn't a
+    // reachable *symbol*, so the checks above miss it. Without this, a handler that DOES verify
+    // (HMAC + `if (sig !== computed)`) is mislabeled "missing verification" (a contradictory
+    // critical that double-fires with timing-unsafe-comparison). Defer — timing-unsafe-comparison
+    // owns the unsafe-compare verdict. Mirrors the PHP path's findInsecureStringComparisons branch.
+    if (hasInsecureSignatureComparisonJsTs(handler, parsedFile)) return null;
+    // Manual HMAC computed but NO comparison of any shape → CVE-2025-53548 shape.
     return "not-verified";
   }
 
@@ -147,6 +153,104 @@ function evaluatePhpHandRolled(
 
   // hash_hmac computed, ZERO comparison of any kind → the CVE-2025-53548 catch.
   return "not-verified";
+}
+
+// Identifier substrings that signal "this is signature material". Filters out unrelated equality
+// checks (e.g. `if (event.type === 'x')`) so a true CVE (HMAC computed, never compared) is NOT
+// masked by an incidental `===` elsewhere in the handler. Substring (not whole-word) matching is
+// REQUIRED for JS/TS: real handlers use camelCase compounds like `webhookSignature` /
+// `computedSignature` (dub's exact shape), where a `\b...\b` word boundary never fires. These
+// longer tokens are specific enough that substring matching does not over-match.
+const JS_SIGNATURE_SUBSTRINGS: ReadonlyArray<string> = [
+  "signature",
+  "computed",
+  "expected",
+  "digest",
+  "hmac",
+  "provided",
+];
+// `sig` is too short to match as a bare substring (it appears in "design", "assign"), so it is
+// matched only as a camelCase / boundary-delimited segment: `sig`, `xSig`, `sigHeader`, `the_sig`.
+const JS_SIG_SEGMENT_RE = /(^|[^a-z])sig([^a-z]|$)/i;
+
+function looksLikeSignatureMaterial(name: string): boolean {
+  const lower = name.toLowerCase();
+  if (JS_SIGNATURE_SUBSTRINGS.some((t) => lower.includes(t))) return true;
+  return JS_SIG_SEGMENT_RE.test(name);
+}
+
+const JS_INSECURE_EQ_OPS: ReadonlySet<string> = new Set(["==", "===", "!=", "!=="]);
+
+// Minimal structural babel node — the rules package deliberately does not import @babel/types
+// (purity / dependency-boundary convention shared with the other babel-walking predicates).
+interface BabelNodeLike {
+  readonly type?: string;
+  readonly operator?: string;
+  readonly name?: string;
+  readonly left?: BabelNodeLike;
+  readonly right?: BabelNodeLike;
+  readonly loc?: { readonly start?: { readonly line: number } } | null;
+  readonly [key: string]: unknown;
+}
+
+// True when the handler's babel AST contains an insecure equality (`==`/`===`/`!=`/`!==`) where one
+// operand references signature material — i.e. a present-but-timing-unsafe hand-rolled comparison.
+// JS/TS analog of the PHP findInsecureStringComparisons branch.
+function hasInsecureSignatureComparisonJsTs(
+  handler: WebhookHandler,
+  parsedFile: { readonly dialect?: string; readonly raw_ast?: unknown } | undefined,
+): boolean {
+  if (!parsedFile || parsedFile.dialect !== "babel" || parsedFile.raw_ast == null) return false;
+  const body = (parsedFile.raw_ast as { program?: { body?: unknown[] } })?.program?.body;
+  if (!Array.isArray(body)) return false;
+
+  const startLine = handler.location.line;
+  const endLine = (handler.location as { end_line?: number }).end_line ?? Number.MAX_SAFE_INTEGER;
+
+  // Any identifier in the subtree whose name looks like signature material.
+  const refsSignature = (node: BabelNodeLike | undefined): boolean => {
+    if (!node || typeof node !== "object") return false;
+    if (node.type === "Identifier" && typeof node.name === "string") {
+      if (looksLikeSignatureMaterial(node.name)) return true;
+    }
+    for (const key of Object.keys(node)) {
+      const value = (node as Record<string, unknown>)[key];
+      if (Array.isArray(value)) {
+        for (const child of value) {
+          if (child && typeof child === "object" && refsSignature(child as BabelNodeLike)) {
+            return true;
+          }
+        }
+      } else if (value && typeof value === "object" && typeof (value as BabelNodeLike).type === "string") {
+        if (refsSignature(value as BabelNodeLike)) return true;
+      }
+    }
+    return false;
+  };
+
+  let found = false;
+  const visit = (node: BabelNodeLike | undefined): void => {
+    if (found || !node || typeof node !== "object") return;
+    if (node.type === "BinaryExpression" && typeof node.operator === "string" && JS_INSECURE_EQ_OPS.has(node.operator)) {
+      const line = node.loc?.start?.line ?? 0;
+      if (line >= startLine && line <= endLine && (refsSignature(node.left) || refsSignature(node.right))) {
+        found = true;
+        return;
+      }
+    }
+    for (const key of Object.keys(node)) {
+      const value = (node as Record<string, unknown>)[key];
+      if (Array.isArray(value)) {
+        for (const child of value) {
+          if (child && typeof child === "object") visit(child as BabelNodeLike);
+        }
+      } else if (value && typeof value === "object" && typeof (value as BabelNodeLike).type === "string") {
+        visit(value as BabelNodeLike);
+      }
+    }
+  };
+  for (const stmt of body) visit(stmt as BabelNodeLike);
+  return found;
 }
 
 // Best-effort callee name for a PHP call site across function / member / scoped forms.

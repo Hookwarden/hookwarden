@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 import {
   initPhpRuntime,
   type ParsedFile,
+  parseJsTs,
   type PhpRuntime,
   type ProjectModel,
   parsePhp,
@@ -76,6 +77,45 @@ async function phpModelAndHandler(
   };
   return { model, handler };
 }
+
+// JS/TS hand-rolled handlers parsed to a real babel AST, so the predicate's babel-walk defer
+// path (hasInsecureSignatureComparisonJsTs) is actually exercised — synthetic reachable_symbols
+// alone cannot, since a bare `!==` operator is not a reachable symbol.
+async function jsModelAndHandler(
+  source: string,
+  reachable: ReadonlyArray<ReachableSymbol>,
+): Promise<{ model: ProjectModel; handler: WebhookHandler }> {
+  const filePath = "app/api/webhook/route.ts";
+  const file: ParsedFile = await parseJsTs({ file_path: filePath, source_text: source });
+  const model = { parsed_files: [file] } as unknown as ProjectModel;
+  const handler: WebhookHandler = {
+    ...baseHandler,
+    framework: "nextjs",
+    file_path: filePath,
+    location: { line: 1, col: 1, end_line: 9999, end_col: 1 },
+    reachable_symbols: [...reachable],
+  };
+  return { model, handler };
+}
+
+// Uses camelCase compound identifiers (webhookSignature / computedSignature) — dub's exact shape.
+// These defeat a whole-word `\b...\b` regex, so this fixture guards the camelCase-aware matcher.
+const JS_INSECURE_COMPARE = `import crypto from "crypto";
+export const POST = async (req) => {
+  const body = await req.json();
+  const webhookSignature = req.headers.get("Webhook-Signature");
+  const computedSignature = crypto.createHmac("sha256", process.env.SECRET).update(JSON.stringify(body)).digest("hex");
+  if (webhookSignature !== computedSignature) { return new Response("bad", { status: 400 }); }
+  return new Response("OK");
+};`;
+
+const JS_NO_COMPARE = `import crypto from "crypto";
+export const POST = async (req) => {
+  const body = await req.json();
+  const computed = crypto.createHmac("sha256", process.env.SECRET).update(JSON.stringify(body)).digest("hex");
+  console.log(computed);
+  return new Response("OK");
+};`;
 
 const PHP_NO_COMPARE = `<?php
 function handle($req, $secret) {
@@ -199,6 +239,23 @@ describe("standardwebhooksSigningPredicate — negative / near-miss (FP-moat evi
   it("PHP timing-unsafe hand-rolled: hash_hmac + (=== compare) → null (defers to timing-unsafe)", async () => {
     const { model, handler } = await phpModelAndHandler(PHP_INSECURE_COMPARE);
     expect(await standardwebhooksSigningPredicate(handler, model)).toBeNull();
+  });
+
+  it("JS/TS timing-unsafe hand-rolled: createHmac + (sig !== computed) → null (defers, NOT a false missing-verification)", async () => {
+    // The dub /api/dub/webhook FP: handler DOES verify (HMAC + `!==`), but the `!==` is an
+    // operator, not a reachable symbol — pre-fix this hit the CVE branch and emitted a
+    // contradictory missing-signature-verification critical alongside timing-unsafe-comparison.
+    const { model, handler } = await jsModelAndHandler(JS_INSECURE_COMPARE, [
+      sym("crypto.createHmac", "node:crypto"),
+    ]);
+    expect(await standardwebhooksSigningPredicate(handler, model)).toBeNull();
+  });
+
+  it("JS/TS true CVE: createHmac but NO comparison anywhere → not-verified (no false negative from the fix)", async () => {
+    const { model, handler } = await jsModelAndHandler(JS_NO_COMPARE, [
+      sym("crypto.createHmac", "node:crypto"),
+    ]);
+    expect(await standardwebhooksSigningPredicate(handler, model)).toBe("not-verified");
   });
 
   it("library prong still wins: [Webhook.verify from standardwebhooks] → null (no regression)", async () => {
