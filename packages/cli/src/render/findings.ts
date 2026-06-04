@@ -205,6 +205,16 @@ function renderFixBox(
   return [open, ...body, close];
 }
 
+// Phase 28 LEAK-06 — an inline live/dead verdict tag for a probed leak finding.
+// `live` is the most-prominent (accent/bold — the worst case for a leak); `dead`
+// is dimmed (already rotated, informational). `unverified` returns "" (untagged).
+function livenessTag(f: Finding, opts: RenderFindingsOptions): string {
+  const v = f.metadata["liveness"];
+  if (v === "live") return `  ${accent("[live]", opts, true)}`;
+  if (v === "dead") return `  ${dim("[dead]", opts)}`;
+  return "";
+}
+
 function renderFinding(
   f: Finding,
   rule: RuleDefinition | undefined,
@@ -229,6 +239,11 @@ function renderFinding(
     const stateCol = stateText(f.state, opts);
     header = `${sevCol}  ${fileLink}  ${dim(f.rule_id, opts)}  ${stateCol}`;
   }
+  // Phase 28 LEAK-06 — inline liveness tag. Only the ACTIONABLE verdicts (a
+  // confirmed-live or already-dead leaked credential) are tagged; `unverified`
+  // (the default / non-probed state) stays untagged so default scans stay clean
+  // and existing snapshots are unchanged.
+  header += livenessTag(f, opts);
 
   const lines: string[] = [header];
   const indent = "  ";

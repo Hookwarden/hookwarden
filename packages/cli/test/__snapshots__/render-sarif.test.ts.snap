@@ -73,7 +73,8 @@ exports[`renderSarif > snapshot — canonical mixed scan with active + suppresse
             "primaryLocationLineHash": "h1"
           },
           "properties": {
-            "hookwarden-state": "verified"
+            "hookwarden-state": "verified",
+            "hookwarden-liveness": "unverified"
           }
         },
         {
@@ -100,7 +101,8 @@ exports[`renderSarif > snapshot — canonical mixed scan with active + suppresse
             "primaryLocationLineHash": "h2"
           },
           "properties": {
-            "hookwarden-state": "verified"
+            "hookwarden-state": "verified",
+            "hookwarden-liveness": "unverified"
           },
           "suppressions": [
             {

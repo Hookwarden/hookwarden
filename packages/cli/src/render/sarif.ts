@@ -85,7 +85,13 @@ function findingToResult(f: Finding): Record<string, unknown> {
       },
     ],
     partialFingerprints: { primaryLocationLineHash: f.primary_location_line_hash },
-    properties: { "hookwarden-state": f.state },
+    properties: {
+      "hookwarden-state": f.state,
+      // Phase 28 LEAK-06 — additive liveness facet. Defaults to "unverified" when
+      // no probe ran. Encoded as a PROPERTY (never a new rule id) so Code Scanning
+      // keeps deduping by ruleId+fingerprint (D-08).
+      "hookwarden-liveness": (f.metadata["liveness"] as string | undefined) ?? "unverified",
+    },
   };
   if (f.suppressed != null) {
     result["suppressions"] = [suppressionEntry(f.suppressed)];

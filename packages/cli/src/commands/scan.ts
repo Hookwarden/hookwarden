@@ -5,8 +5,9 @@
 // so nonsense values exit 3 with actionable stderr, never reach the pipeline.
 
 import { statSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import * as path from "node:path";
-import type { Severity } from "@hookwarden/engine";
+import type { Finding, Severity } from "@hookwarden/engine";
 import { PROVIDER_CATALOG, SEVERITY_CLASS_GROUP_NAMES } from "@hookwarden/rules";
 import { defineCommand } from "citty";
 import { ConfigError, loadConfigFromCwd } from "../config/loader.js";
@@ -14,6 +15,9 @@ import { type ResolvedConfig, resolveConfig } from "../config/precedence.js";
 import { GitNotInWorkTreeError } from "../diff/git.js";
 import { computeExitCode } from "../exit-codes.js";
 import { runHistoryScan } from "../history/walk.js";
+import { checkVerifyEntitlement, upsellMessage } from "../liveness/entitlement.js";
+import { extractCredential, probeLiveness } from "../liveness/index.js";
+import { remapForLiveness } from "../liveness/verdict.js";
 import { evaluateParseCoverage } from "../parse-coverage.js";
 import { type RunScanOutput, runScan } from "../pipeline.js";
 import { dim } from "../render/colors.js";
@@ -47,6 +51,8 @@ export interface ScanArgs {
   // Phase 28 LEAK-05 — git-history walk (OSS, ungated).
   readonly history?: boolean;
   readonly since?: string;
+  // Phase 28 LEAK-06 — live verification (paid, entitlement-gated).
+  readonly "verify-secrets"?: boolean;
   readonly config?: string;
   readonly "no-config"?: boolean;
   readonly "strict-suppressions"?: boolean;
@@ -64,6 +70,76 @@ const VALID_FAIL_ON: ReadonlySet<string> = new Set(["critical", "high", "medium"
 const VALID_FORMAT: ReadonlySet<string> = new Set(["text", "json", "sarif"]);
 const VALID_PROVIDERS: ReadonlySet<string> = new Set(Object.keys(PROVIDER_CATALOG));
 const VALID_SEVERITY_CLASSES: ReadonlySet<string> = new Set(SEVERITY_CLASS_GROUP_NAMES);
+
+// Phase 28 LEAK-06 — a LEAK finding is a hardcoded-credential leak (the
+// `*/hardcoded-secret-prefix` rules). Only these carry a probeable raw value.
+function isLeakFinding(f: Finding): boolean {
+  return f.rule_id.endsWith("/hardcoded-secret-prefix");
+}
+
+function withUnverified(f: Finding): Finding {
+  return { ...f, metadata: { ...f.metadata, liveness: "unverified" } };
+}
+
+/**
+ * Attach the liveness facet to every LEAK finding. Without `verify`, all are
+ * `unverified` (SC#2). With `verify`, each api-key-class leak is re-extracted
+ * from the user's own source (the finding location spans the handler, and the
+ * snippet is redacted — so the raw value is recovered here, in-memory only) and
+ * probed CLI→provider; signing-secret-class stays unverified with NO call.
+ */
+async function applyLivenessFacet(
+  findings: ReadonlyArray<Finding>,
+  opts: { verify: boolean; baseDir: string },
+): Promise<Finding[]> {
+  const out: Finding[] = [];
+  const fileCache = new Map<string, string | null>();
+  for (const f of findings) {
+    if (!isLeakFinding(f)) {
+      out.push(f);
+      continue;
+    }
+    if (!opts.verify) {
+      out.push(withUnverified(f));
+      continue;
+    }
+    const prefixes = PROVIDER_CATALOG[f.provider]?.secret_literal_prefix ?? [];
+    const source = await readSourceCached(opts.baseDir, f.file_path, fileCache);
+    const raw =
+      source === null
+        ? null
+        : extractCredential(
+            source,
+            { line: f.location.line, endLine: f.location.end_line },
+            prefixes,
+          );
+    if (raw === null) {
+      out.push(withUnverified(f));
+      continue;
+    }
+    // The raw credential is held in-memory only for the duration of this probe.
+    const verdict = await probeLiveness(raw);
+    out.push(remapForLiveness(f, verdict));
+  }
+  return out;
+}
+
+async function readSourceCached(
+  baseDir: string,
+  filePath: string,
+  cache: Map<string, string | null>,
+): Promise<string | null> {
+  const cached = cache.get(filePath);
+  if (cached !== undefined) return cached;
+  let text: string | null;
+  try {
+    text = await readFile(path.resolve(baseDir, filePath), "utf-8");
+  } catch {
+    text = null; // file gone (e.g. a history finding) — cannot extract; stays unverified
+  }
+  cache.set(filePath, text);
+  return text;
+}
 
 export async function runScanCommand(args: ScanArgs): Promise<number> {
   const cwd = path.resolve(args.path ?? ".");
@@ -314,6 +390,29 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
     return 2;
   }
 
+  // Step 4.5 — Phase 28 LEAK-06 liveness facet. Every leak finding gets a
+  // `metadata.liveness` facet; without --verify-secrets it is always
+  // "unverified" (SC#2). With --verify-secrets, an entitlement preflight runs
+  // FIRST (token-only); on deny the upsell is printed and ZERO provider calls
+  // are made — findings stay unverified. On allow, each api-key-class leak is
+  // probed CLI→provider and remapped (live→critical, dead→info). This runs
+  // BEFORE the exit-code computation so a live leak gates --fail-on.
+  const verifySecrets = args["verify-secrets"] === true;
+  let livenessEnabled = false;
+  if (verifySecrets) {
+    const entitlement = await checkVerifyEntitlement();
+    if (entitlement.allowed) {
+      livenessEnabled = true;
+    } else {
+      process.stderr.write(`${upsellMessage(entitlement.reason)}\n`);
+    }
+  }
+  const livenessFindings = await applyLivenessFacet(scan.result.findings, {
+    verify: livenessEnabled,
+    baseDir,
+  });
+  scan = { ...scan, result: { ...scan.result, findings: livenessFindings } };
+
   // Step 5 — Parse-coverage gate (Plan 06).
   const coverage = evaluateParseCoverage(scan.result.metadata, resolvedConfig.parse_coverage_min);
   if (coverage.belowMin && coverage.message !== null) {
@@ -480,6 +579,11 @@ export const scanCommand = defineCommand({
       type: "string",
       description:
         "Bound the --history walk to a git ref (e.g. 'v1.0.0') or a date (e.g. '2026-01-01'). Requires --history.",
+    },
+    "verify-secrets": {
+      type: "boolean",
+      description:
+        "Live-verify leaked API-key-class secrets (Stripe/GitHub) by a read-only call to the secret's own provider. Paid (team); needs HOOKWARDEN_TOKEN. Signing secrets (whsec_) are always 'unverified'. Off by default.",
     },
     config: {
       type: "string",

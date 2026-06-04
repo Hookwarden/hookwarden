@@ -134,6 +134,42 @@ npx hookwarden inventory ./your-app
 
 `--diff-only`, `--provider stripe,github` (phased rollout), `--include`/`--exclude` globs, `--strict-suppressions`, repo-level `hookwarden.config.yaml`, and more: `npx hookwarden --help` and the [CLI docs](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/cli/ci.mdx).
 
+### Git history scan (`--history`)
+
+By default `scan` only looks at your working tree. `--history` also walks the
+git history — including files that were **committed then deleted** before HEAD —
+so a secret that was force-pushed away is still found. It's off by default and
+bounded to the last 1000 commits; narrow it with `--since <ref|date>`:
+
+```bash
+npx hookwarden scan --history                 # last 1000 commits
+npx hookwarden scan --history --since v1.0.0   # since a tag/ref
+npx hookwarden scan --history --since 2026-01-01
+```
+
+`--history` is fully open-source and never requires a token.
+
+### Live verification (`--verify-secrets`)
+
+`--verify-secrets` checks whether a leaked **API-key-class** credential is still
+*alive* by making a single read-only call to the secret's **own** provider
+(Stripe / GitHub) directly from your machine — hookwarden never sees the secret.
+A `live` leak is escalated to `critical`; a `dead` (rotated/revoked) one is
+downgraded to `info`. It's **paid** (team tier), off by default, and explicit
+opt-in only.
+
+```bash
+# Mint a token from the dashboard (Settings → CLI tokens) on a team workspace:
+HOOKWARDEN_TOKEN=hw_… npx hookwarden scan --verify-secrets
+```
+
+- The credential is held in-memory only and redacted in all output.
+- The entitlement check transmits **only** your token — never the secret.
+- A webhook **signing** secret (`whsec_`, GitHub webhook secret) is always
+  reported `unverified` — no provider can confirm a signing secret's liveness.
+- Without a valid `HOOKWARDEN_TOKEN`, findings are reported `unverified` and no
+  provider call is made.
+
 ---
 
 ## Auto-fix
