@@ -32,6 +32,12 @@ applies_to:
   - symfony
   - slim
   - vanilla-php
+  # Phase 27 (RULES-GO-01): Go frameworks — a Svix/Standard-Webhooks Go handler (wh.Verify,
+  # carrying sdk_verify_call evidence from the import-gated Go overlay) emits the verified state.
+  - net-http-go
+  - chi
+  - gin
+  - echo
 provider_docs_url: https://www.standardwebhooks.com/
 references:
   - https://www.svix.com/
