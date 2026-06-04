@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>The only scanner laser-focused on webhook signature verification.</strong><br />
-  Local. Deterministic. Zero-network. JS/TS + Python + PHP. Five minutes from <code>npx</code> to fix.
+  Local. Deterministic. Zero-network. JS/TS + Python + PHP + Go. Five minutes from <code>npx</code> to fix.
 </p>
 
 <p align="center">
@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/badge/node-%E2%89%A522-6366F1?style=flat-square" alt="Node 22+" />
   <img src="https://img.shields.io/badge/PHP-%E2%89%A58.0-6366F1?style=flat-square" alt="PHP 8.0+ scanning support" />
   <img src="https://img.shields.io/badge/Python-%E2%89%A53.10-6366F1?style=flat-square" alt="Python 3.10+ scanning support" />
+  <img src="https://img.shields.io/badge/Go-%E2%89%A51.21-6366F1?style=flat-square" alt="Go 1.21+ scanning support" />
   <a href="https://github.com/Hookwarden/hookwarden/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Hookwarden/hookwarden/ci.yml?branch=main&color=6366F1&label=CI&style=flat-square" alt="CI" /></a>
   <a href="https://github.com/Hookwarden/hookwarden/stargazers"><img src="https://img.shields.io/github/stars/Hookwarden/hookwarden?color=6366F1&style=flat-square" alt="GitHub stars" /></a>
   <img src="https://img.shields.io/badge/SARIF-2.1.0-6366F1?style=flat-square" alt="SARIF 2.1.0" />
@@ -57,7 +58,7 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
 A handler that accepts an unsigned payload, compares HMACs with `==`, or skips the signature check on a `?test=true` path will silently route attacker traffic into your business logic. The bug is one line of code in a 50K-line app, and the code looks plausible — not the shape general-purpose SAST tools are tuned to flag. They were built to catch SQL injection and prototype pollution; webhook verification falls between their default rule packs.
 
-Hookwarden does one thing. It walks your repo, parses every webhook handler across 11 frameworks (Express, Hono, Fastify, Next.js, Flask, FastAPI, Django, Laravel, Symfony, Slim, and vanilla-PHP), and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix drawn verbatim from provider documentation. The provider catalog (Stripe, GitHub, Shopify, Slack, Twilio, Square — and growing) encodes signature-format quirks no generic scanner has the surface area to know: Stripe uses HMAC-SHA256 with a 5-minute timestamp tolerance; Slack uses `v0:${ts}:${body}` not raw-body; Twilio is the SHA1 outlier the rest of the catalog has to accommodate.
+Hookwarden does one thing. It walks your repo, parses every webhook handler across 15 frameworks (Express, Hono, Fastify, Next.js, Flask, FastAPI, Django, Laravel, Symfony, Slim, vanilla-PHP, and Go's net/http, chi, gin, echo), and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix drawn verbatim from provider documentation. The provider catalog (Stripe, GitHub, Shopify, Slack, Twilio, Square — and growing) encodes signature-format quirks no generic scanner has the surface area to know: Stripe uses HMAC-SHA256 with a 5-minute timestamp tolerance; Slack uses `v0:${ts}:${body}` not raw-body; Twilio is the SHA1 outlier the rest of the catalog has to accommodate.
 
 **The three-state verdict is not a hedge.** `manual-review` is what you get when hookwarden can't prove safety or unsafety from the source alone — a handler inside a middleware chain that the analyzer couldn't fully unroll, for example. It's how the false-positive rate stays honest. A tool that reports every gray area as a bug is not a security tool; it's noise.
 
@@ -184,7 +185,7 @@ See [Install](#-install) for permanent install via npm, Homebrew, Scoop, or PyPI
 
 ## 🛠 Auto-fix (v0.5)
 
-hookwarden doesn't just tell you the fix — it applies it. The `fix` subcommand mechanically rewrites the `safety: safe` subset of findings across JS/TS, Python, and PHP.
+hookwarden doesn't just tell you the fix — it applies it. The `fix` subcommand mechanically rewrites the `safety: safe` subset of findings across JS/TS, Python, PHP, and Go.
 
 ```bash
 # Dry-run (default) — prints a unified diff, writes nothing
@@ -347,13 +348,14 @@ Sorted keys, schema-versioned, byte-stable across runs (modulo `scanned_at`). SA
 
 ## 🌐 Languages & frameworks
 
-3 languages, 11 frameworks, 1 codebase walker. PHP and Python use `tree-sitter`; JS/TS use Babel. Single-file vanilla-PHP handlers are detected heuristically; everything else routes through framework-specific adapters.
+4 languages, 15 frameworks, 1 codebase walker. PHP, Python, and Go use `tree-sitter`; JS/TS use Babel. Single-file vanilla-PHP and net/http Go handlers are detected heuristically; everything else routes through framework-specific adapters.
 
 | Language | Frameworks | Parser |
 |---|---|---|
 | **JavaScript / TypeScript** | Express · Hono · Fastify · Next.js | `@babel/parser` |
 | **Python** | Flask · FastAPI · Django | `tree-sitter-python` (WASM) |
 | **PHP** (v0.4) | Laravel · Symfony · Slim · vanilla-PHP single-file | `tree-sitter-php` (WASM) |
+| **Go** (v0.9) | net/http · chi · gin · echo | `tree-sitter-go` (WASM) |
 
 PHP 8.0+ syntax floor. Python 3.10+ recommended. TypeScript: strict + non-strict both supported.
 

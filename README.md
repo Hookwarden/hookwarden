@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>The only scanner laser-focused on webhook signature verification.</strong><br />
-  Local. Deterministic. Zero-network. JS/TS + Python + PHP. Five minutes from <code>npx</code> to fix.
+  Local. Deterministic. Zero-network. JS/TS + Python + PHP + Go. Five minutes from <code>npx</code> to fix.
 </p>
 
 <p align="center">
@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/badge/node-%E2%89%A522-6366F1?style=flat-square" alt="Node 22+" />
   <img src="https://img.shields.io/badge/PHP-%E2%89%A58.0-6366F1?style=flat-square" alt="PHP 8.0+ scanning support" />
   <img src="https://img.shields.io/badge/Python-%E2%89%A53.10-6366F1?style=flat-square" alt="Python 3.10+ scanning support" />
+  <img src="https://img.shields.io/badge/Go-%E2%89%A51.21-6366F1?style=flat-square" alt="Go 1.21+ scanning support" />
   <a href="https://github.com/Hookwarden/hookwarden/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/Hookwarden/hookwarden/ci.yml?branch=main&color=6366F1&label=CI&style=flat-square" alt="CI" /></a>
   <a href="https://github.com/Hookwarden/hookwarden/stargazers"><img src="https://img.shields.io/github/stars/Hookwarden/hookwarden?color=6366F1&style=flat-square" alt="GitHub stars" /></a>
   <img src="https://img.shields.io/badge/SARIF-2.1.0-6366F1?style=flat-square" alt="SARIF 2.1.0" />
@@ -137,7 +138,7 @@ npx hookwarden inventory ./your-app
 
 ## Auto-fix
 
-hookwarden doesn't just name the fix — it applies it. The `fix` subcommand mechanically rewrites the `safety: safe` subset across JS/TS, Python, and PHP (42 rules covering timing-unsafe comparisons → `crypto.timingSafeEqual` / `hmac.compare_digest` / `hash_equals`, and raw-body misuse). The other 188 rules are architectural and emit per-finding fix prose instead.
+hookwarden doesn't just name the fix — it applies it. The `fix` subcommand mechanically rewrites the `safety: safe` subset across JS/TS, Python, PHP, and Go (covering timing-unsafe comparisons → `crypto.timingSafeEqual` / `hmac.compare_digest` / `hash_equals`, and raw-body misuse). The other 188 rules are architectural and emit per-finding fix prose instead.
 
 ```bash
 npx hookwarden fix ./your-app           # dry-run — prints a unified diff, writes nothing
@@ -188,13 +189,14 @@ The `state` column is the three-state verdict. Output is also available as byte-
 
 ## Languages, frameworks & providers
 
-**3 languages · 11 frameworks · 21 providers · 230 rules · 100% cited.** Every rule carries ≥1 external citation (CWE / RFC / Svix / Stripe spec) alongside the provider's own docs — auditors and reviewers can follow any finding back to a stable external source. JS/TS parse with Babel; Python and PHP with tree-sitter (WASM).
+**4 languages · 15 frameworks · 21 providers · 230 rules · 100% cited.** Every rule carries ≥1 external citation (CWE / RFC / Svix / Stripe spec) alongside the provider's own docs — auditors and reviewers can follow any finding back to a stable external source. JS/TS parse with Babel; Python, PHP, and Go with tree-sitter (WASM).
 
 | Language | Frameworks |
 |---|---|
 | **JavaScript / TypeScript** | Express · Hono · Fastify · Next.js |
 | **Python** | Flask · FastAPI · Django |
 | **PHP** | Laravel · Symfony · Slim · vanilla single-file |
+| **Go** | net/http · chi · gin · echo |
 
 <p align="center">
   <a href="https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/stripe.mdx"><img src="https://img.shields.io/badge/Stripe-6366F1?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe" /></a>
