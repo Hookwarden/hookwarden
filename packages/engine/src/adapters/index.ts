@@ -7,6 +7,7 @@ import { fastapiAdapter } from "./fastapi.js";
 import { n8nCustomNodeAdapter } from "./n8n-custom-node.js";
 import { netHttpGoAdapter } from "./net-http-go.js";
 import { nextjsAdapter } from "./nextjs.js";
+import { nextjsPagesAdapter } from "./nextjs-pages.js";
 import { remixAdapter } from "./remix.js";
 import { symfonyAdapter } from "./symfony.js";
 import { vanillaPhpAdapter } from "./vanilla-php.js";
@@ -21,6 +22,10 @@ export type FrameworkAdapter = (
 // fire only on files with zero framework imports.
 export const ALL_ADAPTERS: ReadonlyArray<FrameworkAdapter> = [
   nextjsAdapter,
+  // Phase 29 (ENG-PAGES-01) — Next.js Pages Router (`pages/api/**`). Path-disjoint from
+  // nextjsAdapter (`app/**/route.<ext>`), so order is non-load-bearing; a file is owned by exactly
+  // one of the two. Reads the `export default` handler + infers method from `req.method` guards.
+  nextjsPagesAdapter,
   // Remix route modules (app/routes/**). Path-gated on app/routes/ + an `action` export; disjoint
   // from nextjsAdapter (which needs a `route.<ext>` filename), so no double-detection.
   remixAdapter,
@@ -50,6 +55,7 @@ export {
   n8nCustomNodeAdapter,
   netHttpGoAdapter,
   nextjsAdapter,
+  nextjsPagesAdapter,
   remixAdapter,
   symfonyAdapter,
   vanillaPhpAdapter,
