@@ -77,6 +77,7 @@ function matchAppUseRegistration(
     import_source: resolveImportSource(name, imports),
     position: 0, // renumbered after collection
     location: loc,
+    preserves_raw_body: bodyParserPreservesRawBody(arg),
   };
 }
 
@@ -112,9 +113,43 @@ function matchRouteArgsMiddleware(
       import_source: resolveImportSource(name, imports),
       position: i - 1, // renumbered after collection
       location: nodeLocation(arg),
+      preserves_raw_body: bodyParserPreservesRawBody(arg),
     });
   }
   return out;
+}
+
+// True when `arg` is a body-parser call (`express.json(...)` / `bodyParser.json(...)`)
+// configured with a `verify` hook — i.e. `express.json({ verify: (req, res, buf) => ... })`.
+// A verify hook is the documented way to capture the raw bytes off the request (Stripe's
+// own sample does exactly this), so the parser does NOT consume the raw body. We key on the
+// presence of a `verify` function rather than tracing the assignment target, because adding
+// `verify` to a JSON parser has effectively no purpose other than raw-body capture.
+function bodyParserPreservesRawBody(arg: Node): boolean {
+  if (arg.type !== "CallExpression") return false;
+  const name = identifierOrMemberName(arg.callee);
+  if (name !== "express.json" && name !== "bodyParser.json" && name !== "body-parser.json") {
+    return false;
+  }
+  const options = arg.arguments[0];
+  if (!options || options.type !== "ObjectExpression") return false;
+  for (const prop of options.properties) {
+    if (prop.type !== "ObjectProperty" && prop.type !== "ObjectMethod") continue;
+    const key = prop.key;
+    const keyName =
+      key.type === "Identifier"
+        ? key.name
+        : key.type === "StringLiteral"
+          ? key.value
+          : null;
+    if (keyName !== "verify") continue;
+    if (prop.type === "ObjectMethod") return true;
+    const value = prop.value;
+    if (value.type === "ArrowFunctionExpression" || value.type === "FunctionExpression") {
+      return true;
+    }
+  }
+  return false;
 }
 
 function identifierOrMemberName(node: Node): string | null {

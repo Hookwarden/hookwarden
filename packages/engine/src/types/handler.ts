@@ -84,6 +84,13 @@ export interface ResolvedMiddleware {
   readonly import_source: string | null; // e.g. "express" or null if local function
   readonly position: number; // 0-indexed within the chain
   readonly location: SourceLocation;
+  // True when a body parser (express.json / bodyParser.json) is configured with a
+  // `verify` hook that captures the raw request bytes (the canonical Stripe pattern:
+  // `express.json({ verify: (req, res, buf) => { req.rawBody = buf } })`). Such a
+  // parser does NOT destroy the raw body, so it is not the middleware-ordering bug.
+  // Optional: absent/false on every non-parser middleware and on parsers without a
+  // verify hook, so existing construction sites need no change.
+  readonly preserves_raw_body?: boolean;
 }
 
 // D-34 bounded-depth reachability. Set lookup target for "is constructEvent reachable?"

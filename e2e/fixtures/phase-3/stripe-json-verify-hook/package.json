@@ -1,0 +1,5 @@
+{
+  "name": "stripe-json-verify-hook",
+  "private": true,
+  "dependencies": { "express": "^4.19.2", "stripe": "^15.0.0" }
+}

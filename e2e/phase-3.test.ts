@@ -76,6 +76,19 @@ describe("Phase 3 success criteria", () => {
     expect(out.stdout).toContain("stripe/library-verified");
   });
 
+  it("FP regression: express.json({ verify }) raw-body capture → verified, NO middleware-ordering finding", async () => {
+    // Stripe's own reference handler registers express.json() before the route but
+    // captures the raw bytes via a `verify` hook, so it is not the ordering bug.
+    const out = await captureStdout(() =>
+      main(["scan", path.join(FIXTURE_ROOT, "stripe-json-verify-hook")]),
+    );
+    expect(out.stdout).toContain("verified");
+    expect(out.stdout).toContain("stripe/library-verified");
+    // The false positive we fixed: must NOT flag middleware-ordering, and must not be critical.
+    expect(out.stdout).not.toContain("stripe/express-middleware-ordering");
+    expect(out.stdout).not.toContain("× critical");
+  });
+
   it("Criterion #3 Python: stripe.Webhook.construct_event reachable → verified", async () => {
     const out = await captureStdout(() =>
       main(["scan", path.join(FIXTURE_ROOT, "python-flask-happy-path")]),
