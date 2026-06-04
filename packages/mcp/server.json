@@ -9,13 +9,13 @@
     "source": "github",
     "subfolder": "packages/mcp"
   },
-  "version": "0.8.9",
+  "version": "0.8.10",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@hookwarden/mcp",
-      "version": "0.8.9",
+      "version": "0.8.10",
       "transport": {
         "type": "stdio"
       }
@@ -25,7 +25,7 @@
     "io.modelcontextprotocol.registry/publisher-provided": {
       "license": "Apache-2.0",
       "categories": ["security", "static-analysis", "code-review"],
-      "languages_scanned": ["javascript", "typescript", "python"],
+      "languages_scanned": ["javascript", "typescript", "python", "php", "go"],
       "tools": ["scan_handler", "verify_audit_chain"]
     }
   }

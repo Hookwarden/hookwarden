@@ -1,5 +1,16 @@
 # @hookwarden/fix
 
+## 0.9.0
+
+### Minor Changes
+
+- Add Go language support: tree-sitter-go parser, framework adapters and reachability, a constant-time-comparison rule (`bytes.Equal` → `hmac.Equal`), library-verified SDK recognition, two Go fixers (constant-time + raw-body misuse), and an FP-measurement corpus held under the <5% gate.
+
+### Patch Changes
+
+- Updated dependencies
+  - @hookwarden/engine@0.9.0
+
 ## 0.8.1
 
 ### Patch Changes
