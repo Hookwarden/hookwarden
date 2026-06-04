@@ -1,5 +1,13 @@
 # @hookwarden/fix
 
+## 0.9.1
+
+### Patch Changes
+
+- Coordinated release to ship `@hookwarden/mcp` Go + PHP scan_handler parity. No functional changes to the CLI, engine, rules, fixers, or GitHub Action in this version — the bump exists because `@hookwarden/mcp` publishes only on the repo's coordinated version tag.
+- Updated dependencies
+  - @hookwarden/engine@0.9.1
+
 ## 0.9.0
 
 ### Minor Changes

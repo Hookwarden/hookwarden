@@ -1,5 +1,17 @@
 # @hookwarden/mcp
 
+## 0.9.0
+
+### Minor Changes
+
+- 50e8113: scan_handler now supports Go and PHP, giving the MCP full language parity with the CLI (js/ts/python/php/go). Bundles the tree-sitter-go and tree-sitter-php grammars, lazy-loads each dialect's WASM runtime per request, and removes the stale "PHP not in preview — use the CLI" rejection. AI coding agents can now scan Go and PHP webhook handlers directly through the MCP.
+
+### Patch Changes
+
+- Updated dependencies
+  - @hookwarden/engine@0.9.1
+  - @hookwarden/rules@0.9.1
+
 ## 0.8.10
 
 ### Patch Changes

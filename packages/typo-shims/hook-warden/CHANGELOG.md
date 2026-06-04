@@ -1,5 +1,12 @@
 # hook-warden
 
+## 0.9.1
+
+### Patch Changes
+
+- Updated dependencies
+  - hookwarden@0.9.1
+
 ## 0.9.0
 
 ### Patch Changes
