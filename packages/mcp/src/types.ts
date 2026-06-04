@@ -40,7 +40,7 @@ export interface DriftError {
 export interface ScanHandlerInput {
   readonly code?: string;
   readonly files?: Readonly<Record<string, string>>;
-  readonly language?: "js" | "ts" | "python" | "php";
+  readonly language?: "js" | "ts" | "python" | "php" | "go";
   readonly provider?: string;
 }
 

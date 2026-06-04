@@ -245,6 +245,12 @@ importers:
       tar:
         specifier: 7.5.16
         version: 7.5.16
+      tree-sitter-go:
+        specifier: 0.25.0
+        version: 0.25.0
+      tree-sitter-php:
+        specifier: 0.24.2
+        version: 0.24.2
       tree-sitter-python:
         specifier: ^0.25.0
         version: 0.25.0

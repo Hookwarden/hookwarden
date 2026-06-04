@@ -31,14 +31,17 @@ describe("scan_handler input validation (Tests 1-5 + 7)", () => {
     expect((result.structuredContent as { error: string }).error).toBe("exclusive_input_modes");
   });
 
-  it("Test 3: language:'php' → language_not_in_preview with CLI suggestion", async () => {
+  it("Test 3: language:'php' and language:'go' are accepted (full CLI parity)", async () => {
     const m = await getManifest();
-    const result = await scanHandler({ code: "x", language: "php" } as ScanHandlerInput, m);
-    expect(result.isError).toBe(true);
-    expect((result.structuredContent as { error: string }).error).toBe("language_not_in_preview");
-    expect((result.structuredContent as { suggestion: string }).suggestion).toMatch(
-      /PHP support ships in v0\.8\.1.*npx hookwarden scan/,
-    );
+    // PHP and Go are now first-class scan languages — they must NOT return
+    // language_not_in_preview / unsupported_language. They parse and evaluate
+    // like js/ts/python (a trivial snippet yields no transport-level error).
+    for (const language of ["php", "go"] as const) {
+      const result = await scanHandler({ code: "// noop", language } as ScanHandlerInput, m);
+      const err = (result.structuredContent as { error?: string }).error;
+      expect(err).not.toBe("language_not_in_preview");
+      expect(err).not.toBe("unsupported_language");
+    }
   });
 
   it("Test 4: language:'ruby' → unsupported_language", async () => {

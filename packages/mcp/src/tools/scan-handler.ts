@@ -18,11 +18,17 @@ import {
   buildProjectModel,
   type Config,
   evaluate,
+  type GoRuntime,
+  initGoRuntime,
+  initPhpRuntime,
   initPythonRuntime,
   type ParsedFile,
+  type PhpRuntime,
   type ProjectModel,
   type PythonRuntime,
+  parseGo,
   parseJsTs,
+  parsePhp,
   parsePython,
   type RuleSet,
   type ScanResult,
@@ -37,7 +43,7 @@ import {
 
 import { checkDrift } from "../drift-check.js";
 import type { BuildManifest, ScanHandlerInput, ScanHandlerOutput } from "../types.js";
-import { loadPythonWasmBytes } from "../wasm/loader.js";
+import { loadGoWasmBytes, loadPhpWasmBytes, loadPythonWasmBytes } from "../wasm/loader.js";
 
 // ── Module-level lazy-init caches ────────────────────────────────────────
 // The WASM load is ~100KB + parse + Parser.init — only pay it when at least
@@ -50,6 +56,22 @@ function getPythonRuntime(): Promise<PythonRuntime> {
     );
   }
   return pythonRuntimePromise;
+}
+
+let goRuntimePromise: Promise<GoRuntime> | null = null;
+function getGoRuntime(): Promise<GoRuntime> {
+  if (goRuntimePromise === null) {
+    goRuntimePromise = loadGoWasmBytes().then((bytes) => initGoRuntime({ wasmBytes: bytes }));
+  }
+  return goRuntimePromise;
+}
+
+let phpRuntimePromise: Promise<PhpRuntime> | null = null;
+function getPhpRuntime(): Promise<PhpRuntime> {
+  if (phpRuntimePromise === null) {
+    phpRuntimePromise = loadPhpWasmBytes().then((bytes) => initPhpRuntime({ wasmBytes: bytes }));
+  }
+  return phpRuntimePromise;
 }
 
 let ruleSetPromise: Promise<RuleSet> | null = null;
@@ -65,17 +87,31 @@ function getRuleSet(): Promise<RuleSet> {
   return ruleSetPromise;
 }
 
+// Dispatch one file to the right parser, lazily loading that dialect's WASM
+// runtime. Unknown/js/ts fall through to Babel (D-23-02 single-blob default).
+async function parseSource(
+  lang: LangKind,
+  filePath: string,
+  sourceText: string,
+): Promise<ParsedFile> {
+  const input = { file_path: filePath, source_text: sourceText };
+  if (lang === "python") return parsePython(input, await getPythonRuntime());
+  if (lang === "go") return parseGo(input, await getGoRuntime());
+  if (lang === "php") return parsePhp(input, await getPhpRuntime());
+  return parseJsTs(input);
+}
+
 // ── Provider catalog validation set (case-insensitive match) ─────────────
 const VALID_PROVIDERS: ReadonlySet<string> = new Set(
   Object.keys(PROVIDER_CATALOG).map((id) => id.toLowerCase()),
 );
 
-// ── Supported preview languages (PHP deferred per D-23-09) ───────────────
-const PREVIEW_LANGUAGES: ReadonlySet<string> = new Set(["js", "ts", "python"]);
-const ALL_KNOWN_LANGUAGES: ReadonlySet<string> = new Set(["js", "ts", "python", "php"]);
+// ── Supported languages — full CLI parity (js/ts/python/php/go) ──────────
+const PREVIEW_LANGUAGES: ReadonlySet<string> = new Set(["js", "ts", "python", "php", "go"]);
+const ALL_KNOWN_LANGUAGES: ReadonlySet<string> = new Set(["js", "ts", "python", "php", "go"]);
 
 // ── File-extension → language mapping per D-23-02 ─────────────────────────
-type LangKind = "js" | "ts" | "python" | "php" | "unknown";
+type LangKind = "js" | "ts" | "python" | "php" | "go" | "unknown";
 function inferLanguage(filePath: string): LangKind {
   const lower = filePath.toLowerCase();
   if (lower.endsWith(".ts") || lower.endsWith(".tsx")) return "ts";
@@ -89,8 +125,18 @@ function inferLanguage(filePath: string): LangKind {
   }
   if (lower.endsWith(".py") || lower.endsWith(".pyi")) return "python";
   if (lower.endsWith(".php")) return "php";
+  if (lower.endsWith(".go")) return "go";
   return "unknown";
 }
+
+// Single-blob extension synthesis when `code` + explicit `language` are given.
+const EXT_BY_LANG: Readonly<Record<string, string>> = {
+  js: ".js",
+  ts: ".ts",
+  python: ".py",
+  php: ".php",
+  go: ".go",
+};
 
 // ── Error helper ──────────────────────────────────────────────────────────
 function errorResult(
@@ -124,18 +170,13 @@ export async function scanHandler(
     if (!hasCode && !hasFiles) return errorResult({ error: "empty_input" });
     if (hasCode && hasFiles) return errorResult({ error: "exclusive_input_modes" });
 
-    if (args.language === "php") {
-      return errorResult({
-        error: "language_not_in_preview",
-        suggestion: "PHP support ships in v0.8.1; for now invoke the CLI: npx hookwarden scan",
-      });
-    }
     if (args.language !== undefined && !ALL_KNOWN_LANGUAGES.has(args.language)) {
       return errorResult({ error: "unsupported_language", got: args.language });
     }
     if (args.language !== undefined && !PREVIEW_LANGUAGES.has(args.language)) {
-      // Defense in depth — already covered by the php branch above; future
-      // language additions would land here before the preview opens.
+      // Defense in depth — every known language is also a supported language
+      // now (full CLI parity). Kept so a future known-but-gated language lands
+      // here rather than silently parsing as TS.
       return errorResult({ error: "language_not_in_preview", language: args.language });
     }
 
@@ -155,7 +196,7 @@ export async function scanHandler(
     // 3. Build the (path → source) input map
     const fileMap = new Map<string, string>();
     if (hasCode) {
-      const ext = args.language === "python" ? ".py" : ".ts";
+      const ext = args.language ? (EXT_BY_LANG[args.language] ?? ".ts") : ".ts";
       fileMap.set(`__handler${ext}`, args.code as string);
     } else if (args.files) {
       for (const [path, src] of Object.entries(args.files)) {
@@ -163,40 +204,15 @@ export async function scanHandler(
       }
     }
 
-    // 4. Parse — collect ParsedFile[]. parseJsTs / parsePython always return a
-    //    ParsedFile, with parse failures baked into ParsedFile.parse_errors;
-    //    engine surfaces those as ENGINE-07 findings during evaluate().
-    let needsPython = false;
-    for (const path of fileMap.keys()) {
-      const explicit = args.language;
-      const lang = explicit ?? inferLanguage(path);
-      if (lang === "python") {
-        needsPython = true;
-        break;
-      }
-    }
-
-    let pyRuntime: PythonRuntime | null = null;
-    if (needsPython) pyRuntime = await getPythonRuntime();
-
+    // 4. Parse — collect ParsedFile[]. parseSource always returns a ParsedFile,
+    //    with parse failures baked into ParsedFile.parse_errors; engine surfaces
+    //    those as ENGINE-07 findings during evaluate(). WASM runtimes are
+    //    lazy-initialised per dialect inside parseSource (only paid for if a
+    //    file of that dialect is present; the get*Runtime caches memoize).
     const parsedFiles: ParsedFile[] = [];
     for (const [filePath, sourceText] of fileMap) {
       const lang = args.language ?? inferLanguage(filePath);
-      if (lang === "php") {
-        // PHP defers per D-23-09. The validation above already rejected
-        // `args.language === "php"`; a `.php` extension reaching here means
-        // a heterogeneous `files` map — engine will not parse it; skip.
-        continue;
-      }
-      if (lang === "python") {
-        if (pyRuntime === null) pyRuntime = await getPythonRuntime();
-        parsedFiles.push(
-          await parsePython({ file_path: filePath, source_text: sourceText }, pyRuntime),
-        );
-        continue;
-      }
-      // Default for unknown extensions in single-blob mode = TS (D-23-02)
-      parsedFiles.push(await parseJsTs({ file_path: filePath, source_text: sourceText }));
+      parsedFiles.push(await parseSource(lang, filePath, sourceText));
     }
 
     // 5. Build model + evaluate

@@ -50,11 +50,11 @@ export async function bootServer(): Promise<number> {
     "scan_handler",
     {
       description:
-        "Scan webhook handler code for signature-verification bugs using hookwarden's deterministic AST rules.",
+        "Scan webhook handler code for signature-verification bugs using hookwarden's deterministic AST rules. Supports JavaScript, TypeScript, Python, PHP, and Go.",
       inputSchema: {
         code: z.string().optional(),
         files: z.record(z.string(), z.string()).optional(),
-        language: z.enum(["js", "ts", "python", "php"]).optional(),
+        language: z.enum(["js", "ts", "python", "php", "go"]).optional(),
         provider: z.string().optional(),
       },
     },
