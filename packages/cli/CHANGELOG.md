@@ -1,5 +1,17 @@
 # hookwarden
 
+## 0.10.0
+
+### Minor Changes
+
+- Add `scan --history` (LEAK-05) — a deleted-inclusive git-history walk that finds secrets committed then deleted before HEAD (bounded to the last 1000 commits, `--since <ref|date>` to narrow; off by default, fully OSS). Add `scan --verify-secrets` (LEAK-06) — live verification of leaked API-key-class credentials (Stripe `rk_`/`sk_`, GitHub `ghs_`) via a read-only call to the secret's own provider; `live` escalates to critical, `dead` downgrades to info, signing secrets stay `unverified`. Paid (team), off by default, entitlement-gated.
+
+### Patch Changes
+
+- @hookwarden/engine@0.10.0
+- @hookwarden/rules@0.10.0
+- @hookwarden/fix@0.10.0
+
 ## 0.9.1
 
 ### Patch Changes

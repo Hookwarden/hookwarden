@@ -1,5 +1,12 @@
 # @hookwarden/mcp
 
+## 0.9.1
+
+### Patch Changes
+
+- @hookwarden/engine@0.10.0
+- @hookwarden/rules@0.10.0
+
 ## 0.9.0
 
 ### Minor Changes

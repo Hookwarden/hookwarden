@@ -1,5 +1,7 @@
 # @hookwarden/engine
 
+## 0.10.0
+
 ## 0.9.1
 
 ### Patch Changes
