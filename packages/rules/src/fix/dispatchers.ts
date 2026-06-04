@@ -12,6 +12,8 @@ import type { Finding, ParsedFile } from "@hookwarden/engine";
 import type { FixEdit } from "@hookwarden/fix";
 import { phpInsertSecretPresenceCheck } from "./php-insert-secret-presence-check.js";
 import { phpReplaceBinaryEqualityOrStrcmp } from "./php-replace-binary-equality-or-strcmp.js";
+import { goReplaceBinaryEquality } from "./go-replace-binary-equality.js";
+import { goReplaceBodyWithRaw } from "./go-replace-body-with-raw.js";
 import { phpReplaceInputWithRawBody } from "./php-replace-input-with-raw-body.js";
 import { pythonInsertNullishGuard } from "./python-insert-nullish-guard.js";
 import { pythonInsertSecretPresenceCheck } from "./python-insert-secret-presence-check.js";
@@ -33,7 +35,7 @@ export function dispatchTimingUnsafeComparison(
     case "tree-sitter-php":
       return phpReplaceBinaryEqualityOrStrcmp(parsedFile, finding);
     case "tree-sitter-go":
-      return null; // TODO(27-04): wire goReplaceBinaryEquality (placeholder for exhaustiveness).
+      return goReplaceBinaryEquality(parsedFile, finding);
     case "n8n-json":
       return null; // n8n workflow JSON is structured config, not code — no autofix codegen.
   }
@@ -67,7 +69,7 @@ export function dispatchReplaceRawBodyMisuse(
     case "tree-sitter-php":
       return phpReplaceInputWithRawBody(parsedFile, finding);
     case "tree-sitter-go":
-      return null; // TODO(27-04): wire goReplaceBodyWithRaw (placeholder for exhaustiveness).
+      return goReplaceBodyWithRaw(parsedFile, finding);
     case "tree-sitter-python":
       return null; // Python raw-body is manual-only in v0.5 (B3 — D-11 cond. 2).
     case "n8n-json":
