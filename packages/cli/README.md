@@ -179,6 +179,37 @@ npx hookwarden scan ./your-app --min-parse-coverage 0.85
 # the parser occasionally bails. Below this floor, the scanner exits 4 — by design.
 ```
 
+**Git history scan — find secrets that were committed then deleted (`--history`):**
+```bash
+npx hookwarden scan --history                  # last 1000 commits
+npx hookwarden scan --history --since v1.0.0    # since a tag/ref
+npx hookwarden scan --history --since 2026-01-01
+```
+By default `scan` only inspects the working tree. `--history` also walks the git
+history — **including files deleted before HEAD** — so a secret that was
+force-pushed away is still found (closing the trufflehog/gitleaks parity gap).
+Off by default, bounded to the last 1000 commits unless `--since` narrows it, and
+fully open-source — it never needs a token.
+
+**Live verification — is the leaked key still active? (`--verify-secrets`):**
+```bash
+# Mint a token from the dashboard (Settings → CLI tokens) on a team workspace:
+HOOKWARDEN_TOKEN=hw_… npx hookwarden scan --verify-secrets
+```
+`--verify-secrets` checks whether a leaked **API-key-class** credential (Stripe
+`rk_`/`sk_`, GitHub `ghs_`) is still *alive* by making a single read-only call to
+the secret's **own** provider, straight from your machine — hookwarden never sees
+the secret. A `live` leak is escalated to `critical`; a `dead` (rotated/revoked)
+one is downgraded to `info`. It's **paid** (team tier), off by default, and
+explicit opt-in only.
+
+- The credential is held in-memory only and redacted in all output.
+- The entitlement check transmits **only** your token — never the secret.
+- A webhook **signing** secret (`whsec_`, GitHub webhook secret) is always
+  reported `unverified` — no provider can confirm a signing secret's liveness.
+- Without a valid `HOOKWARDEN_TOKEN`, findings are reported `unverified` and no
+  provider call is made.
+
 See [Install](#-install) for permanent install via npm, Homebrew, Scoop, or PyPI. Full flag reference: `npx hookwarden --help`.
 
 ---
