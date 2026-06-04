@@ -20,11 +20,17 @@ const baseHandler: WebhookHandler = {
   redacted_snippet: "",
 };
 
-const mw = (name: string, import_source: string | null, position: number): ResolvedMiddleware => ({
+const mw = (
+  name: string,
+  import_source: string | null,
+  position: number,
+  preserves_raw_body = false,
+): ResolvedMiddleware => ({
   name,
   import_source,
   position,
   location: { line: 1, col: 1, end_line: 1, end_col: 2 },
+  preserves_raw_body,
 });
 
 describe("expressMiddlewareOrderingPredicate (RULES-03)", () => {
@@ -40,6 +46,27 @@ describe("expressMiddlewareOrderingPredicate (RULES-03)", () => {
     const handler: WebhookHandler = {
       ...baseHandler,
       middleware_chain: [mw("body-parser.json", "body-parser", 0), mw("authMiddleware", null, 1)],
+    };
+    expect(await expressMiddlewareOrderingPredicate(handler, {} as never)).toBe("not-verified");
+  });
+
+  it("returns null when express.json has a verify hook that captures raw bytes (Stripe's own pattern)", async () => {
+    // express.json({ verify: (req, res, buf) => { req.rawBody = buf } }) preserves the raw
+    // body, so it is NOT the ordering bug — this is the canonical Stripe reference handler.
+    const handler: WebhookHandler = {
+      ...baseHandler,
+      middleware_chain: [mw("express.json", "express", 0, /* preserves_raw_body */ true)],
+    };
+    expect(await expressMiddlewareOrderingPredicate(handler, {} as never)).toBeNull();
+  });
+
+  it("still flags an unguarded JSON parser even when a raw-body-preserving one is also present", async () => {
+    const handler: WebhookHandler = {
+      ...baseHandler,
+      middleware_chain: [
+        mw("express.json", "express", 0, /* preserves_raw_body */ true),
+        mw("bodyParser.json", "body-parser", 1, /* preserves_raw_body */ false),
+      ],
     };
     expect(await expressMiddlewareOrderingPredicate(handler, {} as never)).toBe("not-verified");
   });

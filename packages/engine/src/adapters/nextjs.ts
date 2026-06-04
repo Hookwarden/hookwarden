@@ -30,12 +30,62 @@ export function nextjsAdapter(
   const ast = file.raw_ast as File;
   const out: CandidateHandler[] = [];
 
+  // Locally-declared function bindings, for specifier re-exports that point at a `const handler`
+  // / `function handler` defined elsewhere in the file (see collectSpecifierExports).
+  const localFns = collectLocalFunctionBindings(ast);
+
   for (const stmt of ast.program.body) {
     if (stmt.type !== "ExportNamedDeclaration") continue;
+    // `export function POST(...)` / `export const POST = ...` — inline declaration.
     for (const exported of collectNamedFunctionExports(stmt)) {
       if (!BODY_METHOD_NAMES.has(exported.name)) continue;
       out.push(buildHandler(file, routePattern, exported));
     }
+    // `export { handler as POST }` — specifier re-export of a local binding (saasfly's shape).
+    for (const exported of collectSpecifierExports(stmt, localFns)) {
+      if (!BODY_METHOD_NAMES.has(exported.name)) continue;
+      out.push(buildHandler(file, routePattern, exported));
+    }
+  }
+  return out;
+}
+
+// Top-level function-valued bindings keyed by local name: `function handler() {}` and
+// `const handler = (req) => {}` / `const handler = async function () {}`. Used to resolve the
+// local target of a specifier re-export (`export { handler as POST }`).
+function collectLocalFunctionBindings(ast: File): ReadonlyMap<string, Node> {
+  const map = new Map<string, Node>();
+  for (const stmt of ast.program.body) {
+    if (stmt.type === "FunctionDeclaration" && stmt.id) {
+      map.set(stmt.id.name, stmt);
+    } else if (stmt.type === "VariableDeclaration") {
+      for (const v of stmt.declarations) {
+        if (v.id.type !== "Identifier" || !v.init) continue;
+        if (v.init.type === "ArrowFunctionExpression" || v.init.type === "FunctionExpression") {
+          map.set(v.id.name, v.init);
+        }
+      }
+    }
+  }
+  return map;
+}
+
+// `export { handler as POST, handler as GET }` — resolve each specifier's local name to its
+// in-file function binding. Skips re-exports from another module (`export { x } from './y'`),
+// which the adapter cannot resolve without cross-file analysis.
+function collectSpecifierExports(
+  exp: import("@babel/types").ExportNamedDeclaration,
+  localFns: ReadonlyMap<string, Node>,
+): ReadonlyArray<NamedFunctionExport> {
+  if (exp.declaration || exp.source) return [];
+  const out: NamedFunctionExport[] = [];
+  for (const spec of exp.specifiers) {
+    if (spec.type !== "ExportSpecifier") continue;
+    const exportedName =
+      spec.exported.type === "Identifier" ? spec.exported.name : spec.exported.value;
+    const fnNode = localFns.get(spec.local.name);
+    if (!fnNode) continue;
+    out.push({ name: exportedName, fnNode });
   }
   return out;
 }

@@ -51,7 +51,14 @@ export const expressMiddlewareOrderingPredicate: RulePredicate = async (
   if (handler.framework !== "express") return null;
   if (handler.middleware_chain.length === 0) return null;
 
-  const jsonParserIdx = handler.middleware_chain.findIndex(isJsonBodyParser);
+  // A JSON parser configured with a `verify` hook that captures the raw bytes (the canonical
+  // Stripe pattern: `express.json({ verify: (req, res, buf) => { req.rawBody = buf } })`) does
+  // NOT destroy the raw body, so it is not the ordering bug. Only an *unguarded* JSON parser
+  // consumes the raw bytes before verification. Skipping raw-body-preserving parsers kills the
+  // false positive on Stripe's own reference implementation without masking the real bug.
+  const jsonParserIdx = handler.middleware_chain.findIndex(
+    (mw) => isJsonBodyParser(mw) && mw.preserves_raw_body !== true,
+  );
   if (jsonParserIdx < 0) return null;
 
   return "not-verified";
