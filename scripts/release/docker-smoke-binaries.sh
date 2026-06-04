@@ -10,6 +10,9 @@
 #      loader resolves the embedded asset, not the source-tree path)
 #   5. PHP parsing works in compiled-Bun context (same dual-path WASM loader
 #      pattern, applied to tree-sitter-php @ 0.24.2)
+#   5b. Go parsing works in compiled-Bun context (Phase 27 SC#4 — same dual-path
+#      WASM loader applied to tree-sitter-go @ 0.25.0; bug fixture flags critical,
+#      SDK happy-path exits 0)
 #   6. Exit-code matrix is correct (CLI-04 contract preserved through compile)
 #
 # Cross-arch: this script runs on any host with Docker installed. linux-x64
@@ -305,6 +308,45 @@ test_explain_rule() {
   return 0
 }
 
+# T12: scan Go bug → finds timing-unsafe-comparison on a net/http handler that
+# compares the MAC with bytes.Equal (not constant-time). Proves the
+# tree-sitter-go WASM loader resolves the embedded asset in compiled-Bun
+# (Phase 27 SC#4 cross-target gate — the same DC-13 dual-path concern as PHP/Python).
+test_scan_go_bug() {
+  local cmd="$1"
+  local fixtures="$2"
+  local out
+  local code=0
+  out=$("$cmd" scan "$fixtures/go-bytes-equal-bug" 2>&1) || code=$?
+  if [ "$code" != "1" ]; then
+    echo "  scan go-bytes-equal-bug exited $code (expected 1)"
+    return 1
+  fi
+  echo "$out" | grep -q "stripe/timing-unsafe-comparison" || {
+    echo "  scan go-bytes-equal-bug missed stripe/timing-unsafe-comparison (Go WASM loader broken?)"
+    return 1
+  }
+  echo "$out" | grep -qi "critical\|not-verified" || {
+    echo "  scan go-bytes-equal-bug emitted no critical/not-verified marker"
+    return 1
+  }
+  return 0
+}
+
+# T13: scan happy-path Go (Stripe SDK webhook.ConstructEvent) → exit 0 (verified,
+# no critical). Proves the Go SDK-verified path resolves in compiled-Bun.
+test_scan_clean_go() {
+  local cmd="$1"
+  local fixtures="$2"
+  local code=0
+  "$cmd" scan "$fixtures/go-sdk-happy-path" >/dev/null 2>&1 || code=$?
+  if [ "$code" != "0" ]; then
+    echo "  scan go-sdk-happy-path exited $code (expected 0)"
+    return 1
+  fi
+  return 0
+}
+
 TESTS=(
   "test_help          T1 --help_works"
   "test_scan_help     T2 scan_--help"
@@ -317,6 +359,8 @@ TESTS=(
   "test_inventory_php T9 inventory_php_lists_handler"
   "test_explain_rule  T10 explain_rule_prints_docs"
   "test_scan_php_edge_cases T11 scan_php_edge_cases"
+  "test_scan_go_bug   T12 scan_go_bug_finds_stripe"
+  "test_scan_clean_go T13 scan_clean_go_exit0"
 )
 
 # ─── runner ──────────────────────────────────────────────────────────────────
