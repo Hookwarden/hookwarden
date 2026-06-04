@@ -29,7 +29,38 @@ function insertSingleImport(parsedFile: ParsedFile, imp: ImportToAdd): FixEdit |
   if (parsedFile.dialect === "tree-sitter-python") {
     return insertPythonImport(parsedFile, imp);
   }
+  if (parsedFile.dialect === "tree-sitter-go") {
+    return insertGoImport(parsedFile, imp);
+  }
   // PHP — v0.5 codegens don't need imports (hash_equals, getenv are core).
+  return null;
+}
+
+// Phase 27 (FIX-GO-01): insert a Go stdlib import (e.g. crypto/hmac). Idempotent. The common Go
+// idiom is a grouped block `import (\n\t"a"\n\t"b"\n)` — insert a new `\t"<module>"` line right
+// after the opening `(`. Fall back to a fresh `import "<module>"` line after the `package` clause.
+// In practice this is nearly unreachable for the timing fixer: a handler computing an HMAC already
+// imports crypto/hmac (it called hmac.New), so goReplaceBinaryEquality emits no importsToAdd.
+function insertGoImport(parsedFile: ParsedFile, imp: ImportToAdd): FixEdit | null {
+  if (imp.module === undefined) return null;
+  for (const edge of parsedFile.imports) {
+    if (edge.to_module === imp.module) return null; // already imported — idempotent
+  }
+  const source = parsedFile.source_text;
+
+  // Grouped import block: insert after `import (` + its newline.
+  const grouped = source.match(/\bimport\s*\(\s*\n/);
+  if (grouped?.index !== undefined) {
+    const insertionByte = grouped.index + grouped[0].length;
+    return buildEdit(parsedFile, insertionByte, `\t"${imp.module}"\n`);
+  }
+
+  // Otherwise insert a fresh import line after the `package <name>` clause.
+  const pkg = source.match(/^package\s+\w+[^\n]*\n/m);
+  if (pkg?.index !== undefined) {
+    const insertionByte = pkg.index + pkg[0].length;
+    return buildEdit(parsedFile, insertionByte, `\nimport "${imp.module}"\n`);
+  }
   return null;
 }
 
