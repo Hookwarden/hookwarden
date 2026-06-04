@@ -34,7 +34,8 @@ const parse = (src: string) => parseGo({ file_path: "f.go", source_text: src }, 
 
 describe("goReplaceBinaryEquality — positive cases", () => {
   it("rewrites bytes.Equal(mac, sig) → hmac.Equal(mac, sig)", async () => {
-    const src = 'package x\nimport ("bytes"\n"crypto/hmac")\nfunc f() bool { return bytes.Equal(mac, sig) }\n';
+    const src =
+      'package x\nimport ("bytes"\n"crypto/hmac")\nfunc f() bool { return bytes.Equal(mac, sig) }\n';
     const parsed = await parse(src);
     const fix = goReplaceBinaryEquality(parsed, mkFinding(4));
     expect(fix).not.toBeNull();

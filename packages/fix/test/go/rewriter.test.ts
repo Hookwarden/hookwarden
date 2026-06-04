@@ -7,8 +7,8 @@ import * as path from "node:path";
 import { type GoRuntime, initGoRuntime, parseGo } from "@hookwarden/engine";
 import { beforeAll, describe, expect, it } from "vitest";
 import { buildForbiddenRanges } from "../../src/forbidden-ranges.js";
-import type { FixEdit } from "../../src/index.js";
 import { rewriteGo } from "../../src/go/rewriter.js";
+import type { FixEdit } from "../../src/index.js";
 
 const CLI_WASM_DIR = path.resolve(__dirname, "../../../cli/wasm");
 let goRuntime: GoRuntime;
@@ -44,7 +44,14 @@ describe("rewriteGo — positive cases", () => {
     const start = src.indexOf(target);
     const result = rewriteGo({
       parsedFile: parsed,
-      edits: [mkEdit({ startByte: start, endByte: start + target.length, before: target, after: "hmac.Equal(mac, sig)" })],
+      edits: [
+        mkEdit({
+          startByte: start,
+          endByte: start + target.length,
+          before: target,
+          after: "hmac.Equal(mac, sig)",
+        }),
+      ],
       forbiddenRanges: mask,
     });
     expect(result.applied).toHaveLength(1);
@@ -54,7 +61,11 @@ describe("rewriteGo — positive cases", () => {
   it("returns newSource === input when edits is empty", async () => {
     const src = "package x\nvar y = 1\n";
     const parsed = await parse(src);
-    const result = rewriteGo({ parsedFile: parsed, edits: [], forbiddenRanges: buildForbiddenRanges(parsed) });
+    const result = rewriteGo({
+      parsedFile: parsed,
+      edits: [],
+      forbiddenRanges: buildForbiddenRanges(parsed),
+    });
     expect(result.newSource).toBe(src);
   });
 });
@@ -67,7 +78,14 @@ describe("rewriteGo — forbidden-range refusals (mandatory negative tests)", ()
     expect(start).toBeGreaterThan(0);
     const result = rewriteGo({
       parsedFile: parsed,
-      edits: [mkEdit({ startByte: start, endByte: start + needle.length, before: needle, after: "REPLACED" })],
+      edits: [
+        mkEdit({
+          startByte: start,
+          endByte: start + needle.length,
+          before: needle,
+          after: "REPLACED",
+        }),
+      ],
       forbiddenRanges: mask,
     });
     expect(result.applied).toHaveLength(0);
@@ -76,7 +94,10 @@ describe("rewriteGo — forbidden-range refusals (mandatory negative tests)", ()
   }
 
   it("refuses an edit inside a // line comment", async () => {
-    await expectRefused("package x\n// bytes.Equal(mac, sig) is the bug\nvar y = 1\n", "bytes.Equal(mac, sig)");
+    await expectRefused(
+      "package x\n// bytes.Equal(mac, sig) is the bug\nvar y = 1\n",
+      "bytes.Equal(mac, sig)",
+    );
   });
 
   it("refuses an edit inside a raw_string_literal (backtick)", async () => {
@@ -92,7 +113,14 @@ describe("rewriteGo — forbidden-range refusals (mandatory negative tests)", ()
     const parsed = await parse(src);
     const result = rewriteGo({
       parsedFile: parsed,
-      edits: [mkEdit({ startByte: 13, endByte: src.length - 1, before: src.slice(13, -1), after: "y = 1" })],
+      edits: [
+        mkEdit({
+          startByte: 13,
+          endByte: src.length - 1,
+          before: src.slice(13, -1),
+          after: "y = 1",
+        }),
+      ],
       forbiddenRanges: buildForbiddenRanges(parsed),
     });
     expect(result.rejected[0]?.reason).toBe("multi-line");
@@ -103,14 +131,20 @@ describe("rewriteGo — pre-condition violations", () => {
   it("throws TypeError when dialect is not tree-sitter-go", async () => {
     const parsed = await parse("package x\nvar y = 1\n");
     const fake = { ...parsed, dialect: "babel" as const };
-    expect(() => rewriteGo({ parsedFile: fake, edits: [], forbiddenRanges: [] })).toThrow(TypeError);
+    expect(() => rewriteGo({ parsedFile: fake, edits: [], forbiddenRanges: [] })).toThrow(
+      TypeError,
+    );
   });
 
   it("throws when parse_error is non-null", async () => {
     const parsed = await parse("package x\nvar y = 1\n");
     const forced = {
       ...parsed,
-      parse_error: { message: "forced", location: { line: 1, col: 1 }, source: "tree-sitter" as const },
+      parse_error: {
+        message: "forced",
+        location: { line: 1, col: 1 },
+        source: "tree-sitter" as const,
+      },
     };
     expect(() => rewriteGo({ parsedFile: forced, edits: [], forbiddenRanges: [] })).toThrow(
       /refusing to rewrite.*parse error/,

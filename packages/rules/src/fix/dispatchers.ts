@@ -10,10 +10,10 @@
 
 import type { Finding, ParsedFile } from "@hookwarden/engine";
 import type { FixEdit } from "@hookwarden/fix";
-import { phpInsertSecretPresenceCheck } from "./php-insert-secret-presence-check.js";
-import { phpReplaceBinaryEqualityOrStrcmp } from "./php-replace-binary-equality-or-strcmp.js";
 import { goReplaceBinaryEquality } from "./go-replace-binary-equality.js";
 import { goReplaceBodyWithRaw } from "./go-replace-body-with-raw.js";
+import { phpInsertSecretPresenceCheck } from "./php-insert-secret-presence-check.js";
+import { phpReplaceBinaryEqualityOrStrcmp } from "./php-replace-binary-equality-or-strcmp.js";
 import { phpReplaceInputWithRawBody } from "./php-replace-input-with-raw-body.js";
 import { pythonInsertNullishGuard } from "./python-insert-nullish-guard.js";
 import { pythonInsertSecretPresenceCheck } from "./python-insert-secret-presence-check.js";

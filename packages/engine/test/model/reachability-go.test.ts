@@ -8,8 +8,8 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { ALL_ADAPTERS } from "../../src/adapters/index.js";
 import { buildProjectModel } from "../../src/model/build.js";
 import { computeReachableSymbols } from "../../src/model/reachability.js";
-import { type GoRuntime, initGoRuntime } from "../../src/parsers/go-loader.js";
 import { parseGo } from "../../src/parsers/go.js";
+import { type GoRuntime, initGoRuntime } from "../../src/parsers/go-loader.js";
 import type { Config } from "../../src/types/config.js";
 import type { ParsedFile } from "../../src/types/project-model.js";
 import type { ProviderCatalog, ProviderCatalogEntry, RuleSet } from "../../src/types/rule-set.js";
@@ -38,7 +38,9 @@ function namedFn(file: ParsedFile, name: string): unknown {
     .find((fn) => fn.childForFieldName("name")?.type !== undefined && fnName(fn) === name);
 }
 function fnName(fn: GoNode): string | null {
-  return fn.childForFieldName("name") ? (fn.childForFieldName("name") as unknown as { text: string }).text : null;
+  return fn.childForFieldName("name")
+    ? (fn.childForFieldName("name") as unknown as { text: string }).text
+    : null;
 }
 function firstFuncLiteral(file: ParsedFile): unknown {
   const root = (file.raw_ast as { rootNode: GoNode }).rootNode;
@@ -94,9 +96,9 @@ const CONFIG: Config = {
   total_files_count: 1,
 };
 
-async function evidenceKindsFor(file: ParsedFile): Promise<
-  ReadonlyArray<{ kind: string; provider: string; detail: string }>
-> {
+async function evidenceKindsFor(
+  file: ParsedFile,
+): Promise<ReadonlyArray<{ kind: string; provider: string; detail: string }>> {
   const model = await buildProjectModel({
     parsedFiles: [file],
     ruleSet: RULESET,
@@ -230,9 +232,9 @@ describe("Go SDK verify recognition — buildProjectModel evidence", () => {
         "}\n",
     );
     const evNo = await evidenceKindsFor(noSvix);
-    expect(evNo.some((e) => e.kind === "sdk_verify_call" && e.provider === "standardwebhooks")).toBe(
-      false,
-    );
+    expect(
+      evNo.some((e) => e.kind === "sdk_verify_call" && e.provider === "standardwebhooks"),
+    ).toBe(false);
   });
 
   it("does NOT assert a verify call on an import-only handler (no ConstructEvent)", async () => {

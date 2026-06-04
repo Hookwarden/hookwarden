@@ -29,7 +29,9 @@ export interface RewriteGoResult {
 export function rewriteGo(input: RewriteGoInput): RewriteGoResult {
   const { parsedFile, edits, forbiddenRanges } = input;
   if (parsedFile.dialect !== "tree-sitter-go") {
-    throw new TypeError(`rewriteGo: expected dialect "tree-sitter-go", got "${parsedFile.dialect}"`);
+    throw new TypeError(
+      `rewriteGo: expected dialect "tree-sitter-go", got "${parsedFile.dialect}"`,
+    );
   }
   if (parsedFile.parse_error !== null) {
     throw new Error(

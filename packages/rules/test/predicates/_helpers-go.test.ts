@@ -48,9 +48,7 @@ describe("findInsecureMacComparisons", () => {
   });
 
   it("flags string(mac) == sig (binary == on signature material)", async () => {
-    const r = await root(
-      "package x\nfunc f() {\n\tif string(mac) == sig {\n\t}\n}\n",
-    );
+    const r = await root("package x\nfunc f() {\n\tif string(mac) == sig {\n\t}\n}\n");
     const found = findInsecureMacComparisons(r);
     expect(found.some((c) => c.operator === "==")).toBe(true);
   });
@@ -61,9 +59,7 @@ describe("findInsecureMacComparisons", () => {
   });
 
   it("returns empty for a handler that uses ONLY hmac.Equal (no FP on the safe form)", async () => {
-    const r = await root(
-      "package x\nfunc f() {\n\tif hmac.Equal(macA, macB) {\n\t}\n}\n",
-    );
+    const r = await root("package x\nfunc f() {\n\tif hmac.Equal(macA, macB) {\n\t}\n}\n");
     expect(findInsecureMacComparisons(r)).toEqual([]);
   });
 

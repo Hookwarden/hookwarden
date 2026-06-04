@@ -32,7 +32,11 @@ beforeAll(async () => {
 const parse = (src: string): Promise<ParsedFile> =>
   parseGo({ file_path: "webhooks/stripe.go", source_text: src }, runtime);
 
-function handler(file: ParsedFile, provider = "stripe", evidence: WebhookEvidence[] = []): WebhookHandler {
+function handler(
+  file: ParsedFile,
+  provider = "stripe",
+  evidence: WebhookEvidence[] = [],
+): WebhookHandler {
   return {
     id: "h1",
     framework: "net-http-go",
@@ -52,7 +56,12 @@ function handler(file: ParsedFile, provider = "stripe", evidence: WebhookEvidenc
   };
 }
 const model = (file: ParsedFile): ProjectModel =>
-  ({ parsed_files: [file], handlers: [], middleware_registrations: [], import_graph: [] }) as ProjectModel;
+  ({
+    parsed_files: [file],
+    handlers: [],
+    middleware_registrations: [],
+    import_graph: [],
+  }) as ProjectModel;
 
 const HMAC_PRELUDE = "\tmac := hmac.New(sha256.New, key)\n\tmac.Write(body)\n";
 
@@ -61,7 +70,9 @@ describe("stripeGoTimingUnsafeComparison — SC#1 predicate half", () => {
     const f = await parse(
       `package webhooks\nfunc H(w http.ResponseWriter, r *http.Request) {\n${HMAC_PRELUDE}\tif bytes.Equal(mac.Sum(nil), sig) {\n\t}\n}\n`,
     );
-    expect(await stripeGoTimingUnsafeComparisonPredicate(handler(f), model(f))).toBe("not-verified");
+    expect(await stripeGoTimingUnsafeComparisonPredicate(handler(f), model(f))).toBe(
+      "not-verified",
+    );
   });
 
   it("hand-rolled hmac.Equal(mac, sig) → null (safe path; NOT 'verified')", async () => {
@@ -76,7 +87,9 @@ describe("stripeGoTimingUnsafeComparison — SC#1 predicate half", () => {
     const f = await parse(
       `package webhooks\nfunc H(w http.ResponseWriter, r *http.Request) {\n${HMAC_PRELUDE}\tif string(mac.Sum(nil)) == sig {\n\t}\n}\n`,
     );
-    expect(await stripeGoTimingUnsafeComparisonPredicate(handler(f), model(f))).toBe("not-verified");
+    expect(await stripeGoTimingUnsafeComparisonPredicate(handler(f), model(f))).toBe(
+      "not-verified",
+    );
   });
 
   it("SDK-verified handler (sdk_verify_call evidence) → null (SDK exemption)", async () => {
@@ -84,16 +97,25 @@ describe("stripeGoTimingUnsafeComparison — SC#1 predicate half", () => {
       `package webhooks\nfunc H(w http.ResponseWriter, r *http.Request) {\n\t_, _ = webhook.ConstructEvent(body, sig, secret)\n}\n`,
     );
     const ev: WebhookEvidence[] = [
-      { kind: "sdk_verify_call", provider: "stripe", location: { line: 1, col: 1, end_line: 1, end_col: 1 }, detail: "webhook.ConstructEvent" },
+      {
+        kind: "sdk_verify_call",
+        provider: "stripe",
+        location: { line: 1, col: 1, end_line: 1, end_col: 1 },
+        detail: "webhook.ConstructEvent",
+      },
     ];
-    expect(await stripeGoTimingUnsafeComparisonPredicate(handler(f, "stripe", ev), model(f))).toBeNull();
+    expect(
+      await stripeGoTimingUnsafeComparisonPredicate(handler(f, "stripe", ev), model(f)),
+    ).toBeNull();
   });
 
   it("provider mismatch → null", async () => {
     const f = await parse(
       `package webhooks\nfunc H(w http.ResponseWriter, r *http.Request) {\n${HMAC_PRELUDE}\tif bytes.Equal(mac.Sum(nil), sig) {\n\t}\n}\n`,
     );
-    expect(await stripeGoTimingUnsafeComparisonPredicate(handler(f, "github"), model(f))).toBeNull();
+    expect(
+      await stripeGoTimingUnsafeComparisonPredicate(handler(f, "github"), model(f)),
+    ).toBeNull();
   });
 
   it("parse error → null (no crash)", async () => {

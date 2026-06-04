@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import { parseGo } from "../../src/parsers/go.js";
-import { type GoRuntime, initGoRuntime } from "../../src/parsers/go-loader.js";
 import { extractGoLiterals } from "../../src/parsers/go-literals.js";
+import { type GoRuntime, initGoRuntime } from "../../src/parsers/go-loader.js";
 import { resolveGoWasmPath } from "../wasm.js";
 
 let runtime: GoRuntime;
@@ -32,8 +32,7 @@ describe("parseGo — happy path", () => {
     const result = await parseGo(
       {
         file_path: "imports.go",
-        source_text:
-          'package main\n\nimport (\n\t"crypto/hmac"\n\t"net/http"\n)\n',
+        source_text: 'package main\n\nimport (\n\t"crypto/hmac"\n\t"net/http"\n)\n',
       },
       runtime,
     );
@@ -53,8 +52,7 @@ describe("parseGo — happy path", () => {
     const result = await parseGo(
       {
         file_path: "aliased.go",
-        source_text:
-          'package main\n\nimport gh "github.com/google/go-github/v62/github"\n',
+        source_text: 'package main\n\nimport gh "github.com/google/go-github/v62/github"\n',
       },
       runtime,
     );
@@ -71,7 +69,7 @@ describe("extractGoLiterals", () => {
       {
         file_path: "literals.go",
         source_text:
-          'package main\n\nfunc f() {\n\ts := "interpreted"\n\tr := `raw`\n\tc := \'x\'\n\tn := 42\n\t_ = s\n\t_ = r\n\t_ = c\n\t_ = n\n}\n',
+          "package main\n\nfunc f() {\n\ts := \"interpreted\"\n\tr := `raw`\n\tc := 'x'\n\tn := 42\n\t_ = s\n\t_ = r\n\t_ = c\n\t_ = n\n}\n",
       },
       runtime,
     );

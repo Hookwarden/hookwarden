@@ -6,7 +6,7 @@
 // Pure: no fs / http / network / process / node:* (D-28).
 
 import type { ProjectModel, RulePredicate, WebhookHandler } from "@hookwarden/engine";
-import { type GoTree, goTimingUnsafeResult, type GoSyntaxNode } from "./_helpers-go.js";
+import { type GoSyntaxNode, type GoTree, goTimingUnsafeResult } from "./_helpers-go.js";
 
 export const githubGoTimingUnsafeComparisonPredicate: RulePredicate = async (
   handler: WebhookHandler,

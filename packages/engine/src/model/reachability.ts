@@ -185,7 +185,10 @@ function buildSymbolTable(file: ParsedFile): Map<string, unknown> {
     // hmac.Equal / webhook.ConstructEvent inside it (util-extracted verification, the first
     // collectCalls extension since Python).
     const tree = file.raw_ast as { rootNode: PySyntaxNode };
-    for (const fn of tree.rootNode.descendantsOfType(["function_declaration", "method_declaration"])) {
+    for (const fn of tree.rootNode.descendantsOfType([
+      "function_declaration",
+      "method_declaration",
+    ])) {
       const name = fn.childForFieldName("name")?.text;
       if (name) out.set(name, fn);
     }

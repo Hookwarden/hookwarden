@@ -15,14 +15,14 @@ export {
   type N8nWorkflowFileInput,
 } from "./model/index.js";
 export { type ParseJsTsInput, parseJsTs } from "./parsers/babel.js";
+export { type ParseGoInput, parseGo } from "./parsers/go.js";
+export { extractGoLiterals } from "./parsers/go-literals.js";
+export { type GoRuntime, type InitGoRuntimeInput, initGoRuntime } from "./parsers/go-loader.js";
 export {
   isN8nWorkflow,
   locateNodeRange,
   parseN8nWorkflow,
 } from "./parsers/n8n-workflow.js";
-export { type ParseGoInput, parseGo } from "./parsers/go.js";
-export { extractGoLiterals } from "./parsers/go-literals.js";
-export { type GoRuntime, type InitGoRuntimeInput, initGoRuntime } from "./parsers/go-loader.js";
 export { type ParsePhpInput, parsePhp } from "./parsers/php.js";
 export { extractPhpLiterals } from "./parsers/php-literals.js";
 export {

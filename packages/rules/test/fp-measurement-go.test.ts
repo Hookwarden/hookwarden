@@ -114,7 +114,12 @@ async function scanFixture(fx: Fixture): Promise<{
   });
   const result = await evaluate(model, ruleSet, CONFIG);
   const highCritFps = result.findings
-    .filter((f) => (f.severity === "high" || f.severity === "critical") && f.state !== "verified" && f.state !== "manual-review")
+    .filter(
+      (f) =>
+        (f.severity === "high" || f.severity === "critical") &&
+        f.state !== "verified" &&
+        f.state !== "manual-review",
+    )
     .map((f) => ({ rule_id: f.rule_id, severity: f.severity, state: f.state }));
   // The evaluator emits per-rule findings; the handler's verdict is the worst/positive STATE across
   // its findings (verified is emitted by library-verified, not-verified by the timing rule).
@@ -177,16 +182,16 @@ describe("RULES-06 — Go corpus FP measurement (<5%)", () => {
       pass_threshold: 0.05,
       pass: fpRate <= 0.05,
       per_rule_breakdown: sortedPerRule,
-      per_fixture: perFixture.sort((a, b) =>
-        String(a.relPath).localeCompare(String(b.relPath)),
-      ),
+      per_fixture: perFixture.sort((a, b) => String(a.relPath).localeCompare(String(b.relPath))),
       severity_filter: ["high", "critical"],
       excluded_states: ["verified", "manual-review"],
     };
     writeFileSync(RESULT_PATH, `${JSON.stringify(artefact, null, 2)}\n`, "utf8");
 
     if (fpRate > 0.05) {
-      const lines = sortedPerRule.map((r) => `  - ${r.rule_id}: ${r.false_positive_count}`).join("\n");
+      const lines = sortedPerRule
+        .map((r) => `  - ${r.rule_id}: ${r.false_positive_count}`)
+        .join("\n");
       throw new Error(
         `RULES-06 GATE FAILED: ${falsePositiveCount}/${negatives.length} = ${(fpRate * 100).toFixed(2)}% (>5%).\nPer-rule:\n${lines}\nSee ${RESULT_PATH}.`,
       );

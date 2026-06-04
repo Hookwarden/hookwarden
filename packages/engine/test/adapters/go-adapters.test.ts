@@ -3,8 +3,8 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { chiGinEchoGoAdapter } from "../../src/adapters/chi-gin-echo-go.js";
 import { ALL_ADAPTERS } from "../../src/adapters/index.js";
 import { netHttpGoAdapter } from "../../src/adapters/net-http-go.js";
-import { type GoRuntime, initGoRuntime } from "../../src/parsers/go-loader.js";
 import { parseGo } from "../../src/parsers/go.js";
+import { type GoRuntime, initGoRuntime } from "../../src/parsers/go-loader.js";
 import type { ParsedFile } from "../../src/types/project-model.js";
 import { resolveGoWasmPath } from "../wasm.js";
 

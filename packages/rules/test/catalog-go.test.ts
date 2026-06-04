@@ -21,7 +21,9 @@ describe("PROVIDER_CATALOG — Go additions (Phase 27 RULES-GO-01)", () => {
   it("stripe ships the stripe-go module prefix + package-qualified verify calls", () => {
     expect(PROVIDER_CATALOG.stripe?.sdk_packages).toContain("github.com/stripe/stripe-go");
     expect(PROVIDER_CATALOG.stripe?.sdk_verify_calls).toContain("webhook.ConstructEvent");
-    expect(PROVIDER_CATALOG.stripe?.sdk_verify_calls).toContain("webhook.ConstructEventWithTolerance");
+    expect(PROVIDER_CATALOG.stripe?.sdk_verify_calls).toContain(
+      "webhook.ConstructEventWithTolerance",
+    );
     // JS + PHP entries preserved.
     expect(PROVIDER_CATALOG.stripe?.sdk_packages).toContain("stripe");
     expect(PROVIDER_CATALOG.stripe?.sdk_packages).toContain("Stripe\\");
@@ -51,7 +53,8 @@ describe("PROVIDER_CATALOG — Go additions (Phase 27 RULES-GO-01)", () => {
 
   it("Go sdk_packages are domain-prefixed module paths, never PHP namespaces", () => {
     for (const provider of ["stripe", "github", "standardwebhooks"] as const) {
-      const goPkgs = PROVIDER_CATALOG[provider]?.sdk_packages.filter((p) => GO_PATH_RE.test(p)) ?? [];
+      const goPkgs =
+        PROVIDER_CATALOG[provider]?.sdk_packages.filter((p) => GO_PATH_RE.test(p)) ?? [];
       expect(goPkgs.length).toBeGreaterThan(0);
       for (const pkg of goPkgs) {
         expect(pkg).not.toContain("\\"); // not a PHP namespace
@@ -63,7 +66,8 @@ describe("PROVIDER_CATALOG — Go additions (Phase 27 RULES-GO-01)", () => {
   it("providers without a Go webhook SDK have no Go module entries (contract)", () => {
     // slack/twilio verify by hand or via non-Go SDKs; no Go module path should be present.
     for (const provider of ["slack", "twilio"] as const) {
-      const goPkgs = PROVIDER_CATALOG[provider]?.sdk_packages.filter((p) => GO_PATH_RE.test(p)) ?? [];
+      const goPkgs =
+        PROVIDER_CATALOG[provider]?.sdk_packages.filter((p) => GO_PATH_RE.test(p)) ?? [];
       expect(goPkgs).toEqual([]);
     }
   });

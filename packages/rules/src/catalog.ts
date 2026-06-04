@@ -139,7 +139,12 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     sdk_packages: ["@octokit/webhooks", "@octokit/webhooks-methods", "github.com/google/go-github"],
     // Phase 27 Go (go-github): package-qualified validate calls (github.ValidatePayload /
     // github.ValidateSignature). The bare "verify"/"verifyRequest" entries stay for JS.
-    sdk_verify_calls: ["verify", "verifyRequest", "github.ValidatePayload", "github.ValidateSignature"],
+    sdk_verify_calls: [
+      "verify",
+      "verifyRequest",
+      "github.ValidatePayload",
+      "github.ValidateSignature",
+    ],
     secret_env_prefix: ["GITHUB_WEBHOOK", "GH_WEBHOOK"],
     secret_literal_prefix: ["ghs_", "github_pat_"],
     conventional_paths: [
