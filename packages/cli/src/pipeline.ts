@@ -84,6 +84,14 @@ export interface RunScanInput {
   // paths are parsed + analysed. Each path is resolved relative to rootPath
   // and rejected if it escapes the repo root (path-traversal defense).
   readonly fileList?: ReadonlyArray<string>;
+  // Phase 28 LEAK-05: in-memory source-text override for the git-history walk.
+  // Blobs from deleted commits have no worktree path, so `fileList` (which still
+  // `fs.readFile`s from disk) cannot serve them. When non-empty, the walker AND
+  // `fs.readFile` are BYPASSED — each {path, text} is fed straight to the language
+  // parser as {file_path, source_text}. This is the load-bearing "no engine change
+  // for detection" seam: the engine's secret_literal_match matcher runs unchanged on
+  // blob text. Parallel to `fileList`; takes precedence when both are set.
+  readonly virtualFiles?: ReadonlyArray<{ readonly path: string; readonly text: string }>;
 }
 
 export interface RunScanOutput {
@@ -141,6 +149,24 @@ function buildFileListWalkResult(scanDir: string, fileList: ReadonlyArray<string
     skipped_count: 0,
     total_files_count: absFiles.length,
     parsed_files_count_estimate: absFiles.length,
+    oversized_count: 0,
+    symlink_count: 0,
+    test_excluded_count: 0,
+  };
+}
+
+// Phase 28 virtualFiles override: build a WalkResult straight from the in-memory blob paths.
+// No disk access — the paths are used only for language-runtime presence detection (by extension)
+// and the candidate count; content is supplied separately in the parse loop.
+function buildVirtualWalkResult(
+  virtualFiles: ReadonlyArray<{ readonly path: string; readonly text: string }>,
+): WalkResult {
+  const files = virtualFiles.map((vf) => vf.path);
+  return {
+    files,
+    skipped_count: 0,
+    total_files_count: files.length,
+    parsed_files_count_estimate: files.length,
     oversized_count: 0,
     symlink_count: 0,
     test_excluded_count: 0,
@@ -217,9 +243,16 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
     diffFileSet = changedFiles(baseRef.ref, root);
   }
 
+  // virtualFiles override (Phase 28 history walk) takes precedence over fileList: it supplies
+  // source text in-memory (no disk path), so neither the walker nor fs.readFile runs.
+  const virtualFiles = input.virtualFiles ?? [];
+  const hasVirtual = virtualFiles.length > 0;
+
   // fileList override: Phase 8.2 rescan path. Helper at top of file.
   let walkResult: WalkResult;
-  if (input.fileList !== undefined && input.fileList.length > 0) {
+  if (hasVirtual) {
+    walkResult = buildVirtualWalkResult(virtualFiles);
+  } else if (input.fileList !== undefined && input.fileList.length > 0) {
     walkResult = buildFileListWalkResult(scanDir, input.fileList);
   } else {
     const fullWalk = await walkProject({
@@ -284,26 +317,33 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
   const concurrency = Math.min(8, os.availableParallelism?.() ?? 4);
   const limit = pLimit(concurrency);
 
+  // Single parse dispatcher shared by the disk-walk and virtualFiles paths — language is keyed
+  // off the file_path extension either way, so a history blob parses identically to a worktree
+  // file (the "no engine change for detection" invariant).
+  const parseByPath = (filePath: string, sourceText: string): ParsedFile | Promise<ParsedFile> => {
+    if (isGo(filePath)) {
+      if (goRuntime === null) throw new Error("Go runtime not initialized");
+      return parseGo({ file_path: filePath, source_text: sourceText }, goRuntime);
+    }
+    if (isPhp(filePath)) {
+      if (phpRuntime === null) throw new Error("PHP runtime not initialized");
+      return parsePhp({ file_path: filePath, source_text: sourceText }, phpRuntime);
+    }
+    if (isPython(filePath)) {
+      if (pyRuntime === null) throw new Error("Python runtime not initialized");
+      return parsePython({ file_path: filePath, source_text: sourceText }, pyRuntime);
+    }
+    return parseJsTs({ file_path: filePath, source_text: sourceText });
+  };
+
   const parsedFiles: ParsedFile[] = await Promise.all(
-    walkResult.files.map((abs) =>
-      limit(async () => {
-        const rel = path.relative(scanDir, abs);
-        const sourceText = await fs.readFile(abs, "utf-8");
-        if (isGo(abs)) {
-          if (goRuntime === null) throw new Error("Go runtime not initialized");
-          return parseGo({ file_path: rel, source_text: sourceText }, goRuntime);
-        }
-        if (isPhp(abs)) {
-          if (phpRuntime === null) throw new Error("PHP runtime not initialized");
-          return parsePhp({ file_path: rel, source_text: sourceText }, phpRuntime);
-        }
-        if (isPython(abs)) {
-          if (pyRuntime === null) throw new Error("Python runtime not initialized");
-          return parsePython({ file_path: rel, source_text: sourceText }, pyRuntime);
-        }
-        return parseJsTs({ file_path: rel, source_text: sourceText });
-      }),
-    ),
+    hasVirtual
+      ? virtualFiles.map((vf) => limit(async () => parseByPath(vf.path, vf.text)))
+      : walkResult.files.map((abs) =>
+          limit(async () =>
+            parseByPath(path.relative(scanDir, abs), await fs.readFile(abs, "utf-8")),
+          ),
+        ),
   );
 
   const loadOpts: LoadRulesOptions =
@@ -350,7 +390,7 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
   // fileList override (Phase 8.2 rescan) bypasses the full walk; skip n8n discovery there too —
   // the rescan loop targets explicit code paths, not whole-project workflow discovery.
   const n8nInputs =
-    input.fileList !== undefined && input.fileList.length > 0
+    hasVirtual || (input.fileList !== undefined && input.fileList.length > 0)
       ? { workflowFiles: [], customNodeSignal: false }
       : await discoverN8nInputs(scanDir);
 

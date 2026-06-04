@@ -11,9 +11,11 @@ import { PROVIDER_CATALOG, SEVERITY_CLASS_GROUP_NAMES } from "@hookwarden/rules"
 import { defineCommand } from "citty";
 import { ConfigError, loadConfigFromCwd } from "../config/loader.js";
 import { type ResolvedConfig, resolveConfig } from "../config/precedence.js";
+import { GitNotInWorkTreeError } from "../diff/git.js";
 import { computeExitCode } from "../exit-codes.js";
+import { runHistoryScan } from "../history/walk.js";
 import { evaluateParseCoverage } from "../parse-coverage.js";
-import { runScan } from "../pipeline.js";
+import { type RunScanOutput, runScan } from "../pipeline.js";
 import { dim } from "../render/colors.js";
 import {
   renderFindings,
@@ -42,6 +44,9 @@ export interface ScanArgs {
   readonly "no-baseline"?: boolean;
   readonly "diff-only"?: boolean;
   readonly "diff-base"?: string;
+  // Phase 28 LEAK-05 — git-history walk (OSS, ungated).
+  readonly history?: boolean;
+  readonly since?: string;
   readonly config?: string;
   readonly "no-config"?: boolean;
   readonly "strict-suppressions"?: boolean;
@@ -167,6 +172,16 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
     }
   }
 
+  // Phase 28 — --history / --since value gates (exit 3 on bad input, before the pipeline).
+  if (args.since !== undefined && args.since.trim() === "") {
+    process.stderr.write("error: --since requires a non-empty git ref or date\n");
+    return 3;
+  }
+  if (args.since !== undefined && args.history !== true) {
+    process.stderr.write("error: --since requires --history\n");
+    return 3;
+  }
+
   // Step 1 — Config-file discovery (Plan 02). --no-config bypasses; --config <path> overrides walk-up.
   let fileConfig = null;
   try {
@@ -233,30 +248,61 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
     disabled: args["no-update-notifier"] === true,
   });
 
-  const scan = await runScan({
-    rootPath: cwd,
-    resolvedConfig,
-    diffOnly,
-    diffBase: args["diff-base"] ?? null,
-    baselineWrite,
-    verbose,
-    providerFilter,
-    severityClassGroup,
-    excludeGlobs:
-      args.exclude !== undefined && args.exclude.trim() !== ""
-        ? args.exclude
-            .split(",")
-            .map((s) => s.trim())
-            .filter((s) => s !== "")
-        : [],
-    includeGlobs:
-      args.include !== undefined && args.include.trim() !== ""
-        ? args.include
-            .split(",")
-            .map((s) => s.trim())
-            .filter((s) => s !== "")
-        : [],
-  });
+  const excludeGlobs =
+    args.exclude !== undefined && args.exclude.trim() !== ""
+      ? args.exclude
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s !== "")
+      : [];
+  const includeGlobs =
+    args.include !== undefined && args.include.trim() !== ""
+      ? args.include
+          .split(",")
+          .map((s) => s.trim())
+          .filter((s) => s !== "")
+      : [];
+
+  // Phase 28 — --history dispatches to the git-history walk (deleted-inclusive blob scan).
+  // OSS + ungated; a non-empty --since is already validated above. A git failure (not a work
+  // tree, or a rev-list-rejected range) is a config-class error → exit 3.
+  let scan: RunScanOutput;
+  if (args.history === true) {
+    try {
+      scan = await runHistoryScan({
+        rootPath: cwd,
+        resolvedConfig,
+        since: args.since ?? null,
+        defaultN: 1000,
+        verbose,
+        providerFilter,
+        severityClassGroup,
+        excludeGlobs,
+        includeGlobs,
+      });
+    } catch (e) {
+      stopTrivia();
+      if (e instanceof GitNotInWorkTreeError) {
+        process.stderr.write("error: --history requires a git working tree\n");
+      } else {
+        process.stderr.write(`error: --history walk failed: ${(e as Error).message}\n`);
+      }
+      return 3;
+    }
+  } else {
+    scan = await runScan({
+      rootPath: cwd,
+      resolvedConfig,
+      diffOnly,
+      diffBase: args["diff-base"] ?? null,
+      baselineWrite,
+      verbose,
+      providerFilter,
+      severityClassGroup,
+      excludeGlobs,
+      includeGlobs,
+    });
+  }
 
   // Stop the trivia ticker before any further stderr/stdout output so
   // the next caller's line starts clean (the stop() also clears via
@@ -425,6 +471,16 @@ export const scanCommand = defineCommand({
       description: "Scan only files changed vs base ref (CLI-08)",
     },
     "diff-base": { type: "string", description: "Override auto-detected base ref" },
+    history: {
+      type: "boolean",
+      description:
+        "Scan the git history for leaked secrets, INCLUDING files deleted before HEAD (default scans the worktree only). Off by default; bounded to the last 1000 commits unless --since is given.",
+    },
+    since: {
+      type: "string",
+      description:
+        "Bound the --history walk to a git ref (e.g. 'v1.0.0') or a date (e.g. '2026-01-01'). Requires --history.",
+    },
     config: {
       type: "string",
       description: "Path to hookwarden.config.yaml (overrides walk-up discovery)",
