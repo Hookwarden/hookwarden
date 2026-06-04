@@ -43,6 +43,7 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 - [🌐 Languages & frameworks](#-languages--frameworks)
 - [🔐 Provider coverage](#-provider-coverage)
 - [🤖 CI integration](#-ci-integration)
+- [🤖 AI agents (MCP)](#-ai-agents-claude-code-cursor-continue)
 - [🏗 Architecture](#-architecture)
 - [🆚 vs. other tools](#-vs-other-tools)
 - [🛠 Advanced usage](#-advanced-usage)
@@ -455,6 +456,19 @@ Uploads SARIF to Code Scanning automatically. Findings appear as PR annotations.
 ```
 
 SARIF severity mapping: `critical`/`high` → `error` · `medium` → `warning` · `low`/`info` → `note`.
+
+---
+
+## 🤖 AI agents (Claude Code, Cursor, Continue)
+
+[`@hookwarden/mcp`](https://www.npmjs.com/package/@hookwarden/mcp) is a Model Context Protocol server that gives AI coding agents the `scan_handler` tool. Paste in any webhook handler and get back the same 3-state verdict (`verified` / `not-verified` / `manual-review`) the CLI emits — fully local, deterministic, no traffic leaves the agent's machine.
+
+```bash
+# Auto-detects Claude Code / Claude Desktop / Cursor / Continue and writes the MCP config:
+npx @hookwarden/mcp init
+```
+
+After `init`, restart your agent and ask it to scan a handler — e.g. *"scan this Stripe webhook for signature-verification bugs"*. The rule pack is bundled inline, content-hashed, and version-pinned to the engine, so `scan_handler` returns the exact same verdict as `hookwarden scan` and fails loudly on drift. See the [`@hookwarden/mcp` README](https://www.npmjs.com/package/@hookwarden/mcp) for the full tool reference.
 
 ---
 
