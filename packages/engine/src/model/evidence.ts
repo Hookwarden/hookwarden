@@ -172,8 +172,16 @@ export function computeEvidence(input: ComputeEvidenceInput): ComputeEvidenceOut
   // chi/gin/echo handlers (`body, _ := io.ReadAll(r.Body)`); c.GetRawData() is gin's, and
   // io.ReadAll(c.Request.Body) covers echo/gin too. The io(util).ReadAll tokens are Go-stdlib
   // specific so they don't widen matches for the other dialects.
+  // Next.js Pages Router addition (Phase 29): `bodyParser:false` handlers read the raw body via a
+  // stream helper — `getRawBody(req)` (the `raw-body` npm pkg / a hand-rolled `for await` helper)
+  // assigned to a `rawBody` / `raw_body` variable that is then passed to constructEvent. The
+  // `raw_?body` token (substring, case-insensitive) catches `getRawBody(`, `readRawBody(`, and the
+  // `rawBody`/`raw_body` local — NONE of which the prior `\.rawBody\b` member-only form matched.
+  // Found scanning boxyhq/saas-starter-kit: a textbook-correct Pages Router Stripe webhook was
+  // flagged stripe/raw-body-misuse (FP) alongside stripe/library-verified. (papermark's `buffer(req)`
+  // helper was already caught incidentally by the case-insensitive `Buffer` token.)
   if (
-    /(Buffer|Uint8Array|\braw\b|\bbytes\b|c\.req\.raw|request\.get_data\(\)|request\.body|php:\/\/input|->getContent\(\)|->getBody\(\)|\$_POST|->all\(\)|->input\(\)|\b\w*req\w*\.(?:text|arrayBuffer)\(\s*\)|\.rawBody\b|\b(?:io|ioutil)\.ReadAll\s*\(|\.GetRawData\(\))/i.test(
+    /(Buffer|Uint8Array|\braw\b|\bbytes\b|raw_?body|c\.req\.raw|request\.get_data\(\)|request\.body|php:\/\/input|->getContent\(\)|->getBody\(\)|\$_POST|->all\(\)|->input\(\)|\b\w*req\w*\.(?:text|arrayBuffer)\(\s*\)|\b(?:io|ioutil)\.ReadAll\s*\(|\.GetRawData\(\))/i.test(
       handlerText,
     )
   ) {
