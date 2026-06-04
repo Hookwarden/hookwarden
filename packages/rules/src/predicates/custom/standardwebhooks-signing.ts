@@ -221,7 +221,11 @@ function hasInsecureSignatureComparisonJsTs(
             return true;
           }
         }
-      } else if (value && typeof value === "object" && typeof (value as BabelNodeLike).type === "string") {
+      } else if (
+        value &&
+        typeof value === "object" &&
+        typeof (value as BabelNodeLike).type === "string"
+      ) {
         if (refsSignature(value as BabelNodeLike)) return true;
       }
     }
@@ -231,9 +235,17 @@ function hasInsecureSignatureComparisonJsTs(
   let found = false;
   const visit = (node: BabelNodeLike | undefined): void => {
     if (found || !node || typeof node !== "object") return;
-    if (node.type === "BinaryExpression" && typeof node.operator === "string" && JS_INSECURE_EQ_OPS.has(node.operator)) {
+    if (
+      node.type === "BinaryExpression" &&
+      typeof node.operator === "string" &&
+      JS_INSECURE_EQ_OPS.has(node.operator)
+    ) {
       const line = node.loc?.start?.line ?? 0;
-      if (line >= startLine && line <= endLine && (refsSignature(node.left) || refsSignature(node.right))) {
+      if (
+        line >= startLine &&
+        line <= endLine &&
+        (refsSignature(node.left) || refsSignature(node.right))
+      ) {
         found = true;
         return;
       }
@@ -244,7 +256,11 @@ function hasInsecureSignatureComparisonJsTs(
         for (const child of value) {
           if (child && typeof child === "object") visit(child as BabelNodeLike);
         }
-      } else if (value && typeof value === "object" && typeof (value as BabelNodeLike).type === "string") {
+      } else if (
+        value &&
+        typeof value === "object" &&
+        typeof (value as BabelNodeLike).type === "string"
+      ) {
         visit(value as BabelNodeLike);
       }
     }

@@ -137,11 +137,7 @@ function bodyParserPreservesRawBody(arg: Node): boolean {
     if (prop.type !== "ObjectProperty" && prop.type !== "ObjectMethod") continue;
     const key = prop.key;
     const keyName =
-      key.type === "Identifier"
-        ? key.name
-        : key.type === "StringLiteral"
-          ? key.value
-          : null;
+      key.type === "Identifier" ? key.name : key.type === "StringLiteral" ? key.value : null;
     if (keyName !== "verify") continue;
     if (prop.type === "ObjectMethod") return true;
     const value = prop.value;
