@@ -30,6 +30,29 @@ describe("nextjsAdapter", () => {
     expect(handlers[0]?.route_pattern).toBe("/webhooks/github");
   });
 
+  it("detects `export { handler as POST }` specifier re-export of a local binding (saasfly shape)", async () => {
+    const file = await parseJsTs({
+      file_path: "apps/nextjs/src/app/api/webhooks/stripe/route.ts",
+      source_text:
+        "const handler = async (req: Request) => new Response('ok');\n" +
+        "export { handler as GET, handler as POST };\n",
+    });
+    const handlers = nextjsAdapter(file, [file]);
+    // GET is filtered (not body-bearing); POST resolves to the local `handler` function.
+    expect(handlers).toHaveLength(1);
+    expect(handlers[0]?.http_methods).toEqual(["POST"]);
+    expect(handlers[0]?.route_pattern).toBe("/api/webhooks/stripe");
+    expect(handlers[0]?.handler_body_node).toBeDefined();
+  });
+
+  it("ignores `export { x } from './other'` cross-module re-exports (cannot resolve the fn)", async () => {
+    const file = await parseJsTs({
+      file_path: "app/api/webhooks/stripe/route.ts",
+      source_text: "export { POST } from './impl';\n",
+    });
+    expect(nextjsAdapter(file, [file])).toHaveLength(0);
+  });
+
   it("ignores GET-only handlers (webhooks are body-bearing)", async () => {
     const file = await parseJsTs({
       file_path: "app/api/healthz/route.ts",
