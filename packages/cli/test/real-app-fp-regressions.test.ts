@@ -227,3 +227,72 @@ describe("Remix adapter", () => {
     expect(h?.verification_state).toBe("not-verified");
   });
 });
+
+// Next.js Pages Router support (Phase 29) — papermark's real `pages/api/stripe/webhook.ts` was
+// previously invisible (the nextjs adapter gated on `app/**/route.ts` only → 0 handlers → silent
+// "clean", a false negative on a real Stripe app). The Pages Router adapter detects it, and the
+// raw-body signal recognizes the `config.api.bodyParser=false` + stream-helper idiom so a CORRECT
+// handler does not become a raw-body-misuse false positive. SC#6 regression lock.
+describe("Next.js Pages Router adapter (papermark)", () => {
+  it("detects a pages/api webhook and attributes the provider (no longer a silent FN)", async () => {
+    await write(
+      "pages/api/stripe/webhook.ts",
+      `export default async function handler(req, res) {
+         const event = req.body;   // none here — point is it's DETECTED, not invisible
+         return res.json({ ok: true, event });
+       }\n`,
+    );
+    const out = await scan();
+    const pages = out.result.inventory.filter(
+      (h) => h.framework === "nextjs" && h.route_pattern === "/api/stripe/webhook",
+    );
+    expect(pages.length).toBe(1);
+    expect(pages[0]?.provider).toBe("stripe"); // conventional path attributes
+  });
+
+  it("anti-vacuity: an UNVERIFIED pages/api stripe webhook IS flagged critical", async () => {
+    await write(
+      "pages/api/stripe/webhook.ts",
+      `export default async function handler(req, res) {
+         const event = req.body;   // no verification — the canonical bug
+         return res.json({ ok: true, event });
+       }\n`,
+    );
+    const out = await scan();
+    expect(
+      out.result.findings.some((f) => f.severity === "critical" && f.provider === "stripe"),
+    ).toBe(true);
+  });
+
+  it("papermark's exact shape (bodyParser:false + buffer(req) helper + constructEvent) fires NO critical and NO raw-body-misuse", async () => {
+    // papermark: pages/api/stripe/webhook.ts — bodyParser disabled, raw body via a `buffer(req)`
+    // stream helper (the helper tokens live in a SEPARATE fn, so the handler body shows only
+    // `buffer(req)`), then verified with constructEvent. Must read `verified`, not raw-body-misuse.
+    await write(
+      "pages/api/stripe/webhook.ts",
+      `import Stripe from "stripe";
+       import type { NextApiRequest, NextApiResponse } from "next";
+       import type { Readable } from "node:stream";
+       const stripe = new Stripe(process.env.STRIPE_KEY as string);
+       export const config = { api: { bodyParser: false } };
+       async function buffer(readable: Readable) {
+         const chunks: Buffer[] = [];
+         for await (const chunk of readable) {
+           chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+         }
+         return Buffer.concat(chunks);
+       }
+       export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+         const buf = await buffer(req);
+         const sig = req.headers["stripe-signature"] as string;
+         const event = stripe.webhooks.constructEvent(buf, sig, process.env.STRIPE_WEBHOOK_SECRET as string);
+         return res.json({ ok: true, type: event.type });
+       }\n`,
+    );
+    const out = await scan();
+    expect(out.result.findings.filter((f) => f.severity === "critical")).toEqual([]);
+    expect(out.result.findings.filter((f) => f.rule_id === "stripe/raw-body-misuse")).toEqual([]);
+    const h = out.result.inventory.find((x) => x.route_pattern === "/api/stripe/webhook");
+    expect(h?.verification_state).toBe("verified");
+  });
+});
