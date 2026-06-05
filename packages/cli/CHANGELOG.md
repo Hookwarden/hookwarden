@@ -1,5 +1,27 @@
 # hookwarden
 
+## 0.11.0
+
+### Minor Changes
+
+- Next.js Pages Router webhook detection. Handlers under `pages/api/**` and
+  `src/pages/api/**` are now detected (previously only App Router `app/**/route.ts`
+  was recognized), closing a false negative where real Stripe apps with a Pages
+  Router webhook scanned to "0 handlers". Correct Pages Router webhooks that read
+  the raw body via a stream helper (`getRawBody`/`buffer(req)`) with
+  `config.api.bodyParser = false` are recognized as reading raw bytes and do not
+  surface a `raw-body-misuse` false positive.
+
+  Also eliminates two false-positive classes and a Next.js false negative surfaced
+  by a real-repo scan audit (Stripe JSON-verify hook, Express middleware ordering,
+  Standard Webhooks hand-rolled signing).
+
+### Patch Changes
+
+- @hookwarden/engine@0.11.0
+- @hookwarden/rules@0.11.0
+- @hookwarden/fix@0.11.0
+
 ## 0.10.0
 
 ### Minor Changes
