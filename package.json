@@ -6,7 +6,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsc --build && pnpm --filter @hookwarden/mcp build",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "test": "vitest run",
