@@ -12,7 +12,9 @@
 // DETECTED (an anthropic-agent-sdk handler appears in the inventory) before asserting counts.
 //
 // SC#1 — unverified-tool-callback fires the named critical detector tool-callback-no-verification.
-// SC#2 — verified-tool-callback emits ZERO anthropic-agent-sdk/* findings (HMAC-verified shape).
+// SC#2 — verified-tool-callback emits NO definite (not-verified) anthropic-agent-sdk/* findings
+// (HMAC-verified shape). It does get the universal missing-timestamp-check replay advisory
+// (manual-review), same as every other manual-HMAC provider — that is allowed.
 
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -120,7 +122,7 @@ describe("Phase 25 (AGENT-02) — Anthropic Agent SDK agentic-callback ruleset, 
     expect(named?.file_path).toMatch(/server\.ts$/);
   });
 
-  it("SC#2: verified-tool-callback is detected as anthropic-agent-sdk but emits ZERO anthropic-agent-sdk/* findings", async () => {
+  it("SC#2: verified-tool-callback is detected as anthropic-agent-sdk and emits NO definite (not-verified) findings — only the universal replay advisory", async () => {
     const env = await scanFixtureJson("verified-tool-callback");
 
     // Detection gate FIRST — the mitigated fixture MUST still be scanned (otherwise "zero
@@ -132,9 +134,24 @@ describe("Phase 25 (AGENT-02) — Anthropic Agent SDK agentic-callback ruleset, 
     ).toBeGreaterThanOrEqual(1);
 
     const findings = env.scan.findings.filter((f) => f.rule_id.startsWith("anthropic-agent-sdk/"));
+    // The mitigated shape has NO definite verification bug: zero not-verified findings.
+    const hard = findings.filter((f) => f.state === "not-verified");
     expect(
-      findings,
-      `mitigated fixture must emit ZERO anthropic-agent-sdk/* findings, got: ${findings.map((f) => f.rule_id).join(", ")}`,
+      hard,
+      `mitigated fixture must emit ZERO not-verified anthropic-agent-sdk/* findings, got: ${hard.map((f) => f.rule_id).join(", ")}`,
     ).toEqual([]);
+    // It DOES receive the same universal replay advisory every manual-HMAC handler gets
+    // (missing-timestamp-check, manual-review) — see missing-timestamp-check.ts catalog semantics
+    // (timestamp_header === null providers fire the advisory by design; github does too). Any
+    // remaining finding must be exactly that advisory — nothing else may leak onto the mitigated shape.
+    const advisories = findings.filter((f) => f.state !== "not-verified");
+    expect(
+      advisories.every(
+        (f) =>
+          f.rule_id === "anthropic-agent-sdk/missing-timestamp-check" &&
+          f.state === "manual-review",
+      ),
+      `only the missing-timestamp-check replay advisory is allowed on the mitigated shape, got: ${advisories.map((f) => `${f.rule_id}:${f.state}`).join(", ")}`,
+    ).toBe(true);
   });
 });

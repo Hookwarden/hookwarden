@@ -8,24 +8,32 @@
 
 import type { ReachableSymbol } from "@hookwarden/engine";
 
-// `crypto.createHmac` (Node) / `hmac.new` (Python stdlib). The endsWith form catches aliased
-// imports like `import { createHmac } from 'node:crypto'` where the qualified name walks
-// through the import binding (e.g. `mod.createHmac`).
+// `crypto.createHmac` (Node) / `hmac.new` (Python stdlib). The `.createHmac` endsWith form catches
+// namespace imports (`import * as crypto` → `crypto.createHmac`); the bare `createHmac` form catches
+// a NAMED import (`import { createHmac } from 'node:crypto'`) that the engine records WITHOUT a
+// module prefix. This MUST stay in lock-step with isConstantTimeCompare's bare `timingSafeEqual`
+// below: recognizing a manual HMAC here without recognizing its constant-time compare there would
+// mis-fire missing-timing-safe-equal (critical) on a correctly-verified handler.
 export function isManualHmacEntry(name: string): boolean {
   return (
     name === "crypto.createHmac" ||
+    name === "createHmac" ||
     name.endsWith(".createHmac") ||
     name === "hmac.new" ||
     name.endsWith(".hmac.new")
   );
 }
 
-// `crypto.timingSafeEqual` (Node) / `hmac.compare_digest` (Python stdlib).
+// `crypto.timingSafeEqual` (Node) / `hmac.compare_digest` (Python stdlib). The bare `timingSafeEqual`
+// / `compare_digest` forms catch named imports (`import { timingSafeEqual } from 'node:crypto'`,
+// `from hmac import compare_digest`) — see the lock-step note on isManualHmacEntry.
 export function isConstantTimeCompare(name: string): boolean {
   return (
     name === "crypto.timingSafeEqual" ||
+    name === "timingSafeEqual" ||
     name.endsWith(".timingSafeEqual") ||
     name === "hmac.compare_digest" ||
+    name === "compare_digest" ||
     name.endsWith(".compare_digest")
   );
 }
