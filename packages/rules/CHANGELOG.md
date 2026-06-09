@@ -1,5 +1,20 @@
 # @hookwarden/rules
 
+## 0.11.1
+
+### Patch Changes
+
+- Fix verification diagnosis for handlers that verify via a bare named-import of Node's crypto
+  (`import { createHmac, timingSafeEqual } from 'node:crypto'`). The reachability helpers now
+  recognize the unqualified `createHmac` / `timingSafeEqual` / `compare_digest` call shapes (in
+  lock-step), so a handler that computes an HMAC but compares it with `!==` is reported as
+  `missing-timing-safe-equal` (timing-unsafe comparison) rather than mislabeled
+  `missing-signature-verification`, and a handler that verifies with `timingSafeEqual` no longer
+  trips a false `missing-timing-safe-equal`. Diagnosis accuracy only — no severity or detection-
+  coverage change. Most visible on n8n-style trigger nodes.
+  - @hookwarden/engine@0.11.1
+  - @hookwarden/fix@0.11.1
+
 ## 0.11.0
 
 ### Patch Changes

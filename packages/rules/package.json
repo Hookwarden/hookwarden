@@ -1,6 +1,6 @@
 {
   "name": "@hookwarden/rules",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "hookwarden detection rule pack — 230 webhook signature-verification rules across 21 providers (Stripe, GitHub, Shopify, Slack, Twilio, Square + 15 more, including Standard Webhooks conformant). Every rule cited (CWE / RFC / Svix / Stripe spec). Test-path-aware severity. Consumed by the @hookwarden/engine analyzer.",
   "license": "Apache-2.0",
   "type": "module",

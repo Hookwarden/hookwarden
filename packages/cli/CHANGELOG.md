@@ -1,5 +1,14 @@
 # hookwarden
 
+## 0.11.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @hookwarden/rules@0.11.1
+  - @hookwarden/engine@0.11.1
+  - @hookwarden/fix@0.11.1
+
 ## 0.11.0
 
 ### Minor Changes

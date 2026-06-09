@@ -1,6 +1,6 @@
 {
   "name": "hookwarden",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Webhook security audit CLI — finds signature-verification bugs in JavaScript, TypeScript, Python, PHP, and Go codebases. Local, deterministic, zero-network. 230 rules across 21 providers (Stripe, GitHub, Shopify, Slack, Twilio, Square, Sentry, Zendesk, DocuSign, PagerDuty, Notion + Standard Webhooks conformant) — every rule cited (CWE / RFC / Svix). 3-state verdict (verified / not-verified / manual-review), <5% false-positive rate, JSON / SARIF 2.1.0 output for CI and GitHub Code Scanning.",
   "keywords": [
     "webhook",
