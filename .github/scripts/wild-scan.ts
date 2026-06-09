@@ -47,7 +47,20 @@ interface ScanResult {
   };
 }
 
-interface Aggregate {
+/** Per-provider severity/state breakdown for one table row. Counts come
+ *  from the ACTUAL finding severities/states — never re-derived from the
+ *  rule_id — so the rendered table reconciles with the corpus totals. */
+export interface ProviderBucket {
+  readonly critical: number;
+  readonly high: number;
+  /** Findings that are neither critical nor high severity: medium/low/info
+   *  or anything left in the manual-review state. The "needs a human" tier. */
+  readonly manualReview: number;
+  /** rule_id → count, for the "Rules that fired" cell. */
+  readonly rules: Readonly<Record<string, number>>;
+}
+
+export interface Aggregate {
   readonly targetsScanned: number;
   readonly targetsClean: number;
   readonly findings: {
@@ -63,6 +76,11 @@ interface Aggregate {
    *  Per-project attribution is intentionally NOT tracked — see
    *  bugs-in-the-wild.md. */
   readonly byRuleId: Readonly<Record<string, number>>;
+  /** Per-provider breakdown the table renders one row per. Keyed by the
+   *  provider prefix of the rule_id (`stripe`, `n8n`, `standardwebhooks`,
+   *  `engine`, …). New providers appear automatically — nothing is dropped
+   *  by a hardcoded provider list. */
+  readonly byProvider: Readonly<Record<string, ProviderBucket>>;
   readonly failed: ReadonlyArray<string>;
 }
 
@@ -227,6 +245,13 @@ function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
   let manualReview = 0;
   let clean = 0;
   const byRuleId: Record<string, number> = {};
+  type MutableBucket = {
+    critical: number;
+    high: number;
+    manualReview: number;
+    rules: Record<string, number>;
+  };
+  const byProvider: Record<string, MutableBucket> = {};
   const failed: string[] = [];
 
   for (const repo of targets) {
@@ -257,10 +282,18 @@ function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
       if (f.state === "manual-review") manualReview += 1;
       // library-verified is the positive signal that a handler is
       // correctly using the SDK — never a bug, always filtered out.
-      // parse-error stays in the table because it's a real
-      // observability signal about the scan's coverage.
       if (ruleClass(f.rule_id) !== "library-verified") {
         byRuleId[f.rule_id] = (byRuleId[f.rule_id] ?? 0) + 1;
+        // Per-provider tally for the table. Bucket by the finding's REAL
+        // severity (critical / high), and fold medium/low/info + anything
+        // left in the manual-review state into the manual-review tier.
+        const provider = f.rule_id.split("/")[0] ?? "unknown";
+        const pr = byProvider[provider] ?? { critical: 0, high: 0, manualReview: 0, rules: {} };
+        byProvider[provider] = pr;
+        if (f.severity === "critical") pr.critical += 1;
+        else if (f.severity === "high") pr.high += 1;
+        else pr.manualReview += 1;
+        pr.rules[f.rule_id] = (pr.rules[f.rule_id] ?? 0) + 1;
       }
     }
     console.log(
@@ -272,6 +305,7 @@ function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
     targetsClean: clean,
     findings: { critical, high, medium, low, info, manualReview },
     byRuleId,
+    byProvider,
     failed,
   };
 }
@@ -280,24 +314,23 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-/** Provider iteration order for the per-provider table — matches the
- *  six providers hookwarden ships rules for, plus `engine` for
- *  parse-error and other engine-emitted findings. */
-const providerOrder: ReadonlyArray<string> = [
+/** Core providers always shown in the table (even at zero findings) to
+ *  prove breadth of coverage. Any OTHER provider that fires — n8n,
+ *  standardwebhooks, future additions — is appended dynamically from the
+ *  aggregate, so nothing is ever silently dropped. `engine` (parse-error
+ *  diagnostics) is deliberately NOT a table row; see the footnote. */
+const coreProviders: ReadonlyArray<string> = [
   "stripe",
   "github",
   "shopify",
   "slack",
   "twilio",
   "square",
-  "engine",
 ];
 
-/** Labels are deliberately framed as "<Provider> integrations" so the
- *  table can't be misread as "Stripe has 2 bugs in their product." The
- *  findings are in webhook HANDLERS the corpus projects wrote to
- *  integrate with each provider — never in the provider's SDK or
- *  service. The footer note below reinforces this. */
+/** Friendly labels for providers whose nice-casing the fallback can't
+ *  guess (brand casing like "n8n", multi-word like "Standard Webhooks").
+ *  Anything not here falls back to "<Capitalized> integrations". */
 const providerLabel: Readonly<Record<string, string>> = {
   stripe: "Stripe integrations",
   github: "GitHub integrations",
@@ -305,10 +338,23 @@ const providerLabel: Readonly<Record<string, string>> = {
   slack: "Slack integrations",
   twilio: "Twilio integrations",
   square: "Square integrations",
-  engine: "Engine signals (parse errors)",
+  n8n: "n8n integrations",
+  standardwebhooks: "Standard Webhooks integrations",
+  svix: "Svix integrations",
 };
 
-function renderTable(a: Aggregate): string {
+/** Labels are framed as "<Provider> integrations" so a row can't be
+ *  misread as "Stripe has 2 bugs in their product" — the findings live in
+ *  the webhook HANDLERS the corpus projects wrote, never in the provider's
+ *  own SDK or service. The footer note reinforces this. */
+function labelFor(provider: string): string {
+  const known = providerLabel[provider];
+  if (known !== undefined) return known;
+  const titled = provider.charAt(0).toUpperCase() + provider.slice(1);
+  return `${titled} integrations`;
+}
+
+export function renderTable(a: Aggregate): string {
   const lines: string[] = [];
   lines.push(START_MARKER);
   lines.push("");
@@ -323,59 +369,61 @@ function renderTable(a: Aggregate): string {
   );
   lines.push("");
 
-  // Render one row PER PROVIDER. Each row aggregates findings by
-  // severity and lists the specific rules that fired so the reader
-  // sees both the headline ("2 critical on Stripe") AND the diagnosis
-  // ("...all raw-body-misuse"). Providers with zero findings stay in
-  // the table — proves the breadth of coverage and doesn't hide the
-  // negative space.
-  interface ProviderRow {
-    crit: number;
-    high: number;
-    mr: number;
-    rules: Map<string, number>;
-  }
-  const byProvider = new Map<string, ProviderRow>();
-  for (const p of providerOrder) {
-    byProvider.set(p, { crit: 0, high: 0, mr: 0, rules: new Map() });
-  }
-  for (const [ruleId, n] of Object.entries(a.byRuleId)) {
-    const provider = ruleId.split("/")[0] ?? "unknown";
-    const row = byProvider.get(provider);
-    if (row === undefined) continue;
-    const cls = ruleClass(ruleId);
-    const meta = RULE_CLASS_META[cls];
-    const sev = meta?.severity ?? "manual-review";
-    if (sev === "critical") row.crit += n;
-    else if (sev === "high") row.high += n;
-    else row.mr += n;
-    row.rules.set(ruleId, (row.rules.get(ruleId) ?? 0) + n);
-  }
+  // Render one row PER PROVIDER, driven by the aggregate so the table
+  // always reconciles with the corpus totals. The core providers show
+  // even at zero (breadth proof); any other provider that fired is
+  // appended. `engine` parse-error diagnostics are excluded from the
+  // table — they're surfaced as a footnote below, not as handler bugs.
+  const fired = Object.keys(a.byProvider).filter((p) => p !== "engine");
+  const rowProviders = [...new Set([...coreProviders, ...fired])];
+  // Sort most-severe first (critical, then high, then manual-review),
+  // ties alphabetical so the order is stable run-to-run.
+  rowProviders.sort((x, y) => {
+    const bx = a.byProvider[x];
+    const by = a.byProvider[y];
+    const d =
+      (by?.critical ?? 0) - (bx?.critical ?? 0) ||
+      (by?.high ?? 0) - (bx?.high ?? 0) ||
+      (by?.manualReview ?? 0) - (bx?.manualReview ?? 0);
+    return d !== 0 ? d : x.localeCompare(y);
+  });
 
   lines.push(`| Provider | 🚨 critical | ⚠️ high | 🟡 manual-review | Rules that fired |`);
   lines.push(`|---|---:|---:|---:|---|`);
-  for (const p of providerOrder) {
-    const row = byProvider.get(p);
-    if (row === undefined) continue;
+  for (const p of rowProviders) {
+    const row = a.byProvider[p];
+    const ruleEntries = row === undefined ? [] : Object.entries(row.rules);
     const rulesCell =
-      row.rules.size === 0
+      ruleEntries.length === 0
         ? "—"
-        : [...row.rules.entries()]
+        : ruleEntries
             .sort(([x], [y]) => x.localeCompare(y))
             .map(([id, n]) => `\`${id}\` (×${n})`)
             .join("<br>");
-    lines.push(`| ${providerLabel[p]} | ${row.crit} | ${row.high} | ${row.mr} | ${rulesCell} |`);
+    lines.push(
+      `| ${labelFor(p)} | ${row?.critical ?? 0} | ${row?.high ?? 0} | ${row?.manualReview ?? 0} | ${rulesCell} |`,
+    );
   }
   lines.push("");
   // Framing note (A): readers may misread the per-provider rows as
-  // "Stripe has 2 critical bugs in their product." This sentence
-  // makes the relationship explicit at the source-of-truth level so
-  // we don't accidentally imply provider liability for bugs that
-  // live in the integrating project's webhook handler code.
+  // "Stripe has 2 critical bugs in their product." This sentence makes
+  // the relationship explicit so we don't imply provider liability for
+  // bugs that live in the integrating project's webhook handler code.
   lines.push(
-    `_These are bugs in the webhook **handlers** that receive provider events — flaws in the integrating projects' integration code, not in Stripe / GitHub / Shopify / Slack / Twilio / Square themselves._`,
+    `_These are bugs in the webhook **handlers** that receive provider events — flaws in the integrating projects' integration code, not in the providers' own SDKs or services._`,
   );
   lines.push("");
+  // Parse-coverage footnote: parse-errors are an engine observability
+  // signal (files it couldn't parse), NOT handler bugs — so they're kept
+  // out of the per-provider table to avoid inflating the manual-review
+  // count, but surfaced here for honesty about scan coverage.
+  const parseErrors = a.byRuleId["engine/parse-error"] ?? 0;
+  if (parseErrors > 0) {
+    lines.push(
+      `_Coverage note: the engine couldn't parse **${parseErrors}** files across the corpus (broken syntax or language features the parser doesn't model). Those are scan-coverage diagnostics — not handler bugs — and are excluded from the table above._`,
+    );
+    lines.push("");
+  }
   // Coverage-scope note: without this, a 1-row table looks like "the
   // scanner didn't do much." With it, the reader knows the BREADTH
   // hookwarden checked even when most categories don't fire on
@@ -443,4 +491,8 @@ async function main(): Promise<void> {
   }
 }
 
-void main();
+// Auto-run only when executed directly (CI: `tsx wild-scan.ts`), not when
+// imported by a test that exercises renderTable() in isolation.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  void main();
+}
