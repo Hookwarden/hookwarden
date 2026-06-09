@@ -39,21 +39,21 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
 Every Sunday at 22:00 UTC, this repo's CI runs `hookwarden` against **45 popular open-source projects** — currently cal.com, documenso, formbricks, twenty, plane, unkey, typebot, papermark ([full target list](./.github/scripts/wild-targets.txt), combined ★190k+) — to prove the scanner works on real production code.
 
-**Latest sweep — 2026-05-28** · 21/45 projects clean (zero critical/high)
+**Latest sweep — 2026-06-09** · 20/45 projects clean (zero critical/high)
 
 | Provider | 🚨 critical | ⚠️ high | 🟡 manual-review | Rules that fired |
 |---|---:|---:|---:|---|
-| Stripe integrations | 8 | 0 | 1 | `stripe/hardcoded-secret-prefix` (×2)<br>`stripe/missing-signature-verification` (×4)<br>`stripe/raw-body-misuse` (×2)<br>`stripe/unreachable-verification` (×1) |
+| Stripe integrations | 6 | 0 | 0 | `stripe/hardcoded-secret-prefix` (×2)<br>`stripe/missing-signature-verification` (×4) |
 | GitHub integrations | 0 | 0 | 0 | — |
 | Shopify integrations | 0 | 0 | 0 | — |
-| Slack integrations | 7 | 0 | 0 | `slack/missing-signature-verification` (×7) |
+| Slack integrations | 7 | 0 | 1 | `slack/missing-signature-verification` (×7)<br>`slack/verify-after-side-effect` (×1) |
 | Twilio integrations | 0 | 0 | 0 | — |
 | Square integrations | 0 | 0 | 0 | — |
-| Engine signals (parse errors) | 0 | 0 | 67 | `engine/parse-error` (×67) |
+| Engine signals (parse errors) | 0 | 0 | 238 | `engine/parse-error` (×238) |
 
 _These are bugs in the webhook **handlers** that receive provider events — flaws in the integrating projects' integration code, not in Stripe / GitHub / Shopify / Slack / Twilio / Square themselves._
 
-_Hookwarden checks **11 rule classes** across **21 providers** — most of the corpus handles webhooks correctly, hence the short list. The full rule catalog lives in the [docs](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs/rules)._
+_Hookwarden checks **11 rule classes** across **6 providers** — most of the corpus handles webhooks correctly, hence the short list. The full rule catalog lives in the [docs](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs/rules)._
 
 Per-target findings are never published before responsible disclosure — see [methodology](./bugs-in-the-wild.md). To run the same scan against your own code:
 
