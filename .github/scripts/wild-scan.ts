@@ -381,8 +381,16 @@ function renderTable(a: Aggregate): string {
   // hookwarden checked even when most categories don't fire on
   // well-maintained code.
   const checkedClasses = Object.keys(RULE_CLASS_META).length;
+  // Canonical published provider-coverage claim — must match the other
+  // "N providers" claims elsewhere in README.md (hero, comparison table,
+  // roadmap). This is the curated marketing number, NOT the count of
+  // providers that happened to fire in this corpus (the table above shows
+  // only 6 of them) and NOT PROVIDER_CATALOG.length. A prior literal `6`
+  // here clobbered the "21 providers" claim on every sweep, leaving the
+  // README self-contradictory.
+  const publishedProviderCount = 21;
   lines.push(
-    `_Hookwarden checks **${checkedClasses} rule classes** across **6 providers** — most of the corpus handles webhooks correctly, hence the short list. The full rule catalog lives in the [docs](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs/rules)._`,
+    `_Hookwarden checks **${checkedClasses} rule classes** across **${publishedProviderCount} providers** — most of the corpus handles webhooks correctly, hence the short list. The full rule catalog lives in the [docs](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs/rules)._`,
   );
   lines.push("");
   lines.push(
