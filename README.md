@@ -39,19 +39,22 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
 Every Sunday at 22:00 UTC, this repo's CI runs `hookwarden` against **45 popular open-source projects** — currently cal.com, documenso, formbricks, twenty, plane, unkey, typebot, papermark ([full target list](./.github/scripts/wild-targets.txt), combined ★190k+) — to prove the scanner works on real production code.
 
-**Latest sweep — 2026-05-28** · 21/45 projects clean (zero critical/high)
+**Latest sweep — 2026-06-09** · 20/45 projects clean (zero critical/high)
 
 | Provider | 🚨 critical | ⚠️ high | 🟡 manual-review | Rules that fired |
 |---|---:|---:|---:|---|
-| Stripe integrations | 8 | 0 | 1 | `stripe/hardcoded-secret-prefix` (×2)<br>`stripe/missing-signature-verification` (×4)<br>`stripe/raw-body-misuse` (×2)<br>`stripe/unreachable-verification` (×1) |
+| n8n integrations | 81 | 0 | 0 | `n8n/missing-signature-verification` (×78)<br>`n8n/raw-body-misuse` (×3) |
+| Slack integrations | 7 | 1 | 0 | `slack/missing-signature-verification` (×7)<br>`slack/verify-after-side-effect` (×1) |
+| Standard Webhooks integrations | 7 | 0 | 0 | `standardwebhooks/missing-signature-verification` (×3)<br>`standardwebhooks/raw-body-misuse` (×4) |
+| Stripe integrations | 6 | 0 | 0 | `stripe/hardcoded-secret-prefix` (×2)<br>`stripe/missing-signature-verification` (×4) |
 | GitHub integrations | 0 | 0 | 0 | — |
 | Shopify integrations | 0 | 0 | 0 | — |
-| Slack integrations | 7 | 0 | 0 | `slack/missing-signature-verification` (×7) |
-| Twilio integrations | 0 | 0 | 0 | — |
 | Square integrations | 0 | 0 | 0 | — |
-| Engine signals (parse errors) | 0 | 0 | 67 | `engine/parse-error` (×67) |
+| Twilio integrations | 0 | 0 | 0 | — |
 
-_These are bugs in the webhook **handlers** that receive provider events — flaws in the integrating projects' integration code, not in Stripe / GitHub / Shopify / Slack / Twilio / Square themselves._
+_These are bugs in the webhook **handlers** that receive provider events — flaws in the integrating projects' integration code, not in the providers' own SDKs or services._
+
+_Coverage note: the engine couldn't parse **238** files across the corpus (broken syntax or language features the parser doesn't model). Those are scan-coverage diagnostics — not handler bugs — and are excluded from the table above._
 
 _Hookwarden checks **11 rule classes** across **21 providers** — most of the corpus handles webhooks correctly, hence the short list. The full rule catalog lives in the [docs](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs/rules)._
 
