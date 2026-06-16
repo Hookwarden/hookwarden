@@ -62,13 +62,13 @@ importers:
     dependencies:
       '@astrojs/tailwind':
         specifier: ^6.0.0
-        version: 6.0.2(astro@6.4.5(@types/node@25.9.1)(lightningcss@1.32.0)(rollup@4.61.1)(tsx@4.22.4)(yaml@2.9.0))(tailwindcss@4.3.0)(ts-node@10.9.2(@types/node@25.9.1)(typescript@5.9.3))
+        version: 6.0.2(astro@6.4.5(@types/node@25.9.1)(lightningcss@1.32.0)(rollup@4.61.1)(tsx@4.22.4)(yaml@2.9.0))(tailwindcss@4.3.1)(ts-node@10.9.2(@types/node@25.9.1)(typescript@5.9.3))
       astro:
         specifier: ^6.4.5
         version: 6.4.5(@types/node@25.9.1)(lightningcss@1.32.0)(rollup@4.61.1)(tsx@4.22.4)(yaml@2.9.0)
       tailwindcss:
-        specifier: ^4.0.0
-        version: 4.3.0
+        specifier: ^4.3.1
+        version: 4.3.1
 
   packages/canonical-json:
     devDependencies:
@@ -4268,8 +4268,8 @@ packages:
   tailwind-merge@2.6.1:
     resolution: {integrity: sha512-Oo6tHdpZsGpkKG88HJ8RR1rg/RdnEkQEfMoEk2x1XRI3F1AxeU+ijRXpiVUF4UbLfcxxRGw6TbUINKYdWVsQTQ==}
 
-  tailwindcss@4.3.0:
-    resolution: {integrity: sha512-y6nxMGB1nMW9R6k96e5gdIFzcfL/gTJRNaqGes1YvkLnPVXzWgbqFF2yLC0T8G774n24cx3Pe8XrKoniCOAH+Q==}
+  tailwindcss@4.3.1:
+    resolution: {integrity: sha512-hk+TB1m+K8CYNrP6rjQaq/Y+4Zylwpa87mLYBKCunwnnQ9p+fHb7kmSfGqyEJoxF/O6CDyABWVFEafNSYKll+Q==}
 
   tapable@2.3.3:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
@@ -4971,13 +4971,13 @@ snapshots:
       - supports-color
       - typescript
 
-  '@astrojs/tailwind@6.0.2(astro@6.4.5(@types/node@25.9.1)(lightningcss@1.32.0)(rollup@4.61.1)(tsx@4.22.4)(yaml@2.9.0))(tailwindcss@4.3.0)(ts-node@10.9.2(@types/node@25.9.1)(typescript@5.9.3))':
+  '@astrojs/tailwind@6.0.2(astro@6.4.5(@types/node@25.9.1)(lightningcss@1.32.0)(rollup@4.61.1)(tsx@4.22.4)(yaml@2.9.0))(tailwindcss@4.3.1)(ts-node@10.9.2(@types/node@25.9.1)(typescript@5.9.3))':
     dependencies:
       astro: 6.4.5(@types/node@25.9.1)(lightningcss@1.32.0)(rollup@4.61.1)(tsx@4.22.4)(yaml@2.9.0)
       autoprefixer: 10.5.0(postcss@8.5.13)
       postcss: 8.5.13
       postcss-load-config: 4.0.2(postcss@8.5.13)(ts-node@10.9.2(@types/node@25.9.1)(typescript@5.9.3))
-      tailwindcss: 4.3.0
+      tailwindcss: 4.3.1
     transitivePeerDependencies:
       - ts-node
 
@@ -9315,7 +9315,7 @@ snapshots:
 
   tailwind-merge@2.6.1: {}
 
-  tailwindcss@4.3.0: {}
+  tailwindcss@4.3.1: {}
 
   tapable@2.3.3: {}
 
