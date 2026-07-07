@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@babel/parser": "^7.29.7",
-    "picomatch": "^4.0.4",
+    "picomatch": "^4.0.5",
     "web-tree-sitter": "^0.26.10"
   },
   "devDependencies": {
