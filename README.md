@@ -39,11 +39,11 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
 Every Sunday at 22:00 UTC, this repo's CI runs `hookwarden` against **45 popular open-source projects** — currently cal.com, documenso, formbricks, twenty, plane, unkey, typebot, papermark ([full target list](./.github/scripts/wild-targets.txt), combined ★190k+) — to prove the scanner works on real production code.
 
-**Latest sweep — 2026-06-09** · 20/45 projects clean (zero critical/high)
+**Latest sweep — 2026-07-19** · 20/45 projects clean (zero critical/high)
 
 | Provider | 🚨 critical | ⚠️ high | 🟡 manual-review | Rules that fired |
 |---|---:|---:|---:|---|
-| n8n integrations | 81 | 0 | 0 | `n8n/missing-signature-verification` (×78)<br>`n8n/raw-body-misuse` (×3) |
+| n8n integrations | 82 | 29 | 0 | `n8n/missing-signature-verification` (×52)<br>`n8n/missing-timestamp-check` (×29)<br>`n8n/missing-timing-safe-equal` (×26)<br>`n8n/raw-body-misuse` (×4) |
 | Slack integrations | 7 | 1 | 0 | `slack/missing-signature-verification` (×7)<br>`slack/verify-after-side-effect` (×1) |
 | Standard Webhooks integrations | 7 | 0 | 0 | `standardwebhooks/missing-signature-verification` (×3)<br>`standardwebhooks/raw-body-misuse` (×4) |
 | Stripe integrations | 6 | 0 | 0 | `stripe/hardcoded-secret-prefix` (×2)<br>`stripe/missing-signature-verification` (×4) |
