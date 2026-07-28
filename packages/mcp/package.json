@@ -55,7 +55,7 @@
     "@hookwarden/canonical-json": "workspace:*",
     "@hookwarden/engine": "workspace:*",
     "@hookwarden/rules": "workspace:*",
-    "@modelcontextprotocol/sdk": "1.29.0",
+    "@modelcontextprotocol/sdk": "1.30.0",
     "citty": "^0.2.2",
     "picocolors": "^1.1.1",
     "web-tree-sitter": "0.26.11",
