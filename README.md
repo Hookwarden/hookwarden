@@ -39,14 +39,14 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
 Every Sunday at 22:00 UTC, this repo's CI runs `hookwarden` against **45 popular open-source projects** — currently cal.com, documenso, formbricks, twenty, plane, unkey, typebot, papermark ([full target list](./.github/scripts/wild-targets.txt), combined ★190k+) — to prove the scanner works on real production code.
 
-**Latest sweep — 2026-06-09** · 20/45 projects clean (zero critical/high)
+**Latest sweep — 2026-08-02** · 20/45 projects clean (zero critical/high)
 
 | Provider | 🚨 critical | ⚠️ high | 🟡 manual-review | Rules that fired |
 |---|---:|---:|---:|---|
-| n8n integrations | 81 | 0 | 0 | `n8n/missing-signature-verification` (×78)<br>`n8n/raw-body-misuse` (×3) |
+| n8n integrations | 83 | 30 | 0 | `n8n/missing-signature-verification` (×52)<br>`n8n/missing-timestamp-check` (×30)<br>`n8n/missing-timing-safe-equal` (×27)<br>`n8n/raw-body-misuse` (×4) |
+| Stripe integrations | 8 | 0 | 0 | `stripe/hardcoded-secret-prefix` (×2)<br>`stripe/missing-signature-verification` (×5)<br>`stripe/raw-body-misuse` (×1) |
 | Slack integrations | 7 | 1 | 0 | `slack/missing-signature-verification` (×7)<br>`slack/verify-after-side-effect` (×1) |
 | Standard Webhooks integrations | 7 | 0 | 0 | `standardwebhooks/missing-signature-verification` (×3)<br>`standardwebhooks/raw-body-misuse` (×4) |
-| Stripe integrations | 6 | 0 | 0 | `stripe/hardcoded-secret-prefix` (×2)<br>`stripe/missing-signature-verification` (×4) |
 | GitHub integrations | 0 | 0 | 0 | — |
 | Shopify integrations | 0 | 0 | 0 | — |
 | Square integrations | 0 | 0 | 0 | — |
@@ -54,7 +54,7 @@ Every Sunday at 22:00 UTC, this repo's CI runs `hookwarden` against **45 popular
 
 _These are bugs in the webhook **handlers** that receive provider events — flaws in the integrating projects' integration code, not in the providers' own SDKs or services._
 
-_Coverage note: the engine couldn't parse **238** files across the corpus (broken syntax or language features the parser doesn't model). Those are scan-coverage diagnostics — not handler bugs — and are excluded from the table above._
+_Coverage note: the engine couldn't parse **241** files across the corpus (broken syntax or language features the parser doesn't model). Those are scan-coverage diagnostics — not handler bugs — and are excluded from the table above._
 
 _Hookwarden checks **11 rule classes** across **21 providers** — most of the corpus handles webhooks correctly, hence the short list. The full rule catalog lives in the [docs](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs/rules)._
 
