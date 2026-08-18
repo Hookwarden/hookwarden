@@ -133,7 +133,7 @@ jobs:
         # release-binaries → release.yml workflow_run chain handles publication
         # on tag push; PR-time only needs Build + Bundle inspection (above).
         if: github.event_name != 'pull_request'
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
           publish: pnpm changeset publish
           version: pnpm changeset version
