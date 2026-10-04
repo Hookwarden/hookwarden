@@ -158,11 +158,11 @@ npx hookwarden scan --history --since 2026-01-01
 *alive* by making a single read-only call to the secret's **own** provider
 (Stripe / GitHub) directly from your machine — hookwarden never sees the secret.
 A `live` leak is escalated to `critical`; a `dead` (rotated/revoked) one is
-downgraded to `info`. It's **paid** (team tier), off by default, and explicit
-opt-in only.
+downgraded to `info`. It's part of the **paid team tier, which isn't open yet**; off by default and
+explicit opt-in only.
 
 ```bash
-# Mint a token from the dashboard (Settings → CLI tokens) on a team workspace:
+# Team tier — not open yet. Without a token the flag makes no provider calls.
 HOOKWARDEN_TOKEN=hw_… npx hookwarden scan --verify-secrets
 ```
 

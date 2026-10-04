@@ -135,3 +135,26 @@ describe("buildProjectModel (D-25 + D-37 + DISCOVERY-01)", () => {
     expect(model.handlers).toEqual([]);
   });
 });
+
+describe("buildProjectModel — sdk_verify_call import-source narrowing (D-91)", () => {
+  it("does not count a bare verify name imported from an unrelated package as provider verification", async () => {
+    const file = await parseJsTs({
+      file_path: "x.ts",
+      source_text:
+        "import express from 'express';\n" +
+        "import { verify } from 'jsonwebtoken';\n" +
+        "const app = express();\n" +
+        "app.post('/webhooks/github', async (req, res) => {\n" +
+        "  verify(req.headers.authorization, 'k');\n" +
+        "  res.send('ok');\n" +
+        "});\n",
+    });
+    const model = await buildProjectModel({
+      parsedFiles: [file],
+      ruleSet: TEST_RULESET,
+      config: TEST_CONFIG,
+    });
+    const h = model.handlers[0]!;
+    expect(h.evidence.some((e) => e.kind === "sdk_verify_call")).toBe(false);
+  });
+});

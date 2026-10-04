@@ -156,3 +156,41 @@ describe("n8n detector #2 — agent-tool-acts-on-unverified-payload", () => {
     expect(await detector2?.(handler, {} as never)).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// n8n/raw-body-misuse — verification reachable only through a helper
+// ---------------------------------------------------------------------------
+
+describe("n8n/raw-body-misuse — helper-only verification", () => {
+  const rawBody = ALL_PREDICATES["n8n-raw-body-misuse"];
+  const verifyEvidence: WebhookHandler["evidence"][number] = {
+    kind: "sdk_verify_call",
+    provider: "n8n",
+    location: { line: 3, col: 5, end_line: 9, end_col: 6 },
+    detail: "timingSafeEqual",
+  };
+  const sym = (hops: number) => ({
+    qualified_name: "timingSafeEqual",
+    import_source: "crypto",
+    hops,
+    via: "x",
+  });
+
+  it("downgrades to manual-review when verification is only reachable via a helper (raw-body read unseen)", async () => {
+    const handler = makeTriggerHandler({
+      framework: "express",
+      evidence: [verifyEvidence],
+      reachable_symbols: [sym(3)],
+    });
+    expect(await rawBody?.(handler, {} as never)).toBe("manual-review");
+  });
+
+  it("still fires not-verified when verification runs in the handler itself", async () => {
+    const handler = makeTriggerHandler({
+      framework: "express",
+      evidence: [verifyEvidence],
+      reachable_symbols: [sym(1)],
+    });
+    expect(await rawBody?.(handler, {} as never)).toBe("not-verified");
+  });
+});

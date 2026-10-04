@@ -51,10 +51,10 @@ describe("checkVerifyEntitlement", () => {
 });
 
 describe("upsellMessage", () => {
-  it("names HOOKWARDEN_TOKEN + the dashboard mint flow on a missing token", () => {
+  it("names HOOKWARDEN_TOKEN and says the team tier isn't open yet on a missing token", () => {
     const msg = upsellMessage("missing_token");
     expect(msg).toContain("HOOKWARDEN_TOKEN");
-    expect(msg.toLowerCase()).toContain("dashboard");
+    expect(msg).toContain("isn't open yet");
   });
   it("explains the paid-tier nature on a denial", () => {
     const msg = upsellMessage("denied");

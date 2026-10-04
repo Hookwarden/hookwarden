@@ -184,3 +184,56 @@ describe("computeReachableSymbols (D-34) — HMAC algorithm literal capture (RUL
     expect(qns).toContain("crypto.sha256");
   });
 });
+
+describe("computeReachableSymbols (D-34) — multi-hop cross-file chain (n8n trigger shape)", () => {
+  // node → sibling helper (aliased re-import) → shared util two dirs up → local fn.
+  // Mirrors n8n's *Trigger.node.ts → *TriggerHelpers.ts → utils/webhook-signature-verification.ts.
+  it("resolves ../../ paths, aliased imports in intermediate files, and picks the exact file", async () => {
+    const decoy = await parseJsTs({
+      file_path: "decoy/utils/webhook-signature-verification.ts",
+      source_text: "export function verifySignature() { return true; }\n",
+    });
+    const util = await parseJsTs({
+      file_path: "pkg/utils/webhook-signature-verification.ts",
+      source_text:
+        "import { timingSafeEqual } from 'crypto';\n" +
+        "export function verifySignature(o: any): boolean {\n" +
+        "  if (!isTimestampValid(o.ts)) return false;\n" +
+        "  return timingSafeEqual(Buffer.from(o.a), Buffer.from(o.b));\n" +
+        "}\n" +
+        "function isTimestampValid(ts: number): boolean {\n" +
+        "  return Math.abs(Date.now() / 1000 - ts) <= 300;\n" +
+        "}\n",
+    });
+    const helper = await parseJsTs({
+      file_path: "pkg/nodes/Foo/FooTriggerHelpers.ts",
+      source_text:
+        "import { createHmac } from 'crypto';\n" +
+        "import { verifySignature as verifySignatureGeneric } from '../../utils/webhook-signature-verification';\n" +
+        "export function verifySignature(this: any): boolean {\n" +
+        "  return verifySignatureGeneric({ a: createHmac('sha256', 'k').digest('hex'), b: '' });\n" +
+        "}\n",
+    });
+    const handler = await parseJsTs({
+      file_path: "pkg/nodes/Foo/FooTrigger.node.ts",
+      source_text:
+        "import { verifySignature } from './FooTriggerHelpers';\n" +
+        "export async function webhook(this: any) {\n" +
+        "  if (!verifySignature.call(this)) return {};\n" +
+        "  return { workflowData: [] };\n" +
+        "}\n",
+    });
+    const body = (handler.raw_ast as { program: { body: unknown[] } }).program.body[1];
+    const reach = computeReachableSymbols({
+      handler_body_node: body,
+      handler_file: handler,
+      all_files: [decoy, util, helper, handler],
+      imports: handler.imports,
+      maxDepth: 4,
+    });
+    const qns = reach.map((r) => r.qualified_name);
+    expect(qns).toContain("verifySignatureGeneric"); // hop 2: helper body
+    expect(qns).toContain("timingSafeEqual"); // hop 3: util body via aliased import + ../../
+    expect(qns).toContain("Date.now"); // hop 4: util-local isTimestampValid
+  });
+});

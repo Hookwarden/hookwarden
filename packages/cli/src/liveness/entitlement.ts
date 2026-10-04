@@ -80,9 +80,13 @@ export async function checkVerifyEntitlement(
 export function upsellMessage(reason: DenyReason): string {
   const lines: string[] = [];
   if (reason === "missing_token") {
-    lines.push("--verify-secrets needs a hookwarden workspace token.");
-    lines.push(`  Set ${TOKEN_ENV} to a token minted from the dashboard (Settings → CLI tokens):`);
-    lines.push(`    ${TOKEN_ENV}=hw_… hookwarden scan --verify-secrets`);
+    lines.push("--verify-secrets needs a hookwarden team-tier token (set HOOKWARDEN_TOKEN).");
+    lines.push(
+      "  The hosted team tier (and its dashboard) isn't open yet — no provider calls were made.",
+    );
+    lines.push(
+      "  Findings are reported as 'unverified'. Watch https://github.com/Hookwarden/hookwarden for launch.",
+    );
   } else if (reason === "unreachable") {
     lines.push("--verify-secrets could not reach hookwarden to check entitlement; skipped.");
     lines.push("  Findings are reported as 'unverified'. Check your network / HOOKWARDEN_API_URL.");
@@ -90,9 +94,8 @@ export function upsellMessage(reason: DenyReason): string {
     lines.push(
       "--verify-secrets is a paid (team) feature — live verification is not on your plan.",
     );
-    lines.push("  Mint a token from the dashboard (Settings → CLI tokens) on a team workspace,");
     lines.push(
-      `  then set ${TOKEN_ENV} and re-run. Findings are reported as 'unverified' for now.`,
+      `  Check that ${TOKEN_ENV} belongs to a team workspace. Findings are reported as 'unverified' for now.`,
     );
   }
   return lines.join("\n");

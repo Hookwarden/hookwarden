@@ -194,15 +194,15 @@ fully open-source — it never needs a token.
 
 **Live verification — is the leaked key still active? (`--verify-secrets`):**
 ```bash
-# Mint a token from the dashboard (Settings → CLI tokens) on a team workspace:
+# Team tier — not open yet. Without a token the flag makes no provider calls.
 HOOKWARDEN_TOKEN=hw_… npx hookwarden scan --verify-secrets
 ```
 `--verify-secrets` checks whether a leaked **API-key-class** credential (Stripe
 `rk_`/`sk_`, GitHub `ghs_`) is still *alive* by making a single read-only call to
 the secret's **own** provider, straight from your machine — hookwarden never sees
 the secret. A `live` leak is escalated to `critical`; a `dead` (rotated/revoked)
-one is downgraded to `info`. It's **paid** (team tier), off by default, and
-explicit opt-in only.
+one is downgraded to `info`. It's part of the **paid team tier, which isn't open yet**;
+off by default and explicit opt-in only.
 
 - The credential is held in-memory only and redacted in all output.
 - The entitlement check transmits **only** your token — never the secret.
