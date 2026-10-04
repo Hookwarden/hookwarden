@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>The first MCP server doing webhook signature verification.</strong><br />
-  Local. Deterministic. Zero network. JS / TS / Python — 21 providers — 3-state verdicts.
+  Local. Deterministic. Zero network. JS / TS / Python / PHP / Go — 24 providers — 3-state verdicts.
 </p>
 
 <p align="center">
@@ -165,7 +165,7 @@ Same 3-state vocabulary as the CLI. No remapping in the MCP layer.
 | `language_not_in_preview` | `language: "php"` — PHP ships in v0.8.1. Suggestion: `npx hookwarden scan`. |
 | `unsupported_language` | `language` outside the known set. |
 | `unknown_provider` | `provider` not in the rule pack. Response includes the sorted known list. |
-| `engine_drift` / `rules_drift` | Boot or call-time drift — see [drift-detection](https://docs.hookwarden.dev/mcp/drift-detection). |
+| `engine_drift` / `rules_drift` | Boot or call-time drift — see [drift-detection](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/mcp/drift-detection.mdx). |
 
 Parse failures don't crash the transport — they emit as `rule_id: "engine/parse-error"` findings with severity `high` and increment `verdict_summary.parse_error`.
 
@@ -204,13 +204,13 @@ This tool imports only `@hookwarden/canonical-json` (the shared RFC 8785 byte-eq
 ## Integrity claims
 
 - **Zero outbound TCP** — the published tarball passes `pnpm inspect-bundle`, a structural CI gate that rejects any source-file import of HTTP clients (`node:http`, `axios`, `undici`, etc.) and any direct dependency outside the documented allowlist.
-- **Drift detection** — every `scan_handler` call cross-checks the runtime-resolved engine + rule-pack hashes against the build-time `dist/build-manifest.json`. Mismatch returns `isError: true` with structured `engine_drift` / `rules_drift` payload. No env-var opt-out. See [drift-detection](https://docs.hookwarden.dev/mcp/drift-detection) — including the v0.8.0 engine-content-hash limitation.
+- **Drift detection** — every `scan_handler` call cross-checks the runtime-resolved engine + rule-pack hashes against the build-time `dist/build-manifest.json`. Mismatch returns `isError: true` with structured `engine_drift` / `rules_drift` payload. No env-var opt-out. See [drift-detection](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/mcp/drift-detection.mdx) — including the v0.8.0 engine-content-hash limitation.
 - **No telemetry** — the tarball declares no analytics or tracking SDKs (`@datadog/*`, `@segment/*`, `@sentry/*`, etc.) in `dependencies` or transitively in source-file imports.
 - **Open source** — Apache-2.0 at `Hookwarden/hookwarden/packages/mcp/`. Engine + rule pack land in the same monorepo and ship under the same license.
 
 ## Links
 
-- [Documentation](https://docs.hookwarden.dev/mcp/getting-started) — getting started, tool surface reference, drift detection
+- [Documentation](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/mcp/getting-started.mdx) — getting started, tool surface reference, drift detection
 - [npm package](https://www.npmjs.com/package/@hookwarden/mcp)
 - [GitHub repository](https://github.com/Hookwarden/hookwarden)
 - [Apache-2.0 License](https://github.com/Hookwarden/hookwarden/blob/main/LICENSE)

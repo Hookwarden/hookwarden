@@ -31,7 +31,7 @@ npx hookwarden scan ./your-app
 
 No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 
-📖 **Full documentation: [docs.hookwarden.dev](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs)**
+📖 **Full documentation: [hookwarden docs](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs)**
 
 <!-- HOOKWARDEN_WILD_TABLE_START -->
 
@@ -74,7 +74,7 @@ npx hookwarden scan ./your-app
 
 A handler that accepts an unsigned payload, compares HMACs with `==`, or skips the signature check on a `?test=true` path silently routes attacker traffic into your business logic. The bug is one line in a 50K-line app, and it looks plausible — not the shape general-purpose SAST tools are tuned to flag. They were built for SQL injection and prototype pollution; webhook verification falls between their default rule packs.
 
-hookwarden does one thing. It walks your repo, parses every webhook handler across 11 frameworks, and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix quoted from provider docs. The catalog (21 named providers — Stripe, GitHub, Shopify, Slack, Twilio, Square, Sentry, Zendesk, DocuSign, PagerDuty, Notion, Auth0, HubSpot, Intercom, Linear, Zoom, Calendly, Bitbucket, Mailchimp, Postmark, plus Standard Webhooks conformant providers like Clerk, Resend, Mux) encodes signature quirks no generic scanner has the surface area to know: Stripe's 5-minute timestamp tolerance, Slack's `v0:${ts}:${body}` scheme, Twilio's SHA-1 outlier.
+hookwarden does one thing. It walks your repo, parses every webhook handler across 15 frameworks, and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix quoted from provider docs. The catalog (24 providers — Stripe, GitHub, Shopify, Slack, Twilio, Square, Sentry, Zendesk, DocuSign, PagerDuty, Notion, Auth0, HubSpot, Intercom, Linear, Zoom, Calendly, Bitbucket, Mailchimp, Postmark, Discord, n8n, the Anthropic Agent SDK, plus Standard Webhooks conformant providers like Clerk, Resend, Mux) encodes signature quirks no generic scanner has the surface area to know: Stripe's 5-minute timestamp tolerance, Slack's `v0:${ts}:${body}` scheme, Twilio's SHA-1 outlier.
 
 **The three-state verdict is not a hedge.** `manual-review` is what you get when hookwarden can't *prove* safety or unsafety from the source alone — a handler inside a middleware chain the analyzer couldn't unroll, say. It's how hookwarden avoids reporting guesses as bugs. A tool that reports every gray area as a bug isn't a security tool; it's noise. → [How the verdict works](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/index.mdx)
 
@@ -177,7 +177,7 @@ HOOKWARDEN_TOKEN=hw_… npx hookwarden scan --verify-secrets
 
 ## Auto-fix
 
-hookwarden doesn't just name the fix — it applies it. The `fix` subcommand mechanically rewrites the `safety: safe` subset across JS/TS, Python, PHP, and Go (covering timing-unsafe comparisons → `crypto.timingSafeEqual` / `hmac.compare_digest` / `hash_equals`, and raw-body misuse). The other 188 rules are architectural and emit per-finding fix prose instead.
+hookwarden doesn't just name the fix — it applies it. The `fix` subcommand mechanically rewrites the `safety: safe` subset across JS/TS, Python, PHP, and Go (covering timing-unsafe comparisons → `crypto.timingSafeEqual` / `hmac.compare_digest` / `hash_equals`, and raw-body misuse). The other 203 rules are architectural and emit per-finding fix prose instead.
 
 ```bash
 npx hookwarden fix ./your-app           # dry-run — prints a unified diff, writes nothing
@@ -228,7 +228,7 @@ The `state` column is the three-state verdict. Output is also available as byte-
 
 ## Languages, frameworks & providers
 
-**4 languages · 15 frameworks · 21 providers · 230 rules · 100% cited.** Every rule carries ≥1 external citation (CWE / RFC / Svix / Stripe spec) alongside the provider's own docs — auditors and reviewers can follow any finding back to a stable external source. JS/TS parse with Babel; Python, PHP, and Go with tree-sitter (WASM).
+**4 languages · 15 frameworks · 24 providers · 249 rules · 100% cited.** Every rule carries ≥1 external citation (CWE / RFC / Svix / Stripe spec) alongside the provider's own docs — auditors and reviewers can follow any finding back to a stable external source. JS/TS parse with Babel; Python, PHP, and Go with tree-sitter (WASM).
 
 | Language | Frameworks |
 |---|---|
@@ -246,7 +246,7 @@ The `state` column is the three-state verdict. Output is also available as byte-
   <a href="https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/square.mdx"><img src="https://img.shields.io/badge/Square-6366F1?style=for-the-badge&logo=square&logoColor=white" alt="Square" /></a>
 </p>
 
-Every rule carries fix guidance quoted from the provider's canonical security docs. Full per-rule reference and coverage matrix: **[docs.hookwarden.dev/rules](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/index.mdx)**.
+Every rule carries fix guidance quoted from the provider's canonical security docs. Full per-rule reference and coverage matrix: **[rule reference](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/index.mdx)**.
 
 ---
 
@@ -285,7 +285,7 @@ hookwarden is **specialized on purpose.** The general-purpose scanners below are
 | **snyk Code** | Broad vuln detection (paid SaaS) | No webhook rules; doesn't model HMAC reachability |
 | **GitGuardian / TruffleHog** | Secret-leak detection | Finds hardcoded secrets; doesn't audit whether verification is correct |
 | **Datadog Static Analysis** | Broad SAST; good cloud signal | No webhook specialization; low-signal for this bug class |
-| **hookwarden** | Webhook verification logic only | 230 rules (100% cited), 24 providers, three-state verdicts |
+| **hookwarden** | Webhook verification logic only | 249 rules (100% cited), 24 providers, three-state verdicts |
 
 hookwarden is **not** a general-purpose SAST or DAST scanner — it won't find XSS, SQL injection, or memory-safety bugs, and it isn't trying to. Keep semgrep, CodeQL, or your DAST for those. Already running one? hookwarden is additive — it finds the one class of bug they weren't built to catch.
 
@@ -339,7 +339,7 @@ Rule-pack PRs are the highest-value contribution — adding a provider is a cata
 pnpm install && pnpm -r build && pnpm -r test
 ```
 
-Bug reports & feature requests: [open an issue](https://github.com/Hookwarden/hookwarden/issues). Docs: [docs.hookwarden.dev](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs) · [hookwarden.dev](https://hookwarden.dev).
+Bug reports & feature requests: [open an issue](https://github.com/Hookwarden/hookwarden/issues). Docs: [hookwarden docs](https://github.com/Hookwarden/hookwarden/tree/main/apps/docs/src/content/docs) · [hookwarden.dev](https://hookwarden.dev).
 
 <!-- ALL-CONTRIBUTORS-LIST:START -->
 <!-- ALL-CONTRIBUTORS-LIST:END -->
