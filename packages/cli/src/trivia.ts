@@ -45,7 +45,7 @@ export const TRIVIA: ReadonlyArray<string> = [
   "Every internal CI gate has a name. `engine-no-network-libs` blocks supply-chain creep.",
   "Hookwarden ships under Apache-2.0. The CLI, engine, and rule packs stay open source.",
   // Methodology — three-state, test paths, baseline
-  "Three-state verdicts (verified / not-verified / manual-review) keep FP rate <5%.",
+  "What hookwarden can't prove goes to manual-review, not to your CI failures.",
   "Test files under `**/{test,tests,__tests__,spec,specs}/**` auto-downgrade to `info`.",
   "Run `hookwarden scan --baseline write` on a legacy repo. New findings only from then on.",
   "Verified handlers stay quiet — surfaced once, then never again. Less noise, more signal.",

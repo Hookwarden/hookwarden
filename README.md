@@ -76,7 +76,7 @@ A handler that accepts an unsigned payload, compares HMACs with `==`, or skips t
 
 hookwarden does one thing. It walks your repo, parses every webhook handler across 11 frameworks, and labels each one **verified**, **not-verified**, or **manual-review** — with the exact file, line, and a fix quoted from provider docs. The catalog (21 named providers — Stripe, GitHub, Shopify, Slack, Twilio, Square, Sentry, Zendesk, DocuSign, PagerDuty, Notion, Auth0, HubSpot, Intercom, Linear, Zoom, Calendly, Bitbucket, Mailchimp, Postmark, plus Standard Webhooks conformant providers like Clerk, Resend, Mux) encodes signature quirks no generic scanner has the surface area to know: Stripe's 5-minute timestamp tolerance, Slack's `v0:${ts}:${body}` scheme, Twilio's SHA-1 outlier.
 
-**The three-state verdict is not a hedge.** `manual-review` is what you get when hookwarden can't *prove* safety or unsafety from the source alone — a handler inside a middleware chain the analyzer couldn't unroll, say. It's how the false-positive rate stays honest (<5%, measured against a 200-repo OSS corpus). A tool that reports every gray area as a bug isn't a security tool; it's noise. → [How the verdict works](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/index.mdx)
+**The three-state verdict is not a hedge.** `manual-review` is what you get when hookwarden can't *prove* safety or unsafety from the source alone — a handler inside a middleware chain the analyzer couldn't unroll, say. It's how hookwarden avoids reporting guesses as bugs. A tool that reports every gray area as a bug isn't a security tool; it's noise. → [How the verdict works](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/index.mdx)
 
 ---
 
@@ -285,7 +285,7 @@ hookwarden is **specialized on purpose.** The general-purpose scanners below are
 | **snyk Code** | Broad vuln detection (paid SaaS) | No webhook rules; doesn't model HMAC reachability |
 | **GitGuardian / TruffleHog** | Secret-leak detection | Finds hardcoded secrets; doesn't audit whether verification is correct |
 | **Datadog Static Analysis** | Broad SAST; good cloud signal | No webhook specialization; low-signal for this bug class |
-| **hookwarden** | Webhook verification logic only | 230 rules (100% cited), 21 providers, three-state verdicts, <5% FP on a 200-repo corpus |
+| **hookwarden** | Webhook verification logic only | 230 rules (100% cited), 24 providers, three-state verdicts |
 
 hookwarden is **not** a general-purpose SAST or DAST scanner — it won't find XSS, SQL injection, or memory-safety bugs, and it isn't trying to. Keep semgrep, CodeQL, or your DAST for those. Already running one? hookwarden is additive — it finds the one class of bug they weren't built to catch.
 
