@@ -9,13 +9,13 @@
     "source": "github",
     "subfolder": "packages/mcp"
   },
-  "version": "0.9.3",
+  "version": "0.9.4",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@hookwarden/mcp",
-      "version": "0.9.3",
+      "version": "0.9.4",
       "transport": {
         "type": "stdio"
       }

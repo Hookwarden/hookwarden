@@ -1,5 +1,12 @@
 # hook-warden
 
+## 0.11.2
+
+### Patch Changes
+
+- Updated dependencies [fdd2fc7]
+  - hookwarden@0.11.2
+
 ## 0.11.1
 
 ### Patch Changes
