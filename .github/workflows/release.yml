@@ -137,6 +137,8 @@ jobs:
         with:
           publish: pnpm changeset publish
           version: pnpm changeset version
+          # v2 ignores env GITHUB_TOKEN for its own GitHub calls; pass it explicitly.
+          github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # npm auth: OIDC via id-token: write (above) + Trusted Publisher
