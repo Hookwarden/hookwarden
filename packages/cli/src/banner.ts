@@ -54,7 +54,7 @@ export function renderBanner(opts: BannerOptions): string {
 
   const wordmark = WORDMARK_LINES.map((line) => `  ${accent(line)}`).join("\n");
   const tagline = `  webhook security audit  ${dim("·")}  v${opts.version}`;
-  const promise = dim("  find every signature-verification bug  ·  <5% false positives");
+  const promise = dim("  find every signature-verification bug");
   const tryLine = `  Try:  ${accent("hookwarden scan .")}`;
   const docs = `  Docs: ${dim("https://hookwarden.dev")}`;
 

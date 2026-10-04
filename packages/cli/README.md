@@ -532,7 +532,7 @@ Hookwarden is **specialized on purpose.** Webhook signature verification is the 
 | **GitGuardian** | Secret leak detection in git history and CI | Finds hardcoded secrets; does not audit whether verification logic is correct |
 | **TruffleHog** | Secret scanning across sources | Same as GitGuardian — leak focus, not logic focus |
 | **Datadog Static Analysis** | Broad SAST; good AWS/cloud signal | No webhook verification specialization; generic SAST rules produce low-signal findings for this class of bug |
-| **hookwarden** | Webhook verification logic only | 230 rules (100% cited), 21 providers, three-state verdicts, <5% FP on a 200-repo corpus |
+| **hookwarden** | Webhook verification logic only | 230 rules (100% cited), 24 providers, three-state verdicts |
 
 If you're already running semgrep or snyk: hookwarden is additive, not a replacement. It finds the class of bug those tools were not built to find.
 
