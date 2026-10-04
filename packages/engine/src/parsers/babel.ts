@@ -60,6 +60,8 @@ export async function parseJsTs(input: ParseJsTsInput): Promise<ParsedFile> {
   let ast: File | null = null;
   let parseError: ParseErrorRecord | null = null;
   try {
+    // Cast: @babel/parser ≥7.29.9 types the result against its own bundled @babel/types,
+    // which no longer unifies with ours; the runtime shape is the same File node.
     ast = parse(source_text, {
       sourceType: "module",
       plugins: plugins as ParserPlugin[],
@@ -68,7 +70,7 @@ export async function parseJsTs(input: ParseJsTsInput): Promise<ParsedFile> {
       ranges: false,
       attachComment: false,
       allowReturnOutsideFunction: false,
-    });
+    }) as unknown as File;
   } catch (err) {
     // Babel's SyntaxError carries .loc = { line, column } (1-indexed line, 0-indexed column).
     const e = err as { message?: string; loc?: { line?: number; column?: number } } | undefined;

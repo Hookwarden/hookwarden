@@ -4,8 +4,8 @@
 # token with `code-scanning:write` on hookwarden/hookwarden-sarif-integration-test.
 # Minted per run from the hookwarden-release-bot GitHub App (same app as release.yml),
 # so there is no long-lived PAT to expire — the old SARIF_INTEGRATION_PAT did, after 90 days.
-# Forked PRs don't receive secrets — no token is minted and the test self-skips via
-# describe.skipIf(!HAS_TOKEN).
+# Forked and Dependabot PRs don't receive secrets — no token is minted and the test
+# self-skips via describe.skipIf(!HAS_TOKEN).
 name: sarif-integration
 
 on:
@@ -44,7 +44,8 @@ jobs:
 
       - name: Mint short-lived token for the integration-test repo
         id: app-token
-        if: github.event.pull_request.head.repo.fork != true
+        # Forks and Dependabot PRs don't receive repo secrets; the test self-skips without a token.
+        if: github.event.pull_request.head.repo.fork != true && github.actor != 'dependabot[bot]'
         uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ vars.HOOKWARDEN_BOT_APP_ID }}
