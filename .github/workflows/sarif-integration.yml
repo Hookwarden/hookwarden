@@ -1,9 +1,11 @@
 # CLI-11 — verified SARIF upload to real GitHub Code Scanning.
 # Runs sarif-integration.test.ts on every release tag AND on PRs that touch
 # the SARIF code path. Requires repo secret SARIF_INTEGRATION_PAT — fine-grained
-# PAT scoped to `code-scanning:write` on hookwarden/hookwarden-sarif-integration-test.
-# (Name cannot start with GITHUB_ — that prefix is reserved by GitHub Actions.)
-# Forked PRs don't receive secrets — the test self-skips via describe.skipIf(!HAS_TOKEN).
+# token with `code-scanning:write` on hookwarden/hookwarden-sarif-integration-test.
+# Minted per run from the hookwarden-release-bot GitHub App (same app as release.yml),
+# so there is no long-lived PAT to expire — the old SARIF_INTEGRATION_PAT did, after 90 days.
+# Forked PRs don't receive secrets — no token is minted and the test self-skips via
+# describe.skipIf(!HAS_TOKEN).
 name: sarif-integration
 
 on:
@@ -40,9 +42,18 @@ jobs:
       - name: Build CLI
         run: pnpm exec tsc --build
 
+      - name: Mint short-lived token for the integration-test repo
+        id: app-token
+        if: github.event.pull_request.head.repo.fork != true
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ vars.HOOKWARDEN_BOT_APP_ID }}
+          private-key: ${{ secrets.HOOKWARDEN_BOT_APP_PRIVATE_KEY }}
+          owner: Hookwarden
+          repositories: hookwarden-sarif-integration-test
       - name: Run SARIF integration test
         env:
-          SARIF_INTEGRATION_PAT: ${{ secrets.SARIF_INTEGRATION_PAT }}
+          SARIF_INTEGRATION_PAT: ${{ steps.app-token.outputs.token }}
           SARIF_INTEGRATION_REPO: hookwarden/hookwarden-sarif-integration-test
           # Sentinel SHA pinned to main of hookwarden-sarif-integration-test.
           # GitHub's code-scanning/sarifs endpoint validates commit_sha exists in
