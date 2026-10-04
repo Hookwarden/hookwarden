@@ -1,11 +1,11 @@
 // D-34: bounded-depth reachable symbols, with cross-file traversal via ImportEdge.
 // Walks the import graph + intra-file call graph + middleware chain to a configurable depth
-// (default 3 hops). Catches: middleware verification, util-extracted verification,
+// (default 4 hops). Catches: middleware verification, util-extracted verification,
 // decorator-applied verification. Misses: dynamic dispatch, reflection — surfaced as
 // `manual-review` candidates by rules (PITFALLS #3 graded-confidence policy).
 //
 // Caps:
-//   - maxDepth (caller-supplied via config.reachability_max_depth; default 3)
+//   - maxDepth (caller-supplied via config.reachability_max_depth; default 4)
 //   - MAX_VISITED_SYMBOLS = 1000 per handler (DoS defense — threat-model T-02-06b-04)
 
 import type { Expression, File, Node } from "@babel/types";
@@ -126,11 +126,17 @@ function expandFrontierEntry(
 ): ReadonlyArray<FrontierExpansion> {
   // Branch A — imported symbol → walk into target module's matching top-level symbol body.
   if (entry.import_source !== null) {
-    const targetFile = resolveModuleToFile(entry.import_source, input.all_files);
+    const targetFile = resolveModuleToFile(entry.import_source, resolverFile, input.all_files);
     if (!targetFile) return [];
     const targetTable = symbolTables.get(targetFile.file_path);
     if (!targetTable) return [];
-    const exportedName = findExportedName(entry.qualified_name, input.imports);
+    // The import that introduced this symbol lives in the file we're resolving from — at
+    // hop ≥ 2 that's an intermediate helper, not the handler (aliased re-imports).
+    const resolverImports =
+      resolverFile === input.handler_file.file_path
+        ? input.imports
+        : (symbolTables.get(resolverFile)?.file.imports ?? []);
+    const exportedName = findExportedName(entry.qualified_name, resolverImports);
     if (!exportedName) return [];
     const symbolBody = targetTable.symbols.get(exportedName);
     if (!symbolBody) return [];
@@ -334,21 +340,30 @@ function findExportedName(
   return null;
 }
 
+const SOURCE_EXTS = [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py"];
+
 function resolveModuleToFile(
   moduleName: string,
+  fromFile: string,
   allFiles: ReadonlyArray<ParsedFile>,
 ): ParsedFile | null {
   // Best-effort lookup: relative paths only. Bare module names (e.g. `express`) live in
   // node_modules — outside the scanned tree — so cannot be followed. Symbol stays as an
   // external leaf with import_source set, which is what rules need for D-34 set-lookup.
   if (!moduleName.startsWith(".") && !moduleName.startsWith("/")) return null;
+  // Exact resolution against the importing file's directory first: handles `../../x` and
+  // avoids picking a same-named file elsewhere in the tree (n8n has hundreds of them).
+  if (moduleName.startsWith("./") || moduleName.startsWith("../")) {
+    const exact = resolveRelative(moduleName, fromFile, allFiles);
+    if (exact) return exact;
+  }
   // Strip leading ./ or ../, then drop any source-file extension so ESM-style imports
   // (`./foo.js` → src `./foo.ts`) and bare imports (`./foo`) both resolve.
   const noLead = moduleName.replace(/^\.\.?\//, "").replace(/^\.\//, "");
   const stem = noLead.replace(/\.(?:ts|tsx|js|jsx|mjs|cjs|py)$/i, "");
   for (const f of allFiles) {
     if (f.file_path === noLead) return f;
-    for (const ext of [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py"]) {
+    for (const ext of SOURCE_EXTS) {
       if (f.file_path.endsWith(`${stem}${ext}`)) return f;
     }
     for (const indexFile of ["/index.ts", "/index.js", "/index.tsx", "/index.jsx"]) {
@@ -356,4 +371,28 @@ function resolveModuleToFile(
     }
   }
   return null;
+}
+
+function resolveRelative(
+  moduleName: string,
+  fromFile: string,
+  allFiles: ReadonlyArray<ParsedFile>,
+): ParsedFile | null {
+  // Pure posix join (engine purity: no node:path). file_path is scan-root-relative.
+  const parts = fromFile.split("/").slice(0, -1);
+  for (const seg of moduleName.split("/")) {
+    if (seg === "" || seg === ".") continue;
+    if (seg === "..") {
+      if (parts.length === 0) return null; // escapes the scan root
+      parts.pop();
+    } else parts.push(seg);
+  }
+  const target = parts.join("/");
+  const stem = target.replace(/\.(?:ts|tsx|js|jsx|mjs|cjs|py)$/i, "");
+  const candidates = new Set([
+    target,
+    ...SOURCE_EXTS.map((ext) => `${stem}${ext}`),
+    ...SOURCE_EXTS.map((ext) => `${stem}/index${ext}`),
+  ]);
+  return allFiles.find((f) => candidates.has(f.file_path)) ?? null;
 }

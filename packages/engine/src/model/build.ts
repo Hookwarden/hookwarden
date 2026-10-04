@@ -401,6 +401,22 @@ async function assembleHandler(
   };
 }
 
+// D-91 import-source narrowing for bare verify names: a bare `validate(...)` / `verify(...)`
+// imported straight from a third-party package that isn't the provider's SDK (graphql's
+// `validate`) is not that provider's verification. Member calls (`stripe.webhooks.constructEvent`)
+// are specific enough on their own; relative imports, path aliases (`@/`, `~/`, `#`) and Node's
+// crypto builtin still count.
+function isForeignBareCall(
+  symbol: { readonly qualified_name: string; readonly import_source: string | null },
+  sdkPackages: ReadonlyArray<string>,
+): boolean {
+  const src = symbol.import_source;
+  if (src === null || sdkPackages.length === 0 || symbol.qualified_name.includes(".")) return false;
+  if (/^(?:\.|\/|@\/|~\/|#)/.test(src)) return false;
+  if (src.replace(/^node:/, "") === "crypto") return false;
+  return !sdkPackages.includes(src);
+}
+
 function collectSdkVerifyCallEvidence(
   cand: CandidateHandler,
   reachableSymbols: ReadonlyArray<{
@@ -413,7 +429,9 @@ function collectSdkVerifyCallEvidence(
   for (const [providerName, entry] of Object.entries(ruleSet.providers)) {
     for (const verifyCall of entry.sdk_verify_calls) {
       const matched = reachableSymbols.some(
-        (s) => s.qualified_name === verifyCall || s.qualified_name.endsWith(`.${verifyCall}`),
+        (s) =>
+          (s.qualified_name === verifyCall || s.qualified_name.endsWith(`.${verifyCall}`)) &&
+          !isForeignBareCall(s, entry.sdk_packages),
       );
       if (matched) {
         out.push({

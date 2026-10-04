@@ -376,7 +376,7 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
   }
 
   const config: Config = {
-    reachability_max_depth: 3,
+    reachability_max_depth: 4,
     scanned_at: new Date().toISOString(),
     engine_commit_sha: null,
     total_files_count: walkResult.total_files_count,

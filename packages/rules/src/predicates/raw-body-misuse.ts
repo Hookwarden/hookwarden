@@ -4,6 +4,11 @@
 // JSON before verification reads the raw bytes. HMAC is computed over the raw payload, so any
 // pre-parsed body fails on every webhook delivery.
 //
+// The body_as_bytes heuristic only sees the handler's own text. When verification is reachable
+// solely through a helper (hops > 1) and the handler never reads the signature header itself,
+// the raw-body read lives in code the heuristic can't see — n8n's `verifySignature.call(this)`
+// → helper reading `req.rawBody`. Downgrade to manual-review rather than claim not-verified.
+//
 // Pure: no fs / http / network / process / node:* (D-28).
 
 import type {
@@ -16,7 +21,7 @@ import { PROVIDER_CATALOG } from "../catalog.js";
 
 export function createRawBodyMisusePredicate(
   provider: string,
-  _catalog: ProviderCatalogEntry,
+  catalog: ProviderCatalogEntry,
 ): RulePredicate {
   return async (handler: WebhookHandler, _model: ProjectModel) => {
     if (handler.provider !== provider) return null;
@@ -28,6 +33,19 @@ export function createRawBodyMisusePredicate(
         e.provider === provider,
     );
     if (!isAttempting) return null;
+    const readsHeaderInHandler = evidence.some(
+      (e) => e.kind === "signature_header_read" && e.provider === provider,
+    );
+    const verifyHops = handler.reachable_symbols
+      .filter((s) =>
+        catalog.sdk_verify_calls.some(
+          (v) => s.qualified_name === v || s.qualified_name.endsWith(`.${v}`),
+        ),
+      )
+      .map((s) => s.hops);
+    if (!readsHeaderInHandler && verifyHops.length > 0 && Math.min(...verifyHops) > 1) {
+      return "manual-review";
+    }
     return "not-verified";
   };
 }

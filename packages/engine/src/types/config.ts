@@ -1,5 +1,5 @@
 // D-01: Engine is pure — caller supplies wall clock and git context, engine never reads them.
-// D-34: reachability_max_depth bounds handler reachability walk (default 3 hops).
+// D-34: reachability_max_depth bounds handler reachability walk (default 4 hops).
 // D-38: engine_commit_sha and total_files_count flow through Config into ScanMetadata.
 // ENGINE-06: bounded reachability depth keeps the 30s/50KLOC perf budget achievable.
 
