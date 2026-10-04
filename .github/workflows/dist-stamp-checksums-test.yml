@@ -20,6 +20,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Run stamp-checksums REQUIRED_TARGETS subset test
         run: bash scripts/release/test-stamp-checksums-subset.sh
