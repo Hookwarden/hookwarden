@@ -134,8 +134,8 @@ importers:
         specifier: ^0.25.0
         version: 0.25.0
       web-tree-sitter:
-        specifier: 0.26.12
-        version: 0.26.12
+        specifier: 0.27.0
+        version: 0.27.0
 
   packages/engine:
     dependencies:
@@ -146,8 +146,8 @@ importers:
         specifier: ^4.0.5
         version: 4.0.5
       web-tree-sitter:
-        specifier: ^0.26.12
-        version: 0.26.12
+        specifier: ^0.27.0
+        version: 0.27.0
     devDependencies:
       '@babel/types':
         specifier: ^7.29.7
@@ -230,8 +230,8 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1
       web-tree-sitter:
-        specifier: 0.26.12
-        version: 0.26.12
+        specifier: 0.27.0
+        version: 0.27.0
       zod:
         specifier: ^3.25 || ^4.0
         version: 4.4.3
@@ -4920,8 +4920,8 @@ packages:
     resolution: {integrity: sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw==}
     engines: {node: '>= 8'}
 
-  web-tree-sitter@0.26.12:
-    resolution: {integrity: sha512-fvqTNZQBGUgUgfP0mHw+iHf9Yf6bRQrp0A3pSf2v/hSKxkT1beCoIWoLVmlPL7O6dmySfSb/t1aJoJvrgTRStw==}
+  web-tree-sitter@0.27.0:
+    resolution: {integrity: sha512-XK08gj6RwTMQatAG7uVRP8MunqotL/XC19vHgkSPKmELgbGPBj4ECvB8haHOUnyj6ls2B8t42UTro14zxGgAHg==}
 
   when-exit@2.1.5:
     resolution: {integrity: sha512-VGkKJ564kzt6Ms1dbgPP/yuIoQCrsFAnRbptpC5wOEsDaNsbCB2bnfnaA8i/vRs5tjUSEOtIuvl9/MyVsvQZCg==}
@@ -10119,7 +10119,7 @@ snapshots:
 
   web-streams-polyfill@3.3.3: {}
 
-  web-tree-sitter@0.26.12: {}
+  web-tree-sitter@0.27.0: {}
 
   when-exit@2.1.5: {}
 
