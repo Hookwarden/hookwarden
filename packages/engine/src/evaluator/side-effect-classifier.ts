@@ -121,7 +121,7 @@ export function qualifiedCallName(call: CallExpression): string | null {
 function calleeToString(expr: Expression): string | null {
   if (expr.type === "Identifier") return expr.name;
   if (expr.type === "MemberExpression" && !expr.computed) {
-    if (expr.property.type !== "Identifier") return null;
+    if (expr.property.type !== "Identifier" || expr.object.type === "Super") return null;
     const lhs = expr.object.type === "ThisExpression" ? "this" : calleeToString(expr.object);
     if (lhs === null) return null;
     return `${lhs}.${expr.property.name}`;

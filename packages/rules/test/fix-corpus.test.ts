@@ -207,24 +207,25 @@ describe("fix corpus — positive (byte-exact round trip)", () => {
 });
 
 describe("fix corpus — negative (no observable modification on safe-to-skip inputs)", () => {
-  it.each(
-    NEGATIVE_FIXTURES,
-  )("$name → no edit applied (or edit lands in forbidden range)", async (fx) => {
-    const filePath = `corpus.${fx.lang === "js" ? "ts" : fx.lang}`;
-    const parsed = await parseFor(fx.lang, filePath, fx.source);
-    const routine = ALL_CODEGEN_ROUTINES[fx.codegenId];
-    expect(routine).toBeDefined();
-    const finding = mkFinding(fx.ruleId, filePath, fx.findingLine);
-    const edit = routine!(parsed, finding);
-    // Two valid safety paths:
-    //   1. Codegen returns null (cheap defense-in-depth — already-fixed lines)
-    //   2. Codegen emits an edit BUT that edit's byte range intersects a
-    //      forbidden-range entry (template literal, heredoc, comment) — the
-    //      rewriter (Plan 03/04) rejects it via intersects(). For this corpus
-    //      we check the second path by importing buildForbiddenRanges and
-    //      intersects() and asserting the edit's range overlaps the mask.
-    if (edit === null) return;
-    const mask = buildForbiddenRanges(parsed);
-    expect(intersects({ start: edit.startByte, end: edit.endByte }, mask)).toBe(true);
-  });
+  it.each(NEGATIVE_FIXTURES)(
+    "$name → no edit applied (or edit lands in forbidden range)",
+    async (fx) => {
+      const filePath = `corpus.${fx.lang === "js" ? "ts" : fx.lang}`;
+      const parsed = await parseFor(fx.lang, filePath, fx.source);
+      const routine = ALL_CODEGEN_ROUTINES[fx.codegenId];
+      expect(routine).toBeDefined();
+      const finding = mkFinding(fx.ruleId, filePath, fx.findingLine);
+      const edit = routine!(parsed, finding);
+      // Two valid safety paths:
+      //   1. Codegen returns null (cheap defense-in-depth — already-fixed lines)
+      //   2. Codegen emits an edit BUT that edit's byte range intersects a
+      //      forbidden-range entry (template literal, heredoc, comment) — the
+      //      rewriter (Plan 03/04) rejects it via intersects(). For this corpus
+      //      we check the second path by importing buildForbiddenRanges and
+      //      intersects() and asserting the edit's range overlaps the mask.
+      if (edit === null) return;
+      const mask = buildForbiddenRanges(parsed);
+      expect(intersects({ start: edit.startByte, end: edit.endByte }, mask)).toBe(true);
+    },
+  );
 });

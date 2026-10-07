@@ -80,7 +80,7 @@ function collectSpecifierExports(
   if (exp.declaration || exp.source) return [];
   const out: NamedFunctionExport[] = [];
   for (const spec of exp.specifiers) {
-    if (spec.type !== "ExportSpecifier") continue;
+    if (spec.type !== "ExportSpecifier" || spec.local.type !== "Identifier") continue;
     const exportedName =
       spec.exported.type === "Identifier" ? spec.exported.name : spec.exported.value;
     const fnNode = localFns.get(spec.local.name);

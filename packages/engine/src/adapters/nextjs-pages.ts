@@ -84,7 +84,7 @@ function resolveDefaultExportHandler(ast: File): DefaultExportHandler | null {
     // `export { handler as default }`
     if (stmt.type === "ExportNamedDeclaration" && !stmt.declaration && !stmt.source) {
       for (const spec of stmt.specifiers) {
-        if (spec.type !== "ExportSpecifier") continue;
+        if (spec.type !== "ExportSpecifier" || spec.local.type !== "Identifier") continue;
         const exportedName =
           spec.exported.type === "Identifier" ? spec.exported.name : spec.exported.value;
         if (exportedName !== "default") continue;
