@@ -157,3 +157,37 @@ describe("Phase 24 (AGENT-01) — n8n agentic-callback ruleset, filesystem E2E",
     expect(parseError?.file_path).toMatch(/broken\.workflow\.json$/);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Regression — inline createHash verification must not be a confident not-verified.
+//
+// Found against n8n-io/n8n @ n8n@2.42.4's HubspotTrigger (lines 456-463): the webhook() handler
+// verifies INLINE with `createHash('sha256').update(secret + body)` and `!==`, rejecting bad
+// signatures. Verification IS present, but the engine used to key only on `createHmac` and
+// reported a confident `n8n/missing-signature-verification: not-verified` (critical) — a false
+// positive. The fix (isHandRolledHashEntry, gated on a comparison) downgrades this hand-rolled
+// hash check to manual-review, the honest verdict. This guard pins that: no confident
+// not-verified on a createHash-verifying handler.
+describe("Regression — inline createHash verification is not a confident not-verified", () => {
+  it("does NOT report missing-signature-verification: not-verified on a handler that verifies with createHash", async () => {
+    const env = await scanFixtureJson("createhash-verify");
+
+    // Detection gate FIRST — else the assertion is vacuous.
+    const n8nHandlers = env.scan.inventory.filter((h) => h.provider === "n8n");
+    expect(
+      n8nHandlers.length,
+      "createhash-verify fixture was not content-detected as n8n (no n8n handlers in inventory)",
+    ).toBeGreaterThanOrEqual(1);
+
+    const falsePositive = env.scan.findings.find(
+      (f) =>
+        f.rule_id === "n8n/missing-signature-verification" &&
+        f.state === "not-verified" &&
+        /CreateHashVerifyTrigger\.node\.ts$/.test(f.file_path),
+    );
+    expect(
+      falsePositive,
+      "FALSE POSITIVE: engine reported not-verified on a handler that verifies with createHash",
+    ).toBeUndefined();
+  });
+});

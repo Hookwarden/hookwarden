@@ -1,0 +1,14 @@
+{
+  "name": "n8n-nodes-createhash-verify",
+  "version": "1.0.0",
+  "description": "FP repro — custom-node webhook trigger that verifies INLINE with createHash('sha256')+!==, mirroring n8n's HubspotTrigger. The engine recognizes createHmac but not createHash, so it reports missing-signature-verification on code that verifies.",
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "nodes": [
+      "dist/nodes/CreateHashVerifyTrigger.node.js"
+    ]
+  },
+  "devDependencies": {
+    "n8n-workflow": "*"
+  }
+}

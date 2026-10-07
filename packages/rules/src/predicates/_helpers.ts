@@ -24,6 +24,17 @@ export function isManualHmacEntry(name: string): boolean {
   );
 }
 
+// `crypto.createHash` (Node) — a hand-rolled, UNKEYED hash used as a poor-man's signature
+// (e.g. HubSpot v1: `sha256(clientSecret + body)` compared to a request header). Unlike
+// `createHmac`, `createHash` is general-purpose (IDs, ETags, dedup keys), so its mere presence is
+// NOT verification. Callers MUST gate it on an accompanying comparison before treating it as a
+// verification entry, and MUST resolve to `manual-review` (not a clean pass) — the scheme is weak
+// and its raw-body/constant-time correctness is undecided here. Deliberately NOT part of
+// `isManualHmacEntry` (which stays HMAC-only, lock-stepped with `isConstantTimeCompare`).
+export function isHandRolledHashEntry(name: string): boolean {
+  return name === "crypto.createHash" || name === "createHash" || name.endsWith(".createHash");
+}
+
 // `crypto.timingSafeEqual` (Node) / `hmac.compare_digest` (Python stdlib). The bare `timingSafeEqual`
 // / `compare_digest` forms catch named imports (`import { timingSafeEqual } from 'node:crypto'`,
 // `from hmac import compare_digest`) — see the lock-step note on isManualHmacEntry.
