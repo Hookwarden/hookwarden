@@ -20,7 +20,7 @@ import type {
   WebhookHandler,
 } from "@hookwarden/engine";
 import { PROVIDER_CATALOG } from "../catalog.js";
-import { isManualHmacEntry, reachesSdkVerifyCall } from "./_helpers.js";
+import { isHandRolledHashEntry, isManualHmacEntry, reachesSdkVerifyCall } from "./_helpers.js";
 import { type PhpSyntaxNode, type PhpTree, walkPhpCalls } from "./_helpers-php.js";
 
 // D-92 registry. Custom-signing predicate files under predicates/custom/<provider>-signing.ts
@@ -89,8 +89,32 @@ export function createMissingSignatureVerificationPredicate(
     // not-verified) and only to an IMPORTED callee (local functions are already followed by the
     // reachability pass, so a resolved local that doesn't verify stays not-verified).
     if (delegatesRawRequestToImportedCallee(handler)) return "manual-review";
+    // Hand-rolled hash-based signature check — e.g. n8n's HubSpot trigger computes
+    // `createHash('sha256').update(secret + body)` and compares it to the signature header.
+    // `createHash` is general-purpose, so recognize it as verification ONLY when a comparison is
+    // also present in the handler; then the honest verdict is manual-review (a check exists but
+    // its scheme is weak and its raw-body/constant-time correctness is undecided here), NOT a
+    // confident not-verified. Without this, a verifying handler is mis-reported as critical
+    // "missing verification" purely because it used createHash instead of createHmac.
+    if (
+      symbols.some((s) => isHandRolledHashEntry(s.qualified_name)) &&
+      handlerHasEqualityComparison(handler)
+    ) {
+      return "manual-review";
+    }
     return "not-verified";
   };
+}
+
+// True when the handler's (literal-redacted) source contains an equality comparison —
+// `===` / `!==` / `==` / `!=` or a `.equals(` / `.compare(` call. Used to gate the hand-rolled
+// `createHash` recognition above: a hash computed AND compared is a (weak) signature check; a
+// hash with no comparison is not verification. redacted_snippet preserves operators (only string
+// literals are redacted), and is always present on the handler.
+function handlerHasEqualityComparison(handler: WebhookHandler): boolean {
+  const snippet = handler.redacted_snippet;
+  if (!snippet) return false;
+  return /!==|===|!=|==|\.equals\s*\(|\.compare\s*\(/.test(snippet);
 }
 
 function escapeRegExp(s: string): string {
