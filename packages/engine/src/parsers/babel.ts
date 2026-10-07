@@ -14,20 +14,9 @@ export interface ParseJsTsInput {
   readonly hint?: "ts" | "tsx" | "js" | "jsx";
 }
 
-const TS_FAMILY: ReadonlyArray<ParserPlugin> = [
-  "typescript",
-  "decorators-legacy",
-  "topLevelAwait",
-  "importAttributes",
-  "explicitResourceManagement",
-];
+const TS_FAMILY: ReadonlyArray<ParserPlugin> = ["typescript", "decorators-legacy"];
 
-const JS_FAMILY: ReadonlyArray<ParserPlugin> = [
-  "decorators-legacy",
-  "topLevelAwait",
-  "importAttributes",
-  "explicitResourceManagement",
-];
+const JS_FAMILY: ReadonlyArray<ParserPlugin> = ["decorators-legacy"];
 
 const JSX_FAMILY: ReadonlyArray<ParserPlugin> = ["jsx"];
 

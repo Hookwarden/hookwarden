@@ -141,14 +141,17 @@ describe("REACH-01 — positive: raw-body enqueue + verifying consumer", () => {
       `import express from 'express';\nimport { producer } from './q.js';\nconst app=express();\napp.post('/webhooks/stripe',(req,res)=>{ producer.send({ topic:'t', messages:[{ value: req.body }] }); res.end(); });`,
       `import Stripe from 'stripe';\nconst stripe=new Stripe('sk');\nconsumer.run({ eachMessage: async ({ message }) => { stripe.webhooks.constructEvent(message.value, sig, s); } });`,
     ],
-  ])("%s: enqueue raw body + verifying consumer → manual-review", async (_name, handler, consumer) => {
-    const { model, result } = await buildAndEval([
-      { path: "server.ts", src: handler },
-      { path: "consumer.ts", src: consumer },
-    ]);
-    expect(handlerHasQueueEvidence(model)).toBe(true);
-    expect(stripeFindings(result).every((x) => x.state === "manual-review")).toBe(true);
-  });
+  ])(
+    "%s: enqueue raw body + verifying consumer → manual-review",
+    async (_name, handler, consumer) => {
+      const { model, result } = await buildAndEval([
+        { path: "server.ts", src: handler },
+        { path: "consumer.ts", src: consumer },
+      ]);
+      expect(handlerHasQueueEvidence(model)).toBe(true);
+      expect(stripeFindings(result).every((x) => x.state === "manual-review")).toBe(true);
+    },
+  );
 });
 
 describe("REACH-01 — NEGATIVE floors (verdict stays not-verified)", () => {

@@ -71,18 +71,21 @@ describe("dist-grep engine-purity gate (D-05 + SC#12)", () => {
   // built output. A vacuous test (zero files → grep returns []) would pass
   // without proving anything.
   describe("dist build presence", () => {
-    it.each(
-      PURITY_SCOPES,
-    )("%s contains at least one compiled .js file (anti-stale-dist)", (label: string, dir: string) => {
-      const files = collectJsFiles(dir);
-      // RULES_PREDICATES_DIST may not yet be populated in CI's incremental cache;
-      // tolerate empty there. Engine + rules root MUST be populated.
-      if (label === "packages/rules/dist/predicates") {
-        expect(files.length).toBeGreaterThanOrEqual(0);
-      } else {
-        expect(files.length, `${label} has no compiled output — build skipped?`).toBeGreaterThan(0);
-      }
-    });
+    it.each(PURITY_SCOPES)(
+      "%s contains at least one compiled .js file (anti-stale-dist)",
+      (label: string, dir: string) => {
+        const files = collectJsFiles(dir);
+        // RULES_PREDICATES_DIST may not yet be populated in CI's incremental cache;
+        // tolerate empty there. Engine + rules root MUST be populated.
+        if (label === "packages/rules/dist/predicates") {
+          expect(files.length).toBeGreaterThanOrEqual(0);
+        } else {
+          expect(files.length, `${label} has no compiled output — build skipped?`).toBeGreaterThan(
+            0,
+          );
+        }
+      },
+    );
   });
 
   // Per-package × per-needle: 3 scopes × 2 needles = 6 named cases.
@@ -109,38 +112,41 @@ describe("dist-grep engine-purity gate (D-05 + SC#12)", () => {
     const ENGINE_PKG_JSON = path.resolve(__dirname, "../package.json");
     const RULES_PKG_JSON = path.resolve(__dirname, "../../rules/package.json");
 
-    it.each(
-      FORBIDDEN_NEEDLES,
-    )("packages/fix package.json DOES declare %s as a runtime dep (D-05)", (needle: string) => {
-      const pkg = JSON.parse(readFileSync(FIX_PKG_JSON, "utf8")) as {
-        readonly dependencies?: Record<string, string>;
-      };
-      const deps = pkg.dependencies ?? {};
-      expect(
-        deps[needle],
-        `${needle} should be declared in packages/fix/package.json — it's the bounded location per D-05`,
-      ).toBeDefined();
-    });
+    it.each(FORBIDDEN_NEEDLES)(
+      "packages/fix package.json DOES declare %s as a runtime dep (D-05)",
+      (needle: string) => {
+        const pkg = JSON.parse(readFileSync(FIX_PKG_JSON, "utf8")) as {
+          readonly dependencies?: Record<string, string>;
+        };
+        const deps = pkg.dependencies ?? {};
+        expect(
+          deps[needle],
+          `${needle} should be declared in packages/fix/package.json — it's the bounded location per D-05`,
+        ).toBeDefined();
+      },
+    );
 
-    it.each(
-      FORBIDDEN_NEEDLES,
-    )("packages/engine package.json does NOT declare %s", (needle: string) => {
-      const pkg = JSON.parse(readFileSync(ENGINE_PKG_JSON, "utf8")) as {
-        readonly dependencies?: Record<string, string>;
-        readonly devDependencies?: Record<string, string>;
-      };
-      expect(pkg.dependencies?.[needle]).toBeUndefined();
-      expect(pkg.devDependencies?.[needle]).toBeUndefined();
-    });
+    it.each(FORBIDDEN_NEEDLES)(
+      "packages/engine package.json does NOT declare %s",
+      (needle: string) => {
+        const pkg = JSON.parse(readFileSync(ENGINE_PKG_JSON, "utf8")) as {
+          readonly dependencies?: Record<string, string>;
+          readonly devDependencies?: Record<string, string>;
+        };
+        expect(pkg.dependencies?.[needle]).toBeUndefined();
+        expect(pkg.devDependencies?.[needle]).toBeUndefined();
+      },
+    );
 
-    it.each(
-      FORBIDDEN_NEEDLES,
-    )("packages/rules package.json does NOT declare %s as a runtime dep", (needle: string) => {
-      const pkg = JSON.parse(readFileSync(RULES_PKG_JSON, "utf8")) as {
-        readonly dependencies?: Record<string, string>;
-      };
-      expect(pkg.dependencies?.[needle]).toBeUndefined();
-    });
+    it.each(FORBIDDEN_NEEDLES)(
+      "packages/rules package.json does NOT declare %s as a runtime dep",
+      (needle: string) => {
+        const pkg = JSON.parse(readFileSync(RULES_PKG_JSON, "utf8")) as {
+          readonly dependencies?: Record<string, string>;
+        };
+        expect(pkg.dependencies?.[needle]).toBeUndefined();
+      },
+    );
   });
 
   // String-based leak: even if a symbol isn't imported, a hard-coded string
@@ -149,24 +155,25 @@ describe("dist-grep engine-purity gate (D-05 + SC#12)", () => {
   // imports; this additional sweep catches `require.resolve("@babel/traverse")`
   // style strings that would otherwise slip past.
   describe("dynamic-require evasion guard", () => {
-    it.each(
-      PURITY_SCOPES,
-    )("%s has no require.resolve / dynamic import strings naming forbidden needles", (_label: string, dir: string) => {
-      const files = collectJsFiles(dir);
-      const hits: string[] = [];
-      for (const file of files) {
-        const source = readFileSync(file, "utf-8");
-        for (const needle of FORBIDDEN_NEEDLES) {
-          // Match require.resolve("@babel/X") or require("@babel/X") or import("@babel/X")
-          const pattern = new RegExp(
-            `(require(?:\\.resolve)?|import)\\s*\\(\\s*["']${needle.replace("/", "\\/")}["']`,
-          );
-          if (pattern.test(source)) {
-            hits.push(`${needle} dynamic-require in ${path.relative(process.cwd(), file)}`);
+    it.each(PURITY_SCOPES)(
+      "%s has no require.resolve / dynamic import strings naming forbidden needles",
+      (_label: string, dir: string) => {
+        const files = collectJsFiles(dir);
+        const hits: string[] = [];
+        for (const file of files) {
+          const source = readFileSync(file, "utf-8");
+          for (const needle of FORBIDDEN_NEEDLES) {
+            // Match require.resolve("@babel/X") or require("@babel/X") or import("@babel/X")
+            const pattern = new RegExp(
+              `(require(?:\\.resolve)?|import)\\s*\\(\\s*["']${needle.replace("/", "\\/")}["']`,
+            );
+            if (pattern.test(source)) {
+              hits.push(`${needle} dynamic-require in ${path.relative(process.cwd(), file)}`);
+            }
           }
         }
-      }
-      expect(hits, hits.join("\n")).toEqual([]);
-    });
+        expect(hits, hits.join("\n")).toEqual([]);
+      },
+    );
   });
 });

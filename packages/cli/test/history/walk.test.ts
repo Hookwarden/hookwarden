@@ -81,7 +81,7 @@ describe("runHistoryScan", () => {
     expect(leak).toBeDefined();
     expect(leak?.metadata.history_path).toBe("app/webhook.ts");
     expect(typeof leak?.metadata.history_commit).toBe("string");
-    expect((leak?.metadata.history_commit as string).length).toBeGreaterThan(0);
+    expect((leak?.metadata.history_commit as string | undefined)?.length).toBeGreaterThan(0);
     expect(leak?.message).toContain("In git history");
   });
 

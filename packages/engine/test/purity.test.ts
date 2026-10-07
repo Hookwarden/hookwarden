@@ -156,45 +156,48 @@ describe("engine purity (compiled output grep)", () => {
 
   // One named test per forbidden symbol — failure pinpoints which one leaked.
   describe("per-symbol forbidden-import gate", () => {
-    it.each(
-      FORBIDDEN_PATTERNS,
-    )("no compiled .js file imports %s", (name: string, pattern: RegExp) => {
-      const files = globSync("**/*.js", { cwd: ENGINE_DIST, absolute: true });
-      const violations: string[] = [];
-      for (const file of files) {
-        const source = readFileSync(file, "utf8");
-        const stripped = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-        if (pattern.test(stripped)) {
-          violations.push(`${file.replace(`${ENGINE_DIST}/`, "")} contains forbidden ${name}`);
+    it.each(FORBIDDEN_PATTERNS)(
+      "no compiled .js file imports %s",
+      (name: string, pattern: RegExp) => {
+        const files = globSync("**/*.js", { cwd: ENGINE_DIST, absolute: true });
+        const violations: string[] = [];
+        for (const file of files) {
+          const source = readFileSync(file, "utf8");
+          const stripped = source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+          if (pattern.test(stripped)) {
+            violations.push(`${file.replace(`${ENGINE_DIST}/`, "")} contains forbidden ${name}`);
+          }
         }
-      }
-      expect(violations, violations.join("\n")).toEqual([]);
-    });
+        expect(violations, violations.join("\n")).toEqual([]);
+      },
+    );
   });
 
   // One named test per forbidden runtime dep — failure pinpoints which dep
   // snuck into the engine's package.json.
   describe("per-dep package.json gate", () => {
-    it.each(
-      FORBIDDEN_RUNTIME_DEPS,
-    )("engine package.json does not declare %s as a runtime dep", (dep: string) => {
-      const pkg = JSON.parse(readFileSync(join(PKG_ROOT, "package.json"), "utf8")) as {
-        readonly dependencies?: Record<string, string>;
-      };
-      const deps = pkg.dependencies ?? {};
-      expect(deps[dep], `dependency '${dep}' must not be in engine runtime deps`).toBeUndefined();
-    });
+    it.each(FORBIDDEN_RUNTIME_DEPS)(
+      "engine package.json does not declare %s as a runtime dep",
+      (dep: string) => {
+        const pkg = JSON.parse(readFileSync(join(PKG_ROOT, "package.json"), "utf8")) as {
+          readonly dependencies?: Record<string, string>;
+        };
+        const deps = pkg.dependencies ?? {};
+        expect(deps[dep], `dependency '${dep}' must not be in engine runtime deps`).toBeUndefined();
+      },
+    );
   });
 
   // Regex narrowness — assert each pattern doesn't false-positive on legitimate
   // code shapes. Stops "broaden the regex" PRs from accidentally re-introducing
   // noise the engine team already fixed (e.g. issue #10 for globalThis.crypto).
   describe("regex narrowness (anti-false-positive)", () => {
-    it.each(
-      REGEX_NARROWNESS_CASES,
-    )("%s", (_name: string, pattern: RegExp, sample: string, expectedMatch: boolean) => {
-      expect(pattern.test(sample)).toBe(expectedMatch);
-    });
+    it.each(REGEX_NARROWNESS_CASES)(
+      "%s",
+      (_name: string, pattern: RegExp, sample: string, expectedMatch: boolean) => {
+        expect(pattern.test(sample)).toBe(expectedMatch);
+      },
+    );
   });
 
   // ─── Evasion-vector guards (auditor-facing supply-chain hardening) ───────

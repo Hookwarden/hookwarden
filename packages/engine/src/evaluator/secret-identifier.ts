@@ -139,24 +139,20 @@ function walkExpression(node: Node, secretName: string, safeSliceMax: number): S
     return "absent";
   }
   if (node.type === "BinaryExpression" && node.operator === "+") {
-    if (node.left.type === "PrivateName") {
-      // PrivateName can't reference a webhook secret in any sensible scope.
-    } else {
-      const left = walkExpression(node.left, secretName, safeSliceMax);
-      const right = walkExpression(node.right, secretName, safeSliceMax);
-      if (
-        left === "bare" ||
-        right === "bare" ||
-        left === "to-string" ||
-        right === "to-string" ||
-        left === "json" ||
-        right === "json"
-      ) {
-        return "concat";
-      }
-      if (left === "concat" || right === "concat" || left === "template" || right === "template") {
-        return "concat";
-      }
+    const left = walkExpression(node.left, secretName, safeSliceMax);
+    const right = walkExpression(node.right, secretName, safeSliceMax);
+    if (
+      left === "bare" ||
+      right === "bare" ||
+      left === "to-string" ||
+      right === "to-string" ||
+      left === "json" ||
+      right === "json"
+    ) {
+      return "concat";
+    }
+    if (left === "concat" || right === "concat" || left === "template" || right === "template") {
+      return "concat";
     }
   }
 
