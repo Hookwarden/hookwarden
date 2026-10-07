@@ -1,0 +1,86 @@
+name: Daily vuln scan (email on new findings)
+# Runs hookwarden daily against the focused corpus in .github/scripts/daily-targets.txt,
+# keeps only confident critical/high `not-verified` findings, diffs them against a rolling
+# baseline (stored in the Actions cache — never committed, per the per-target privacy promise
+# in bugs-in-the-wild.md), and emails NEW findings to the maintainer.
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   MAIL_USERNAME  your Gmail address (the SMTP login + From address)
+#   MAIL_PASSWORD  a Gmail App Password (not your normal password; needs 2FA enabled)
+# Recipient is pinned to adelina.lipsa@gmail.com below.
+
+on:
+  workflow_dispatch:
+    inputs:
+      hw_version:
+        description: 'hookwarden version (e.g. 0.11.2 or "latest")'
+        required: false
+        default: 'latest'
+  schedule:
+    # 13:00 UTC daily — morning for the Americas.
+    - cron: '0 13 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-vuln-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install workspace deps (for tsx)
+        run: pnpm install --frozen-lockfile
+
+      # Rolling baseline cache: a unique key per run never hits exactly, so the post-step always
+      # saves a fresh cache; restore-keys pulls the most recent previous baseline. Cache is not
+      # publicly downloadable, so per-target findings stay private.
+      - name: Restore baseline
+        uses: actions/cache@v4
+        with:
+          path: .daily-scan-cache
+          key: daily-scan-baseline-${{ github.run_id }}
+          restore-keys: |
+            daily-scan-baseline-
+
+      - name: Run daily scan
+        id: scan
+        env:
+          HW_VERSION: ${{ inputs.hw_version || 'latest' }}
+          BASELINE_FILE: .daily-scan-cache/baseline.json
+          REPORT_FILE: daily-scan-report.txt
+        run: pnpm exec tsx .github/scripts/daily-vuln-scan.ts
+
+      - name: Stage report for email
+        if: steps.scan.outputs.has_new == 'true' || steps.scan.outputs.is_first_run == 'true'
+        run: |
+          {
+            echo "REPORT_BODY<<HWEOF"
+            cat daily-scan-report.txt
+            echo "HWEOF"
+          } >> "$GITHUB_ENV"
+
+      - name: Email new findings
+        if: steps.scan.outputs.has_new == 'true' || steps.scan.outputs.is_first_run == 'true'
+        uses: dawidd6/action-send-mail@v4
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          from: hookwarden daily scan <${{ secrets.MAIL_USERNAME }}>
+          to: adelina.lipsa@gmail.com
+          subject: ${{ steps.scan.outputs.subject }}
+          body: ${{ env.REPORT_BODY }}

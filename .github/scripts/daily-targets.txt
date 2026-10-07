@@ -1,0 +1,9 @@
+# Daily vuln-scan corpus — a focused, high-signal subset of wild-targets.txt
+# scanned every day (the full 45-repo sweep stays weekly in wild-scan.yml).
+# One `org/repo` per line; `# ...` comments allowed. Edit freely via PR.
+n8n-io/n8n
+calcom/cal.com
+documenso/documenso
+baptisteArno/typebot.io
+chatwoot/chatwoot
+medusajs/medusa
