@@ -40,7 +40,7 @@ export const TRIVIA: ReadonlyArray<string> = [
   // Architecture / zero-network swagger
   "Hookwarden has never made a network call during a scan. Run `lsof -p` if you don't trust us.",
   "The engine is pure-functional — same code in the CLI, GitHub Action, and MCP server.",
-  "230 rules. 21 providers. 100% cited to CWE / RFC / Svix or the canonical spec.",
+  "270 rules. 27 providers. 100% cited to CWE / RFC / Svix or the canonical spec.",
   "The rule pack ships inline with `@hookwarden/mcp` — content-hashed, drift-detected, pinned.",
   "Every internal CI gate has a name. `engine-no-network-libs` blocks supply-chain creep.",
   "Hookwarden ships under Apache-2.0. The CLI, engine, and rule packs stay open source.",

@@ -1,0 +1,5 @@
+{
+  "name": "fixture-braintree-unverified",
+  "private": true,
+  "dependencies": { "express": "^4.21.0", "braintree": "^3.0.0" }
+}

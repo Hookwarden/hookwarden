@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>The first MCP server doing webhook signature verification.</strong><br />
-  Local. Deterministic. Zero network. JS / TS / Python / PHP / Go — 24 providers — 3-state verdicts.
+  Local. Deterministic. Zero network. JS / TS / Python / PHP / Go — 27 providers — 3-state verdicts.
 </p>
 
 <p align="center">

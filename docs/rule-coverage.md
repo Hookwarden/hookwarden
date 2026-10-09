@@ -13,6 +13,9 @@ research note (no Python SDK; framework-specific FP risk; etc.).
 | twilio | YES | YES | YES | YES (info) | YES | YES | NO (D-95 — no canonical prefix) | YES | YES (`predicates/custom/twilio-signing.ts`; URL+sorted-params canonical-string + HMAC-SHA1) |
 | slack | YES | YES | YES | YES (high) | YES | YES | NO (D-95 — no canonical prefix) | YES | No (parameterized `timestamp_dot_body` recipe) |
 | square | YES | YES | YES | NO (no timestamp in scheme) | YES | YES | NO (D-95 — webhook signature keys have no canonical prefix) | YES | No (parameterized `custom_field_tuple` recipe) |
+| paypal | YES (custom: SDK / postback → verified, local RSA → manual-review) | NO (RSA, not HMAC) | NO | NO | NO | NO | NO (no canonical prefix) | YES | YES (`predicates/custom/paypal-signing.ts`; SHA256withRSA) |
+| braintree | YES | NO (SDK-only) | NO (form fields) | NO | NO | NO | NO (no canonical prefix) | YES | No (SDK `webhookNotification.parse`) |
+| nmi | YES | YES | YES | NO (`t` is a nonce, not a timestamp) | YES | YES | NO (no canonical prefix) | NO (no webhook SDK) | No (parameterized `timestamp_dot_body` recipe over `nonce.body`) |
 
 ## Language coverage
 

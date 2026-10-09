@@ -1,0 +1,47 @@
+schema_version: 1
+rule_id: nmi/timing-unsafe-comparison
+provider: nmi
+severity: critical
+emits_state: not-verified
+message: |
+  NMI webhook handler computes HMAC-SHA256 manually but does not call
+  `crypto.timingSafeEqual` (Node), `hmac.compare_digest` (Python), or
+  `hash_equals` (PHP) when comparing against the `s=` value of the
+  `Webhook-Signature` header. Plain `==` / `===` against the hex HMAC string
+  leaks timing information that lets an attacker bisect the signature
+  byte-by-byte over many requests.
+
+  Fix: compare via
+  `crypto.timingSafeEqual(Buffer.from(expected, 'utf8'), Buffer.from(provided, 'utf8'))`
+  in Node, `hmac.compare_digest(expected, provided)` in Python, or
+  `hash_equals($expected, $provided)` in PHP.
+matcher: null
+predicate: nmi-timing-unsafe-comparison
+applies_to:
+  - express
+  - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://docs.nmi.com/reference/overview
+references:
+  - https://codahale.com/a-lesson-in-timing-attacks/
+  - https://cwe.mitre.org/data/definitions/208.html
+path_severity_overrides:
+  - patterns:
+      - "**/{test,tests,__tests__,spec,specs}/**"
+      - "**/*.{test,spec}.{js,ts,jsx,tsx,mjs,cjs,py,php}"
+    severity: info
+fix:
+  safety: safe
+  description: "Replace insecure equality with a constant-time comparison (crypto.timingSafeEqual / hmac.compare_digest / hash_equals)"
+  codegen: dispatch-timing-unsafe-comparison

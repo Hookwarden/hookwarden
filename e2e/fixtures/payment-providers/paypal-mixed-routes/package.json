@@ -1,0 +1,5 @@
+{
+  "name": "fixture-paypal-mixed-routes",
+  "private": true,
+  "dependencies": { "express": "^4.21.0" }
+}

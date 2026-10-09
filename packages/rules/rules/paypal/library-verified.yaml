@@ -1,0 +1,36 @@
+schema_version: 1
+rule_id: paypal/library-verified
+provider: paypal
+severity: info
+emits_state: verified
+message: |
+  Library-based verification detected: the PayPal SDK's
+  `notification.webhookEvent.verify` (Node `paypal-rest-sdk`) or
+  `WebhookEvent.verify` (Python `paypalrestsdk`) is reachable from this
+  handler within 3 hops. The SDK validates the transmission signature and
+  certificate for the event.
+matcher: null
+predicate: paypal-library-verified
+applies_to:
+  - express
+  - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://developer.paypal.com/api/rest/webhooks/rest/
+references:
+  - https://developer.paypal.com/api/rest/webhooks/rest/
+  - https://developer.paypal.com/docs/api/webhooks/v1/#verify-webhook-signature_post
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null

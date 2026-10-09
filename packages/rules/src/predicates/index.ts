@@ -34,6 +34,10 @@ import { PROVIDER_CATALOG } from "../catalog.js";
 import { bitbucketSignaturePrefixNotStrippedPredicate } from "./bitbucket-signature-prefix.js";
 import { calendlySignatureHeaderParseMishandledPredicate } from "./calendly-header-parse.js";
 import {
+  paypalLibraryVerifiedPredicate,
+  paypalVerifyAfterSideEffectPredicate,
+} from "./custom/paypal-signing.js";
+import {
   discordLibraryVerifiedPredicate,
   discordMissingVerificationPredicate,
 } from "./discord-ed25519.js";
@@ -43,6 +47,7 @@ import { githubPhpTimingSafeEqualPredicate } from "./github-php-timing-safe-equa
 import { githubTimingSafeEqualPredicate } from "./github-timing-safe-equal.js";
 import { intercomOctokitCrossAttributionPredicate } from "./intercom-octokit-cross-attribution.js";
 import {
+  createLibraryVerifiedPredicate,
   githubLibraryVerifiedPredicate,
   shopifyLibraryVerifiedPredicate,
   slackLibraryVerifiedPredicate,
@@ -162,6 +167,7 @@ import {
   auth0UnreachableVerificationPredicate,
   bitbucketUnreachableVerificationPredicate,
   calendlyUnreachableVerificationPredicate,
+  createUnreachableVerificationPredicate,
   docusignUnreachableVerificationPredicate,
   githubUnreachableVerificationPredicate,
   hubspotUnreachableVerificationPredicate,
@@ -187,6 +193,7 @@ import {
   auth0WrongHmacAlgorithmPredicate,
   bitbucketWrongHmacAlgorithmPredicate,
   calendlyWrongHmacAlgorithmPredicate,
+  createWrongHmacAlgorithmPredicate,
   docusignWrongHmacAlgorithmPredicate,
   githubWrongHmacAlgorithmPredicate,
   hubspotWrongHmacAlgorithmPredicate,
@@ -835,4 +842,84 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
     "anthropic-agent-sdk",
     PROVIDER_CATALOG["anthropic-agent-sdk"] as ProviderCatalogEntry,
   ),
+  // NMI (Network Merchants) pack — HMAC-SHA256 hex over `<nonce>.<raw body>`, header
+  // `Webhook-Signature: t=<nonce>,s=<sig>`. No webhook SDK (hand-rolled HMAC only) and no
+  // timestamp (t is a nonce), so no library-verified / missing-timestamp-check rules.
+  "nmi-missing-signature-verification": createMissingSignatureVerificationPredicate(
+    "nmi",
+    PROVIDER_CATALOG["nmi"] as ProviderCatalogEntry,
+  ),
+  "nmi-timing-unsafe-comparison": createTimingUnsafeComparisonPredicate(
+    "nmi",
+    PROVIDER_CATALOG["nmi"] as ProviderCatalogEntry,
+  ),
+  "nmi-raw-body-misuse": createRawBodyMisusePredicate(
+    "nmi",
+    PROVIDER_CATALOG["nmi"] as ProviderCatalogEntry,
+  ),
+  "nmi-wrong-hmac-algorithm": createWrongHmacAlgorithmPredicate(
+    "nmi",
+    PROVIDER_CATALOG["nmi"] as ProviderCatalogEntry,
+  ),
+  "nmi-unreachable-verification": createUnreachableVerificationPredicate(
+    "nmi",
+    PROVIDER_CATALOG["nmi"] as ProviderCatalogEntry,
+  ),
+  "nmi-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "nmi",
+    PROVIDER_CATALOG["nmi"] as ProviderCatalogEntry,
+  ),
+  "nmi-test-mode-bypass": createTestModeBypassPredicate(
+    "nmi",
+    PROVIDER_CATALOG["nmi"] as ProviderCatalogEntry,
+  ),
+  "nmi-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "nmi",
+    PROVIDER_CATALOG["nmi"] as ProviderCatalogEntry,
+  ),
+  "nmi-verify-after-side-effect": createVerifyAfterSideEffectPredicate("nmi"),
+  // Braintree pack — SDK-verified (`webhookNotification.parse(bt_signature, bt_payload)` throws on
+  // a bad signature). Payload arrives as form fields, so the HMAC-shape rules don't apply.
+  "braintree-library-verified": createLibraryVerifiedPredicate(
+    "braintree",
+    PROVIDER_CATALOG["braintree"]?.sdk_verify_calls ?? [],
+  ),
+  "braintree-missing-signature-verification": createMissingSignatureVerificationPredicate(
+    "braintree",
+    PROVIDER_CATALOG["braintree"] as ProviderCatalogEntry,
+  ),
+  "braintree-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "braintree",
+    PROVIDER_CATALOG["braintree"] as ProviderCatalogEntry,
+  ),
+  "braintree-test-mode-bypass": createTestModeBypassPredicate(
+    "braintree",
+    PROVIDER_CATALOG["braintree"] as ProviderCatalogEntry,
+  ),
+  "braintree-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "braintree",
+    PROVIDER_CATALOG["braintree"] as ProviderCatalogEntry,
+  ),
+  "braintree-verify-after-side-effect": createVerifyAfterSideEffectPredicate("braintree"),
+  // PayPal pack — SHA256withRSA (not HMAC). missing-signature-verification dispatches through the
+  // D-92 custom slot (predicates/custom/paypal-signing.ts): SDK verify / postback with the result
+  // checked → verified, unchecked result / local RSA → manual-review, nothing → not-verified.
+  "paypal-library-verified": paypalLibraryVerifiedPredicate,
+  "paypal-missing-signature-verification": createMissingSignatureVerificationPredicate(
+    "paypal",
+    PROVIDER_CATALOG["paypal"] as ProviderCatalogEntry,
+  ),
+  "paypal-verification-error-swallowed": createVerificationErrorSwallowedPredicate(
+    "paypal",
+    PROVIDER_CATALOG["paypal"] as ProviderCatalogEntry,
+  ),
+  "paypal-test-mode-bypass": createTestModeBypassPredicate(
+    "paypal",
+    PROVIDER_CATALOG["paypal"] as ProviderCatalogEntry,
+  ),
+  "paypal-secret-in-log-or-error": createSecretInLogOrErrorPredicate(
+    "paypal",
+    PROVIDER_CATALOG["paypal"] as ProviderCatalogEntry,
+  ),
+  "paypal-verify-after-side-effect": paypalVerifyAfterSideEffectPredicate,
 };
