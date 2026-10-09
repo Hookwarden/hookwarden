@@ -31,3 +31,4 @@ packages/engine/src/version.ts
 .daily-scan-work/
 .daily-scan-cache/
 daily-scan-report.txt
+.github/scripts/daily-targets.txt

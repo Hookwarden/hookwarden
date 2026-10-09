@@ -296,9 +296,11 @@ function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
         pr.rules[f.rule_id] = (pr.rules[f.rule_id] ?? 0) + 1;
       }
     }
-    console.log(
-      `  ✓ ${fs.length} findings (${critical} critical, ${high} high, ${manualReview} manual-review)`,
-    );
+    // Running totals only in CI: per-repo counts would sit in public Actions logs.
+    if (!process.env.GITHUB_ACTIONS)
+      console.log(
+        `  ✓ ${fs.length} findings (${critical} critical, ${high} high, ${manualReview} manual-review)`,
+      );
   }
   return {
     targetsScanned: targets.length - failed.length,

@@ -1,4 +1,4 @@
-// Daily vuln diff-scan. Clones each repo in daily-targets.txt, runs hookwarden,
+// Daily vuln diff-scan. Clones each repo in $DAILY_TARGETS (or daily-targets.txt locally), runs hookwarden,
 // keeps only CONFIDENT reportable findings (severity critical/high AND state
 // `not-verified` — manual-review is excluded per bugs-in-the-wild.md), and diffs
 // against a baseline so only NEWLY-appeared findings are reported. Writes a plain-text
@@ -57,7 +57,8 @@ interface Hit {
 }
 
 function readTargets(): ReadonlyArray<string> {
-  return readFileSync(TARGETS_FILE, "utf8")
+  // CI passes the list via the DAILY_TARGETS secret so which repos we watch daily stays private.
+  return (process.env.DAILY_TARGETS || readFileSync(TARGETS_FILE, "utf8"))
     .split("\n")
     .map((l) => l.replace(/#.*$/, "").trim())
     .filter((l) => l.length > 0);
