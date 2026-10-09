@@ -30,6 +30,8 @@ export async function parsePhp(input: ParsePhpInput, runtime: PhpRuntime): Promi
     parseError = findFirstError(tree.rootNode);
   }
   const cleanTree: Tree | null = parseError === null ? tree : null;
+  // D-27: an errored tree is never read again — free it so it doesn't hold WASM heap.
+  if (cleanTree === null) tree?.delete();
   const imports: ReadonlyArray<ImportEdge> =
     cleanTree === null ? [] : extractImports(cleanTree.rootNode, file_path);
   return {
