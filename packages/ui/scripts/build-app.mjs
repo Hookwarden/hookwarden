@@ -73,8 +73,8 @@ try {
   // src/generated/ is gitignored, so it does not exist in a fresh checkout.
   mkdirSync(dirname(OUT_TS), { recursive: true });
   if (prev !== next) writeFileSync(OUT_TS, next);
-  console.log(
-    `ui: app-html.ts ${prev === next ? "unchanged" : "written"} (${(html.length / 1024).toFixed(1)} KB)`,
+  process.stdout.write(
+    `ui: app-html.ts ${prev === next ? "unchanged" : "written"} (${(html.length / 1024).toFixed(1)} KB)\n`,
   );
 } finally {
   rmSync(outDir, { recursive: true, force: true });
