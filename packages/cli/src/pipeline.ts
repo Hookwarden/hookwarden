@@ -336,15 +336,30 @@ export async function runScan(input: RunScanInput): Promise<RunScanOutput> {
     return parseJsTs({ file_path: filePath, source_text: sourceText });
   };
 
-  const parsedFiles: ParsedFile[] = await Promise.all(
-    hasVirtual
-      ? virtualFiles.map((vf) => limit(async () => parseByPath(vf.path, vf.text)))
-      : walkResult.files.map((abs) =>
-          limit(async () =>
-            parseByPath(path.relative(scanDir, abs), await fs.readFile(abs, "utf-8")),
+  let parsedFiles: ParsedFile[];
+  try {
+    parsedFiles = await Promise.all(
+      hasVirtual
+        ? virtualFiles.map((vf) => limit(async () => parseByPath(vf.path, vf.text)))
+        : walkResult.files.map((abs) =>
+            limit(async () =>
+              parseByPath(path.relative(scanDir, abs), await fs.readFile(abs, "utf-8")),
+            ),
           ),
-        ),
-  );
+    );
+  } catch (e) {
+    // tree-sitter keeps every clean tree in one fixed-size WASM heap; very large repos
+    // (~10k+ Python files) exhaust it and emscripten aborts. Report that instead of hanging.
+    const msg = e instanceof Error ? e.message : String(e);
+    engineError = /Aborted\(/.test(msg)
+      ? new Error(
+          `parser ran out of memory on ${walkResult.files.length} files — scan a subdirectory or exclude paths (${msg})`,
+        )
+      : e instanceof Error
+        ? e
+        : new Error(msg);
+    return emptyOutput(walkResult, t0, engineError);
+  }
 
   const loadOpts: LoadRulesOptions =
     input.resolvedConfig.rules_dir !== null ? { rulesDir: input.resolvedConfig.rules_dir } : {};
