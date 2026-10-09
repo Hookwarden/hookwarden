@@ -188,7 +188,9 @@ async function main(): Promise<void> {
         fingerprint: `${repo}::${f.rule_id}::${f.file_path}`,
       }));
     allHits.push(...hits);
-    console.error(`  ${repo}: ${hits.length} confident critical/high finding(s)`);
+    // Per-repo counts stay out of the public Actions log; the emailed report has them.
+    if (!process.env.GITHUB_ACTIONS)
+      console.error(`  ${repo}: ${hits.length} confident critical/high finding(s)`);
   }
 
   // Dedupe hits by fingerprint (first occurrence wins — stable line for the report).
