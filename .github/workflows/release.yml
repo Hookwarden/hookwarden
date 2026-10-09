@@ -135,8 +135,8 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: changesets/action@v2
         with:
-          publish: pnpm changeset publish
-          version: pnpm changeset version
+          publish-script: pnpm changeset publish
+          version-script: pnpm changeset version
           # v2 ignores env GITHUB_TOKEN for its own GitHub calls; pass it explicitly.
           github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
