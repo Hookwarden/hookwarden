@@ -1,5 +1,5 @@
 name: Daily vuln scan (email on new findings)
-# Runs hookwarden daily against the focused corpus in .github/scripts/daily-targets.txt,
+# Runs hookwarden daily against the focused corpus in the DAILY_TARGETS secret,
 # keeps only confident critical/high `not-verified` findings, diffs them against a rolling
 # baseline (stored in the Actions cache — never committed, per the per-target privacy promise
 # in bugs-in-the-wild.md), and emails NEW findings to the maintainer.
@@ -7,6 +7,7 @@ name: Daily vuln scan (email on new findings)
 # Required repo secrets (Settings → Secrets and variables → Actions):
 #   MAIL_USERNAME  your Gmail address (SMTP login, From and To address)
 #   MAIL_PASSWORD  a Gmail App Password (not your normal password; needs 2FA enabled)
+#   DAILY_TARGETS  one org/repo per line (`# ...` comments allowed)
 
 on:
   workflow_dispatch:
@@ -46,7 +47,7 @@ jobs:
       # saves a fresh cache; restore-keys pulls the most recent previous baseline. Cache is not
       # publicly downloadable, so per-target findings stay private.
       - name: Restore baseline
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .daily-scan-cache
           key: daily-scan-baseline-${{ github.run_id }}
@@ -57,13 +58,14 @@ jobs:
         id: scan
         env:
           HW_VERSION: ${{ inputs.hw_version || 'latest' }}
+          DAILY_TARGETS: ${{ secrets.DAILY_TARGETS }}
           BASELINE_FILE: .daily-scan-cache/baseline.json
           REPORT_FILE: daily-scan-report.txt
         run: pnpm exec tsx .github/scripts/daily-vuln-scan.ts
 
       - name: Email new findings
         if: steps.scan.outputs.has_new == 'true' || steps.scan.outputs.is_first_run == 'true'
-        uses: dawidd6/action-send-mail@v4
+        uses: dawidd6/action-send-mail@v22
         with:
           server_address: smtp.gmail.com
           server_port: 465

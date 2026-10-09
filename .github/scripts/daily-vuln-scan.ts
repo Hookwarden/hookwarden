@@ -1,4 +1,4 @@
-// Daily vuln diff-scan. Clones each repo in daily-targets.txt, runs hookwarden,
+// Daily vuln diff-scan. Clones each repo in $DAILY_TARGETS (or daily-targets.txt locally), runs hookwarden,
 // keeps only CONFIDENT reportable findings (severity critical/high AND state
 // `not-verified` — manual-review is excluded per bugs-in-the-wild.md), and diffs
 // against a baseline so only NEWLY-appeared findings are reported. Writes a plain-text
@@ -57,7 +57,8 @@ interface Hit {
 }
 
 function readTargets(): ReadonlyArray<string> {
-  return readFileSync(TARGETS_FILE, "utf8")
+  // CI passes the list via the DAILY_TARGETS secret so which repos we watch daily stays private.
+  return (process.env.DAILY_TARGETS || readFileSync(TARGETS_FILE, "utf8"))
     .split("\n")
     .map((l) => l.replace(/#.*$/, "").trim())
     .filter((l) => l.length > 0);
@@ -102,6 +103,9 @@ function scanOne(hw: string, dir: string): ScanResult | null {
   const res = spawnSync(hw, ["scan", dir, "--format", "json"], {
     encoding: "utf8",
     maxBuffer: 200 * 1024 * 1024,
+    // ponytail: flat 5-min cap per target so one hung repo (PostHog, 2026-10-05) is recorded
+    // as a failed target instead of eating the job timeout; killed scans fail JSON.parse → null.
+    timeout: 5 * 60 * 1000,
   });
   if (res.status !== null && res.status > 1) return null; // 0 = clean, 1 = findings; >1 = error
   try {

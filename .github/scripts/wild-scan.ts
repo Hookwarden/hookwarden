@@ -218,6 +218,9 @@ function scanOne(hw: string, dir: string): ScanResult | null {
   const res = spawnSync(hw, ["scan", dir, "--format", "json"], {
     encoding: "utf8",
     maxBuffer: 200 * 1024 * 1024,
+    // ponytail: flat 5-min cap per target so one hung repo (PostHog, 2026-10-05) is recorded
+    // as a failed target instead of eating the job timeout; killed scans fail JSON.parse → null.
+    timeout: 5 * 60 * 1000,
   });
   // Exit codes: 0 = clean, 1 = findings at threshold. Either has parseable JSON.
   // Exit codes 2+ = engine error → null aggregate.
@@ -296,9 +299,11 @@ function aggregate(targets: ReadonlyArray<string>, hw: string): Aggregate {
         pr.rules[f.rule_id] = (pr.rules[f.rule_id] ?? 0) + 1;
       }
     }
-    console.log(
-      `  ✓ ${fs.length} findings (${critical} critical, ${high} high, ${manualReview} manual-review)`,
-    );
+    // Running totals only in CI: per-repo counts would sit in public Actions logs.
+    if (!process.env.GITHUB_ACTIONS)
+      console.log(
+        `  ✓ ${fs.length} findings (${critical} critical, ${high} high, ${manualReview} manual-review)`,
+      );
   }
   return {
     targetsScanned: targets.length - failed.length,
