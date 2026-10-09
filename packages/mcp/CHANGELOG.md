@@ -1,5 +1,15 @@
 # @hookwarden/mcp
 
+## 0.9.5
+
+### Patch Changes
+
+- Updated dependencies [27d451c]
+- Updated dependencies [d412f4e]
+- Updated dependencies [4486c54]
+  - @hookwarden/rules@0.12.0
+  - @hookwarden/engine@0.12.0
+
 ## 0.9.4
 
 ### Patch Changes
