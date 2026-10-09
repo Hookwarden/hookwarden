@@ -1,0 +1,38 @@
+name: MCP registry publish (manual recovery)
+
+# Publishes packages/mcp/server.json to registry.modelcontextprotocol.io.
+# release.yml does this automatically when @hookwarden/mcp is published;
+# use this when that step was skipped and the registry is stuck on an older
+# version. The server.json version must already be on npm.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Refuse unless server.json's version is on npm
+        working-directory: packages/mcp
+        run: |
+          version=$(jq -r .version server.json)
+          npm view "@hookwarden/mcp@$version" version
+
+      - name: Install mcp-publisher CLI
+        env:
+          MCP_PUBLISHER_VERSION: v1.8.1
+        run: |
+          curl -fL "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+          sudo mv mcp-publisher /usr/local/bin/mcp-publisher
+
+      - name: Publish
+        working-directory: packages/mcp
+        run: |
+          mcp-publisher login github-oidc
+          mcp-publisher publish

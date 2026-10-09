@@ -241,44 +241,23 @@ jobs:
           steps.changesets.outputs.published == 'true' &&
           contains(steps.changesets.outputs['published-packages'], '@hookwarden/mcp')
         env:
-          MCP_PUBLISHER_VERSION: v1.7.9
+          MCP_PUBLISHER_VERSION: v1.8.1
         run: |
           curl -fL "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
           sudo mv mcp-publisher /usr/local/bin/mcp-publisher
           mcp-publisher --version
 
       - name: Register @hookwarden/mcp at registry.modelcontextprotocol.io (Plan 23-09)
-        # DISABLED 2026-05-30 — Plan 23-09 Tasks 2-5 pending.
-        #
-        # The commented-out commands below use `mcp-publisher login github`,
-        # which is INTERACTIVE device-code auth (prints "Go to github.com/
-        # login/device, enter code XXXX-XXXX"), NOT OIDC despite the original
-        # comment claim. In CI this sits 15min waiting for a human and times
-        # out, failing the whole Release workflow on every tag push.
-        #
-        # Re-enable once non-interactive auth is wired (DCR client credentials,
-        # pre-issued bearer token, or upstream adds an OIDC path). Restore the
-        # commands and remove the `echo`/exit-0 stub below.
-        #
-        # Plan 23-09 references:
-        #   - Tasks 2-5 in .planning/phases/23-hookwarden-mcp-developer-preview-scan-handler/
-        #   - SUMMARY at commit 7a84b8b notes "Tasks 0+1 done, 2-5 pending publish"
-        #
-        # Supersedes D-23-15 per RESEARCH §Pitfall 2: NO PRs to fictional
-        # catalog repos. Cursor Directory + Continue Hub both scrape this
-        # registry on nightly schedule; aggregator visibility lags 24-48h
-        # (Plan 23-09 Tasks 2 + 3 human-verify).
+        # Non-interactive: `login github-oidc` exchanges this job's OIDC token
+        # (id-token: write, above) for a registry token scoped to
+        # io.github.Hookwarden/*. Manual recovery: mcp-registry-publish.yml.
         if: |
           steps.changesets.outputs.published == 'true' &&
           contains(steps.changesets.outputs['published-packages'], '@hookwarden/mcp')
         working-directory: packages/mcp
         run: |
-          echo "::warning::MCP registry publish skipped — Plan 23-09 Tasks 2-5 pending non-interactive auth."
-          echo "The mcp-publisher CLI requires interactive device-code login; CI cannot complete it."
-          echo "Restore the commands below once non-interactive auth is wired."
-          # mcp-publisher login github
-          # mcp-publisher publish --dry-run
-          # mcp-publisher publish
+          mcp-publisher login github-oidc
+          mcp-publisher publish
 
       # ----- Phase 4.1 channel fan-out (only when the `hookwarden` CLI was published) -----
       #

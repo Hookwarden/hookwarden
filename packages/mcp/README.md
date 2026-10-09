@@ -18,7 +18,7 @@
 
 `@hookwarden/mcp` exposes hookwarden's deterministic webhook-verification engine as MCP tools. AI coding agents — Claude Desktop, Cursor, Continue, and apps built on the Anthropic Agent SDK — get two tools:
 
-- **`scan_handler`** — scan pasted webhook handler code and get back a structured finding (`verified` / `not-verified` / `manual-review`) for Stripe, GitHub, Shopify, Twilio, and 17 other providers.
+- **`scan_handler`** — scan pasted webhook handler code and get back a structured finding (`verified` / `not-verified` / `manual-review`) for Stripe, GitHub, Shopify, Twilio, and 23 other providers.
 - **`verify_audit_chain`** — verify a hookwarden evidence pack's hash chain + KMS-signed Merkle roots **offline** (no network, no auth), returning `{ valid, broken_at_row, signatures_verified }`.
 
 Runs entirely client-side. Zero network egress from the MCP process. Zero auth. The same engine the [hookwarden CLI](https://www.npmjs.com/package/hookwarden) ships — same rule pack, same content hashes, end-to-end provenance.
