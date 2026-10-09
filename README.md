@@ -244,6 +244,8 @@ The `state` column is the three-state verdict. Output is also available as byte-
   <a href="https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/slack.mdx"><img src="https://img.shields.io/badge/Slack-6366F1?style=for-the-badge&logo=slack&logoColor=white" alt="Slack" /></a>
   <a href="https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/twilio.mdx"><img src="https://img.shields.io/badge/Twilio-6366F1?style=for-the-badge&logo=twilio&logoColor=white" alt="Twilio" /></a>
   <a href="https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/square.mdx"><img src="https://img.shields.io/badge/Square-6366F1?style=for-the-badge&logo=square&logoColor=white" alt="Square" /></a>
+  <a href="https://github.com/Hookwarden/hookwarden/tree/main/packages/rules/rules/paypal"><img src="https://img.shields.io/badge/PayPal-6366F1?style=for-the-badge&logo=paypal&logoColor=white" alt="PayPal" /></a>
+  <a href="https://github.com/Hookwarden/hookwarden/tree/main/packages/rules/rules/nmi"><img src="https://img.shields.io/badge/NMI-6366F1?style=for-the-badge" alt="NMI" /></a>
 </p>
 
 Every rule carries fix guidance quoted from the provider's canonical security docs. Full per-rule reference and coverage matrix: **[rule reference](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/rules/index.mdx)**.
