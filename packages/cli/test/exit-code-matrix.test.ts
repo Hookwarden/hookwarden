@@ -89,7 +89,7 @@ describe("exit-code matrix (CLI-04, D-65 precedence 3 > 2 > 4 > 1 > 0)", () => {
   it("EM-3b (Blocker 4): invalid --format → exit 3, message names the value", () => {
     const r = runCli(["--format", "weird", CANONICAL_BUG]);
     expect(r.code).toBe(3);
-    expect(r.stderr).toContain("must be one of text|json|sarif");
+    expect(r.stderr).toContain("must be one of text|json|sarif|html");
     expect(r.stderr).toContain("weird");
   });
 

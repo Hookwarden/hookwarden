@@ -77,7 +77,7 @@ jobs:
       - name: Install workspace deps
         run: pnpm install --frozen-lockfile
 
-      - name: Sync generated assets (WASM + version constants + rule bundle)
+      - name: Sync generated assets (WASM + version constants + rule bundle + UI app)
         run: |
           # All sync scripts run in `prepare` (post pnpm install) but we re-run
           # defensively — all generated files must exist before tsc compiles,
@@ -87,6 +87,7 @@ jobs:
           node packages/engine/scripts/sync-version.mjs
           node packages/rules/scripts/sync-version.mjs
           node packages/rules/scripts/sync-bundle.mjs
+          node packages/ui/scripts/build-app.mjs
 
       - name: Build CLI (TS → JS)
         run: pnpm build
@@ -294,6 +295,27 @@ jobs:
           # despite Write-Host succeeding. The Linux bash variant avoids this
           # via `set +e` / explicit SCAN_EXIT capture.
           exit 0
+
+      - name: Local UI smoke (embedded app served from the binary)
+        # `hookwarden ui` serves an app embedded at build time (packages/ui
+        # build-app.mjs -> app-html.ts). Inside the compiled binary there is no
+        # node_modules, so a missing embed only shows up here.
+        shell: bash
+        env:
+          ASSET: ${{ matrix.asset }}
+        run: |
+          set -euo pipefail
+          FX=e2e/fixtures/phase-3/canonical-stripe-bug
+          "./$ASSET" ui "$FX" --no-open --port 4599 > ui.log 2>&1 &
+          PID=$!
+          for _ in $(seq 1 60); do grep -q '#t=' ui.log && break; sleep 0.5; done
+          cat ui.log
+          curl -fsS http://127.0.0.1:4599/ | grep -q '<div id="app">'
+          T=$(grep -o '#t=[A-Za-z0-9_-]*' ui.log | cut -c4-)
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:4599/api/scan)" = 401
+          curl -fsS -X POST -H "authorization: Bearer $T" http://127.0.0.1:4599/api/scan | grep -q '"findings"'
+          kill "$PID"
+          echo "UI smoke OK"
 
       - name: Upload binary as workflow artifact
         uses: actions/upload-artifact@v7

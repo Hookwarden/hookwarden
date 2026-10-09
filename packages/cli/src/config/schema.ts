@@ -14,7 +14,7 @@ const SCHEMA = {
   properties: {
     schema_version: { type: "string", const: "1.0" },
     fail_on: { enum: ["critical", "high", "medium", "low"] },
-    format: { enum: ["text", "json", "sarif"] },
+    format: { enum: ["text", "json", "sarif", "html"] },
     parse_coverage: {
       type: "object",
       additionalProperties: false,
@@ -48,7 +48,7 @@ const SCHEMA = {
 export interface ParsedConfigDocument {
   readonly schema_version: "1.0";
   readonly fail_on?: "critical" | "high" | "medium" | "low";
-  readonly format?: "text" | "json" | "sarif";
+  readonly format?: "text" | "json" | "sarif" | "html";
   readonly parse_coverage?: { readonly min?: number };
   readonly suppressions?: { readonly strict?: boolean };
   readonly baseline?: { readonly enabled?: boolean; readonly path?: string };

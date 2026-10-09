@@ -58,6 +58,7 @@ describe("Phase 1 — Foundation & Defensive Registration: Success Criteria", ()
     // canonical-json added in phase 25 (25-01) — RFC 8785 JCS, published as
     // @hookwarden/canonical-json@0.1.0; the byte-equality anchor shared by the
     // evidence-pack writer/verifier and the verify_audit_chain MCP tool (25-02).
+    // ui added for `hookwarden ui` + `scan --format html` (local web UI / report).
     for (const name of [
       "engine",
       "cli",
@@ -67,6 +68,7 @@ describe("Phase 1 — Foundation & Defensive Registration: Success Criteria", ()
       "fix",
       "mcp",
       "canonical-json",
+      "ui",
     ]) {
       const path = join(ROOT, "packages", name, "package.json");
       expect(existsSync(path), `packages/${name}/package.json missing`).toBe(true);
@@ -74,7 +76,7 @@ describe("Phase 1 — Foundation & Defensive Registration: Success Criteria", ()
     const root = JSON.parse(readFileSync(join(ROOT, "tsconfig.json"), "utf8"));
     // Bump this count whenever a new packages/* project reference lands in
     // the root tsconfig.json — see packages list above.
-    expect(root.references.length).toBe(8);
+    expect(root.references.length).toBe(9);
   });
 
   it("Success Criterion 2: dep-cruiser blocks fs import in packages/engine", () => {

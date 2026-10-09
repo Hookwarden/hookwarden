@@ -8,6 +8,7 @@
     { "path": "./packages/rules" },
     { "path": "./packages/fix" },
     { "path": "./packages/mcp" },
-    { "path": "./packages/canonical-json" }
+    { "path": "./packages/canonical-json" },
+    { "path": "./packages/ui" }
   ]
 }

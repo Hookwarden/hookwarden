@@ -22,6 +22,7 @@ import {
 import {
   applyFixes,
   dryRunFixes,
+  type FixEdit,
   FixModeNonTtyRejectedError,
   type FixOptions,
   type FixResult,
@@ -77,34 +78,83 @@ export async function runFixCommand(args: FixArgs): Promise<number> {
   const useAnsi = noColor ? false : shouldUseAnsi(process.stdout);
   const isTty = process.stdout.isTTY === true && process.env["HOOKWARDEN_NO_TTY"] !== "1";
 
+  const plan = await planFixes({
+    path: args.path,
+    rulesDir: args["rules-dir"],
+    options: {
+      mode,
+      write: !dryRun,
+      isTty,
+      ...(args["accept-unsafe"] !== undefined ? { acceptUnsafe: args["accept-unsafe"] } : {}),
+      ...(args.only !== undefined ? { only: args.only.split(",").map((s) => s.trim()) } : {}),
+      format,
+    },
+  });
+  if ("error" in plan) {
+    process.stderr.write(`error: ${plan.error}\n`);
+    return plan.code;
+  }
+  const { result, cwd } = plan;
+
+  // Step 5 — Conflict detection short-circuit.
+  if (result.suggestion !== null) {
+    process.stderr.write(result.suggestion);
+    return 3;
+  }
+
+  // Step 6 — Apply via atomic staging when --write.
+  if (!dryRun && result.fixes.length > 0) await writeFixes(cwd, result.fixes);
+
+  // Step 7 — Render output.
+  if (format === "json") {
+    process.stdout.write(`${JSON.stringify(buildJsonSchema(result), null, 2)}\n`);
+  } else {
+    renderTextResult(result, useAnsi);
+  }
+
+  return 0;
+}
+
+export interface PlanFixesInput {
+  readonly path?: string | undefined;
+  readonly rulesDir?: string | undefined;
+  readonly options: FixOptions;
+}
+
+export type PlanFixesOutput =
+  | { readonly result: FixResult; readonly cwd: string }
+  | { readonly error: string; readonly code: 2 | 3 };
+
+/**
+ * Steps 1–4 of `hookwarden fix`: resolve config, scan, re-parse the touched files,
+ * and compute the edits (dry-run or apply-mode). Shared with `hookwarden ui`.
+ * Never writes to disk — pair with writeFixes().
+ */
+export async function planFixes(input: PlanFixesInput): Promise<PlanFixesOutput> {
   // Step 1 — Config + scan target.
   // `fix path/to/handler.js` is valid: scan the file directly, but resolve config, the touched
   // files (whose paths are reported relative to the scanned directory), and the staging dir
   // against the file's PARENT directory. Using the file path itself as the base made
   // path.join() produce bogus paths, so the codegen never re-parsed the file → "0 fixable
   // findings" on any single-file invocation.
-  const rootPath = path.resolve(args.path ?? ".");
+  const rootPath = path.resolve(input.path ?? ".");
   let isDir = false;
   try {
     isDir = statSync(rootPath).isDirectory();
   } catch {
     // Path doesn't exist — the scan step reports it; don't crash here.
   }
-  const baseDir = isDir ? rootPath : path.dirname(rootPath);
-  const cwd = baseDir;
+  const cwd = isDir ? rootPath : path.dirname(rootPath);
   let resolvedConfig: ResolvedConfig;
   try {
     const configResult = await loadConfigFromCwd({ cwd, disabled: false });
     resolvedConfig = resolveConfig(
-      args["rules-dir"] !== undefined ? { rules_dir: args["rules-dir"] } : {},
+      input.rulesDir !== undefined ? { rules_dir: input.rulesDir } : {},
       process.env,
       configResult.config,
     );
   } catch (e) {
-    if (e instanceof ConfigError) {
-      process.stderr.write(`error: ${e.message}\n`);
-      return 3;
-    }
+    if (e instanceof ConfigError) return { error: e.message, code: 3 };
     throw e;
   }
 
@@ -117,77 +167,48 @@ export async function runFixCommand(args: FixArgs): Promise<number> {
     baselineWrite: false,
     verbose: false,
   });
-  if (scanOutput.engineError !== null) {
-    process.stderr.write(`error: ${scanOutput.engineError.message}\n`);
-    return 2;
-  }
+  if (scanOutput.engineError !== null) return { error: scanOutput.engineError.message, code: 2 };
 
   // Step 3 — Re-parse the touched files so the codegen routines can run.
   const touchedFiles = uniqueFilePaths(scanOutput.result.findings);
   const parsedFiles = await parseFilesByPath(cwd, touchedFiles);
 
-  // Step 4 — Compose FixOptions + invoke the orchestrator.
-  const opts: FixOptions = {
-    mode,
-    write: !dryRun,
-    isTty,
-    ...(args["accept-unsafe"] !== undefined ? { acceptUnsafe: args["accept-unsafe"] } : {}),
-    ...(args.only !== undefined ? { only: args.only.split(",").map((s) => s.trim()) } : {}),
-    format,
-  };
+  // Step 4 — Invoke the orchestrator.
   const context = {
     parsedFiles,
     codegenRegistry: ALL_CODEGEN_ROUTINES,
   };
-
-  let result: FixResult;
   try {
-    result = dryRun
-      ? await dryRunFixes(scanOutput.result, scanOutput.ruleSet, opts, context)
-      : await applyFixes(scanOutput.result, scanOutput.ruleSet, opts, context);
+    const result = input.options.write
+      ? await applyFixes(scanOutput.result, scanOutput.ruleSet, input.options, context)
+      : await dryRunFixes(scanOutput.result, scanOutput.ruleSet, input.options, context);
+    return { result, cwd };
   } catch (e) {
     if (e instanceof FixModeNonTtyRejectedError) {
       // D-12 verbatim user-visible message — lives in the CLI handler only.
-      process.stderr.write("error: --mode all in non-TTY requires --accept-unsafe (D-12)\n");
-      return 3;
+      return { error: "--mode all in non-TTY requires --accept-unsafe (D-12)", code: 3 };
     }
-    process.stderr.write(`error: ${(e as Error).message}\n`);
-    return 2;
+    return { error: (e as Error).message, code: 2 };
   }
+}
 
-  // Step 5 — Conflict detection short-circuit.
-  if (result.suggestion !== null) {
-    process.stderr.write(result.suggestion);
-    return 3;
+/** Step 6 of `hookwarden fix`: write edits via atomic staging (one commit for all files). */
+export async function writeFixes(cwd: string, fixes: ReadonlyArray<FixEdit>): Promise<void> {
+  await ensureGitignoreEntry(cwd);
+  const run = await createStagingRun(cwd);
+  // Group edits by file, build the post-edit source per file, then stage.
+  const editsByFile = new Map<string, FixEdit[]>();
+  for (const edit of fixes) {
+    const list = editsByFile.get(edit.filePath) ?? [];
+    list.push(edit);
+    editsByFile.set(edit.filePath, list);
   }
-
-  // Step 6 — Apply via atomic staging when --write.
-  if (!dryRun && result.fixes.length > 0) {
-    await ensureGitignoreEntry(cwd);
-    const run = await createStagingRun(cwd);
-    // Group edits by file, build the post-edit source per file, then stage.
-    const editsByFile = new Map<string, typeof result.fixes>();
-    for (const edit of result.fixes) {
-      const list = editsByFile.get(edit.filePath) ?? [];
-      (list as Array<typeof edit>).push(edit);
-      editsByFile.set(edit.filePath, list);
-    }
-    for (const [filePath, edits] of editsByFile) {
-      const original = await fs.readFile(path.join(cwd, filePath), "utf-8");
-      const next = applyEditsInPlace(original, [...edits]);
-      await stageFile(run, filePath, next);
-    }
-    await commitStaging(run);
+  for (const [filePath, edits] of editsByFile) {
+    const original = await fs.readFile(path.join(cwd, filePath), "utf-8");
+    const next = applyEditsInPlace(original, edits);
+    await stageFile(run, filePath, next);
   }
-
-  // Step 7 — Render output.
-  if (format === "json") {
-    process.stdout.write(`${JSON.stringify(buildJsonSchema(result), null, 2)}\n`);
-  } else {
-    renderTextResult(result, useAnsi);
-  }
-
-  return 0;
+  await commitStaging(run);
 }
 
 function uniqueFilePaths(findings: ReadonlyArray<{ readonly file_path: string }>): string[] {

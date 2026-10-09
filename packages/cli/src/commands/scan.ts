@@ -9,6 +9,7 @@ import { readFile } from "node:fs/promises";
 import * as path from "node:path";
 import type { Finding, Severity } from "@hookwarden/engine";
 import { PROVIDER_CATALOG, SEVERITY_CLASS_GROUP_NAMES } from "@hookwarden/rules";
+import { renderReport } from "@hookwarden/ui";
 import { defineCommand } from "citty";
 import { ConfigError, loadConfigFromCwd } from "../config/loader.js";
 import { type ResolvedConfig, resolveConfig } from "../config/precedence.js";
@@ -67,7 +68,7 @@ export interface ScanArgs {
 }
 
 const VALID_FAIL_ON: ReadonlySet<string> = new Set(["critical", "high", "medium", "low"]);
-const VALID_FORMAT: ReadonlySet<string> = new Set(["text", "json", "sarif"]);
+const VALID_FORMAT: ReadonlySet<string> = new Set(["text", "json", "sarif", "html"]);
 const VALID_PROVIDERS: ReadonlySet<string> = new Set(Object.keys(PROVIDER_CATALOG));
 const VALID_SEVERITY_CLASSES: ReadonlySet<string> = new Set(SEVERITY_CLASS_GROUP_NAMES);
 
@@ -208,7 +209,9 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
     return 3;
   }
   if (args.format !== undefined && !VALID_FORMAT.has(args.format)) {
-    process.stderr.write(`error: --format must be one of text|json|sarif (got "${args.format}")\n`);
+    process.stderr.write(
+      `error: --format must be one of text|json|sarif|html (got "${args.format}")\n`,
+    );
     return 3;
   }
   let providerFilter: ReadonlySet<string> | null = null;
@@ -508,9 +511,21 @@ export async function runScanCommand(args: ScanArgs): Promise<number> {
         }),
       );
       break;
+    case "html":
+      // Self-contained, offline report: the JSON envelope embedded in the UI app.
+      process.stdout.write(
+        renderReport(
+          renderJson({
+            scanResult: scan.result,
+            ruleSet: scan.ruleSet,
+            stale: scan.stale,
+          }),
+        ),
+      );
+      break;
     default:
       process.stderr.write(
-        `error: unknown format '${resolvedConfig.format}' — supported: text | json | sarif\n`,
+        `error: unknown format '${resolvedConfig.format}' — supported: text | json | sarif | html\n`,
       );
       return 3;
   }
@@ -558,7 +573,7 @@ export const scanCommand = defineCommand({
       type: "string",
       description: "Override the bundled rule pack location (dev-only).",
     },
-    format: { type: "string", description: "Output format: text | json | sarif" },
+    format: { type: "string", description: "Output format: text | json | sarif | html" },
     "fail-on": {
       type: "string",
       description: "Severity threshold: critical | high | medium | low",

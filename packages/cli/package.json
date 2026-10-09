@@ -65,6 +65,7 @@
     "@hookwarden/engine": "workspace:*",
     "@hookwarden/fix": "workspace:*",
     "@hookwarden/rules": "workspace:*",
+    "@hookwarden/ui": "workspace:*",
     "ajv": "^8.17.1",
     "citty": "^0.2.2",
     "ignore": "^7.0.12",

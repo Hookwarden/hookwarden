@@ -1,0 +1,48 @@
+{
+  "name": "@hookwarden/ui",
+  "version": "0.12.0",
+  "description": "Local web UI and single-file HTML report for the hookwarden CLI. Served from 127.0.0.1 only; zero network.",
+  "homepage": "https://hookwarden.dev",
+  "bugs": {
+    "url": "https://github.com/Hookwarden/hookwarden/issues"
+  },
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Hookwarden/hookwarden.git",
+    "directory": "packages/ui"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "tsc --build",
+    "build:app": "node scripts/build-app.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc -p app/tsconfig.json",
+    "prepare": "node scripts/build-app.mjs",
+    "prepack": "node scripts/build-app.mjs"
+  },
+  "devDependencies": {
+    "preact": "^11.0.1",
+    "vite": "8.3.2"
+  }
+}

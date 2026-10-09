@@ -38,6 +38,7 @@ No traffic leaves your machine. No telemetry. No SaaS sign-up required.
 - [💡 Why](#-why)
 - [📦 Install](#-install)
 - [🚀 Quickstart](#-quickstart)
+- [🖥 Local UI & HTML report](#-local-ui--html-report)
 - [🛠 Auto-fix (v0.5)](#-auto-fix-v05)
 - [📺 Real output](#-real-output)
 - [🌐 Languages & frameworks](#-languages--frameworks)
@@ -214,6 +215,17 @@ off by default and explicit opt-in only.
 See [Install](#-install) for permanent install via npm, Homebrew, Scoop, or PyPI. Full flag reference: `npx hookwarden --help`.
 
 ---
+
+## 🖥 Local UI & HTML report
+
+Prefer clicking to the terminal? Open the findings in your browser, preview each fix as a diff, and apply the safe ones:
+
+```bash
+npx hookwarden ui ./your-app            # serves on 127.0.0.1 only, opens your browser
+npx hookwarden scan ./your-app --format html > report.html   # one offline file to attach to a PR or email
+```
+
+`hookwarden ui` binds to `127.0.0.1`, requires the per-launch token in the URL it prints, and only writes inside the folder you pass — through the same atomic staging as `hookwarden fix --write`. The HTML report is read-only and makes no network requests.
 
 ## 🛠 Auto-fix (v0.5)
 

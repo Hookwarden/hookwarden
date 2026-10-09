@@ -137,6 +137,17 @@ npx hookwarden inventory ./your-app
 
 `--diff-only`, `--provider stripe,github` (phased rollout), `--include`/`--exclude` globs, `--strict-suppressions`, repo-level `hookwarden.config.yaml`, and more: `npx hookwarden --help` and the [CLI docs](https://github.com/Hookwarden/hookwarden/blob/main/apps/docs/src/content/docs/cli/ci.mdx).
 
+### Local UI & HTML report
+
+Prefer clicking to the terminal? Open the findings in your browser, preview each fix as a diff, and apply the safe ones:
+
+```bash
+npx hookwarden ui ./your-app            # serves on 127.0.0.1 only, opens your browser
+npx hookwarden scan ./your-app --format html > report.html   # one offline file to attach to a PR or email
+```
+
+`hookwarden ui` binds to `127.0.0.1`, requires the per-launch token in the URL it prints, and only writes inside the folder you pass — through the same atomic staging as `hookwarden fix --write`. The HTML report is read-only and makes no network requests.
+
 ### Git history scan (`--history`)
 
 By default `scan` only looks at your working tree. `--history` also walks the
