@@ -225,7 +225,16 @@ npx hookwarden ui ./your-app            # serves on 127.0.0.1 only, opens your b
 npx hookwarden scan ./your-app --format html > report.html   # one offline file to attach to a PR or email
 ```
 
-`hookwarden ui` binds to `127.0.0.1`, requires the per-launch token in the URL it prints, and only writes inside the folder you pass — through the same atomic staging as `hookwarden fix --write`. The HTML report is read-only and makes no network requests.
+`hookwarden ui` prints a `http://127.0.0.1:<port>/#t=…` link and opens it. In the browser you can:
+
+- **Browse** every finding — filter by severity, provider, or text; see the message, the redacted code, and the references.
+- **Preview fix** — the exact edit as a diff, before anything is written.
+- **Apply** — writes the `safe` edits via the same atomic staging as `hookwarden fix --write`, then re-scans. Unsafe and manual-only edits are shown, never applied.
+- **Re-scan** — reads the files again after you edit them in your own editor.
+
+Flags: `--port N` (default: a free port), `--no-open` (print the link only). Stop it with `Ctrl+C`.
+
+Safety: it listens on `127.0.0.1` only, every request needs the per-launch token in the link, and it only writes inside the folder you pass. The HTML report is the same app, read-only, with the scan embedded — it makes no network requests.
 
 ## 🛠 Auto-fix (v0.5)
 
