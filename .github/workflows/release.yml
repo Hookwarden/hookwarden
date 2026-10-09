@@ -83,7 +83,7 @@ jobs:
       SKIP_SIMPLE_GIT_HOOKS: '1'
     outputs:
       published: ${{ steps.changesets.outputs.published }}
-      published-packages: ${{ steps.changesets.outputs.publishedPackages }}
+      published-packages: ${{ steps.changesets.outputs['published-packages'] }}
       version: ${{ steps.version.outputs.version }}
       homebrew-sha: ${{ steps.bump-homebrew.outputs.sha }}
       scoop-sha: ${{ steps.bump-scoop.outputs.sha }}
@@ -157,7 +157,7 @@ jobs:
         # happening in this release.
         if: |
           steps.changesets.outputs.published == 'true' &&
-          contains(steps.changesets.outputs.publishedPackages, '@hookwarden/mcp')
+          contains(steps.changesets.outputs['published-packages'], '@hookwarden/mcp')
         run: |
           # npm CDN propagation race — the publish endpoint and the read CDN
           # are different layers; the read side can lag 30-90s after
@@ -165,7 +165,7 @@ jobs:
           # "Cannot read properties of null (reading 'matches')" on v0.7.2
           # because the tarball metadata wasn't visible yet. Poll for the
           # exact just-published version for up to ~90s.
-          VERSION=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[] | select(.name=="@hookwarden/mcp") | .version')
+          VERSION=$(echo '${{ steps.changesets.outputs['published-packages'] }}' | jq -r '.[] | select(.name=="@hookwarden/mcp") | .version')
           if [ -z "$VERSION" ]; then
             echo "::error::Could not extract @hookwarden/mcp version from publishedPackages output"
             exit 1
@@ -204,12 +204,12 @@ jobs:
         # in the published set.
         if: |
           steps.changesets.outputs.published == 'true' &&
-          contains(steps.changesets.outputs.publishedPackages, '@hookwarden/canonical-json')
+          contains(steps.changesets.outputs['published-packages'], '@hookwarden/canonical-json')
         run: |
           # npm CDN propagation race — the read CDN can lag 30-90s after
           # `changeset publish` returns 200. Poll for the exact just-published
           # version for up to ~90s before the tarball-fetch assertion.
-          VERSION=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[] | select(.name=="@hookwarden/canonical-json") | .version')
+          VERSION=$(echo '${{ steps.changesets.outputs['published-packages'] }}' | jq -r '.[] | select(.name=="@hookwarden/canonical-json") | .version')
           if [ -z "$VERSION" ]; then
             echo "::error::Could not extract @hookwarden/canonical-json version from publishedPackages output"
             exit 1
@@ -239,7 +239,7 @@ jobs:
         # bumping the pin is a deliberate PR.
         if: |
           steps.changesets.outputs.published == 'true' &&
-          contains(steps.changesets.outputs.publishedPackages, '@hookwarden/mcp')
+          contains(steps.changesets.outputs['published-packages'], '@hookwarden/mcp')
         env:
           MCP_PUBLISHER_VERSION: v1.7.9
         run: |
@@ -270,7 +270,7 @@ jobs:
         # (Plan 23-09 Tasks 2 + 3 human-verify).
         if: |
           steps.changesets.outputs.published == 'true' &&
-          contains(steps.changesets.outputs.publishedPackages, '@hookwarden/mcp')
+          contains(steps.changesets.outputs['published-packages'], '@hookwarden/mcp')
         working-directory: packages/mcp
         run: |
           echo "::warning::MCP registry publish skipped — Plan 23-09 Tasks 2-5 pending non-interactive auth."
@@ -297,12 +297,12 @@ jobs:
         if: steps.changesets.outputs.published == 'true'
         run: |
           set -euo pipefail
-          if echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -e 'any(.name == "hookwarden")' > /dev/null; then
+          if echo '${{ steps.changesets.outputs['published-packages'] }}' | jq -e 'any(.name == "hookwarden")' > /dev/null; then
             echo "cli=true" >> "$GITHUB_OUTPUT"
             echo "hookwarden CLI included in this publish — running CLI distribution fan-out"
           else
             echo "cli=false" >> "$GITHUB_OUTPUT"
-            published=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r 'map(.name + "@" + .version) | join(", ")')
+            published=$(echo '${{ steps.changesets.outputs['published-packages'] }}' | jq -r 'map(.name + "@" + .version) | join(", ")')
             echo "::notice::Skipping PyPI wait + Homebrew/Scoop/hookwarden-action bumps + channel-parity gate — published set is library-only: ${published}"
           fi
 
@@ -315,7 +315,7 @@ jobs:
           # distribution channels — pick its version explicitly, not the array's first
           # element (which is order-dependent and can be a scoped lib like
           # @hookwarden/pr-renderer when CLI+lib publish in the same Changesets run).
-          version=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[] | select(.name == "hookwarden") | .version')
+          version=$(echo '${{ steps.changesets.outputs['published-packages'] }}' | jq -r '.[] | select(.name == "hookwarden") | .version')
           echo "version=v${version}" >> "$GITHUB_OUTPUT"
           echo "Resolved release version: v${version}"
 
