@@ -62,15 +62,6 @@ jobs:
           REPORT_FILE: daily-scan-report.txt
         run: pnpm exec tsx .github/scripts/daily-vuln-scan.ts
 
-      - name: Stage report for email
-        if: steps.scan.outputs.has_new == 'true' || steps.scan.outputs.is_first_run == 'true'
-        run: |
-          {
-            echo "REPORT_BODY<<HWEOF"
-            cat daily-scan-report.txt
-            echo "HWEOF"
-          } >> "$GITHUB_ENV"
-
       - name: Email new findings
         if: steps.scan.outputs.has_new == 'true' || steps.scan.outputs.is_first_run == 'true'
         uses: dawidd6/action-send-mail@v4
@@ -83,4 +74,4 @@ jobs:
           from: hookwarden daily scan <${{ secrets.MAIL_USERNAME }}>
           to: adelina.lipsa@gmail.com
           subject: ${{ steps.scan.outputs.subject }}
-          body: ${{ env.REPORT_BODY }}
+          body: file://daily-scan-report.txt
