@@ -87,6 +87,9 @@ importers:
       '@hookwarden/rules':
         specifier: workspace:*
         version: link:../rules
+      '@hookwarden/ui':
+        specifier: workspace:*
+        version: link:../ui
       ajv:
         specifier: ^8.17.1
         version: 8.20.0
@@ -309,6 +312,15 @@ importers:
       hookwarden:
         specifier: workspace:*
         version: link:../../cli
+
+  packages/ui:
+    devDependencies:
+      preact:
+        specifier: ^11.0.1
+        version: 11.0.1
+      vite:
+        specifier: 8.3.2
+        version: 8.3.2(@types/node@25.9.1)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1)
 
 packages:
 
@@ -3011,6 +3023,14 @@ packages:
   postcss@8.5.28:
     resolution: {integrity: sha512-RRuzqDtt5Y9h3quz5hWhK+TPnsmVs6WwSU6LkJMeY4HstUEDuYTG8UJSdawMRzmzAtV+KEoG8N3Qg2qLy5vM/A==}
     engines: {node: ^10 || ^12 || >=14}
+
+  preact@11.0.1:
+    resolution: {integrity: sha512-TNNwEq++jYNHy747LziCjPRVgEwnLSOIOAw/oYcjI3Tdnubx2EXtt76I0an8PATvUWtx/DX1kFIg1eFN+O/fkw==}
+    peerDependencies:
+      preact-render-to-string: '>=6.7.0'
+    peerDependenciesMeta:
+      preact-render-to-string:
+        optional: true
 
   prismjs@1.30.0:
     resolution: {integrity: sha512-DEvV2ZF2r2/63V+tK8hQvrR2ZGn10srHbXviTlcv7Kpzw8jWiNTqbVgjO3IY8RxrrOUF8VPMQQFysYYYv0YZxw==}
@@ -6620,6 +6640,8 @@ snapshots:
       nanoid: 3.3.19
       picocolors: 1.1.1
       source-map-js: 1.2.2
+
+  preact@11.0.1: {}
 
   prismjs@1.30.0: {}
 

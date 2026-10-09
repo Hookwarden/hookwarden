@@ -16,6 +16,7 @@ packages/rules/src/version.ts
 # packages/rules/rules/**/*.yaml. Bakes parsed rule content into the binary so Bun
 # --compile output is self-contained (no fs reads, no YAML parsing at runtime).
 packages/rules/src/bundled-rules.ts
+packages/ui/src/generated/
 
 # Astro 6 generated content types (apps/docs, apps/web) — regenerated per build.
 .astro/

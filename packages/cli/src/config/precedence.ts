@@ -5,7 +5,7 @@ import type { ParsedConfigDocument } from "./schema.js";
 
 export interface ResolvedConfig {
   readonly fail_on: Severity;
-  readonly format: "text" | "json" | "sarif";
+  readonly format: "text" | "json" | "sarif" | "html";
   readonly parse_coverage_min: number;
   readonly suppressions_strict: boolean;
   readonly baseline_enabled: boolean;
@@ -34,7 +34,7 @@ export const CONFIG_DEFAULTS: ResolvedConfig = {
 };
 
 const SEVERITIES: ReadonlySet<string> = new Set(["critical", "high", "medium", "low"]);
-const FORMATS: ReadonlySet<string> = new Set(["text", "json", "sarif"]);
+const FORMATS: ReadonlySet<string> = new Set(["text", "json", "sarif", "html"]);
 
 function parseBoolEnv(name: string, raw: string): boolean {
   const v = raw.trim().toLowerCase();
@@ -50,11 +50,11 @@ function parseSeverityEnv(name: string, raw: string): Severity {
   return raw as Severity;
 }
 
-function parseFormatEnv(name: string, raw: string): "text" | "json" | "sarif" {
+function parseFormatEnv(name: string, raw: string): "text" | "json" | "sarif" | "html" {
   if (!FORMATS.has(raw)) {
-    throw new Error(`${name}: expected one of text|json|sarif, got "${raw}"`);
+    throw new Error(`${name}: expected one of text|json|sarif|html, got "${raw}"`);
   }
-  return raw as "text" | "json" | "sarif";
+  return raw as "text" | "json" | "sarif" | "html";
 }
 
 function parseNumberEnv(name: string, raw: string): number {

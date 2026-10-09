@@ -21,6 +21,7 @@ import { explainCommand, runExplainCommand } from "./commands/explain.js";
 import { type FixArgs, fixCommand, runFixCommand } from "./commands/fix.js";
 import { type InventoryArgs, inventoryCommand, runInventoryCommand } from "./commands/inventory.js";
 import { runScanCommand, type ScanArgs, scanCommand } from "./commands/scan.js";
+import { runUiCommand, type UiArgs } from "./commands/ui.js";
 import { runUpdateCommand, type UpdateArgs } from "./commands/update.js";
 import { loadRulesFromDir } from "./load-rules.js";
 import { renderLogo } from "./logo.js";
@@ -87,6 +88,7 @@ const HELP_TEXT =
   `  hookwarden inventory [path]  List every detected webhook handler.\n` +
   `  hookwarden explain <rule>    Print full documentation for a single rule.\n` +
   `  hookwarden fix [path]        Apply mechanical fixes for safety:safe findings (dry-run by default).\n` +
+  `  hookwarden ui [path]         Open a local web UI: browse findings, preview and apply fixes.\n` +
   `  hookwarden update            Print the upgrade command for your install channel (use --yes to run it).\n` +
   `  hookwarden logo              Print the hookwarden mascot + wordmark.\n\n` +
   `Common flags:\n` +
@@ -99,7 +101,7 @@ const HELP_TEXT =
   `      --help, -h               Show subcommand help.\n` +
   `      --version, -V            Print CLI version.\n\n` +
   `Scan-only flags (Phase 4):\n` +
-  `      --format F               Output format: text | json | sarif.\n` +
+  `      --format F               Output format: text | json | sarif | html.\n` +
   `      --fail-on S              Severity threshold: critical | high | medium | low.\n` +
   `      --baseline write         Capture current findings as a baseline (auto-read otherwise).\n` +
   `      --no-baseline            Disable baseline reading.\n` +
@@ -148,6 +150,8 @@ interface ParsedFlags {
   write?: boolean;
   mode?: string;
   only?: string;
+  port?: string;
+  "no-open"?: boolean;
   "accept-unsafe"?: boolean;
   // `hookwarden update`
   yes?: boolean;
@@ -180,6 +184,7 @@ const STRING_FLAGS: ReadonlyArray<{
   // Phase 8.2 — `hookwarden fix` flags.
   { long: "--mode", key: "mode" },
   { long: "--only", key: "only" },
+  { long: "--port", key: "port" },
 ];
 
 const BOOLEAN_FLAGS: ReadonlyArray<{
@@ -199,6 +204,7 @@ const BOOLEAN_FLAGS: ReadonlyArray<{
   { long: "--include-tests", key: "include-tests" },
   // Phase 8.2 — `hookwarden fix` flags.
   { long: "--write", key: "write" },
+  { long: "--no-open", key: "no-open" },
   { long: "--accept-unsafe", key: "accept-unsafe" },
   // `hookwarden update` flags.
   { long: "--yes", key: "yes" },
@@ -366,6 +372,24 @@ export async function main(argv: ReadonlyArray<string>): Promise<number> {
         return 0;
       }
       return await runFixCommand(flags as FixArgs);
+    }
+    if (sub === "ui") {
+      const { flags, error } = parseFlags(argv.slice(1));
+      if (error !== null) {
+        process.stderr.write(`error: ${error}\n`);
+        return 3;
+      }
+      if (flags.help === true) {
+        process.stdout.write(
+          `Usage: hookwarden ui [path] [--port N] [--no-open]\n\n` +
+            `Starts a local web UI on 127.0.0.1 for the given folder (default: current).\n` +
+            `Browse findings, preview fixes as diffs, and apply safe fixes.\n\n` +
+            `  --port N    Listen on port N (default: a free port).\n` +
+            `  --no-open   Print the URL without opening a browser.\n`,
+        );
+        return 0;
+      }
+      return await runUiCommand(flags as UiArgs);
     }
     if (sub === "update") {
       const { flags, error } = parseFlags(argv.slice(1));

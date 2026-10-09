@@ -8,6 +8,7 @@
       "@hookwarden/rules",
       "@hookwarden/fix",
       "@hookwarden/github-action",
+      "@hookwarden/ui",
       "hookwarden",
       "hook-warden",
       "hookwardn",
