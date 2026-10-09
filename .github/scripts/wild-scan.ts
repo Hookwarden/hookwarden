@@ -331,6 +331,9 @@ const coreProviders: ReadonlyArray<string> = [
   "slack",
   "twilio",
   "square",
+  "paypal",
+  "braintree",
+  "nmi",
 ];
 
 /** Friendly labels for providers whose nice-casing the fallback can't
@@ -343,6 +346,8 @@ const providerLabel: Readonly<Record<string, string>> = {
   slack: "Slack integrations",
   twilio: "Twilio integrations",
   square: "Square integrations",
+  paypal: "PayPal integrations",
+  nmi: "NMI integrations",
   n8n: "n8n integrations",
   standardwebhooks: "Standard Webhooks integrations",
   svix: "Svix integrations",

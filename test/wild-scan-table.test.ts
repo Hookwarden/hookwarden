@@ -74,6 +74,9 @@ describe("wild-scan renderTable", () => {
     const out = renderTable(sampleAggregate());
     expect(out).toContain("| GitHub integrations | 0 | 0 | 0 | — |");
     expect(out).toContain("| Twilio integrations | 0 | 0 | 0 | — |");
+    expect(out).toContain("| PayPal integrations | 0 | 0 | 0 | — |");
+    expect(out).toContain("| Braintree integrations | 0 | 0 | 0 | — |");
+    expect(out).toContain("| NMI integrations | 0 | 0 | 0 | — |");
   });
 
   it("excludes the engine/parse-error row from the table but discloses it as a footnote", () => {
