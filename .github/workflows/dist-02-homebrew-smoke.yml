@@ -35,13 +35,15 @@ jobs:
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
 
-      - name: brew tap + install + version smoke
+      - name: brew install + version smoke
         run: |
           set -euo pipefail
-          brew tap Hookwarden/tap
-          brew install hookwarden
+          # Homebrew 6 Tap Trust (https://docs.brew.sh/Tap-Trust): `brew tap` + a short-name
+          # install is refused for an untrusted tap; a fully qualified install trusts just this
+          # formula. Same command the README tells users to run.
+          brew install Hookwarden/tap/hookwarden
           INSTALLED_VERSION=$(hookwarden --version | head -1)
-          FORMULA_VERSION=$(brew info --json=v2 hookwarden | jq -r '.formulae[0].versions.stable')
+          FORMULA_VERSION=$(brew info --json=v2 Hookwarden/tap/hookwarden | jq -r '.formulae[0].versions.stable')
           echo "Installed: $INSTALLED_VERSION"
           echo "Formula:   $FORMULA_VERSION"
           # DIST-02 success criterion: formula version MUST appear in binary --version output
