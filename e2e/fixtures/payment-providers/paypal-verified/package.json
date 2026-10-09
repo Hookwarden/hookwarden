@@ -1,0 +1,5 @@
+{
+  "name": "fixture-paypal-verified",
+  "private": true,
+  "dependencies": { "express": "^4.21.0" }
+}

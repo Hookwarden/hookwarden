@@ -91,9 +91,9 @@ describe("wild-scan renderTable", () => {
     expect(out.indexOf("n8n integrations")).toBeLessThan(out.indexOf("Stripe integrations"));
   });
 
-  it("keeps the canonical '21 providers' claim and a non-hardcoded framing note", () => {
+  it("keeps the canonical '27 providers' claim and a non-hardcoded framing note", () => {
     const out = renderTable(sampleAggregate());
-    expect(out).toContain("across **21 providers**");
+    expect(out).toContain("across **27 providers**");
     // Framing note must not re-hardcode the stale 6-provider list.
     expect(out).not.toContain("not in Stripe / GitHub / Shopify / Slack / Twilio / Square");
   });

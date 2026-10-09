@@ -128,7 +128,7 @@ function escapeRegExp(s: string): string {
 // followed by `,` or `)` — so `req.json()` (request as receiver) and `fn(req.body)` (a parsed
 // property) do NOT match: those consume the body, making downstream verification impossible (still
 // not-verified). Uses redacted_snippet + reachable_symbols, both always present on the handler.
-function delegatesRawRequestToImportedCallee(handler: WebhookHandler): boolean {
+export function delegatesRawRequestToImportedCallee(handler: WebhookHandler): boolean {
   const snippet = handler.redacted_snippet;
   if (!snippet) return false;
   for (const sym of handler.reachable_symbols) {

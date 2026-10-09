@@ -395,7 +395,7 @@ PHP 8.0+ syntax floor. Python 3.10+ recommended. TypeScript: strict + non-strict
 
 ## 🔐 Provider coverage
 
-249 rules across 24 providers, each applicable across the relevant subset of the 15 frameworks above. Every rule carries fix guidance quoted verbatim from the provider's canonical security documentation.
+270 rules across 27 providers, each applicable across the relevant subset of the 15 frameworks above. Every rule carries fix guidance quoted verbatim from the provider's canonical security documentation.
 
 <p align="center">
   <a href="https://github.com/Hookwarden/hookwarden/tree/main/packages/rules/rules/stripe"><img src="https://img.shields.io/badge/Stripe-6366F1?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe" /></a>
@@ -532,7 +532,7 @@ Hookwarden is **specialized on purpose.** Webhook signature verification is the 
 | **GitGuardian** | Secret leak detection in git history and CI | Finds hardcoded secrets; does not audit whether verification logic is correct |
 | **TruffleHog** | Secret scanning across sources | Same as GitGuardian — leak focus, not logic focus |
 | **Datadog Static Analysis** | Broad SAST; good AWS/cloud signal | No webhook verification specialization; generic SAST rules produce low-signal findings for this class of bug |
-| **hookwarden** | Webhook verification logic only | 249 rules (100% cited), 24 providers, three-state verdicts |
+| **hookwarden** | Webhook verification logic only | 270 rules (100% cited), 27 providers, three-state verdicts |
 
 If you're already running semgrep or snyk: hookwarden is additive, not a replacement. It finds the class of bug those tools were not built to find.
 
@@ -656,7 +656,7 @@ pre-commit hook · Homebrew tap · Scoop/WinGet manifests · standalone binaries
 
 ## 🤝 Contributing
 
-Rule-pack PRs are the highest-value contribution. Adding a new provider is a catalog edit plus N rule YAMLs — the factory architecture means most providers ship without any new TypeScript. See the existing 24 providers in [`packages/rules/rules/`](https://github.com/Hookwarden/hookwarden/tree/main/packages/rules/rules) as worked examples.
+Rule-pack PRs are the highest-value contribution. Adding a new provider is a catalog edit plus N rule YAMLs — the factory architecture means most providers ship without any new TypeScript. See the existing 27 providers in [`packages/rules/rules/`](https://github.com/Hookwarden/hookwarden/tree/main/packages/rules/rules) as worked examples.
 
 Bug reports and feature requests: [open an issue](https://github.com/Hookwarden/hookwarden/issues).
 

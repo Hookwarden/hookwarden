@@ -21,11 +21,15 @@ describe("PROVIDER_CATALOG (D-33)", () => {
     // "/webhook" here would cause false provider attribution against bare webhook routes
     // belonging to other providers (e.g. tied Stripe + standardwebhooks → provider="multiple").
     const noCanonicalPath = new Set(["standardwebhooks"]);
+    // Providers with no first-party webhook SDK — verification is hand-rolled HMAC only.
+    const noWebhookSdk = new Set(["nmi"]);
     for (const provider of Object.keys(PROVIDER_CATALOG)) {
       const entry = PROVIDER_CATALOG[provider];
       expect(entry, `provider ${provider}`).toBeDefined();
       expect(entry?.signature_header.length).toBeGreaterThan(0);
-      expect(entry?.sdk_packages.length).toBeGreaterThan(0);
+      if (!noWebhookSdk.has(provider)) {
+        expect(entry?.sdk_packages.length, `provider ${provider}`).toBeGreaterThan(0);
+      }
       expect(entry?.sdk_verify_calls.length).toBeGreaterThan(0);
       expect(entry?.secret_env_prefix.length).toBeGreaterThan(0);
       // D-95: secret_literal_prefix MAY be empty (e.g., Shopify webhook secrets have no

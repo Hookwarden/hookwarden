@@ -1193,4 +1193,141 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
     signature_encoding: "hex",
     applicable_rules: ["library-verified", "missing-signature-verification"],
   },
+  // NMI (Network Merchants) payment-gateway webhooks. HMAC-SHA256, lowercase hex, over
+  // `<nonce>.<raw body>`; header `Webhook-Signature: t=<nonce>,s=<signature>`
+  // (https://docs.nmi.com/reference/overview). `t` is a NONCE, not a timestamp — there is no
+  // replay window, so missing-timestamp-check / replay-window-too-permissive do not apply.
+  // No first-party webhook SDK: verification is hand-rolled (createHmac / hmac.new / hash_hmac),
+  // recognized by the shared manual-HMAC entry points like Intercom.
+  // `webhook-signature` is also Standard Webhooks' header name, so a handler with ONLY that header
+  // signal ties (provider "multiple"); NMI attribution needs an NMI path, env var, or host.
+  nmi: {
+    signature_header: ["webhook-signature"],
+    sdk_packages: [],
+    // Generic constant-time compare marks the verification point for verify-after-side-effect
+    // ordering (same precedent as n8n / anthropic-agent-sdk); recomputeProvider ignores these for
+    // attribution. JS only — a bare PHP global here would contaminate the shared PHP overlay.
+    sdk_verify_calls: ["timingSafeEqual", "crypto.timingSafeEqual"],
+    secret_env_prefix: ["NMI_WEBHOOK", "NMI_SIGNING_KEY"],
+    secret_literal_prefix: [],
+    conventional_paths: ["/webhooks/nmi", "/api/webhooks/nmi", "/nmi/webhook", "/nmi/webhooks"],
+    hmac_algorithm: "sha256",
+    signing_input_format: "timestamp_dot_body", // nonce + "." + raw body
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [
+      "missing-signature-verification",
+      "timing-unsafe-comparison",
+      "raw-body-misuse",
+      "wrong-hmac-algorithm",
+      "unreachable-verification",
+      "verify-after-side-effect",
+      "verification-error-swallowed",
+      "test-mode-bypass",
+      "secret-in-log-or-error",
+    ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    replay_tolerance_max_seconds: null,
+    provider_api_hosts: ["secure.nmi.com", "secure.networkmerchants.com"],
+  },
+  // Braintree (PayPal) webhooks. Delivered as form fields `bt_signature` + `bt_payload`, not a
+  // signature header; the SDK's `webhookNotification.parse(bt_signature, bt_payload)` verifies the
+  // signature (HMAC-SHA1 keyed by the API key pair) and throws InvalidSignature on mismatch
+  // (https://developer.paypal.com/braintree/docs/guides/webhooks/parse). Verification is
+  // library-only in practice, so the HMAC-shape rules (timing / raw-body / wrong-algorithm) don't
+  // apply; `hmac_algorithm` records the SDK's internal digest. Attribution comes from the
+  // `braintree` SDK import, `/braintree` paths and BRAINTREE_* env vars.
+  braintree: {
+    // Not an HTTP header: the signature arrives as the `bt_signature` form field. Signal E matches
+    // header names as handler text, so the field name still attributes the handler to Braintree.
+    signature_header: ["bt_signature"],
+    sdk_packages: ["braintree", "Braintree\\"],
+    sdk_verify_calls: [
+      "webhookNotification.parse", // Node: gateway.webhookNotification.parse(sig, payload)
+      "webhook_notification.parse", // Python: gateway.webhook_notification.parse(sig, payload)
+      "WebhookNotification.parse", // Python legacy: braintree.WebhookNotification.parse(...)
+      "Braintree\\WebhookNotification::parse", // PHP legacy static
+      "WebhookNotification::parse",
+    ],
+    secret_env_prefix: ["BRAINTREE_PRIVATE_KEY"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/braintree",
+      "/api/webhooks/braintree",
+      "/braintree/webhook",
+      "/braintree/webhooks",
+    ],
+    hmac_algorithm: "sha1",
+    signing_input_format: "custom_field_tuple", // bt_signature over bt_payload, SDK-verified
+    timestamp_header: null,
+    signature_encoding: "hex",
+    applicable_rules: [
+      "library-verified",
+      "missing-signature-verification",
+      "verify-after-side-effect",
+      "verification-error-swallowed",
+      "test-mode-bypass",
+      "secret-in-log-or-error",
+    ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    replay_tolerance_max_seconds: null,
+    provider_api_hosts: ["api.braintreegateway.com", "api.sandbox.braintreegateway.com"],
+  },
+  // PayPal REST webhooks. Asymmetric: PayPal signs `transmission_id|transmission_time|webhook_id|
+  // crc32(body)` with SHA256withRSA; the receiver either verifies locally against the cert at
+  // `paypal-cert-url`, or posts the headers + event back to `/v1/notifications/verify-webhook-
+  // signature` (https://developer.paypal.com/api/rest/webhooks/rest/). Neither is HMAC, so
+  // signing_input_format 'custom' dispatches to predicates/custom/paypal-signing.ts; the hmac_*
+  // fields are inert pins (like Postmark/Discord). Secret list is the REST client secret only —
+  // PAYPAL_WEBHOOK_ID is an identifier, not a secret, and must not trip secret-in-log-or-error.
+  paypal: {
+    signature_header: [
+      "paypal-transmission-sig",
+      "paypal-transmission-id",
+      "paypal-transmission-time",
+      "paypal-cert-url",
+    ],
+    sdk_packages: [
+      "paypal-rest-sdk",
+      "paypalrestsdk",
+      "@paypal/paypal-server-sdk",
+      "@paypal/checkout-server-sdk",
+      "PayPal\\",
+    ],
+    sdk_verify_calls: [
+      "webhookEvent.verify", // Node paypal-rest-sdk: paypal.notification.webhookEvent.verify(...)
+      "WebhookEvent.verify", // Python paypalrestsdk: WebhookEvent.verify(...)
+    ],
+    secret_env_prefix: ["PAYPAL_CLIENT_SECRET", "PAYPAL_SECRET"],
+    secret_literal_prefix: [],
+    conventional_paths: [
+      "/webhooks/paypal",
+      "/api/webhooks/paypal",
+      "/paypal/webhook",
+      "/paypal/webhooks",
+    ],
+    hmac_algorithm: "sha256", // inert (SHA256withRSA, not HMAC)
+    signing_input_format: "custom",
+    timestamp_header: "paypal-transmission-time",
+    signature_encoding: "base64",
+    applicable_rules: [
+      "library-verified",
+      "missing-signature-verification",
+      "verify-after-side-effect",
+      "verification-error-swallowed",
+      "test-mode-bypass",
+      "secret-in-log-or-error",
+    ],
+    // v0.7 Rule Depth (VAS-01)
+    ...SHARED_VAS_SINKS,
+    replay_tolerance_max_seconds: null,
+    provider_api_hosts: [
+      "api.paypal.com",
+      "api-m.paypal.com",
+      "api.sandbox.paypal.com",
+      "api-m.sandbox.paypal.com",
+    ],
+  },
 };

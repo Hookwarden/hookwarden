@@ -1,0 +1,5 @@
+{
+  "name": "fixture-nmi-verified",
+  "private": true,
+  "dependencies": { "express": "^4.21.0" }
+}

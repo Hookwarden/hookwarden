@@ -1,7 +1,7 @@
 {
   "name": "@hookwarden/mcp",
   "version": "0.9.4",
-  "description": "Model Context Protocol server for hookwarden — exposes the scan_handler tool so AI coding agents (Claude Code, Cursor, Continue, Anthropic Agent SDK) can find webhook signature-verification bugs locally across JavaScript, TypeScript, Python, PHP, and Go. 249 rules across 24 providers, 100% cited (CWE / RFC / Svix). Zero-network, deterministic, ships the rule pack inline with content-hash drift detection.",
+  "description": "Model Context Protocol server for hookwarden — exposes the scan_handler tool so AI coding agents (Claude Code, Cursor, Continue, Anthropic Agent SDK) can find webhook signature-verification bugs locally across JavaScript, TypeScript, Python, PHP, and Go. 270 rules across 27 providers, 100% cited (CWE / RFC / Svix). Zero-network, deterministic, ships the rule pack inline with content-hash drift detection.",
   "keywords": [
     "mcp",
     "model-context-protocol",

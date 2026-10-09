@@ -1,0 +1,36 @@
+schema_version: 1
+rule_id: braintree/library-verified
+provider: braintree
+severity: info
+emits_state: verified
+message: |
+  Library-based verification detected: the Braintree SDK's
+  `webhookNotification.parse` (Node), `webhook_notification.parse` (Python),
+  or `WebhookNotification::parse` (PHP) is reachable from this handler within
+  3 hops. The SDK checks `bt_signature` against `bt_payload` with your API
+  key pair and throws `InvalidSignature` on mismatch.
+matcher: null
+predicate: braintree-library-verified
+applies_to:
+  - express
+  - hono
+  - cloudflare-workers
+  - vercel-edge
+  - deno
+  - fastify
+  - nextjs
+  - flask
+  - fastapi
+  - django
+  - laravel
+  - symfony
+  - slim
+  - vanilla-php
+provider_docs_url: https://developer.paypal.com/braintree/docs/guides/webhooks/parse
+references:
+  - https://developer.paypal.com/braintree/docs/guides/webhooks/parse
+  - https://developer.paypal.com/braintree/docs/reference/general/exceptions/node#invalid-signature
+fix:
+  safety: manual-only
+  description: "Apply the fix manually per the provider documentation — see provider_docs_url"
+  codegen: null
