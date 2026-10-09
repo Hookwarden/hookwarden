@@ -1,5 +1,13 @@
 # @hookwarden/fix
 
+## 0.12.0
+
+### Patch Changes
+
+- Updated dependencies [d412f4e]
+- Updated dependencies [4486c54]
+  - @hookwarden/engine@0.12.0
+
 ## 0.11.2
 
 ### Patch Changes
