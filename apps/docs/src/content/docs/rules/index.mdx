@@ -1,11 +1,11 @@
 ---
 title: Rule coverage
-description: Every webhook signature-verification rule hookwarden ships — 45 rules across 6 providers, JS/TS, Python, and PHP — and the three-state verdict each one produces.
+description: Every webhook signature-verification rule hookwarden ships — 270 rules across 27 providers, JS/TS, Python, PHP, and Go — and the three-state verdict each one produces.
 ---
 
-hookwarden ships **45 rules** across **6 providers**. Every rule is data, not engine code — defined in a YAML file under [`packages/rules/rules/`](https://github.com/Hookwarden/hookwarden/tree/main/packages/rules/rules), bundled into the binary at build time, and versioned as `@hookwarden/rules`.
+hookwarden ships **270 rules** across **27 providers**. Every rule is data, not engine code — defined in a YAML file under [`packages/rules/rules/`](https://github.com/Hookwarden/hookwarden/tree/main/packages/rules/rules), bundled into the binary at build time, and versioned as `@hookwarden/rules`.
 
-This section documents what each rule detects, the verdict it produces, and how to fix it. Pick a provider:
+This section documents what each rule detects, the verdict it produces, and how to fix it, for the six most-used providers. The full per-provider list for all 27 is in [rule coverage](https://github.com/Hookwarden/hookwarden/blob/main/docs/rule-coverage.md). Pick a provider:
 
 - [Stripe](/rules/stripe/) — 9 rules
 - [GitHub](/rules/github/) — 9 rules
