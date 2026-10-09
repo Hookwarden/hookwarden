@@ -218,6 +218,9 @@ function scanOne(hw: string, dir: string): ScanResult | null {
   const res = spawnSync(hw, ["scan", dir, "--format", "json"], {
     encoding: "utf8",
     maxBuffer: 200 * 1024 * 1024,
+    // ponytail: flat 5-min cap per target so one hung repo (PostHog, 2026-10-05) is recorded
+    // as a failed target instead of eating the job timeout; killed scans fail JSON.parse → null.
+    timeout: 5 * 60 * 1000,
   });
   // Exit codes: 0 = clean, 1 = findings at threshold. Either has parseable JSON.
   // Exit codes 2+ = engine error → null aggregate.
