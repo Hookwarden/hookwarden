@@ -47,7 +47,7 @@ jobs:
       # saves a fresh cache; restore-keys pulls the most recent previous baseline. Cache is not
       # publicly downloadable, so per-target findings stay private.
       - name: Restore baseline
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .daily-scan-cache
           key: daily-scan-baseline-${{ github.run_id }}
@@ -65,7 +65,7 @@ jobs:
 
       - name: Email new findings
         if: steps.scan.outputs.has_new == 'true' || steps.scan.outputs.is_first_run == 'true'
-        uses: dawidd6/action-send-mail@v4
+        uses: dawidd6/action-send-mail@v22
         with:
           server_address: smtp.gmail.com
           server_port: 465
