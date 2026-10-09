@@ -5,9 +5,8 @@ name: Daily vuln scan (email on new findings)
 # in bugs-in-the-wild.md), and emails NEW findings to the maintainer.
 #
 # Required repo secrets (Settings → Secrets and variables → Actions):
-#   MAIL_USERNAME  your Gmail address (the SMTP login + From address)
+#   MAIL_USERNAME  your Gmail address (SMTP login, From and To address)
 #   MAIL_PASSWORD  a Gmail App Password (not your normal password; needs 2FA enabled)
-# Recipient is pinned to adelina.lipsa@gmail.com below.
 
 on:
   workflow_dispatch:
@@ -72,6 +71,6 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           from: hookwarden daily scan <${{ secrets.MAIL_USERNAME }}>
-          to: adelina.lipsa@gmail.com
+          to: ${{ secrets.MAIL_USERNAME }}
           subject: ${{ steps.scan.outputs.subject }}
           body: file://daily-scan-report.txt
