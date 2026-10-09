@@ -49,6 +49,29 @@ export interface ComputeEvidenceOutput {
   readonly provider: string; // resolved provider | "unknown" | "multiple"
 }
 
+// Owners of each signature header claimed by more than one provider: the claimants the handler's
+// other evidence already points at, or, with none, the first provider that declared the header.
+// Headers claimed by a single provider are absent from the map (no restriction).
+function sharedHeaderOwners(
+  catalog: ProviderCatalog,
+  evidencedProviders: ReadonlySet<string>,
+): ReadonlyMap<string, ReadonlySet<string>> {
+  const claimants = new Map<string, string[]>();
+  for (const [providerName, entry] of Object.entries(catalog)) {
+    for (const header of entry.signature_header) {
+      const key = header.toLowerCase();
+      claimants.set(key, [...(claimants.get(key) ?? []), providerName]);
+    }
+  }
+  const owners = new Map<string, ReadonlySet<string>>();
+  for (const [header, providers] of claimants) {
+    if (providers.length < 2) continue;
+    const evidenced = providers.filter((p) => evidencedProviders.has(p));
+    owners.set(header, new Set(evidenced.length > 0 ? evidenced : providers.slice(0, 1)));
+  }
+  return owners;
+}
+
 export function computeEvidence(input: ComputeEvidenceInput): ComputeEvidenceOutput {
   const out: WebhookEvidence[] = [];
   const handlerLoc = input.handler.location;
@@ -130,11 +153,22 @@ export function computeEvidence(input: ComputeEvidenceInput): ComputeEvidenceOut
   // uses underscored uppercase form (`$_SERVER['HTTP_STRIPE_SIGNATURE']`). The catalog stores
   // the canonical hyphen form; we additionally check the PHP-normalized underscore form so a
   // single catalog entry covers both source dialects.
+  //
+  // A header name claimed by several providers (Standard Webhooks and NMI both use
+  // `webhook-signature`) must not count for every claimant, or a handler whose only signal is that
+  // header ties → "multiple" and every rule goes silent. A shared header counts for the claimants
+  // the handler's other evidence (signals A–D above) already points at; with none, for the first
+  // provider that declared it.
+  const headerOwners = sharedHeaderOwners(
+    input.providerCatalog,
+    new Set(out.map((e) => e.provider)),
+  );
   const handlerLower = handlerText.toLowerCase();
   for (const [providerName, entry] of Object.entries(input.providerCatalog)) {
     for (const header of entry.signature_header) {
       const hyphen = header.toLowerCase();
       const underscore = hyphen.replace(/-/g, "_");
+      if (headerOwners.get(hyphen)?.has(providerName) === false) continue;
       if (handlerLower.includes(hyphen) || handlerLower.includes(underscore)) {
         out.push({
           kind: "signature_header_read",

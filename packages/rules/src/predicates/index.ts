@@ -33,7 +33,10 @@ import type { ProviderCatalogEntry, RulePredicate } from "@hookwarden/engine";
 import { PROVIDER_CATALOG } from "../catalog.js";
 import { bitbucketSignaturePrefixNotStrippedPredicate } from "./bitbucket-signature-prefix.js";
 import { calendlySignatureHeaderParseMishandledPredicate } from "./calendly-header-parse.js";
-import { paypalVerifyAfterSideEffectPredicate } from "./custom/paypal-signing.js";
+import {
+  paypalLibraryVerifiedPredicate,
+  paypalVerifyAfterSideEffectPredicate,
+} from "./custom/paypal-signing.js";
 import {
   discordLibraryVerifiedPredicate,
   discordMissingVerificationPredicate,
@@ -899,12 +902,9 @@ export const ALL_PREDICATES: Readonly<Record<string, RulePredicate>> = {
   ),
   "braintree-verify-after-side-effect": createVerifyAfterSideEffectPredicate("braintree"),
   // PayPal pack — SHA256withRSA (not HMAC). missing-signature-verification dispatches through the
-  // D-92 custom slot (predicates/custom/paypal-signing.ts): SDK verify / postback → verified,
-  // local RSA → manual-review, nothing → not-verified.
-  "paypal-library-verified": createLibraryVerifiedPredicate(
-    "paypal",
-    PROVIDER_CATALOG["paypal"]?.sdk_verify_calls ?? [],
-  ),
+  // D-92 custom slot (predicates/custom/paypal-signing.ts): SDK verify / postback with the result
+  // checked → verified, unchecked result / local RSA → manual-review, nothing → not-verified.
+  "paypal-library-verified": paypalLibraryVerifiedPredicate,
   "paypal-missing-signature-verification": createMissingSignatureVerificationPredicate(
     "paypal",
     PROVIDER_CATALOG["paypal"] as ProviderCatalogEntry,

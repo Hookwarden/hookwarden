@@ -1249,6 +1249,9 @@ export const PROVIDER_CATALOG: ProviderCatalog = {
       "WebhookNotification.parse", // Python legacy: braintree.WebhookNotification.parse(...)
       "Braintree\\WebhookNotification::parse", // PHP legacy static
       "WebhookNotification::parse",
+      // PHP instance form `$gateway->webhookNotification()->parse(...)` — matched by the PHP
+      // overlay's shape (b): `->webhookNotification(` in the handler + `Braintree\Gateway` imported.
+      "Braintree\\Gateway::webhookNotification",
     ],
     secret_env_prefix: ["BRAINTREE_PRIVATE_KEY"],
     secret_literal_prefix: [],

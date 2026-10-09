@@ -112,3 +112,44 @@ describe.each(["nmi", "braintree", "paypal"])("%s provider pack — filesystem E
     expect(flagged).toEqual([]);
   });
 });
+
+// Regression cases from code review of the provider packs.
+describe("payment-provider packs — review regressions", () => {
+  it("a header-only Standard Webhooks handler stays standardwebhooks (NMI shares the header) and is flagged", async () => {
+    const env = await scanFixtureJson("standardwebhooks-header-only");
+    expect(env.scan.inventory.map((h) => h.provider)).toEqual(["standardwebhooks"]);
+    const missing = env.scan.findings.find(
+      (f) => f.rule_id === "standardwebhooks/missing-signature-verification",
+    );
+    expect(missing?.state).toBe("not-verified");
+  });
+
+  it("a PayPal postback whose verification_status is never checked is not treated as verified", async () => {
+    const env = await scanFixtureJson("paypal-postback-unchecked");
+    expect(env.scan.inventory.map((h) => h.provider)).toEqual(["paypal"]);
+    expect(env.scan.findings.some((f) => f.rule_id === "paypal/library-verified")).toBe(false);
+    const missing = env.scan.findings.find(
+      (f) => f.rule_id === "paypal/missing-signature-verification",
+    );
+    expect(missing?.state).toBe("manual-review");
+  });
+
+  it("an unverified PayPal route does not inherit another route's postback in the same file", async () => {
+    const env = await scanFixtureJson("paypal-mixed-routes");
+    const findings = env.scan.findings.filter((f) => f.rule_id.startsWith("paypal/"));
+    expect(findings.filter((f) => f.rule_id === "paypal/library-verified")).toHaveLength(1);
+    expect(
+      findings.some(
+        (f) => f.rule_id === "paypal/missing-signature-verification" && f.state !== "verified",
+      ),
+    ).toBe(true);
+  });
+
+  it("Braintree PHP instance form $gateway->webhookNotification()->parse() is recognized", async () => {
+    const env = await scanFixtureJson("braintree-php-instance");
+    expect(env.scan.inventory.map((h) => h.provider)).toEqual(["braintree"]);
+    expect(env.scan.findings.map((f) => `${f.rule_id}:${f.state}`)).toEqual([
+      "braintree/library-verified:verified",
+    ]);
+  });
+});

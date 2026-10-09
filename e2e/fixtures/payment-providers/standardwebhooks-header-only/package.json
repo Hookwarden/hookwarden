@@ -1,0 +1,5 @@
+{
+  "name": "fixture-standardwebhooks-header-only",
+  "private": true,
+  "dependencies": { "express": "^4.21.0" }
+}
