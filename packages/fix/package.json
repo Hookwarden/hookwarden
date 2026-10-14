@@ -40,7 +40,7 @@
   "dependencies": {
     "@hookwarden/engine": "workspace:*",
     "@babel/generator": "^8.0.6",
-    "@babel/traverse": "^8.0.6"
+    "@babel/traverse": "^8.0.7"
   },
   "devDependencies": {
     "@babel/types": "^8.0.6"
