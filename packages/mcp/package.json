@@ -59,7 +59,7 @@
     "citty": "^0.2.2",
     "picocolors": "^1.1.1",
     "web-tree-sitter": "0.27.0",
-    "zod": "^3.25 || ^4.0"
+    "zod": "^4.6"
   },
   "devDependencies": {
     "@modelcontextprotocol/inspector": "^2.10.1",
