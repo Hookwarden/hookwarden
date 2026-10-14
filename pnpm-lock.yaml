@@ -137,8 +137,8 @@ importers:
         specifier: ^0.25.0
         version: 0.25.0
       web-tree-sitter:
-        specifier: 0.27.0
-        version: 0.27.0
+        specifier: 0.27.1
+        version: 0.27.1
 
   packages/engine:
     dependencies:
@@ -149,8 +149,8 @@ importers:
         specifier: ^4.0.7
         version: 4.0.7
       web-tree-sitter:
-        specifier: ^0.27.0
-        version: 0.27.0
+        specifier: ^0.27.1
+        version: 0.27.1
     devDependencies:
       '@babel/types':
         specifier: ^8.0.6
@@ -233,8 +233,8 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1
       web-tree-sitter:
-        specifier: 0.27.0
-        version: 0.27.0
+        specifier: 0.27.1
+        version: 0.27.1
       zod:
         specifier: ^3.25 || ^4.0
         version: 4.4.3
@@ -3804,8 +3804,8 @@ packages:
     engines: {node: ^22.13||^24||>=26}
     hasBin: true
 
-  web-tree-sitter@0.27.0:
-    resolution: {integrity: sha512-XK08gj6RwTMQatAG7uVRP8MunqotL/XC19vHgkSPKmELgbGPBj4ECvB8haHOUnyj6ls2B8t42UTro14zxGgAHg==}
+  web-tree-sitter@0.27.1:
+    resolution: {integrity: sha512-qtx0VyUyNRHtL3ze7+v0hCKB/sLcAmY7ZAVp/ZK/bCj0yED8ptvNrr7Vd7DwDyKDWN9baqcUx4uaD2r2ql+6IA==}
 
   when-exit@2.1.5:
     resolution: {integrity: sha512-VGkKJ564kzt6Ms1dbgPP/yuIoQCrsFAnRbptpC5wOEsDaNsbCB2bnfnaA8i/vRs5tjUSEOtIuvl9/MyVsvQZCg==}
@@ -7436,7 +7436,7 @@ snapshots:
 
   watskeburt@6.0.0: {}
 
-  web-tree-sitter@0.27.0: {}
+  web-tree-sitter@0.27.1: {}
 
   when-exit@2.1.5: {}
 
